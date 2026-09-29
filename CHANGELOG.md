@@ -31,6 +31,9 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); ver
   vocabulary exemptions. Design note `docs/zh-CN/llm-integration-2026-09-29.md`; close reading of
   PureDocBench, OmniDocBench and Synthetic Hospital with pipeline v2 in
   `docs/zh-CN/research-2026-09-29-puredocbench.md`.
+- `mirobody-gen paraphrase --refine N`: rejected candidates go back to the model with their reasons
+  (progressive refinement after Kramer et al. 2026); design note §7 records the revised plan (L0: knowledge
+  profile → cohort spec) and nine newly surveyed references in `docs/paper/refs.bib`.
 
 ### Changed
 - Readings are routed to tables by the most complete order group, so basic and premium liver panels

@@ -3,13 +3,14 @@
  "_note": "Prompts for the optional language-model layer (mirobody_gen/llm). Versioned here so that every paraphrase resource can name the prompt it came from. The prompts describe the contract in llm/contract.py; the contract, not the prompt, is what decides acceptance.",
  "_provenance": {
   "author": "hand-authored in this repository",
-  "version": "2026-09-29.1",
+  "version": "2026-09-29.2",
   "script": null
  },
  "_vocabulary_fields": [
   "system",
   "user",
-  "registers"
+  "registers",
+  "refine"
  ],
  "system": {
   "zh": "你是一名中文医学报告编辑。任务是把一条报告模板改写成意思相同、措辞不同的版本。规则：保留每一个花括号槽位（名字和次数都不能变）；不新增、不修改任何数字；给出的锁定词必须原样出现；不写机构名、人名、编号、日期；不加解释、不加免责声明；长度与原句相近。只输出一个 JSON 字符串数组。",
@@ -44,5 +45,9 @@
    "zh": "门诊病历的主诉，简短、名词化",
    "en": "a chief complaint line in a clinic note; short, nominal"
   }
+ },
+ "refine": {
+  "zh": "上一轮的这些候选被程序校验拒绝，原因附在每条后面：\n{rejected}\n请针对原因修正，再给出 {n} 条新的说法。仍然只输出 JSON 字符串数组。",
+  "en": "These candidates from the previous round were rejected by the validator, with the reason after each:\n{rejected}\nFix the reasons and give {n} new wordings. Output only a JSON array of strings."
  }
 }

@@ -199,6 +199,16 @@ ESL-Bench 用户 → 渲染成文件 → mirobody 产线入库 → 跑 ESL-Bench
 人工校样台（`harness/review/`）收人工判定，算面板与人工的一致性。动机：Kramer 等 [kramer2026leveraging]
 重复评分时评审模型间差异可大过被评对象间差异。
 
+### E9 生成器鲁棒性 ⬜（LLM 层启用后必做）
+
+同一 sealed seed 的真值，用模型 A、B 各出一套改写/模板资源渲染两套语料；被评系统的排名 Spearman ρ ≥ 0.8、主指标 |Δ| ≤ 0.05
+才算语料不偏向某模型（Synthetic Hospital 附录 C.2 的设计）。
+
+### E10 / E11 表面多样性的配对代价 ⬜
+
+对照对 `base` vs `view:paraphrase` / `view:template:<family>`，语义真值不变；报抽取与编码的配对差。
+Liu 等 2026 的结果给出预期：整篇改写会丢细节，模板级 + 锁定词应把编码损失压到接近零——这正是要量的。
+
 ### E7 评测口径的效度 ✅（C3 的证据）
 
 MedRepBench 标注上的标记约定上限（92.3 / 88.2 / 86.8%）；按序截断对 oracle 与规则基线的影响；
@@ -213,7 +223,11 @@ MedRepBench 标注上的标记约定上限（92.3 / 88.2 / 86.8%）；按序截�
 | Synthea [walonoski2018synthea] | 状态机病程与诊疗路径 | 种子层来源 |
 | Chen 等 2019 [chen2019validity] | 临床质量指标验证 Synthea | 结局建模薄弱；未查化验值一致性 |
 | Hodges 等 2023 [hodges2023medication] | 用 MEPS 修 Synthea 用药分布 | 外挂修正某一层的先例 |
-| Kramer 等 2026 [kramer2026leveraging] | LLM 生成 Synthea 模块 | 编码幻觉需外部校验 |
+| Kramer 等 2026 [kramer2026leveraging] | LLM 从带出处的"疾病档案"生成 Synthea 模块，两级验证 + 渐进式修正 | 借"档案 → 确定性引擎、逐条溯源、程序验证反馈给模型"的框架（L0）；编码幻觉需外部校验；它做不了的人群级验证我们能做（生成秒级） |
+| Lin 等 2025 [lin2025commercial] | 商用 LLM 直接生成结构化病历 | 维度一上去分布与相关性就失真——LLM 不写值的依据 |
+| Patient-Zero [lai2025patientzero] | 从指南分层置换出虚拟患者，医生盲判分不出 | 同样"知识而非真实记录"的来源；它由 LLM 渲染全部内容，我们只让它改表面 |
+| Poulett 等 2026 [poulett2026longitudinal] | 结构化患者 → 病程 → LLM 写病历，LLM 校验与增补 | 叙事层邻居；无文件/图像层 |
+| Liu 等 2026 [liu2026rephrased] | 百万级 LLM 改写病历的系统评测 | 整篇改写丢细节（ICD 编码掉分）、按块改写少丢——支持模板级改写与锁定词契约（L2、E10） |
 | PySynthea [cruz2026pysynthea] | Synthea 的 Python 重写 | 继承了观测层问题（E5） |
 | ESL-Bench [li2026eslbench] | 事件驱动纵向合成，三级验证 | **姊妹工作**：我们补文档层 |
 | HALO [theodorou2023halo] | 在真实 EHR 上训练生成模型 | 数据驱动路线；我们刻意不走 |
@@ -244,6 +258,9 @@ HealthAgentBench [liu2026healthagentbench]、ESL-Bench。**共同点**：数据�
 | Yu 等 [medrxiv2026ie] | 1,000 份合成基因检测报告，7 个模板 + 传真劣化 | 合成 + 劣化路线的先例；我们的版式空间来自 627 份真实文档 |
 | DocILE [simsa2023docile] / DTBench [guo2026dtbench] | 通用文档抽取；难度轴可控 | — |
 | Donut/SynthDoG [kim2022donut] / Augraphy [maini2023augraphy] | 渲染与劣化工程 | 图像层 |
+| olmOCR 2 [poznanski2025olmocr2] | 合成 HTML + 从源码抽二元单元测试当训练奖励 | "源编译 + 单元测试"的同构；我们的可读性审计就是这类测试，L1 模板要附带它 |
+| OmniDocLayout [kang2025omnidoclayout] / RIDGE [jiang2025ridge] | LLM 生成多样版式 / 关系丰富的文档 | L1 的可行性依据；它们生成内容+版式，我们只要容器 |
+| Bevin 等 2025 [bevin2025invoices] | 真实票据保版式换内容（OCR + LLM + 修补） | 与我们相反的方向：真实件不能进我们的链路；对齐视图是它在合成侧的对应物 |
 
 ### 7.6 合成评测的效度
 
@@ -293,6 +310,10 @@ Gill 等 [gill2025lost]：LLM 生成的评测集更容易、不保持排序—�
 10. **规则基线不是证据**：E3 的规则基线只验证链路。关于陷阱效应的结论必须来自真实系统。
 11. **字体**：`×10⁹/L`（上标 9）在内置字体里没有字形，已从版式空间里去掉；图像层换字体后再加回。
     渲染器对缺字形直接报错，不静默出片。
+12. **模型偏向**（若启用 LLM 层）：改写与模板所用的模型可能让语料偏向它。对策：E9 换模型重渲染、排名 Spearman ρ ≥ 0.8；
+    改写只在模板级、真值程序化；模型产出以不可信文本过隐私闸门。评审模型的方差先测后用（Kramer 等表 1）。
+13. **内部效度先于外部效度**（Degli Esposti 2026 [degliesposti2026calibrating]）：生成器对"已知方向的刺激"是否作出有序、可复现的响应
+    （他汀效应加倍 → LDL 分布相应下移；档案里写 ALT ×2 → 生成队列里 ALT 中位数 ×2）。这类刺激—响应检验应先于任何"像真的"主张。
 
 ## 10. 与 ESL-Bench 的关系
 

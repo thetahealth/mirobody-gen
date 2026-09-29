@@ -104,6 +104,13 @@ def test_dry_run_and_apply_round_trip():
         assert payload["_provenance"]["rejected"] and payload["_provenance"]["accepted"] <= 1
 
 
+def test_refine_prompt_carries_the_rejects_and_their_reasons():
+    rejected = [("甲状腺{side}叶{echo}结节{mm}mm。", ["length ratio 0.30 outside [0.6, 1.6]"])]
+    system, user = paraphrase.refine_prompt(REQ, rejected, 2)
+    assert "length ratio" in user and rejected[0][0] in user and "2" in user
+    assert REQ.template in user and "JSON" in system
+
+
 def test_parse_list_accepts_json_and_lines():
     assert parse_list('```json\n["a", "b"]\n```') == ["a", "b"]
     assert parse_list('{"candidates": ["x"]}') == ["x"]

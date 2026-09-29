@@ -107,6 +107,17 @@ def build_prompt(req: Request) -> tuple[str, str]:
     return system, user
 
 
+def refine_prompt(req: Request, rejected: list[tuple[str, list[str]]], still_needed: int) -> tuple[str, str]:
+    """Second-round prompt: the rejected candidates with their one-line reasons (progressive refinement
+    after Kramer et al. 2026: feed the validator's findings back, ask only for what is still missing)."""
+    prompts = spec.llm_prompts()
+    system, user = build_prompt(Request(id=req.id, lang=req.lang, register=req.register, template=req.template,
+                                        slots=req.slots, locked=req.locked, n=still_needed))
+    sep = "；" if req.lang == "zh" else "; "
+    lines = "\n".join(f"- {text}\n  {sep.join(reasons)}" for text, reasons in rejected)
+    return system, user + "\n\n" + prompts["refine"][req.lang].format(rejected=lines, n=still_needed)
+
+
 def write_bundle(reqs: list[Request], path: pathlib.Path) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     with path.open("w", encoding="utf-8") as fh:
@@ -154,6 +165,7 @@ def main() -> None:
     ap.add_argument("--models", default="", help="comma-separated model ids to call through LLM_BASE_URL")
     ap.add_argument("--apply", default="", help="JSONL of {id, candidates[]} or {id, text} produced elsewhere")
     ap.add_argument("--n", type=int, default=3, help="paraphrases requested per template")
+    ap.add_argument("--refine", type=int, default=1, help="refinement rounds: rejects go back with their reasons (0 disables)")
     ap.add_argument("--limit", type=int, default=0, help="only the first N templates (smoke)")
     ap.add_argument("--bundle", default=str(DEFAULT_BUNDLE), help="where the request bundle is written")
     ap.add_argument("--resource", default=str(RESOURCES / "paraphrases.json"), help="output resource path")
@@ -177,11 +189,23 @@ def main() -> None:
             responses.setdefault(rec["id"], []).extend(str(c) for c in cands)
         models = models or ["external"]
     elif models:
+        from .contract import check
+
         for r in reqs:
             system, user = build_prompt(r)
             for m in models:
-                answer = client.complete(m, system, user)
-                responses.setdefault(r.id, []).extend(client.parse_list(answer["text"]))
+                responses.setdefault(r.id, []).extend(client.parse_list(client.complete(m, system, user)["text"]))
+                # progressive refinement: the rejects go back with their reasons, once per --refine round
+                for _ in range(args.refine):
+                    ok: list[str] = []
+                    rejected: list[tuple[str, list[str]]] = []
+                    for c in responses[r.id]:
+                        reasons = check(r, c, ok)
+                        (rejected.append((c, reasons)) if reasons else ok.append(c.strip()))
+                    if len(ok) >= r.n or not rejected:
+                        break
+                    system2, user2 = refine_prompt(r, rejected[-6:], r.n - len(ok))
+                    responses[r.id].extend(client.parse_list(client.complete(m, system2, user2)["text"]))
     else:
         bundle = pathlib.Path(args.bundle)
         write_bundle(reqs, bundle)

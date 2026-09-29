@@ -543,7 +543,7 @@ def check_indicator_citations() -> int:
 
 def check_spec_provenance() -> int:
     """spec 的每个文件都要声明来源。"""
-    allowed = {"public-standard", "format-token", "hand-authored"}
+    allowed = {"public-standard", "format-token", "hand-authored", "llm-paraphrase", "llm-template"}
     problems = 0
     for path in sorted((RESOURCES).glob("*.json")):
         payload = json.loads(path.read_text(encoding="utf-8"))
@@ -558,6 +558,10 @@ def check_spec_provenance() -> int:
         if isinstance(payload, dict) and "_vocabulary_fields" not in payload:
             print(f"溯源缺失  {path.relative_to(REPO)}: 没有 _vocabulary_fields"
                   f"（要声明哪些字段装的是可豁免的公开词汇；没有可豁免字段就写 []）")
+            problems += 1
+        # 模型产出的资源是不可信文本：不得豁免任何字段，必须以原文过回放检测与 PII 谓词
+        if isinstance(payload, dict) and str(source).startswith("llm-") and payload.get("_vocabulary_fields"):
+            print(f"豁免越界  {path.relative_to(REPO)}: _source={source!r} 的资源不得声明 _vocabulary_fields")
             problems += 1
     return problems
 

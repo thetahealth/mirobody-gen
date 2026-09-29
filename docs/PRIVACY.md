@@ -56,6 +56,11 @@ identifiers, dates, institution names, instrument or batch identifiers, narrativ
    git; neither is tracked. A curated sample requires an explicit force-add and a note in the PR.
 5. **Clean object store.** Before publishing, `git fsck --unreachable` and `git count-objects` must show
    no stray large objects; a reset does not delete a staged blob.
+6. **Model output is untrusted text.** The optional language-model layer (`mirobody_gen/llm/`) only
+   ever sends synthetic content out and only ever brings phrasing back; it never produces a value, a
+   name or an identifier. A resource it produces carries `_source: llm-*` and must declare no
+   vocabulary exemptions, so every string in it passes the replay index and the PII predicates as is;
+   the privacy audit rejects a model-produced resource that claims an exemption.
 
 ## What CI can and cannot verify
 

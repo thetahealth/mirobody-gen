@@ -24,7 +24,7 @@ def test_every_spec_declares_provenance():
     """没有来源声明的 spec 不许存在——隐私闸门也查这条，这里让它在测试里先响。"""
     for path in sorted(RESOURCES.glob("*.json")):
         payload = json.loads(path.read_text(encoding="utf-8"))
-        assert payload.get("_source") in {"public-standard", "format-token", "hand-authored"}, path
+        assert payload.get("_source") in {"public-standard", "format-token", "hand-authored", "llm-paraphrase", "llm-template"}, path
         assert "_provenance" in payload, path
         assert "_vocabulary_fields" in payload, path
 

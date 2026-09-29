@@ -21,6 +21,7 @@ COMMANDS: dict[str, tuple[str, str]] = {
     "resolve-coverage": ("mirobody_gen.harness.resolve_coverage", "Vocabulary coverage of the printed names (needs mirobody)"),
     "synthea-check": ("mirobody_gen.harness.synthea_check", "Consistency checks over FHIR bundles (for PySynthea)"),
     "llm-panel": ("mirobody_gen.harness.llm_panel", "Multi-model cross-annotation panel (not a gate)"),
+    "paraphrase": ("mirobody_gen.llm.paraphrase", "Offline paraphrase enrichment of narrative templates (dry run by default)"),
 }
 
 

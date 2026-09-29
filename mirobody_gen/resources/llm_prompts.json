@@ -1,0 +1,48 @@
+{
+ "_source": "hand-authored",
+ "_note": "Prompts for the optional language-model layer (mirobody_gen/llm). Versioned here so that every paraphrase resource can name the prompt it came from. The prompts describe the contract in llm/contract.py; the contract, not the prompt, is what decides acceptance.",
+ "_provenance": {
+  "author": "hand-authored in this repository",
+  "version": "2026-09-29.1",
+  "script": null
+ },
+ "_vocabulary_fields": [
+  "system",
+  "user",
+  "registers"
+ ],
+ "system": {
+  "zh": "你是一名中文医学报告编辑。任务是把一条报告模板改写成意思相同、措辞不同的版本。规则：保留每一个花括号槽位（名字和次数都不能变）；不新增、不修改任何数字；给出的锁定词必须原样出现；不写机构名、人名、编号、日期；不加解释、不加免责声明；长度与原句相近。只输出一个 JSON 字符串数组。",
+  "en": "You edit medical report wording. Rewrite one report template into versions that mean the same and read differently. Rules: keep every curly-brace slot exactly (same names, same counts); never add or change a number; the locked terms must appear verbatim; no institution names, person names, identifiers or dates; no explanations or disclaimers; similar length. Output only a JSON array of strings."
+ },
+ "user": {
+  "zh": "体裁：{register}\n原模板：{template}\n槽位及其可能取值：\n{slots}\n锁定词：{locked}\n请给出 {n} 条不同说法。",
+  "en": "Register: {register}\nTemplate: {template}\nSlots and their possible values:\n{slots}\nLocked terms: {locked}\nGive {n} different wordings."
+ },
+ "registers": {
+  "narrative_finding": {
+   "zh": "超声或影像报告里的一条所见描述，客观、名词化、无主语",
+   "en": "one finding sentence in an ultrasound or imaging report; objective, nominal, no subject"
+  },
+  "narrative_normal": {
+   "zh": "超声或影像报告里一个器官的正常所见描述",
+   "en": "the normal description of one organ in an ultrasound or imaging report"
+  },
+  "department_note": {
+   "zh": "体检科室检查的一条简短结果",
+   "en": "a short department examination result"
+  },
+  "advice": {
+   "zh": "体检总检里的一条健康建议；冒号前的名称不变",
+   "en": "one recommendation line in a check-up summary; the name before the colon stays"
+  },
+  "diary": {
+   "zh": "一个人用自己的话记的一句健康日记，口语",
+   "en": "one diary sentence about how someone feels, colloquial"
+  },
+  "chief_complaint": {
+   "zh": "门诊病历的主诉，简短、名词化",
+   "en": "a chief complaint line in a clinic note; short, nominal"
+  }
+ }
+}

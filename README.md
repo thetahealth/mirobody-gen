@@ -117,6 +117,15 @@ artefact. Three audits gate a build and one reports (the test suite runs the cli
 - **fidelity** — layout fingerprint diversity, hazard density, row-count and dialect distributions
   against the reference aggregates (report only).
 
+## Language models
+
+No model runs in the data path: values, findings, complaints, layouts and images come from resources,
+code and a seed. An optional offline layer (`mirobody-gen paraphrase`) can ask a model for rewordings
+of the narrative templates; only candidates that keep every slot, number and locked term, stay in the
+same language and carry no name or identifier are kept, and the result is a resource that the privacy
+gate scans as untrusted text. Design, contracts and the planned robustness experiment:
+[docs/zh-CN/llm-integration-2026-09-29.md](docs/zh-CN/llm-integration-2026-09-29.md).
+
 ## Status
 
 - Integration with mirobody's test suites (an environment variable pointing at a build directory) is

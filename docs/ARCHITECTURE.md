@@ -14,7 +14,8 @@ templates.json   │   journal.py    diary sentences             delivery.py tie
 fiction.json     │   genomics.py   raw genotype exports        render/     pdf, sheet, grid, degrade
 vocab.json       │   synthid.py    checksummed synthetic ids   pairs.py    minimal-contrast pairs          harness/ scoring
 delivery.json    │   manifest.py   manifest.jsonl, people.jsonl
-numbers*.json    ┘
+numbers*.json    │
+llm_prompts.json ┘   llm/          optional: offline paraphrase enrichment (contract, cache, CLI)
 ```
 
 ## Layers
@@ -54,6 +55,15 @@ so they cannot share the generator's blind spots. `harness/` scores predictions 
 format and in an alignment-based variant, exports labels, checks resolver coverage, and holds the
 FHIR consistency checker used against PySynthea.
 
+**Optional language-model layer** (`mirobody_gen/llm/`). Models work only after the truth is fixed and
+before the gates: `mirobody-gen paraphrase` collects the narrative templates, asks a model for
+rewordings, keeps only candidates that pass the contract in `llm/contract.py` (same slots, no new
+numbers, locked terms intact, same language, bounded length, no names or identifiers, novel), and
+writes them as a resource with `_source: llm-paraphrase` that the privacy gate scans without any
+exemption. The build stays a deterministic function of resources, code and seed; without the resource
+the generator behaves exactly as before. Institution templates and candidate proposals follow the same
+pattern; see `docs/zh-CN/llm-integration-2026-09-29.md`.
+
 ## Invariants
 
 - **Determinism.** Every random stream is seeded from `(seed, person_id, …)` strings; no wall-clock,
@@ -77,5 +87,8 @@ FHIR consistency checker used against PySynthea.
 - A new department item, finding, auxiliary examination or advice template: `scripts/build_profile.py`.
 - A new layout dialect: `scripts/distill_layout.py` for format tokens from the reference set, or a
   hand-authored entry with `_source: hand-authored`.
+- More wordings for a narrative template: `mirobody-gen paraphrase --dry-run` to see the requests, then
+  with a model endpoint (`LLM_BASE_URL`, `LLM_API_KEY`) `--models <id> --write`; run the privacy gate on
+  the result before using it.
 - A new degradation scene: `render/degrade.py` (`_scene(...)`) plus a weight in
   `scripts/build_profile.py::DELIVERY`; the scene name becomes vocabulary automatically.

@@ -24,6 +24,13 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); ver
 
 - `tests/test_schema_extensions.py`: contracts for the new value kinds, sticky results, package
   tiers, parameter examinations, judgement grades, critical results and the two-column layout.
+- Optional language-model layer `mirobody_gen/llm/`: paraphrase contract (`contract.py`), cached
+  OpenAI-compatible client (`client.py`), and `mirobody-gen paraphrase` (dry run, call, or apply
+  external answers; writes `resources/paraphrases.json` with `_source: llm-paraphrase`). Prompts are
+  versioned in `resources/llm_prompts.json`. The privacy gate accepts `llm-*` sources only without
+  vocabulary exemptions. Design note `docs/zh-CN/llm-integration-2026-09-29.md`; close reading of
+  PureDocBench, OmniDocBench and Synthetic Hospital with pipeline v2 in
+  `docs/zh-CN/research-2026-09-29-puredocbench.md`.
 
 ### Changed
 - Readings are routed to tables by the most complete order group, so basic and premium liver panels

@@ -85,6 +85,19 @@ def delivery() -> dict:
     return _load("delivery.json")
 
 
+def llm_prompts() -> dict:
+    """Versioned prompts of the optional language-model layer."""
+    return _load("llm_prompts.json")
+
+
+def paraphrases() -> dict[str, list[str]]:
+    """Template path → accepted paraphrases; empty when the optional resource is absent."""
+    path = RESOURCES / "paraphrases.json"
+    if not path.is_file():
+        return {}
+    return json.loads(path.read_text(encoding="utf-8")).get("paraphrases", {})
+
+
 def vocab() -> dict:
     """Machine identifiers the generator emits (vendor fields, scene and operator names, enumerations)."""
     return _load("vocab.json")

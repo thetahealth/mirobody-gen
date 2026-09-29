@@ -646,7 +646,9 @@ E2 的真实锚点改用公开的 MedRepBench，私有语料只报 ρ。
 
 ### 7.4 P3 / P4 落地情况（2026-09-29）
 
-调研与结论全文见 [docs/RESEARCH-2026-09-29.md](docs/RESEARCH-2026-09-29.md)，图像层见 [docs/degrade.md](docs/degrade.md)。摘要：
+调研与结论全文见 [research-2026-09-29.md](research-2026-09-29.md)，图像层见 [degradation.md](degradation.md)。
+PureDocBench（arXiv:2605.07492）、OmniDocBench 与 Synthetic Hospital（arXiv:2609.30027）的精读、与本仓的逐项对照、结构层（视觉聚类 → 属性 → 配平）的融合设计，以及复审后的整体流程 v2（§14：七阶段八闸门，取代本文 §7 的阶段表作为下一步路线）见
+[research-2026-09-29-puredocbench.md](research-2026-09-29-puredocbench.md)；LLM 融入这条流程的设计见 [llm-integration-2026-09-29.md](llm-integration-2026-09-29.md)。摘要：
 
 | 产物 | 内容 |
 |---|---|

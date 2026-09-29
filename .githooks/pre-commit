@@ -1,0 +1,105 @@
+#!/usr/bin/env bash
+# Pre-commit privacy gate.
+#
+# `.gitignore` stops files that were forgotten; this hook stops files that were force-added.
+# Four rules, any one of which rejects the commit and names the file and the rule:
+#   1. paths under the local reference-set directories and their derivatives;
+#   2. document and image files (a generated report and a real one are indistinguishable to git);
+#   3. files larger than 1 MB (this repository stores a generator and its resources, not data);
+#   4. content matching identity-number, phone-number or name-field predicates.
+#
+# Install once per clone:   git config core.hooksPath .githooks
+# Dry run on the index:     .githooks/pre-commit --check
+# Deliberate override:      SKIP_PRIVACY_GATE=1 git commit ...   (state the reason in the message)
+#
+# The predicates are deliberately broad and will flag documentation that quotes them. The exemption
+# is explicit and per line: put `privacy-gate:ok` on that line (in Markdown, an HTML comment). A
+# visible exemption is preferable to a quietly relaxed predicate.
+#
+# When unsure whether a rejection is a false positive, default to the rejection: a leak cannot be undone.
+
+set -uo pipefail
+
+RED=$'\033[31m'; YEL=$'\033[33m'; OFF=$'\033[0m'
+fail=0
+
+note() { printf '%sREJECTED%s  %s\n' "$RED" "$OFF" "$1" >&2; fail=1; }
+
+check_only=0
+[ "${1:-}" = "--check" ] && check_only=1
+
+staged=$(git diff --cached --name-only --diff-filter=ACMR)
+if [ -z "$staged" ]; then
+  [ "$check_only" -eq 1 ] && echo "Nothing staged."
+  exit 0
+fi
+
+# ── 1. Reference-set directories and derivatives ──────────────────
+# Listed here rather than read from .gitignore: two independent implementations, so widening one leaves the other.
+while IFS= read -r f; do
+  case "$f" in
+    corpus/*|rows/*|analysis/*|pipeline/*|library/*|out/*|_scratch/*)
+      note "$f: reference-set material or a derivative; never tracked (see docs/PRIVACY.md)" ;;
+  esac
+done <<< "$staged"
+
+# ── 2. Documents and images ─────────────────────────────────────
+while IFS= read -r f; do
+  # tr rather than ${f,,}: macOS ships bash 3.2, which lacks that expansion.
+  case "$(printf '%s' "$f" | tr '[:upper:]' '[:lower:]')" in
+    *.pdf|*.jpg|*.jpeg|*.png|*.tif|*.tiff|*.bmp|*.heic|*.webp|*.xlsx|*.xls|*.xlsm|*.doc|*.docx|*.pptx)
+      note "$f: document or image file; generated corpora are not tracked (curated sample: SKIP_PRIVACY_GATE=1 and a note in the PR)" ;;
+  esac
+done <<< "$staged"
+
+# ── 3. Large files ──────────────────────────────────────────────
+while IFS= read -r f; do
+  [ -f "$f" ] || continue
+  size=$(wc -c < "$f" | tr -d ' ')
+  if [ "$size" -gt 1048576 ]; then
+    note "$f: ${size} bytes (>1 MB); the repository stores the generator and its resources, not data"
+  fi
+done <<< "$staged"
+
+# ── 4. Content predicates ────────────────────────────────────────
+# Written independently of the audit module's predicates (the same predicate run twice only confirms its own blind spots).
+# Lines carrying `privacy-gate:ok` are skipped.
+pii_scan() {
+  local f="$1"
+  git show ":$f" 2>/dev/null \
+    | awk '{ if (index($0, "privacy-gate:ok")) print ""; else print }' \
+    | grep -nE \
+    -e '[1-9][0-9]{5}(19|20)[0-9]{2}(0[1-9]|1[0-2])(0[1-9]|[12][0-9]|3[01])[0-9]{3}[0-9Xx]' \
+    -e '(^|[^0-9])1[3-9][0-9]{9}([^0-9]|$)' \
+    -e '(姓名|患者姓名|受检者|受检人|门诊号|住院号|体检号|就诊卡号|病案号|身份证)[[:space:]]*[:：]' \
+    -e '(Patient[[:space:]]+Name|Medical[[:space:]]+Record[[:space:]]+(No|Number)|MRN)[[:space:]]*[:：]' \
+    | head -3
+}
+
+while IFS= read -r f; do
+  [ -f "$f" ] || continue
+  case "$f" in .githooks/*) continue ;; esac          # this file quotes the patterns
+  hits=$(pii_scan "$f")
+  if [ -n "$hits" ]; then
+    note "$f: possible personal identifiers:"
+    printf '%s        %s%s\n' "$YEL" "$(echo "$hits" | tr '\n' ' ')" "$OFF" >&2
+  fi
+done <<< "$staged"
+
+if [ "$fail" -eq 0 ]; then
+  [ "$check_only" -eq 1 ] && echo "Index clean: $(echo "$staged" | wc -l | tr -d ' ') files, no rule matched."
+  exit 0
+fi
+
+if [ "$check_only" -eq 1 ]; then
+  echo "(--check mode: no commit was attempted)" >&2
+  exit 1
+fi
+
+if [ "${SKIP_PRIVACY_GATE:-}" = "1" ]; then
+  printf '%sWARNING%s  SKIP_PRIVACY_GATE=1: the rejections above were overridden. State the reason in the commit message.\n' "$YEL" "$OFF" >&2
+  exit 0
+fi
+
+printf '\nCommit aborted. To override deliberately: SKIP_PRIVACY_GATE=1 git commit ... (and state the reason in the message)\n' >&2
+exit 1

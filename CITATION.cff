@@ -1,0 +1,23 @@
+cff-version: 1.2.0
+message: "If you use mirobody-gen in your work, please cite it as below."
+title: "mirobody-gen: knowledge-driven synthetic health records rendered as documents"
+type: software
+version: 0.3.0
+date-released: 2026-09-29
+license: Apache-2.0
+repository-code: "https://github.com/thetahealth/mirobody-gen"
+authors:
+  - name: "Theta AI Team"
+    email: developer@thetahealth.ai
+keywords:
+  - synthetic data
+  - health records
+  - laboratory reports
+  - document parsing
+  - OCR robustness
+  - privacy
+abstract: >
+  A generator of synthetic longitudinal health records rendered as the documents people upload
+  (laboratory slips, check-up books, clinic notes, home logs) across text, scan, photo, copy and
+  screen tiers, with row-level ground truth for extraction and standardisation. Values are computed
+  from public reference standards and a mechanistic model; no real record is on the generation path.

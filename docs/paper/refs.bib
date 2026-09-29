@@ -1,0 +1,312 @@
+% 参考文献库。每一条都经过核实，来源写在注释里：
+%   [PubMed]  经 PubMed 元数据核对（含 DOI）
+%   [S2]      经 Semantic Scholar 批量接口核对作者与年份
+%   [local]   读过全文（本地 PDF 或本机检出的仓库）
+% 没核实过的不进这个文件。要加新条目，先核实再写，并注明来源。
+% 最后核对：2026-09-23（新增 8 条，补全 medrxiv2026ie 作者，gill2025lost 定为 Findings）
+
+% ── 合成患者与合成 EHR ─────────────────────────────────────────────
+
+@article{walonoski2018synthea,  % [PubMed 29025144]
+  author  = {Walonoski, Jason and Kramer, Mark and Nichols, Joseph and Quina, Andre and Moesel, Chris and Hall, Dylan and Duffett, Carlton and Dube, Kudakwashe and Gallagher, Thomas and McLachlan, Scott},
+  title   = {Synthea: An approach, method, and software mechanism for generating synthetic patients and the synthetic electronic health care record},
+  journal = {Journal of the American Medical Informatics Association},
+  volume  = {25}, number = {3}, pages = {230--238}, year = {2018},
+  doi     = {10.1093/jamia/ocx079}
+}
+
+@article{chen2019validity,  % [PubMed 30871520]
+  author  = {Chen, Junqiao and Chun, David and Patel, Milesh and Chiang, Epson and James, Jesse},
+  title   = {The validity of synthetic clinical data: a validation study of a leading synthetic data generator ({Synthea}) using clinical quality measures},
+  journal = {BMC Medical Informatics and Decision Making},
+  volume  = {19}, number = {1}, pages = {44}, year = {2019},
+  doi     = {10.1186/s12911-019-0793-0}
+}
+
+@article{kramer2026leveraging,  % [PubMed 41502536]；预印本 arXiv:2507.21123 [local]
+  author  = {Kramer, Mark A. and Mathur, Aanchal and Adams, Caroline E. and Walonoski, Jason A.},
+  title   = {Leveraging generative {AI} to enhance {Synthea} model development},
+  journal = {JAMIA Open},
+  volume  = {9}, number = {1}, pages = {ooaf123}, year = {2026},
+  doi     = {10.1093/jamiaopen/ooaf123}
+}
+
+@article{hodges2023medication,  % [PubMed 37457749]
+  author  = {Hodges, Robert and Tokunaga, Kristen and LeGrand, Joseph},
+  title   = {A novel method to create realistic synthetic medication data},
+  journal = {JAMIA Open},
+  volume  = {6}, number = {3}, pages = {ooad052}, year = {2023},
+  doi     = {10.1093/jamiaopen/ooad052}
+}
+
+@misc{cruz2026pysynthea,  % [S2] [local: 本机检出 TIET-AI/tietai-synthea v1.4.0，附 paper.pdf]
+  author  = {Cruz, Roberto and Rey-Blanco, David},
+  title   = {{PySynthea}: A Python-Native Framework for Scalable Synthetic Healthcare Data Generation},
+  year    = {2026}, eprint = {2606.28346}, archivePrefix = {arXiv}
+}
+
+@misc{li2026eslbench,  % [local: 读过全文与公开数据；作者拼写以论文 PDF 为准，S2 误作 Cailian Liu / Ke-Xin Deng]
+  author  = {Li, Chao and Liu, Cailiang and Gao, Ang and Deng, Kexin and Zhang, Shu and Xu, Langping and Shi, Xiaotong and Ding, Xionghao and Pei, Jian and Jiang, Xun},
+  title   = {{ESL-Bench}: An Event-Driven Synthetic Longitudinal Benchmark for Health Agents},
+  year    = {2026}, eprint = {2604.02834}, archivePrefix = {arXiv}
+}
+
+@article{theodorou2023halo,  % [S2]；预印本 arXiv:2304.02169
+  author  = {Theodorou, Brandon and Xiao, Cao and Sun, Jimeng},
+  title   = {Synthesize high-dimensional longitudinal electronic health records via hierarchical autoregressive language model},
+  journal = {Nature Communications},
+  volume  = {14}, pages = {5305}, year = {2023},
+  doi     = {10.1038/s41467-023-41093-0}
+}
+
+@misc{zhou2026coogee,  % [S2]
+  author  = {Zhou, Guanglin and Catic, Armin and Shabestari, Motahareh and Young, Matthew and Li, Chai-Quan and others},
+  title   = {From Statistical Fidelity to Clinical Consistency: Scalable Generation and Auditing of Synthetic Patient Trajectories},
+  year    = {2026}, eprint = {2603.06720}, archivePrefix = {arXiv}
+}
+
+@article{gonzales2023synthetic,  % [web: PLOS Digital Health 官网]
+  author  = {Gonzales, Aldren and Guruswamy, Guruprabha and Smith, Scott R.},
+  title   = {Synthetic data in health care: A narrative review},
+  journal = {PLOS Digital Health},
+  volume  = {2}, number = {1}, pages = {e0000082}, year = {2023},
+  doi     = {10.1371/journal.pdig.0000082}
+}
+
+% ── 合成数据的隐私 ─────────────────────────────────────────────────
+
+@inproceedings{stadler2022groundhog,  % [web: USENIX 官网]
+  author    = {Stadler, Theresa and Oprisanu, Bristena and Troncoso, Carmela},
+  title     = {Synthetic Data -- Anonymisation Groundhog Day},
+  booktitle = {31st USENIX Security Symposium},
+  year      = {2022}
+}
+
+@inproceedings{yao2025dcr,  % [S2] venue=ESORICS
+  author    = {Yao, Zexi and Kr{\v{c}}o, Nata{\v{s}}a and Ganev, Georgi and de Montjoye, Yves-Alexandre},
+  title     = {The {DCR} Delusion: Measuring the Privacy Risk of Synthetic Data},
+  booktitle = {European Symposium on Research in Computer Security (ESORICS)},
+  year      = {2025}, eprint = {2505.01524}, archivePrefix = {arXiv}
+}
+
+% ── 数据质量框架与检验医学 ─────────────────────────────────────────
+
+@article{kahn2016harmonized,  % [PubMed 27713905]
+  author  = {Kahn, Michael G. and Callahan, Tiffany J. and Barnard, Juliana and Bauck, Alan E. and Brown, Jeff and Davidson, Bruce N. and Estiri, Hossein and Goerg, Carsten and Holve, Erin and Johnson, Steven G. and others},
+  title   = {A Harmonized Data Quality Assessment Terminology and Framework for the Secondary Use of Electronic Health Record Data},
+  journal = {eGEMs (Generating Evidence \& Methods to improve patient outcomes)},
+  volume  = {4}, number = {1}, pages = {1244}, year = {2016},
+  doi     = {10.13063/2327-9214.1244}
+}
+
+@article{aarsand2018eubivas,  % [PubMed 29941472]
+  author  = {Aarsand, Aasne K. and D{\'\i}az-Garz{\'o}n, Jorge and Fernandez-Calle, Pilar and Guerra, Elena and Locatelli, Massimo and Bartlett, William A. and Sandberg, Sverre and R{\o}raas, Thomas and Ceriotti, Ferruccio and others},
+  title   = {The {EuBIVAS}: Within- and Between-Subject Biological Variation Data for Electrolytes, Lipids, Urea, Uric Acid, Total Protein, Total Bilirubin, Direct Bilirubin, and Glucose},
+  journal = {Clinical Chemistry},
+  volume  = {64}, number = {9}, pages = {1380--1393}, year = {2018},
+  doi     = {10.1373/clinchem.2018.288415}
+}
+
+@article{aarsand2018bivac,  % [PubMed 29222339]
+  author  = {Aarsand, Aasne K. and R{\o}raas, Thomas and Fernandez-Calle, Pilar and Ricos, Carmen and D{\'\i}az-Garz{\'o}n, Jorge and Jonker, Niels and Perich, Carmen and Gonz{\'a}lez-Lao, Elisabet and Carobene, Anna and others},
+  title   = {The Biological Variation Data Critical Appraisal Checklist: A Standard for Evaluating Studies on Biological Variation},
+  journal = {Clinical Chemistry},
+  volume  = {64}, number = {3}, pages = {501--514}, year = {2018},
+  doi     = {10.1373/clinchem.2017.281808}
+}
+
+@article{mcdonald2003loinc,  % [PubMed 12651816]
+  author  = {McDonald, Clement J. and Huff, Stanley M. and Suico, Jeffrey G. and Hill, Gilbert and Leavelle, Dennis and Aller, Raymond and Forrey, Arden and Mercer, Kathy and DeMoor, Georges and Hook, John and others},
+  title   = {{LOINC}, a universal standard for identifying laboratory observations: a 5-year update},
+  journal = {Clinical Chemistry},
+  volume  = {49}, number = {4}, pages = {624--633}, year = {2003},
+  doi     = {10.1373/49.4.624}
+}
+
+@misc{wst404,  % [local: 已下载解析 WS/T 404.4—2018 原文]
+  author       = {{中华人民共和国国家卫生健康委员会}},
+  title        = {{WS/T 404} 临床常用生化检验项目参考区间（第 1--8 部分）},
+  howpublished = {卫生行业标准},
+  year         = {2012--2018}
+}
+
+@misc{wst405,
+  author       = {{中华人民共和国卫生部}},
+  title        = {{WS/T 405—2012} 血细胞分析参考区间},
+  howpublished = {卫生行业标准},
+  year         = {2012}
+}
+
+% ── 健康 agent 基准 ────────────────────────────────────────────────
+
+@article{jiang2025medagentbench,  % [S2]；NEJM AI 官网 doi
+  author  = {Jiang, Yi-Xing and Black, K. and Geng, Gloria and Park, Danny and Zou, James and others},
+  title   = {{MedAgentBench}: A Virtual {EHR} Environment to Benchmark Medical {LLM} Agents},
+  journal = {NEJM AI},
+  year    = {2025},
+  doi     = {10.1056/AIdbp2500144},
+  eprint  = {2501.14654}, archivePrefix = {arXiv}
+}
+
+@misc{liu2026physicianbench,  % [S2]
+  author  = {Liu, Ruoqi and Mohiuddin, I. and Schoeffler, A. and Renduchintala, Kavita and Nayak, Ashwin and others},
+  title   = {{PhysicianBench}: Evaluating {LLM} Agents in Real-World {EHR} Environments},
+  year    = {2026}, eprint = {2605.02240}, archivePrefix = {arXiv}
+}
+
+@misc{liu2026healthagentbench,  % [S2]
+  author  = {Liu, Qianchu and Zhang, Sheng and Qin, Guanghui and Valanarasu, Jeya Maria Jose and Rokuss, Maximilian and others},
+  title   = {{HealthAgentBench}: A Unified Benchmark Suite of Realistic Agentic Healthcare Environments for Challenging Frontier {AI} Agents},
+  year    = {2026}, eprint = {2606.31179}, archivePrefix = {arXiv}
+}
+
+% ── 医疗报告抽取（中文为主）──────────────────────────────────────────
+
+@inproceedings{shang2025medrepbench,  % [S2] + [web: HF 数据卡] + [web: arXiv v2（2026-07-02）全文 HTML]
+% 标题前后不一：arXiv 元数据是下面这个；v2 正文标题是 "MedRepBench: Benchmarking Structured
+% Understanding of Medical Report Images"。引用时二者择一，全文统一。
+  author    = {Shang, Fangxin and Xia, Yuan and Yang, Dalu and Wang, Ya-Hui and Yang, Bin},
+  title     = {{MedRepBench}: A Comprehensive Benchmark for Medical Report Interpretation},
+  booktitle = {European Conference on Computer Vision (ECCV)},
+  year      = {2026}, eprint = {2508.16674}, archivePrefix = {arXiv},
+  note      = {数据：huggingface.co/datasets/MedRepBench/MedRepBench，CC BY-NC 4.0}
+}
+
+@misc{wang2024chatschema,  % [S2]
+  author  = {Wang, Fei and Zheng, Yue-Wen and Li, Qin and Wu, Jingyi and Li, Pengfei and others},
+  title   = {{ChatSchema}: A pipeline of extracting structured information with Large Multimodal Models based on schema},
+  year    = {2024}, eprint = {2407.18716}, archivePrefix = {arXiv}
+}
+
+@article{ma2023extracting,  % [PubMed 37932733]
+  author  = {Ma, Ming-Wei and Gao, Xian-Shu and Zhang, Ze-Yu and Shang, Shi-Yu and Jin, Ling and Liu, Pei-Lin and Lv, Feng and Ni, Wei and Han, Yu-Chen and Zong, Hui},
+  title   = {Extracting laboratory test information from paper-based reports},
+  journal = {BMC Medical Informatics and Decision Making},
+  volume  = {23}, number = {1}, pages = {251}, year = {2023},
+  doi     = {10.1186/s12911-023-02346-6}
+}
+
+@inproceedings{li2026medstructs,  % [S2] venue=KSEM
+  author    = {Li, Yingyun and Wang, Yu and Qian, Haiyang},
+  title     = {{MedStruct-S}: A Benchmark for Key Discovery, Key-Conditioned {QA} and Semi-Structured Extraction from {OCR} Clinical Reports},
+  booktitle = {Knowledge Science, Engineering and Management (KSEM)},
+  year      = {2026}, eprint = {2605.03103}, archivePrefix = {arXiv}
+}
+
+@misc{medrxiv2026ie,  % [local: 读过 medRxiv 全文 PDF，2026-09-23 补作者]
+  author       = {Yu, Aaron and Weile, Jochen and Courtot, M{\'e}lanie},
+  title        = {Benchmarking {LLM}-based Information Extraction Tools for Medical Documents},
+  howpublished = {medRxiv},
+  year         = {2026},
+  doi          = {10.64898/2026.01.19.26344287},
+  note         = {预印本，未经同行评审。原文：1000 份模拟基因检测报告、7 个 LaTeX 模板、传真式劣化使平均 F1 下降 38.8\%}
+}
+
+% ── 文档理解与合成文档 ─────────────────────────────────────────────
+
+@inproceedings{simsa2023docile,  % [S2] venue=ICDAR
+  author    = {{\v{S}}imsa, {\v{S}}t{\v{e}}p{\'a}n and {\v{S}}ulc, Milan and U{\v{r}}i{\v{c}}{\'a}{\v{r}}, Michal and Patel, Yash and Hamdi, Ahmed and others},
+  title     = {{DocILE} Benchmark for Document Information Localization and Extraction},
+  booktitle = {International Conference on Document Analysis and Recognition (ICDAR)},
+  year      = {2023}, eprint = {2302.05658}, archivePrefix = {arXiv}
+}
+
+@inproceedings{kim2022donut,  % [S2] venue=ECCV
+  author    = {Kim, Geewook and Hong, Teakgyu and Yim, Moonbin and Nam, JeongYeon and Park, Jinyoung and others},
+  title     = {{OCR}-Free Document Understanding Transformer},
+  booktitle = {European Conference on Computer Vision (ECCV)},
+  year      = {2022}, eprint = {2111.15664}, archivePrefix = {arXiv}
+}
+
+@inproceedings{maini2023augraphy,  % [S2] venue=ICDAR
+  author    = {Maini, Samay and Groleau, Alexander and Chee, Kok Wei and Larson, Stefan and Boarman, Jonathan},
+  title     = {Augraphy: A Data Augmentation Library for Document Images},
+  booktitle = {International Conference on Document Analysis and Recognition (ICDAR)},
+  year      = {2023}, eprint = {2208.14558}, archivePrefix = {arXiv}
+}
+
+@inproceedings{guo2026dtbench,  % [S2] venue=KDD 2026
+  author    = {Guo, Yuxiang and Du, Zhuoran and Tang, Nan and Tang, Ke and Ge, Congcong and others},
+  title     = {{DTBench}: A Synthetic Benchmark for Document-to-Table Extraction},
+  booktitle = {Proceedings of the 32nd ACM SIGKDD Conference on Knowledge Discovery and Data Mining},
+  year      = {2026}, eprint = {2602.13812}, archivePrefix = {arXiv}
+}
+
+@inproceedings{vanstrien2020ocr,  % [web: 作者单位机构库]
+  author    = {van Strien, Daniel and Beelen, Kaspar and Coll Ardanuy, Mariona and Hosseini, Kasra and McGillivray, Barbara and Colavizza, Giovanni},
+  title     = {Assessing the Impact of {OCR} Quality on Downstream {NLP} Tasks},
+  booktitle = {Proceedings of the 12th International Conference on Agents and Artificial Intelligence (ICAART)},
+  year      = {2020},
+  doi       = {10.5220/0009169004840496}
+}
+
+% ── 合成评测的效度 ─────────────────────────────────────────────────
+
+@inproceedings{gill2025lost,  % [web: ACL Anthology .bib，2026-09-23 核实为 Findings]
+  author    = {Gill, Alexander and Ravichander, Abhilasha and Marasovi{\'c}, Ana},
+  title     = {What Has Been Lost with Synthetic Evaluation?},
+  booktitle = {Findings of the Association for Computational Linguistics: EMNLP 2025},
+  pages     = {9902--9945}, year = {2025},
+  doi       = {10.18653/v1/2025.findings-emnlp.526}
+}
+
+% ── 行为测试、对照集与弃权 ─────────────────────────────────────────
+
+@inproceedings{ribeiro2020beyond,  % [web: ACL Anthology .bib 与 PDF]
+  author    = {Ribeiro, Marco Tulio and Wu, Tongshuang and Guestrin, Carlos and Singh, Sameer},
+  title     = {Beyond Accuracy: Behavioral Testing of {NLP} Models with {CheckList}},
+  booktitle = {Proceedings of the 58th Annual Meeting of the Association for Computational Linguistics},
+  pages     = {4902--4912}, year = {2020},
+  doi       = {10.18653/v1/2020.acl-main.442}
+}
+
+@inproceedings{gardner2020evaluating,  % [web: ACL Anthology]
+  author    = {Gardner, Matt and Artzi, Yoav and Basmov, Victoria and Berant, Jonathan and Bogin, Ben and others},
+  title     = {Evaluating Models' Local Decision Boundaries via Contrast Sets},
+  booktitle = {Findings of the Association for Computational Linguistics: EMNLP 2020},
+  pages     = {1307--1323}, year = {2020},
+  doi       = {10.18653/v1/2020.findings-emnlp.117}
+}
+
+@inproceedings{rajpurkar2018know,  % [web: ACL Anthology]
+  author    = {Rajpurkar, Pranav and Jia, Robin and Liang, Percy},
+  title     = {Know What You Don't Know: Unanswerable Questions for {SQuAD}},
+  booktitle = {Proceedings of the 56th Annual Meeting of the Association for Computational Linguistics (Volume 2: Short Papers)},
+  pages     = {784--789}, year = {2018},
+  doi       = {10.18653/v1/P18-2124}
+}
+
+% ── 表格对齐的评测口径 ─────────────────────────────────────────────
+
+@inproceedings{smock2023grits,  % [web: arXiv abs + Springer DOI 页；页码未核实，不写]
+  author    = {Smock, Brandon and Pesala, Rohith and Abraham, Robin},
+  title     = {{GriTS}: Grid Table Similarity Metric for Table Structure Recognition},
+  booktitle = {Document Analysis and Recognition -- ICDAR 2023},
+  publisher = {Springer}, year = {2023},
+  doi       = {10.1007/978-3-031-41734-4_33}, eprint = {2203.12555}, archivePrefix = {arXiv}
+}
+
+@inproceedings{zhong2020image,  % [web: arXiv abs；卷号页码经 ECVA/Springer 列表交叉核对]
+  author    = {Zhong, Xu and ShafieiBavani, Elaheh and Jimeno Yepes, Antonio},
+  title     = {Image-based Table Recognition: Data, Model, and Evaluation},
+  booktitle = {Computer Vision -- ECCV 2020},
+  series    = {Lecture Notes in Computer Science}, volume = {12366},
+  pages     = {564--580}, year = {2020},
+  doi       = {10.1007/978-3-030-58589-1_34}
+}
+
+% ── 文档理解的鲁棒性评测（写"我们首次"之前必须面对的先例）──────────
+
+@inproceedings{chen2024rodla,  % [web: arXiv abs 2403.14442]
+  author    = {Chen, Yufan and Zhang, Jiaming and Peng, Kunyu and Zheng, Junwei and Liu, Ruiping and Torr, Philip and Stiefelhagen, Rainer},
+  title     = {{RoDLA}: Benchmarking the Robustness of Document Layout Analysis Models},
+  booktitle = {Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR)},
+  year      = {2024}, eprint = {2403.14442}, archivePrefix = {arXiv}
+}
+
+@misc{anvari2026pixels,  % [web: arXiv abs 2609.17538；2026-09 预印本，未见同行评审]
+  author  = {Anvari and Athitsos},
+  title   = {From Pixels to Pairs: A Comprehensive Benchmark of {LLM}-Based Key--Value Extraction in Noisy Document Settings},
+  year    = {2026}, eprint = {2609.17538}, archivePrefix = {arXiv},
+  note    = {作者名只核实到姓；在 FUNSD/CORD/SROIE 上对比 OCR 引擎劣化与金标准文本}
+}

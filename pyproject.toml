@@ -1,0 +1,60 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "mirobody-gen"
+version = "0.3.0"
+description = "Knowledge-driven synthetic health records rendered as documents, for testing health-data extraction pipelines. No real record is on the value path."
+readme = "README.md"
+license = {file = "LICENSE"}
+authors = [{name = "Theta AI Team", email = "developer@thetahealth.ai"}]
+requires-python = ">=3.11"
+keywords = ["synthetic-data", "health-records", "lab-reports", "OCR", "document-parsing", "benchmark", "LOINC", "privacy"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Healthcare Industry",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: Apache Software License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering :: Medical Science Apps.",
+]
+# The truth layer needs numpy only. Rendering documents and images is an extra.
+dependencies = ["numpy"]
+
+[project.optional-dependencies]
+# PDF text layer, XLSX/CSV, and the image tiers (scan / phone / copy / screen).
+render = ["pymupdf>=1.24", "openpyxl>=3.1", "pillow>=10"]
+test = ["pytest"]
+dev = ["mirobody-gen[render,test]", "ruff"]
+
+[project.urls]
+Homepage = "https://github.com/thetahealth/mirobody-gen"
+Repository = "https://github.com/thetahealth/mirobody-gen"
+Issues = "https://github.com/thetahealth/mirobody-gen/issues"
+Changelog = "https://github.com/thetahealth/mirobody-gen/blob/main/CHANGELOG.md"
+
+[project.scripts]
+mirobody-gen = "mirobody_gen.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["mirobody_gen*"]
+
+[tool.setuptools.package-data]
+mirobody_gen = ["resources/*.json", "harness/review/*.html"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+
+[tool.ruff]
+line-length = 120
+target-version = "py311"
+
+[tool.ruff.lint]
+# Correctness only. Style rules are not enforced on the existing tree.
+select = ["E9", "F63", "F7", "F82", "F401", "F811", "F841"]

@@ -1,0 +1,535 @@
+{
+  "_vocabulary_fields": [
+    "classes",
+    "name"
+  ],
+  "_source": "format-token",
+  "_note": "从 627 份真实文档的提取陷阱描述蒸馏。只含类名、说明与频次；原始描述里的文档片段与真实取值一律未取用。生成器按这里的频率注入陷阱，片段自己合成。generate=false 的类是本语料的加工痕迹，不复现。",
+  "_provenance": {
+    "documents": 627,
+    "descriptions": 3722,
+    "matched": 2862,
+    "match_rate": 0.7689,
+    "script": "scripts/distill_hazards.py"
+  },
+  "per_document_count": {
+    "histogram": {
+      "0": 58,
+      "1": 34,
+      "2": 53,
+      "3": 95,
+      "4": 134,
+      "5": 88,
+      "6": 66,
+      "7": 53,
+      "8": 26,
+      "9": 11,
+      "10": 5,
+      "11": 3,
+      "14": 1
+    },
+    "zero_share": 0.0925,
+    "p50": 4,
+    "p75": 6,
+    "p95": 8,
+    "max": 14
+  },
+  "classes": [
+    {
+      "name": "artifact.redaction_placeholder",
+      "description": "脱敏占位符（书名号包起来的 NAME/ID/ORG 等）出现在正文里。这是本语料的加工痕迹，不是真实现象",
+      "generate": false,
+      "occurrences": 290,
+      "documents": 208,
+      "document_rate": 0.3317
+    },
+    {
+      "name": "unit.inconsistent_across_sets",
+      "description": "同一指标在不同检查组/不同行用了不同单位（uIU/ml 与 mU/L）",
+      "generate": true,
+      "occurrences": 13,
+      "documents": 13,
+      "document_rate": 0.0207
+    },
+    {
+      "name": "unit.glued_to_reference",
+      "description": "参考范围与单位粘连，常见 '&' 作分隔",
+      "generate": true,
+      "occurrences": 129,
+      "documents": 115,
+      "document_rate": 0.1834
+    },
+    {
+      "name": "unit.glued_to_value",
+      "description": "数值与单位之间没有空格",
+      "generate": true,
+      "occurrences": 161,
+      "documents": 138,
+      "document_rate": 0.2201
+    },
+    {
+      "name": "unit.in_header_or_reference_only",
+      "description": "结果格里没有单位，单位只在表头或参考范围里",
+      "generate": true,
+      "occurrences": 61,
+      "documents": 59,
+      "document_rate": 0.0941
+    },
+    {
+      "name": "unit.superscript",
+      "description": "上标与科学计数法（10^9、×10⁹、/μL）",
+      "generate": true,
+      "occurrences": 87,
+      "documents": 72,
+      "document_rate": 0.1148
+    },
+    {
+      "name": "unit.ocr_corrupted",
+      "description": "单位被 OCR 改形（μ→u、l→1、随机字形）",
+      "generate": true,
+      "occurrences": 95,
+      "documents": 80,
+      "document_rate": 0.1276
+    },
+    {
+      "name": "unit.slash_ambiguous",
+      "description": "单位里的斜杠可能被当成分数或分隔符（次/分）",
+      "generate": true,
+      "occurrences": 18,
+      "documents": 17,
+      "document_rate": 0.0271
+    },
+    {
+      "name": "unit.case_variant",
+      "description": "单位大小写方言（fL/fl、/L 与 /l、Kg/kg）",
+      "generate": true,
+      "occurrences": 7,
+      "documents": 7,
+      "document_rate": 0.0112
+    },
+    {
+      "name": "unit.missing",
+      "description": "整行或整份文档没有单位",
+      "generate": true,
+      "occurrences": 65,
+      "documents": 60,
+      "document_rate": 0.0957
+    },
+    {
+      "name": "reference.multiple_rows",
+      "description": "多行参考范围（每个检查组一行），只读第一行就会错配",
+      "generate": true,
+      "occurrences": 61,
+      "documents": 55,
+      "document_rate": 0.0877
+    },
+    {
+      "name": "reference.split_across_lines",
+      "description": "参考范围跨行断开或被截断",
+      "generate": true,
+      "occurrences": 30,
+      "documents": 28,
+      "document_rate": 0.0447
+    },
+    {
+      "name": "reference.inequality",
+      "description": "参考范围是不等式（≤ ≥ < >）或单个数，而不是区间",
+      "generate": true,
+      "occurrences": 64,
+      "documents": 57,
+      "document_rate": 0.0909
+    },
+    {
+      "name": "reference.sex_partitioned",
+      "description": "参考范围按性别、年龄或检测系统分层",
+      "generate": true,
+      "occurrences": 6,
+      "documents": 6,
+      "document_rate": 0.0096
+    },
+    {
+      "name": "reference.garbled",
+      "description": "参考范围被 OCR 弄坏",
+      "generate": true,
+      "occurrences": 59,
+      "documents": 51,
+      "document_rate": 0.0813
+    },
+    {
+      "name": "reference.absent",
+      "description": "没有参考范围",
+      "generate": true,
+      "occurrences": 80,
+      "documents": 76,
+      "document_rate": 0.1212
+    },
+    {
+      "name": "reference.separator_dialect",
+      "description": "区间分隔符方言（-- ~ – 一 全角）",
+      "generate": true,
+      "occurrences": 46,
+      "documents": 44,
+      "document_rate": 0.0702
+    },
+    {
+      "name": "reference.space_inside_number",
+      "description": "参考范围的数字中间有空格（0. 28）",
+      "generate": true,
+      "occurrences": 6,
+      "documents": 6,
+      "document_rate": 0.0096
+    },
+    {
+      "name": "reference.ambiguous_column",
+      "description": "哪一列是参考范围说不清（与结果列、单位列混淆）",
+      "generate": true,
+      "occurrences": 34,
+      "documents": 33,
+      "document_rate": 0.0526
+    },
+    {
+      "name": "value.pair_in_one_cell",
+      "description": "一格里印了一对值（血压 120/80）",
+      "generate": true,
+      "occurrences": 19,
+      "documents": 18,
+      "document_rate": 0.0287
+    },
+    {
+      "name": "value.non_numeric",
+      "description": "结果是文字而非数字（阴性/未见异常/正常）",
+      "generate": true,
+      "occurrences": 78,
+      "documents": 66,
+      "document_rate": 0.1053
+    },
+    {
+      "name": "value.comparator",
+      "description": "值带比较符（<0.5、>1000）",
+      "generate": true,
+      "occurrences": 18,
+      "documents": 17,
+      "document_rate": 0.0271
+    },
+    {
+      "name": "value.parenthetical",
+      "description": "值后跟括号内容（3.5 (H)、5.2（偏高））",
+      "generate": true,
+      "occurrences": 23,
+      "documents": 23,
+      "document_rate": 0.0367
+    },
+    {
+      "name": "value.decimal_comma",
+      "description": "逗号当小数点用",
+      "generate": true,
+      "occurrences": 17,
+      "documents": 17,
+      "document_rate": 0.0271
+    },
+    {
+      "name": "value.missing_decimal_point",
+      "description": "小数点丢失（OCR 或印刷）",
+      "generate": true,
+      "occurrences": 20,
+      "documents": 13,
+      "document_rate": 0.0207
+    },
+    {
+      "name": "value.space_in_number",
+      "description": "数值中间有空格（9. 9、1 13）",
+      "generate": true,
+      "occurrences": 47,
+      "documents": 43,
+      "document_rate": 0.0686
+    },
+    {
+      "name": "value.duplicated_in_summary",
+      "description": "小结/结论段重复了表里的数值，容易被计两次",
+      "generate": true,
+      "occurrences": 2,
+      "documents": 2,
+      "document_rate": 0.0032
+    },
+    {
+      "name": "value.multiple_per_row",
+      "description": "一行里有多个测量值",
+      "generate": true,
+      "occurrences": 48,
+      "documents": 47,
+      "document_rate": 0.075
+    },
+    {
+      "name": "value.blank_column",
+      "description": "整列指标是空的",
+      "generate": true,
+      "occurrences": 74,
+      "documents": 68,
+      "document_rate": 0.1085
+    },
+    {
+      "name": "table.flag_row_as_data",
+      "description": "'是否异常' 之类的标记行被当成结果行",
+      "generate": true,
+      "occurrences": 46,
+      "documents": 45,
+      "document_rate": 0.0718
+    },
+    {
+      "name": "table.bilingual_header",
+      "description": "中英双表头，英文行可能被当数据",
+      "generate": true,
+      "occurrences": 65,
+      "documents": 62,
+      "document_rate": 0.0989
+    },
+    {
+      "name": "table.transposed",
+      "description": "转置表：指标在列上，标签在行首",
+      "generate": true,
+      "occurrences": 11,
+      "documents": 11,
+      "document_rate": 0.0175
+    },
+    {
+      "name": "table.row_label_as_column",
+      "description": "一级/二级目录这类行标签被当成数据列",
+      "generate": true,
+      "occurrences": 33,
+      "documents": 30,
+      "document_rate": 0.0478
+    },
+    {
+      "name": "table.misalignment",
+      "description": "缺值、合并或换行导致整列错位",
+      "generate": true,
+      "occurrences": 59,
+      "documents": 59,
+      "document_rate": 0.0941
+    },
+    {
+      "name": "table.multiple_tables",
+      "description": "一页多张表 / 一份文档多次体检",
+      "generate": true,
+      "occurrences": 34,
+      "documents": 33,
+      "document_rate": 0.0526
+    },
+    {
+      "name": "table.two_result_columns",
+      "description": "两列都装结果（影像表现 与 检查结果）",
+      "generate": true,
+      "occurrences": 3,
+      "documents": 3,
+      "document_rate": 0.0048
+    },
+    {
+      "name": "table.wrapped_cell",
+      "description": "单元格内换行或跨单元格合并",
+      "generate": true,
+      "occurrences": 25,
+      "documents": 22,
+      "document_rate": 0.0351
+    },
+    {
+      "name": "table.header_ambiguous",
+      "description": "表头本身有歧义：缺列名、合并列、表头不是第一行",
+      "generate": true,
+      "occurrences": 25,
+      "documents": 25,
+      "document_rate": 0.0399
+    },
+    {
+      "name": "table.truncated",
+      "description": "内容被截断或不完整",
+      "generate": true,
+      "occurrences": 41,
+      "documents": 36,
+      "document_rate": 0.0574
+    },
+    {
+      "name": "ocr.name_misspelled",
+      "description": "指标名被 OCR 认错",
+      "generate": true,
+      "occurrences": 107,
+      "documents": 89,
+      "document_rate": 0.1419
+    },
+    {
+      "name": "ocr.noise_text",
+      "description": "线条、印章、水印、杂字产生的假文本",
+      "generate": true,
+      "occurrences": 117,
+      "documents": 93,
+      "document_rate": 0.1483
+    },
+    {
+      "name": "ocr.punctuation_swap",
+      "description": "中文标点被识别成英文标点（或反之）",
+      "generate": true,
+      "occurrences": 7,
+      "documents": 7,
+      "document_rate": 0.0112
+    },
+    {
+      "name": "ocr.chart_annotation",
+      "description": "图表上的标注（均值线、坐标轴、图例）被当成数据",
+      "generate": true,
+      "occurrences": 6,
+      "documents": 5,
+      "document_rate": 0.008
+    },
+    {
+      "name": "ocr.mixed_script",
+      "description": "同一份文档里繁简混排",
+      "generate": true,
+      "occurrences": 8,
+      "documents": 8,
+      "document_rate": 0.0128
+    },
+    {
+      "name": "ocr.other",
+      "description": "其他 OCR 错误（兜底）",
+      "generate": true,
+      "occurrences": 175,
+      "documents": 127,
+      "document_rate": 0.2026
+    },
+    {
+      "name": "meta.mixed_into_rows",
+      "description": "日期/机构/文件名混进了结果行",
+      "generate": true,
+      "occurrences": 33,
+      "documents": 32,
+      "document_rate": 0.051
+    },
+    {
+      "name": "meta.subject_field_as_indicator",
+      "description": "受检者字段（姓名/年龄/性别）被当成指标行",
+      "generate": true,
+      "occurrences": 149,
+      "documents": 118,
+      "document_rate": 0.1882
+    },
+    {
+      "name": "meta.multiple_dates",
+      "description": "多个日期（采样/报告/审核/打印）易混",
+      "generate": true,
+      "occurrences": 13,
+      "documents": 12,
+      "document_rate": 0.0191
+    },
+    {
+      "name": "meta.date_format_dialect",
+      "description": "日期格式方言（YYYY.MM.DD、无分隔、中文年月日）",
+      "generate": true,
+      "occurrences": 36,
+      "documents": 36,
+      "document_rate": 0.0574
+    },
+    {
+      "name": "meta.narrative_block",
+      "description": "叙述段落，没有数字表格",
+      "generate": true,
+      "occurrences": 52,
+      "documents": 50,
+      "document_rate": 0.0797
+    },
+    {
+      "name": "meta.page_furniture",
+      "description": "页码、页眉页脚、打印信息被当成数据",
+      "generate": true,
+      "occurrences": 10,
+      "documents": 10,
+      "document_rate": 0.0159
+    },
+    {
+      "name": "flag.arrow_glued",
+      "description": "箭头标记粘在数值上（5.9↑）",
+      "generate": true,
+      "occurrences": 30,
+      "documents": 29,
+      "document_rate": 0.0463
+    },
+    {
+      "name": "flag.contradicts_reference",
+      "description": "标记与参考范围矛盾",
+      "generate": true,
+      "occurrences": 0,
+      "documents": 0,
+      "document_rate": 0.0
+    },
+    {
+      "name": "flag.column_confusion",
+      "description": "标记列与结果列混淆，或标记列为空",
+      "generate": true,
+      "occurrences": 22,
+      "documents": 22,
+      "document_rate": 0.0351
+    },
+    {
+      "name": "value.flag_combined_in_cell",
+      "description": "值与标记挤在同一格（5.9+、3.2↑、8.1 H）",
+      "generate": true,
+      "occurrences": 29,
+      "documents": 26,
+      "document_rate": 0.0415
+    },
+    {
+      "name": "value.everything_in_one_cell",
+      "description": "结果、标记、参考范围全挤在一格",
+      "generate": true,
+      "occurrences": 0,
+      "documents": 0,
+      "document_rate": 0.0
+    },
+    {
+      "name": "value.missing",
+      "description": "某个项目没有结果值",
+      "generate": true,
+      "occurrences": 24,
+      "documents": 24,
+      "document_rate": 0.0383
+    },
+    {
+      "name": "unit.on_separate_line",
+      "description": "单位单独占一行（在参考范围之后或之前）",
+      "generate": true,
+      "occurrences": 6,
+      "documents": 5,
+      "document_rate": 0.008
+    },
+    {
+      "name": "reference.ratio_not_unit",
+      "description": "参考范围里写的是比值/判读口径（s/co、index），不是单位",
+      "generate": true,
+      "occurrences": 5,
+      "documents": 5,
+      "document_rate": 0.008
+    },
+    {
+      "name": "table.page_break_loses_header",
+      "description": "表格跨页，续页没有列标题",
+      "generate": true,
+      "occurrences": 1,
+      "documents": 1,
+      "document_rate": 0.0016
+    },
+    {
+      "name": "value.contradicts_other_section",
+      "description": "小结段与表格里的同一指标数值对不上",
+      "generate": true,
+      "occurrences": 5,
+      "documents": 5,
+      "document_rate": 0.008
+    },
+    {
+      "name": "flag.text_dialect",
+      "description": "文字标记（偏高/偏低/正常/H/L/阴性）",
+      "generate": true,
+      "occurrences": 27,
+      "documents": 27,
+      "document_rate": 0.0431
+    }
+  ]
+}

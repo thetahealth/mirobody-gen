@@ -1,0 +1,6 @@
+* text=auto eol=lf
+*.json text
+*.md text
+*.py text
+*.sh text
+.githooks/pre-commit text eol=lf

@@ -1,0 +1,4659 @@
+{
+ "_source": "hand-authored",
+ "_note": "体检报告书的科室条目、具名异常所见、辅助检查叙述、总检结论与建议；门诊病历、心电图报告、居家记录的固定文字。全部手写，是教科书式的通用医学表述，不含任何来自真实语料的内容。异常所见的发生率只求量级对，不是流行病学估计。",
+ "_provenance": {
+  "script": "scripts/build_profile.py",
+  "sections": 7,
+  "findings": 55,
+  "aux": 17,
+  "packages": 5
+ },
+ "_vocabulary_fields": [
+  "zh",
+  "en",
+  "normal",
+  "finding",
+  "impression",
+  "text",
+  "summary",
+  "surface",
+  "titles",
+  "cover_titles",
+  "checkup_no",
+  "guide_text",
+  "closing",
+  "cc",
+  "journal",
+  "causes",
+  "measure",
+  "durations",
+  "hpi_templates",
+  "followup_cc",
+  "plan_templates",
+  "pmh_templates",
+  "notes",
+  "unit_row",
+  "labels",
+  "history_labels",
+  "monitor",
+  "drugs",
+  "dx_surfaces",
+  "course_words",
+  "history_clause",
+  "drug_clause",
+  "s2_clause",
+  "vitals_line",
+  "strip",
+  "params",
+  "sinus",
+  "rhythm",
+  "mild",
+  "moderate",
+  "five_point",
+  "decimal",
+  "bp_titles",
+  "weight_titles",
+  "label",
+  "critical_label",
+  "critical_text",
+  "grade_labels",
+  "areas"
+ ],
+ "_placeholders": {
+  "side": [
+   "左",
+   "右"
+  ],
+  "side_en": [
+   "left",
+   "right",
+   "Left",
+   "Right"
+  ],
+  "lobe": [
+   "左",
+   "右"
+  ],
+  "lobe_en": [
+   "left",
+   "right"
+  ],
+  "lobe_lung": [
+   "上",
+   "中",
+   "下"
+  ],
+  "lobe_lung_en": [
+   "upper",
+   "middle",
+   "lower"
+  ],
+  "echo": [
+   "低",
+   "等",
+   "囊实性混合"
+  ],
+  "echo_en": [
+   "hypoechoic",
+   "isoechoic",
+   "mixed cystic-solid"
+  ],
+  "wall": [
+   "前",
+   "后"
+  ],
+  "wall_en": [
+   "anterior",
+   "posterior"
+  ],
+  "density": [
+   "磨玻璃",
+   "实性"
+  ],
+  "density_en": [
+   "ground-glass",
+   "solid"
+  ],
+  "tirads": [
+   "2",
+   "3",
+   "4A"
+  ]
+ },
+ "packages": {
+  "entry": {
+   "zh": "入职体检",
+   "en": "Pre-employment examination",
+   "sections": [
+    "internal",
+    "surgical",
+    "eye",
+    "ent"
+   ],
+   "aux": [
+    "ecg",
+    "chest_xray"
+   ]
+  },
+  "senior": {
+   "zh": "老年人健康体检",
+   "en": "Older-adult health examination",
+   "sections": [
+    "internal",
+    "surgical",
+    "eye",
+    "ent",
+    "dental",
+    "tcm"
+   ],
+   "aux": [
+    "ecg",
+    "abd_us"
+   ]
+  },
+  "basic": {
+   "zh": "基础套餐",
+   "en": "Basic package",
+   "sections": [
+    "internal",
+    "surgical",
+    "eye",
+    "ent",
+    "dental"
+   ],
+   "aux": [
+    "ecg",
+    "chest_xray",
+    "abd_us"
+   ]
+  },
+  "standard": {
+   "zh": "标准套餐",
+   "en": "Standard package",
+   "sections": [
+    "internal",
+    "surgical",
+    "eye",
+    "ent",
+    "dental",
+    "gyn"
+   ],
+   "aux": [
+    "ecg",
+    "chest_xray",
+    "abd_us",
+    "thyroid_us",
+    "breast_us",
+    "prostate_us",
+    "hp_breath",
+    "body_composition"
+   ]
+  },
+  "premium": {
+   "zh": "深度套餐",
+   "en": "Comprehensive package",
+   "sections": [
+    "internal",
+    "surgical",
+    "eye",
+    "ent",
+    "dental",
+    "gyn",
+    "tcm"
+   ],
+   "aux": [
+    "ecg",
+    "chest_ct",
+    "abd_us",
+    "thyroid_us",
+    "carotid_us",
+    "breast_us",
+    "prostate_us",
+    "gyn_us",
+    "mammography",
+    "bmd",
+    "hp_breath",
+    "body_composition",
+    "spirometry",
+    "arterial",
+    "echo",
+    "fundus_photo"
+   ]
+  }
+ },
+ "package_weights": {
+  "checkup_center": {
+   "basic": 0.35,
+   "standard": 0.45,
+   "premium": 0.2
+  },
+  "hospital": {
+   "basic": 0.55,
+   "standard": 0.4,
+   "premium": 0.05
+  }
+ },
+ "normal_dialects": {
+  "zh": [
+   "未见异常",
+   "正常",
+   "未见明显异常",
+   "(-)",
+   "未见明显异常。"
+  ],
+  "en": [
+   "Normal",
+   "Unremarkable",
+   "NAD",
+   "Within normal limits"
+  ]
+ },
+ "not_done": {
+  "zh": [
+   "未查",
+   "弃检",
+   "拒查"
+  ],
+  "en": [
+   "Not examined",
+   "Declined"
+  ]
+ },
+ "sections": {
+  "internal": {
+   "zh": "内科",
+   "en": "Internal Medicine",
+   "items": [
+    {
+     "id": "history",
+     "zh": "既往史",
+     "en": "Past history",
+     "normal": {
+      "zh": [
+       "无",
+       "否认",
+       "无特殊"
+      ],
+      "en": [
+       "None reported",
+       "Denied"
+      ]
+     }
+    },
+    {
+     "id": "heart_rate",
+     "zh": "心率",
+     "en": "Heart rate",
+     "from_reading": "pulse"
+    },
+    {
+     "id": "rhythm",
+     "zh": "心律",
+     "en": "Rhythm",
+     "normal": {
+      "zh": [
+       "齐",
+       "整齐"
+      ],
+      "en": [
+       "Regular"
+      ]
+     }
+    },
+    {
+     "id": "heart_sound",
+     "zh": "心音",
+     "en": "Heart sounds",
+     "normal": {
+      "zh": [
+       "正常",
+       "未闻及杂音",
+       "心音有力，未闻及病理性杂音"
+      ],
+      "en": [
+       "Normal, no murmur"
+      ]
+     }
+    },
+    {
+     "id": "lung",
+     "zh": "肺部",
+     "en": "Lungs",
+     "normal": {
+      "zh": [
+       "呼吸音清",
+       "双肺呼吸音清，未闻及干湿性啰音",
+       "未见异常"
+      ],
+      "en": [
+       "Clear, no added sounds"
+      ]
+     }
+    },
+    {
+     "id": "liver_palp",
+     "zh": "肝脏",
+     "en": "Liver",
+     "normal": {
+      "zh": [
+       "未触及",
+       "肋下未触及"
+      ],
+      "en": [
+       "Not palpable"
+      ]
+     }
+    },
+    {
+     "id": "spleen",
+     "zh": "脾脏",
+     "en": "Spleen",
+     "normal": {
+      "zh": [
+       "未触及",
+       "肋下未触及"
+      ],
+      "en": [
+       "Not palpable"
+      ]
+     }
+    },
+    {
+     "id": "abdomen",
+     "zh": "腹部",
+     "en": "Abdomen",
+     "normal": {
+      "zh": [
+       "软，无压痛",
+       "平软，无压痛及反跳痛",
+       "未见异常"
+      ],
+      "en": [
+       "Soft, non-tender"
+      ]
+     }
+    },
+    {
+     "id": "neuro",
+     "zh": "神经系统",
+     "en": "Nervous system",
+     "normal": {
+      "zh": [
+       "生理反射存在，病理反射未引出",
+       "未见异常"
+      ],
+      "en": [
+       "Reflexes normal"
+      ]
+     }
+    },
+    {
+     "id": "int_misc",
+     "zh": "内科其他",
+     "en": "Other",
+     "optional": 0.6
+    }
+   ]
+  },
+  "surgical": {
+   "zh": "外科",
+   "en": "Surgery",
+   "items": [
+    {
+     "id": "skin",
+     "zh": "皮肤",
+     "en": "Skin",
+     "normal": {
+      "zh": [
+       "未见异常",
+       "正常"
+      ],
+      "en": [
+       "Normal"
+      ]
+     }
+    },
+    {
+     "id": "lymph",
+     "zh": "浅表淋巴结",
+     "en": "Superficial lymph nodes",
+     "normal": {
+      "zh": [
+       "未触及肿大",
+       "未见异常"
+      ],
+      "en": [
+       "Not enlarged"
+      ]
+     }
+    },
+    {
+     "id": "thyroid_palp",
+     "zh": "甲状腺",
+     "en": "Thyroid",
+     "normal": {
+      "zh": [
+       "未触及肿大",
+       "未见异常",
+       "无肿大"
+      ],
+      "en": [
+       "Not enlarged"
+      ]
+     }
+    },
+    {
+     "id": "breast",
+     "zh": "乳腺",
+     "en": "Breasts",
+     "sex": "female",
+     "normal": {
+      "zh": [
+       "未见异常",
+       "未触及肿块"
+      ],
+      "en": [
+       "No mass palpable"
+      ]
+     }
+    },
+    {
+     "id": "spine",
+     "zh": "脊柱",
+     "en": "Spine",
+     "normal": {
+      "zh": [
+       "生理弯曲存在",
+       "未见异常",
+       "无畸形，活动正常"
+      ],
+      "en": [
+       "Normal curvature"
+      ]
+     }
+    },
+    {
+     "id": "limbs",
+     "zh": "四肢关节",
+     "en": "Limbs and joints",
+     "normal": {
+      "zh": [
+       "未见异常",
+       "活动正常"
+      ],
+      "en": [
+       "Normal"
+      ]
+     }
+    },
+    {
+     "id": "anus",
+     "zh": "肛门直肠",
+     "en": "Anorectal",
+     "optional": 0.7,
+     "normal": {
+      "zh": [
+       "未见异常",
+       "未查"
+      ],
+      "en": [
+       "Not examined"
+      ]
+     }
+    },
+    {
+     "id": "surg_misc",
+     "zh": "外科其他",
+     "en": "Other",
+     "optional": 0.5
+    }
+   ]
+  },
+  "eye": {
+   "zh": "眼科",
+   "en": "Ophthalmology",
+   "items": [
+    {
+     "id": "va",
+     "zh": "视力（裸眼）",
+     "en": "Visual acuity (unaided)",
+     "kind": "acuity"
+    },
+    {
+     "id": "va_corrected",
+     "zh": "矫正视力",
+     "en": "Corrected visual acuity",
+     "kind": "acuity",
+     "optional": 0.5
+    },
+    {
+     "id": "color",
+     "zh": "色觉",
+     "en": "Colour vision",
+     "normal": {
+      "zh": [
+       "正常",
+       "未见异常"
+      ],
+      "en": [
+       "Normal"
+      ]
+     }
+    },
+    {
+     "id": "external_eye",
+     "zh": "外眼",
+     "en": "External eye",
+     "normal": {
+      "zh": [
+       "未见异常",
+       "正常"
+      ],
+      "en": [
+       "Normal"
+      ]
+     }
+    },
+    {
+     "id": "conjunctiva",
+     "zh": "结膜",
+     "en": "Conjunctiva",
+     "optional": 0.6,
+     "normal": {
+      "zh": [
+       "未见异常",
+       "无充血"
+      ],
+      "en": [
+       "Normal"
+      ]
+     }
+    },
+    {
+     "id": "fundus",
+     "zh": "眼底",
+     "en": "Fundus",
+     "optional": 0.7,
+     "normal": {
+      "zh": [
+       "未见异常",
+       "视盘边界清，动静脉比例正常"
+      ],
+      "en": [
+       "Normal"
+      ]
+     }
+    },
+    {
+     "id": "iop",
+     "zh": "眼压",
+     "en": "Intraocular pressure",
+     "kind": "iop",
+     "optional": 0.35
+    }
+   ]
+  },
+  "ent": {
+   "zh": "耳鼻喉科",
+   "en": "ENT",
+   "items": [
+    {
+     "id": "ear_canal",
+     "zh": "外耳道",
+     "en": "External ear canal",
+     "normal": {
+      "zh": [
+       "未见异常",
+       "通畅"
+      ],
+      "en": [
+       "Clear"
+      ]
+     }
+    },
+    {
+     "id": "eardrum",
+     "zh": "鼓膜",
+     "en": "Tympanic membrane",
+     "normal": {
+      "zh": [
+       "完整",
+       "未见异常"
+      ],
+      "en": [
+       "Intact"
+      ]
+     }
+    },
+    {
+     "id": "hearing",
+     "zh": "听力",
+     "en": "Hearing",
+     "normal": {
+      "zh": [
+       "正常",
+       "粗测正常"
+      ],
+      "en": [
+       "Normal"
+      ]
+     }
+    },
+    {
+     "id": "nose",
+     "zh": "鼻腔",
+     "en": "Nasal cavity",
+     "normal": {
+      "zh": [
+       "未见异常",
+       "通畅"
+      ],
+      "en": [
+       "Clear"
+      ]
+     }
+    },
+    {
+     "id": "pharynx",
+     "zh": "咽部",
+     "en": "Pharynx",
+     "normal": {
+      "zh": [
+       "未见异常",
+       "无充血"
+      ],
+      "en": [
+       "Normal"
+      ]
+     }
+    },
+    {
+     "id": "tonsil",
+     "zh": "扁桃体",
+     "en": "Tonsils",
+     "normal": {
+      "zh": [
+       "无肿大",
+       "未见异常"
+      ],
+      "en": [
+       "Not enlarged"
+      ]
+     }
+    }
+   ]
+  },
+  "dental": {
+   "zh": "口腔科",
+   "en": "Dental",
+   "items": [
+    {
+     "id": "lips",
+     "zh": "唇颊腭",
+     "en": "Lips, cheeks, palate",
+     "normal": {
+      "zh": [
+       "未见异常"
+      ],
+      "en": [
+       "Normal"
+      ]
+     }
+    },
+    {
+     "id": "teeth",
+     "zh": "牙齿",
+     "en": "Teeth",
+     "normal": {
+      "zh": [
+       "未见异常",
+       "无缺失"
+      ],
+      "en": [
+       "Normal"
+      ]
+     }
+    },
+    {
+     "id": "gums",
+     "zh": "牙龈",
+     "en": "Gums",
+     "normal": {
+      "zh": [
+       "未见异常",
+       "无红肿"
+      ],
+      "en": [
+       "Normal"
+      ]
+     }
+    },
+    {
+     "id": "periodontal",
+     "zh": "牙周",
+     "en": "Periodontium",
+     "optional": 0.6,
+     "normal": {
+      "zh": [
+       "未见异常"
+      ],
+      "en": [
+       "Normal"
+      ]
+     }
+    }
+   ]
+  },
+  "tcm": {
+   "zh": "中医体质辨识",
+   "en": "TCM constitution assessment",
+   "items": [
+    {
+     "id": "constitution",
+     "zh": "体质类型",
+     "en": "Constitution type",
+     "own_normal": true,
+     "normal": {
+      "zh": [
+       "平和质"
+      ],
+      "en": [
+       "Balanced constitution"
+      ]
+     }
+    },
+    {
+     "id": "tongue",
+     "zh": "舌象",
+     "en": "Tongue",
+     "optional": 0.6,
+     "normal": {
+      "zh": [
+       "舌淡红，苔薄白"
+      ],
+      "en": [
+       "Pale-red tongue, thin white coating"
+      ]
+     }
+    },
+    {
+     "id": "pulse_tcm",
+     "zh": "脉象",
+     "en": "Pulse quality",
+     "optional": 0.6,
+     "normal": {
+      "zh": [
+       "脉和缓有力",
+       "脉平"
+      ],
+      "en": [
+       "Moderate and forceful"
+      ]
+     }
+    }
+   ]
+  },
+  "gyn": {
+   "zh": "妇科",
+   "en": "Gynaecology",
+   "sex": "female",
+   "items": [
+    {
+     "id": "vulva",
+     "zh": "外阴",
+     "en": "Vulva",
+     "normal": {
+      "zh": [
+       "未见异常",
+       "已婚式"
+      ],
+      "en": [
+       "Normal"
+      ]
+     }
+    },
+    {
+     "id": "vagina",
+     "zh": "阴道",
+     "en": "Vagina",
+     "normal": {
+      "zh": [
+       "未见异常",
+       "通畅"
+      ],
+      "en": [
+       "Normal"
+      ]
+     }
+    },
+    {
+     "id": "cervix",
+     "zh": "宫颈",
+     "en": "Cervix",
+     "normal": {
+      "zh": [
+       "光滑",
+       "未见异常"
+      ],
+      "en": [
+       "Smooth"
+      ]
+     }
+    },
+    {
+     "id": "uterus",
+     "zh": "子宫",
+     "en": "Uterus",
+     "normal": {
+      "zh": [
+       "正常大小",
+       "未见异常"
+      ],
+      "en": [
+       "Normal size"
+      ]
+     }
+    },
+    {
+     "id": "adnexa",
+     "zh": "附件",
+     "en": "Adnexa",
+     "normal": {
+      "zh": [
+       "未触及异常",
+       "未见异常"
+      ],
+      "en": [
+       "Normal"
+      ]
+     }
+    }
+   ]
+  }
+ },
+ "aux": {
+  "ecg": {
+   "zh": "心电图",
+   "en": "Electrocardiogram",
+   "kind": "ecg",
+   "parameters": [
+    "pulse",
+    "pr_interval",
+    "qrs_duration",
+    "qtc",
+    "qrs_axis"
+   ],
+   "impression_normal": {
+    "zh": [
+     "窦性心律，正常心电图",
+     "窦性心律 正常心电图",
+     "窦性心律，大致正常心电图"
+    ],
+    "en": [
+     "Sinus rhythm. Normal ECG.",
+     "Sinus rhythm, within normal limits."
+    ]
+   },
+   "labels": {
+    "zh": {
+     "finding": "心电图描述",
+     "impression": "心电图诊断"
+    },
+    "en": {
+     "finding": "Description",
+     "impression": "Interpretation"
+    }
+   }
+  },
+  "chest_xray": {
+   "zh": "胸部X线摄影（正位）",
+   "en": "Chest radiograph (PA)",
+   "kind": "imaging",
+   "finding_normal": {
+    "zh": [
+     "两肺纹理清晰，未见明显实质性病变。心影大小形态未见异常。双侧膈面光整，肋膈角锐利。",
+     "两肺野清晰，肺纹理走行自然。心影不大。膈面光滑，肋膈角锐利。"
+    ],
+    "en": [
+     "Lungs are clear. Cardiomediastinal silhouette within normal limits. Costophrenic angles sharp."
+    ]
+   },
+   "impression_normal": {
+    "zh": [
+     "心肺膈未见明显异常",
+     "胸部平片未见明显异常"
+    ],
+    "en": [
+     "No acute cardiopulmonary abnormality."
+    ]
+   },
+   "labels": {
+    "zh": {
+     "finding": "影像所见",
+     "impression": "影像诊断"
+    },
+    "en": {
+     "finding": "Findings",
+     "impression": "Impression"
+    }
+   }
+  },
+  "chest_ct": {
+   "zh": "胸部CT平扫（低剂量）",
+   "en": "Low-dose chest CT",
+   "kind": "imaging",
+   "finding_normal": {
+    "zh": [
+     "两肺野透亮度正常，肺纹理走行自然，未见明显实质性病变。气管及支气管通畅。纵隔未见肿大淋巴结。心影大小正常。胸腔未见积液。"
+    ],
+    "en": [
+     "Lungs are clear without nodule or consolidation. Airways patent. No mediastinal lymphadenopathy. No pleural effusion."
+    ]
+   },
+   "impression_normal": {
+    "zh": [
+     "胸部CT平扫未见明显异常"
+    ],
+    "en": [
+     "No significant abnormality."
+    ]
+   },
+   "labels": {
+    "zh": {
+     "finding": "影像所见",
+     "impression": "影像诊断"
+    },
+    "en": {
+     "finding": "Findings",
+     "impression": "Impression"
+    }
+   }
+  },
+  "abd_us": {
+   "zh": "腹部超声（肝、胆、胰、脾、双肾）",
+   "en": "Abdominal ultrasound (liver, gallbladder, pancreas, spleen, kidneys)",
+   "kind": "ultrasound",
+   "organs": [
+    {
+     "id": "liver",
+     "zh": "肝脏",
+     "en": "Liver",
+     "normal": {
+      "zh": [
+       "肝脏形态大小正常，包膜光滑，实质回声均匀，肝内管道显示清晰，门静脉内径正常。"
+      ],
+      "en": [
+       "Liver normal in size and contour, homogeneous echotexture, intrahepatic ducts not dilated."
+      ]
+     }
+    },
+    {
+     "id": "gallbladder",
+     "zh": "胆囊",
+     "en": "Gallbladder",
+     "normal": {
+      "zh": [
+       "胆囊大小形态正常，壁不厚，腔内未见明显异常回声。"
+      ],
+      "en": [
+       "Gallbladder normal in size, wall not thickened, no stones."
+      ]
+     }
+    },
+    {
+     "id": "pancreas",
+     "zh": "胰腺",
+     "en": "Pancreas",
+     "normal": {
+      "zh": [
+       "胰腺形态大小正常，回声均匀，胰管无扩张。"
+      ],
+      "en": [
+       "Pancreas normal, duct not dilated."
+      ]
+     }
+    },
+    {
+     "id": "spleen",
+     "zh": "脾脏",
+     "en": "Spleen",
+     "normal": {
+      "zh": [
+       "脾脏形态大小正常，回声均匀。"
+      ],
+      "en": [
+       "Spleen normal in size and echotexture."
+      ]
+     }
+    },
+    {
+     "id": "kidneys",
+     "zh": "双肾",
+     "en": "Kidneys",
+     "normal": {
+      "zh": [
+       "双肾形态大小正常，皮髓质分界清，集合系统无分离，未见明显异常回声。"
+      ],
+      "en": [
+       "Both kidneys normal in size, corticomedullary differentiation preserved, no hydronephrosis."
+      ]
+     }
+    }
+   ],
+   "impression_normal": {
+    "zh": [
+     "肝、胆、胰、脾、双肾未见明显异常",
+     "肝胆胰脾双肾声像图未见明显异常"
+    ],
+    "en": [
+     "No significant abnormality of the liver, gallbladder, pancreas, spleen or kidneys."
+    ]
+   },
+   "labels": {
+    "zh": {
+     "finding": "超声所见",
+     "impression": "超声提示"
+    },
+    "en": {
+     "finding": "Findings",
+     "impression": "Impression"
+    }
+   }
+  },
+  "thyroid_us": {
+   "zh": "甲状腺超声",
+   "en": "Thyroid ultrasound",
+   "kind": "ultrasound",
+   "organs": [
+    {
+     "id": "thyroid",
+     "zh": "甲状腺",
+     "en": "Thyroid",
+     "normal": {
+      "zh": [
+       "甲状腺双叶大小形态正常，包膜完整，实质回声均匀，未见明显占位性病变。CDFI：血流信号未见异常。"
+      ],
+      "en": [
+       "Both lobes normal in size, homogeneous echotexture, no focal lesion. Normal vascularity."
+      ]
+     }
+    }
+   ],
+   "impression_normal": {
+    "zh": [
+     "甲状腺未见明显异常"
+    ],
+    "en": [
+     "Normal thyroid ultrasound."
+    ]
+   },
+   "labels": {
+    "zh": {
+     "finding": "超声所见",
+     "impression": "超声提示"
+    },
+    "en": {
+     "finding": "Findings",
+     "impression": "Impression"
+    }
+   }
+  },
+  "carotid_us": {
+   "zh": "颈动脉超声",
+   "en": "Carotid ultrasound",
+   "kind": "ultrasound",
+   "organs": [
+    {
+     "id": "carotid",
+     "zh": "双侧颈动脉",
+     "en": "Carotid arteries",
+     "normal": {
+      "zh": [
+       "双侧颈总动脉、颈内动脉内径正常，内中膜光滑，未见明显斑块，血流通畅。"
+      ],
+      "en": [
+       "Common and internal carotid arteries of normal calibre, intima-media smooth, no plaque."
+      ]
+     }
+    }
+   ],
+   "impression_normal": {
+    "zh": [
+     "双侧颈动脉未见明显异常"
+    ],
+    "en": [
+     "Normal carotid ultrasound."
+    ]
+   },
+   "labels": {
+    "zh": {
+     "finding": "超声所见",
+     "impression": "超声提示"
+    },
+    "en": {
+     "finding": "Findings",
+     "impression": "Impression"
+    }
+   }
+  },
+  "breast_us": {
+   "zh": "乳腺超声",
+   "en": "Breast ultrasound",
+   "kind": "ultrasound",
+   "sex": "female",
+   "organs": [
+    {
+     "id": "breast",
+     "zh": "双侧乳腺",
+     "en": "Breasts",
+     "normal": {
+      "zh": [
+       "双侧乳腺腺体层次清晰，回声均匀，未见明显占位性病变。双侧腋窝未见肿大淋巴结。"
+      ],
+      "en": [
+       "Fibroglandular tissue normal, no focal lesion. No axillary lymphadenopathy."
+      ]
+     }
+    }
+   ],
+   "impression_normal": {
+    "zh": [
+     "双侧乳腺未见明显异常"
+    ],
+    "en": [
+     "Normal breast ultrasound."
+    ]
+   },
+   "labels": {
+    "zh": {
+     "finding": "超声所见",
+     "impression": "超声提示"
+    },
+    "en": {
+     "finding": "Findings",
+     "impression": "Impression"
+    }
+   }
+  },
+  "prostate_us": {
+   "zh": "前列腺超声",
+   "en": "Prostate ultrasound",
+   "kind": "ultrasound",
+   "sex": "male",
+   "min_age": 40,
+   "organs": [
+    {
+     "id": "prostate",
+     "zh": "前列腺",
+     "en": "Prostate",
+     "normal": {
+      "zh": [
+       "前列腺大小形态正常，包膜完整，内部回声均匀。"
+      ],
+      "en": [
+       "Prostate normal in size and echotexture."
+      ]
+     }
+    }
+   ],
+   "impression_normal": {
+    "zh": [
+     "前列腺未见明显异常"
+    ],
+    "en": [
+     "Normal prostate ultrasound."
+    ]
+   },
+   "labels": {
+    "zh": {
+     "finding": "超声所见",
+     "impression": "超声提示"
+    },
+    "en": {
+     "finding": "Findings",
+     "impression": "Impression"
+    }
+   }
+  },
+  "gyn_us": {
+   "zh": "妇科超声（经腹）",
+   "en": "Pelvic ultrasound",
+   "kind": "ultrasound",
+   "sex": "female",
+   "organs": [
+    {
+     "id": "uterus_us",
+     "zh": "子宫及双附件",
+     "en": "Uterus and adnexa",
+     "normal": {
+      "zh": [
+       "子宫前位，大小形态正常，肌层回声均匀，内膜居中。双侧附件区未见明显异常回声。"
+      ],
+      "en": [
+       "Anteverted uterus of normal size, homogeneous myometrium. Adnexa unremarkable."
+      ]
+     }
+    }
+   ],
+   "impression_normal": {
+    "zh": [
+     "子宫及双附件未见明显异常"
+    ],
+    "en": [
+     "Normal pelvic ultrasound."
+    ]
+   },
+   "labels": {
+    "zh": {
+     "finding": "超声所见",
+     "impression": "超声提示"
+    },
+    "en": {
+     "finding": "Findings",
+     "impression": "Impression"
+    }
+   }
+  },
+  "bmd": {
+   "zh": "骨密度（双能X线）",
+   "en": "Bone densitometry (DXA)",
+   "kind": "bmd",
+   "min_age": 40,
+   "labels": {
+    "zh": {
+     "finding": "检查结果",
+     "impression": "结论"
+    },
+    "en": {
+     "finding": "Result",
+     "impression": "Conclusion"
+    }
+   },
+   "impression_normal": {
+    "zh": [
+     "骨量正常"
+    ],
+    "en": [
+     "Normal bone density."
+    ]
+   }
+  },
+  "spirometry": {
+   "zh": "肺功能检查",
+   "en": "Spirometry",
+   "kind": "params",
+   "parameters": [
+    "fvc",
+    "fvc_pct",
+    "fev1",
+    "fev1_pct",
+    "fev1_fvc"
+   ],
+   "impression_normal": {
+    "zh": [
+     "肺通气功能正常",
+     "通气功能未见异常"
+    ],
+    "en": [
+     "Normal spirometry."
+    ]
+   },
+   "labels": {
+    "zh": {
+     "finding": "检查结果",
+     "impression": "结论"
+    },
+    "en": {
+     "finding": "Results",
+     "impression": "Interpretation"
+    }
+   }
+  },
+  "arterial": {
+   "zh": "动脉硬化检测",
+   "en": "Arterial stiffness (baPWV / ABI)",
+   "kind": "params",
+   "parameters": [
+    "bapwv_l",
+    "bapwv_r",
+    "abi_l",
+    "abi_r"
+   ],
+   "impression_normal": {
+    "zh": [
+     "动脉弹性正常，未见明显动脉硬化",
+     "血管弹性良好"
+    ],
+    "en": [
+     "Normal arterial stiffness indices."
+    ]
+   },
+   "labels": {
+    "zh": {
+     "finding": "检查结果",
+     "impression": "结论"
+    },
+    "en": {
+     "finding": "Results",
+     "impression": "Interpretation"
+    }
+   }
+  },
+  "body_composition": {
+   "zh": "人体成分分析",
+   "en": "Body composition analysis",
+   "kind": "params",
+   "parameters": [
+    "body_fat",
+    "visceral_fat",
+    "muscle_mass",
+    "bmr"
+   ],
+   "impression_normal": {
+    "zh": [
+     "体成分构成正常"
+    ],
+    "en": [
+     "Body composition within normal limits."
+    ]
+   },
+   "labels": {
+    "zh": {
+     "finding": "检查结果",
+     "impression": "结论"
+    },
+    "en": {
+     "finding": "Results",
+     "impression": "Interpretation"
+    }
+   }
+  },
+  "echo": {
+   "zh": "超声心动图（心脏彩超）",
+   "en": "Echocardiography",
+   "kind": "params",
+   "parameters": [
+    "lvedd",
+    "ivs",
+    "la",
+    "lvef",
+    "ea"
+   ],
+   "finding_normal": {
+    "zh": [
+     "各房室内径正常，室壁厚度及运动正常，各瓣膜形态、启闭正常，未见明显异常血流信号。心包腔未见积液。"
+    ],
+    "en": [
+     "Normal chamber dimensions and wall thickness; normal valve morphology and function; no significant regurgitation; no pericardial effusion."
+    ]
+   },
+   "impression_normal": {
+    "zh": [
+     "心脏结构及功能未见明显异常"
+    ],
+    "en": [
+     "Normal echocardiogram."
+    ]
+   },
+   "labels": {
+    "zh": {
+     "finding": "超声所见",
+     "impression": "超声提示"
+    },
+    "en": {
+     "finding": "Findings",
+     "impression": "Impression"
+    }
+   }
+  },
+  "fundus_photo": {
+   "zh": "眼底照相",
+   "en": "Fundus photography",
+   "kind": "imaging",
+   "finding_normal": {
+    "zh": [
+     "双眼视盘边界清，色泽正常，C/D约0.3，视网膜血管走行正常，动静脉比例约2:3，黄斑中心凹反光存在，未见出血及渗出。"
+    ],
+    "en": [
+     "Both discs sharp with C/D ratio about 0.3; retinal vessels of normal calibre (A:V about 2:3); foveal reflex present; no haemorrhage or exudate."
+    ]
+   },
+   "impression_normal": {
+    "zh": [
+     "双眼眼底未见明显异常"
+    ],
+    "en": [
+     "Normal fundi."
+    ]
+   },
+   "labels": {
+    "zh": {
+     "finding": "检查所见",
+     "impression": "检查结论"
+    },
+    "en": {
+     "finding": "Findings",
+     "impression": "Impression"
+    }
+   }
+  },
+  "mammography": {
+   "zh": "乳腺X线摄影（钼靶）",
+   "en": "Mammography",
+   "kind": "imaging",
+   "sex": "female",
+   "min_age": 40,
+   "finding_normal": {
+    "zh": [
+     "双侧乳腺呈散在纤维腺体型（b类），腺体分布对称，未见明确肿块、钙化及结构扭曲，皮肤及乳头未见异常，双侧腋窝未见肿大淋巴结。"
+    ],
+    "en": [
+     "Scattered fibroglandular density (type b), symmetric; no mass, suspicious calcification or architectural distortion; skin and nipples normal; no axillary lymphadenopathy."
+    ]
+   },
+   "impression_normal": {
+    "zh": [
+     "双乳未见明显异常（BI-RADS 1类）"
+    ],
+    "en": [
+     "No mammographic evidence of malignancy (BI-RADS 1)."
+    ]
+   },
+   "labels": {
+    "zh": {
+     "finding": "影像所见",
+     "impression": "影像诊断"
+    },
+    "en": {
+     "finding": "Findings",
+     "impression": "Impression"
+    }
+   }
+  },
+  "hp_breath": {
+   "zh": "碳13尿素呼气试验",
+   "en": "13C urea breath test",
+   "kind": "breath",
+   "labels": {
+    "zh": {
+     "finding": "检测结果",
+     "impression": "结论"
+    },
+    "en": {
+     "finding": "Result",
+     "impression": "Conclusion"
+    }
+   },
+   "impression_normal": {
+    "zh": [
+     "幽门螺杆菌阴性"
+    ],
+    "en": [
+     "Helicobacter pylori negative."
+    ]
+   }
+  }
+ },
+ "findings": {
+  "fatty_liver": {
+   "where": [
+    "abd_us",
+    "liver"
+   ],
+   "sticky": true,
+   "severity": [
+    "mild",
+    "moderate"
+   ],
+   "finding": {
+    "mild": {
+     "zh": "肝脏形态大小正常，实质回声细密增强，远场回声轻度衰减，肝内管道显示尚清晰。",
+     "en": "Liver normal in size; diffusely increased parenchymal echogenicity with mild posterior attenuation."
+    },
+    "moderate": {
+     "zh": "肝脏体积增大，实质回声弥漫性增强，远场回声明显衰减，肝内管道显示欠清晰。",
+     "en": "Liver enlarged; diffusely increased echogenicity with marked posterior attenuation, vessels poorly seen."
+    }
+   },
+   "impression": {
+    "mild": {
+     "zh": "轻度脂肪肝",
+     "en": "Mild fatty liver"
+    },
+    "moderate": {
+     "zh": "中度脂肪肝",
+     "en": "Moderate fatty liver"
+    }
+   },
+   "surface": "脂肪肝",
+   "icpc3": "DD81",
+   "summary": {
+    "zh": "脂肪肝",
+    "en": "Fatty liver"
+   },
+   "advice": "fatty_liver",
+   "rate": {
+    "base": 0.12,
+    "age": 0.003,
+    "sex": {
+     "male": 1.4,
+     "female": 0.7
+    },
+    "archetype": {
+     "fatty_liver": 12.0,
+     "prediabetes_to_t2dm": 3.0,
+     "dyslipidemia_statin": 2.5
+    }
+   }
+  },
+  "liver_cyst": {
+   "where": [
+    "abd_us",
+    "liver"
+   ],
+   "sticky": true,
+   "size_mm": [
+    6,
+    25
+   ],
+   "finding": {
+    "zh": "肝{lobe}叶见一无回声区，大小约{mm}mm，壁薄，边界清，后方回声增强。",
+    "en": "A {mm} mm thin-walled anechoic lesion in the {lobe_en} lobe with posterior enhancement."
+   },
+   "impression": {
+    "zh": "肝囊肿",
+    "en": "Hepatic cyst"
+   },
+   "surface": "肝囊肿",
+   "icpc3": null,
+   "summary": {
+    "zh": "肝囊肿",
+    "en": "Hepatic cyst"
+   },
+   "advice": "benign_cyst",
+   "rate": {
+    "base": 0.04,
+    "age": 0.002
+   }
+  },
+  "gb_polyp": {
+   "where": [
+    "abd_us",
+    "gallbladder"
+   ],
+   "sticky": true,
+   "size_mm": [
+    3,
+    8
+   ],
+   "finding": {
+    "zh": "胆囊壁上见一强回声，大小约{mm}mm，不随体位改变移动，后方无声影。",
+    "en": "A {mm} mm non-mobile echogenic focus on the gallbladder wall without acoustic shadow."
+   },
+   "impression": {
+    "zh": "胆囊息肉样病变",
+    "en": "Gallbladder polyp"
+   },
+   "surface": "胆囊息肉",
+   "icpc3": null,
+   "summary": {
+    "zh": "胆囊息肉样病变",
+    "en": "Gallbladder polyp"
+   },
+   "advice": "gb_polyp",
+   "rate": {
+    "base": 0.05,
+    "age": 0.001
+   }
+  },
+  "gb_stone": {
+   "where": [
+    "abd_us",
+    "gallbladder"
+   ],
+   "sticky": true,
+   "size_mm": [
+    5,
+    18
+   ],
+   "finding": {
+    "zh": "胆囊腔内见一强回声团，大小约{mm}mm，后方伴声影，随体位改变移动。",
+    "en": "A {mm} mm mobile echogenic focus with posterior acoustic shadowing within the gallbladder."
+   },
+   "impression": {
+    "zh": "胆囊结石",
+    "en": "Cholelithiasis"
+   },
+   "surface": "胆结石",
+   "icpc3": "DD82",
+   "summary": {
+    "zh": "胆囊结石",
+    "en": "Gallstone"
+   },
+   "advice": "gb_stone",
+   "rate": {
+    "base": 0.03,
+    "age": 0.002,
+    "sex": {
+     "female": 1.4,
+     "male": 0.9
+    },
+    "archetype": {
+     "fatty_liver": 1.8,
+     "dyslipidemia_statin": 1.5
+    }
+   }
+  },
+  "kidney_stone": {
+   "where": [
+    "abd_us",
+    "kidneys"
+   ],
+   "sticky": true,
+   "size_mm": [
+    3,
+    9
+   ],
+   "finding": {
+    "zh": "{side}肾集合系统内见一强回声，大小约{mm}mm，后方伴声影。",
+    "en": "A {mm} mm echogenic focus with acoustic shadowing in the {side_en} renal collecting system."
+   },
+   "impression": {
+    "zh": "{side}肾结石",
+    "en": "{side_en} renal calculus"
+   },
+   "surface": "肾结石",
+   "icpc3": "UD67",
+   "summary": {
+    "zh": "肾结石",
+    "en": "Kidney stone"
+   },
+   "advice": "kidney_stone",
+   "rate": {
+    "base": 0.04,
+    "age": 0.001,
+    "sex": {
+     "male": 1.4,
+     "female": 0.8
+    },
+    "archetype": {
+     "ckd_progression": 1.6
+    }
+   }
+  },
+  "kidney_cyst": {
+   "where": [
+    "abd_us",
+    "kidneys"
+   ],
+   "sticky": true,
+   "size_mm": [
+    8,
+    30
+   ],
+   "finding": {
+    "zh": "{side}肾见一无回声区，大小约{mm}mm，壁薄，边界清，后方回声增强。",
+    "en": "A {mm} mm simple cyst in the {side_en} kidney."
+   },
+   "impression": {
+    "zh": "{side}肾囊肿",
+    "en": "{side_en} renal cyst"
+   },
+   "surface": "肾囊肿",
+   "icpc3": null,
+   "summary": {
+    "zh": "肾囊肿",
+    "en": "Renal cyst"
+   },
+   "advice": "benign_cyst",
+   "rate": {
+    "base": 0.03,
+    "age": 0.003,
+    "archetype": {
+     "ckd_progression": 2.0
+    }
+   }
+  },
+  "thyroid_nodule": {
+   "where": [
+    "thyroid_us",
+    "thyroid"
+   ],
+   "sticky": true,
+   "size_mm": [
+    3,
+    14
+   ],
+   "finding": {
+    "zh": "甲状腺{side}叶见一{echo}回声结节，大小约{mm}mm，边界清，形态规则，内部回声均匀，CDFI：周边见少许血流信号。",
+    "en": "A {mm} mm well-defined {echo_en} nodule in the {side_en} lobe with regular margins and peripheral vascularity."
+   },
+   "impression": {
+    "zh": "甲状腺{side}叶结节（TI-RADS {tirads}类）",
+    "en": "{side_en} thyroid nodule, TI-RADS {tirads}"
+   },
+   "surface": "甲状腺结节",
+   "icpc3": null,
+   "summary": {
+    "zh": "甲状腺结节",
+    "en": "Thyroid nodule"
+   },
+   "advice": "thyroid_nodule",
+   "rate": {
+    "base": 0.15,
+    "age": 0.004,
+    "sex": {
+     "female": 1.5,
+     "male": 0.8
+    },
+    "archetype": {
+     "thyroid_disorder": 2.5
+    }
+   }
+  },
+  "thyroid_diffuse": {
+   "where": [
+    "thyroid_us",
+    "thyroid"
+   ],
+   "sticky": true,
+   "finding": {
+    "zh": "甲状腺双叶大小正常或略增大，实质回声弥漫性减低、不均匀，呈网格状改变，CDFI：血流信号增多。",
+    "en": "Both lobes show diffusely heterogeneous, hypoechoic parenchyma with increased vascularity."
+   },
+   "impression": {
+    "zh": "甲状腺弥漫性病变（请结合甲状腺功能）",
+    "en": "Diffuse thyroid disease; correlate with thyroid function."
+   },
+   "surface": "桥本甲状腺炎",
+   "icpc3": null,
+   "summary": {
+    "zh": "甲状腺弥漫性病变",
+    "en": "Diffuse thyroid change"
+   },
+   "advice": "thyroid_diffuse",
+   "rate": {
+    "base": 0.01,
+    "archetype": {
+     "thyroid_disorder": 40.0
+    }
+   }
+  },
+  "carotid_imt": {
+   "where": [
+    "carotid_us",
+    "carotid"
+   ],
+   "sticky": true,
+   "min_age": 40,
+   "finding": {
+    "zh": "双侧颈总动脉内中膜增厚，厚约1.1–1.3mm，回声增强，未见明显斑块。",
+    "en": "Bilateral common carotid intima-media thickening (1.1–1.3 mm) without discrete plaque."
+   },
+   "impression": {
+    "zh": "双侧颈动脉内中膜增厚",
+    "en": "Carotid intima-media thickening"
+   },
+   "surface": "颈动脉内中膜增厚",
+   "icpc3": null,
+   "summary": {
+    "zh": "颈动脉内中膜增厚",
+    "en": "Carotid IMT increased"
+   },
+   "advice": "vascular",
+   "rate": {
+    "base": 0.05,
+    "age": 0.006,
+    "archetype": {
+     "dyslipidemia_statin": 2.5,
+     "hypertension": 2.5,
+     "prediabetes_to_t2dm": 1.8
+    }
+   }
+  },
+  "carotid_plaque": {
+   "where": [
+    "carotid_us",
+    "carotid"
+   ],
+   "sticky": true,
+   "min_age": 45,
+   "size_mm": [
+    8,
+    20
+   ],
+   "finding": {
+    "zh": "{side}侧颈总动脉分叉处见一强回声斑块，大小约{mm}×2.1mm，管腔未见明显狭窄。",
+    "en": "A {mm} × 2.1 mm echogenic plaque at the {side_en} carotid bifurcation without significant stenosis."
+   },
+   "impression": {
+    "zh": "{side}侧颈动脉斑块形成",
+    "en": "{side_en} carotid plaque"
+   },
+   "surface": "颈动脉斑块",
+   "icpc3": null,
+   "summary": {
+    "zh": "颈动脉斑块",
+    "en": "Carotid plaque"
+   },
+   "advice": "vascular",
+   "rate": {
+    "base": 0.03,
+    "age": 0.006,
+    "archetype": {
+     "dyslipidemia_statin": 3.0,
+     "hypertension": 2.5
+    }
+   }
+  },
+  "breast_hyperplasia": {
+   "where": [
+    "breast_us",
+    "breast"
+   ],
+   "sticky": true,
+   "sex": "female",
+   "finding": {
+    "zh": "双侧乳腺腺体层次欠清，回声增粗、分布不均，未见明显占位性病变。",
+    "en": "Fibroglandular tissue coarsened and heterogeneous bilaterally; no focal mass."
+   },
+   "impression": {
+    "zh": "双侧乳腺增生",
+    "en": "Bilateral fibrocystic change"
+   },
+   "surface": "乳腺增生",
+   "icpc3": "GD67",
+   "summary": {
+    "zh": "乳腺增生",
+    "en": "Fibrocystic breast change"
+   },
+   "advice": "breast",
+   "rate": {
+    "base": 0.3,
+    "max_age": 55
+   }
+  },
+  "breast_nodule": {
+   "where": [
+    "breast_us",
+    "breast"
+   ],
+   "sticky": true,
+   "sex": "female",
+   "size_mm": [
+    4,
+    12
+   ],
+   "finding": {
+    "zh": "{side}侧乳腺{clock}点方向见一低回声结节，大小约{mm}mm，边界清，形态规则。",
+    "en": "A {mm} mm well-circumscribed hypoechoic nodule in the {side_en} breast at {clock} o'clock."
+   },
+   "impression": {
+    "zh": "{side}侧乳腺结节（BI-RADS 3类）",
+    "en": "{side_en} breast nodule, BI-RADS 3"
+   },
+   "surface": "乳腺结节",
+   "icpc3": null,
+   "summary": {
+    "zh": "乳腺结节",
+    "en": "Breast nodule"
+   },
+   "advice": "breast_nodule",
+   "rate": {
+    "base": 0.08
+   }
+  },
+  "prostate_hyperplasia": {
+   "where": [
+    "prostate_us",
+    "prostate"
+   ],
+   "sticky": true,
+   "sex": "male",
+   "min_age": 50,
+   "finding": {
+    "zh": "前列腺体积增大，约4.6×3.8×3.2cm，内腺增大，回声不均，可见钙化斑。",
+    "en": "Prostate enlarged (4.6 × 3.8 × 3.2 cm) with heterogeneous transition zone and calcifications."
+   },
+   "impression": {
+    "zh": "前列腺增生伴钙化",
+    "en": "Benign prostatic hyperplasia with calcification"
+   },
+   "surface": "前列腺增生",
+   "icpc3": "GD70",
+   "summary": {
+    "zh": "前列腺增生",
+    "en": "Prostatic hyperplasia"
+   },
+   "advice": "prostate",
+   "rate": {
+    "base": 0.05,
+    "age": 0.012
+   }
+  },
+  "uterine_fibroid": {
+   "where": [
+    "gyn_us",
+    "uterus_us"
+   ],
+   "sticky": true,
+   "sex": "female",
+   "max_age": 55,
+   "size_mm": [
+    12,
+    40
+   ],
+   "finding": {
+    "zh": "子宫{wall}壁肌层内见一低回声结节，大小约{mm}mm，边界清，周边可见环状血流。",
+    "en": "A {mm} mm well-defined hypoechoic myometrial nodule in the {wall_en} wall with peripheral flow."
+   },
+   "impression": {
+    "zh": "子宫肌瘤",
+    "en": "Uterine fibroid"
+   },
+   "surface": "子宫肌瘤",
+   "icpc3": "GD29",
+   "summary": {
+    "zh": "子宫肌瘤",
+    "en": "Uterine fibroid"
+   },
+   "advice": "fibroid",
+   "rate": {
+    "base": 0.1,
+    "age": 0.004
+   }
+  },
+  "lung_nodule": {
+   "where": [
+    "chest_ct",
+    null
+   ],
+   "sticky": true,
+   "size_mm": [
+    3,
+    6
+   ],
+   "finding": {
+    "zh": "{side}肺{lobe_lung}叶见一{density}结节，直径约{mm}mm，边界清。余两肺未见明显实质性病变。纵隔未见肿大淋巴结。",
+    "en": "A {mm} mm {density_en} nodule in the {side_en} {lobe_lung_en} lobe. Lungs otherwise clear. No lymphadenopathy."
+   },
+   "impression": {
+    "zh": "{side}肺{lobe_lung}叶微小结节，建议年度复查",
+    "en": "{side_en} {lobe_lung_en} lobe pulmonary nodule; annual follow-up suggested"
+   },
+   "surface": "肺结节",
+   "icpc3": null,
+   "summary": {
+    "zh": "肺微小结节",
+    "en": "Small pulmonary nodule"
+   },
+   "advice": "lung_nodule",
+   "rate": {
+    "base": 0.15,
+    "age": 0.004
+   }
+  },
+  "lung_markings": {
+   "where": [
+    "chest_xray",
+    null
+   ],
+   "sticky": false,
+   "finding": {
+    "zh": "两肺纹理增粗、增多，未见明显实质性病变。心影大小形态未见异常。双侧膈面光整，肋膈角锐利。",
+    "en": "Bronchovascular markings mildly prominent; no consolidation. Heart size normal."
+   },
+   "impression": {
+    "zh": "两肺纹理增粗",
+    "en": "Prominent lung markings"
+   },
+   "surface": "肺纹理增粗",
+   "icpc3": null,
+   "summary": {
+    "zh": "两肺纹理增粗",
+    "en": "Prominent lung markings"
+   },
+   "advice": "lung_markings",
+   "rate": {
+    "base": 0.12,
+    "age": 0.003
+   }
+  },
+  "sinus_brady": {
+   "where": [
+    "ecg",
+    null
+   ],
+   "sticky": false,
+   "condition": {
+    "pulse": "<60"
+   },
+   "impression": {
+    "zh": "窦性心动过缓",
+    "en": "Sinus bradycardia"
+   },
+   "surface": "窦性心动过缓",
+   "icpc3": null,
+   "summary": {
+    "zh": "窦性心动过缓",
+    "en": "Sinus bradycardia"
+   },
+   "advice": "brady",
+   "rate": {
+    "base": 1.0
+   }
+  },
+  "sinus_arrhythmia": {
+   "where": [
+    "ecg",
+    null
+   ],
+   "sticky": false,
+   "impression": {
+    "zh": "窦性心律不齐",
+    "en": "Sinus arrhythmia"
+   },
+   "surface": "窦性心律不齐",
+   "icpc3": null,
+   "summary": {
+    "zh": "窦性心律不齐",
+    "en": "Sinus arrhythmia"
+   },
+   "advice": "ecg_minor",
+   "rate": {
+    "base": 0.06,
+    "max_age": 40
+   }
+  },
+  "t_wave": {
+   "where": [
+    "ecg",
+    null
+   ],
+   "sticky": false,
+   "min_age": 40,
+   "impression": {
+    "zh": "窦性心律，部分导联T波改变（Ⅱ、Ⅲ、aVF）",
+    "en": "Sinus rhythm with nonspecific T-wave changes (II, III, aVF)"
+   },
+   "surface": "T波改变",
+   "icpc3": null,
+   "summary": {
+    "zh": "心电图T波改变",
+    "en": "Nonspecific T-wave changes"
+   },
+   "advice": "ecg_minor",
+   "rate": {
+    "base": 0.05,
+    "age": 0.002,
+    "archetype": {
+     "hypertension": 2.0
+    }
+   }
+  },
+  "pac": {
+   "where": [
+    "ecg",
+    null
+   ],
+   "sticky": false,
+   "min_age": 35,
+   "impression": {
+    "zh": "窦性心律，偶发房性早搏",
+    "en": "Sinus rhythm with occasional premature atrial complexes"
+   },
+   "surface": "房性早搏",
+   "icpc3": null,
+   "summary": {
+    "zh": "偶发房性早搏",
+    "en": "Occasional PACs"
+   },
+   "advice": "ecg_minor",
+   "rate": {
+    "base": 0.03,
+    "age": 0.002
+   }
+  },
+  "caries": {
+   "where": [
+    "dental",
+    "teeth"
+   ],
+   "sticky": true,
+   "text": {
+    "zh": "龋齿（{tooth}）",
+    "en": "Dental caries ({tooth})"
+   },
+   "surface": "龋齿",
+   "icpc3": null,
+   "summary": {
+    "zh": "龋齿",
+    "en": "Dental caries"
+   },
+   "advice": "dental",
+   "rate": {
+    "base": 0.25
+   }
+  },
+  "calculus": {
+   "where": [
+    "dental",
+    "gums"
+   ],
+   "sticky": true,
+   "text": {
+    "zh": "牙结石，牙龈轻度红肿",
+    "en": "Dental calculus with mild gingivitis"
+   },
+   "surface": "牙结石",
+   "icpc3": null,
+   "summary": {
+    "zh": "牙结石",
+    "en": "Dental calculus"
+   },
+   "advice": "dental",
+   "rate": {
+    "base": 0.3,
+    "age": 0.002
+   }
+  },
+  "missing_teeth": {
+   "where": [
+    "dental",
+    "teeth"
+   ],
+   "sticky": true,
+   "min_age": 45,
+   "text": {
+    "zh": "缺牙（{tooth}）",
+    "en": "Missing tooth ({tooth})"
+   },
+   "surface": "缺牙",
+   "icpc3": null,
+   "summary": {
+    "zh": "缺牙",
+    "en": "Missing teeth"
+   },
+   "advice": "dental",
+   "rate": {
+    "base": 0.05,
+    "age": 0.008
+   }
+  },
+  "myopia": {
+   "where": [
+    "eye",
+    "va"
+   ],
+   "sticky": true,
+   "acuity": "low",
+   "surface": "近视",
+   "icpc3": "FD69",
+   "summary": {
+    "zh": "视力下降（屈光不正）",
+    "en": "Reduced visual acuity (refractive error)"
+   },
+   "advice": "eye",
+   "rate": {
+    "base": 0.45,
+    "max_age": 45,
+    "after_max_age": 0.2
+   }
+  },
+  "presbyopia_note": {
+   "where": [
+    "eye",
+    "va_corrected"
+   ],
+   "sticky": true,
+   "min_age": 45,
+   "text": {
+    "zh": "老视",
+    "en": "Presbyopia"
+   },
+   "surface": "老花",
+   "icpc3": null,
+   "summary": {
+    "zh": "老视",
+    "en": "Presbyopia"
+   },
+   "advice": "eye",
+   "rate": {
+    "base": 0.1,
+    "age": 0.01
+   }
+  },
+  "fundus_arteriosclerosis": {
+   "where": [
+    "eye",
+    "fundus"
+   ],
+   "sticky": true,
+   "min_age": 45,
+   "text": {
+    "zh": "视网膜动脉硬化Ⅰ级",
+    "en": "Grade I retinal arteriosclerosis"
+   },
+   "surface": "视网膜动脉硬化",
+   "icpc3": null,
+   "summary": {
+    "zh": "眼底动脉硬化",
+    "en": "Retinal arteriosclerosis"
+   },
+   "advice": "vascular",
+   "rate": {
+    "base": 0.02,
+    "age": 0.004,
+    "archetype": {
+     "hypertension": 4.0,
+     "prediabetes_to_t2dm": 2.0
+    }
+   }
+  },
+  "conjunctivitis": {
+   "where": [
+    "eye",
+    "conjunctiva"
+   ],
+   "sticky": false,
+   "text": {
+    "zh": "结膜轻度充血",
+    "en": "Mild conjunctival injection"
+   },
+   "surface": "结膜炎",
+   "icpc3": "FD01",
+   "summary": {
+    "zh": "结膜炎",
+    "en": "Conjunctivitis"
+   },
+   "advice": "eye",
+   "rate": {
+    "base": 0.03
+   }
+  },
+  "chronic_pharyngitis": {
+   "where": [
+    "ent",
+    "pharynx"
+   ],
+   "sticky": true,
+   "text": {
+    "zh": "咽部黏膜慢性充血，咽后壁淋巴滤泡增生",
+    "en": "Chronic pharyngeal congestion with lymphoid follicles"
+   },
+   "surface": "慢性咽炎",
+   "icpc3": null,
+   "summary": {
+    "zh": "慢性咽炎",
+    "en": "Chronic pharyngitis"
+   },
+   "advice": "ent",
+   "rate": {
+    "base": 0.12
+   }
+  },
+  "septal_deviation": {
+   "where": [
+    "ent",
+    "nose"
+   ],
+   "sticky": true,
+   "text": {
+    "zh": "鼻中隔偏曲",
+    "en": "Deviated nasal septum"
+   },
+   "surface": "鼻中隔偏曲",
+   "icpc3": null,
+   "summary": {
+    "zh": "鼻中隔偏曲",
+    "en": "Deviated septum"
+   },
+   "advice": "ent",
+   "rate": {
+    "base": 0.06
+   }
+  },
+  "cerumen": {
+   "where": [
+    "ent",
+    "ear_canal"
+   ],
+   "sticky": false,
+   "text": {
+    "zh": "{side}侧外耳道耵聍",
+    "en": "{side_en} cerumen"
+   },
+   "surface": "耵聍",
+   "icpc3": null,
+   "summary": {
+    "zh": "外耳道耵聍",
+    "en": "Cerumen"
+   },
+   "advice": "ent",
+   "rate": {
+    "base": 0.06
+   }
+  },
+  "hearing_loss": {
+   "where": [
+    "ent",
+    "hearing"
+   ],
+   "sticky": true,
+   "min_age": 55,
+   "text": {
+    "zh": "双耳高频听力下降",
+    "en": "Bilateral high-frequency hearing loss"
+   },
+   "surface": "听力下降",
+   "icpc3": null,
+   "summary": {
+    "zh": "听力下降",
+    "en": "Hearing loss"
+   },
+   "advice": "ent",
+   "rate": {
+    "base": 0.02,
+    "age": 0.006
+   }
+  },
+  "thyroid_enlarged": {
+   "where": [
+    "surgical",
+    "thyroid_palp"
+   ],
+   "sticky": true,
+   "text": {
+    "zh": "甲状腺Ⅰ度肿大",
+    "en": "Grade I thyroid enlargement"
+   },
+   "surface": "甲状腺肿大",
+   "icpc3": null,
+   "summary": {
+    "zh": "甲状腺肿大",
+    "en": "Goitre"
+   },
+   "advice": "thyroid_nodule",
+   "rate": {
+    "base": 0.01,
+    "archetype": {
+     "thyroid_disorder": 15.0
+    }
+   }
+  },
+  "varicose": {
+   "where": [
+    "surgical",
+    "limbs"
+   ],
+   "sticky": true,
+   "min_age": 40,
+   "text": {
+    "zh": "{side}下肢静脉曲张",
+    "en": "{side_en} lower-limb varicose veins"
+   },
+   "surface": "静脉曲张",
+   "icpc3": "KD79",
+   "summary": {
+    "zh": "下肢静脉曲张",
+    "en": "Varicose veins"
+   },
+   "advice": "surgical_minor",
+   "rate": {
+    "base": 0.02,
+    "age": 0.003
+   }
+  },
+  "hemorrhoids": {
+   "where": [
+    "surgical",
+    "anus"
+   ],
+   "sticky": true,
+   "text": {
+    "zh": "混合痔",
+    "en": "Mixed haemorrhoids"
+   },
+   "surface": "痔疮",
+   "icpc3": "DD84",
+   "summary": {
+    "zh": "痔",
+    "en": "Haemorrhoids"
+   },
+   "advice": "surgical_minor",
+   "rate": {
+    "base": 0.1
+   }
+  },
+  "scoliosis": {
+   "where": [
+    "surgical",
+    "spine"
+   ],
+   "sticky": true,
+   "text": {
+    "zh": "脊柱轻度侧弯",
+    "en": "Mild scoliosis"
+   },
+   "surface": "脊柱侧弯",
+   "icpc3": "LD70",
+   "summary": {
+    "zh": "脊柱侧弯",
+    "en": "Scoliosis"
+   },
+   "advice": "surgical_minor",
+   "rate": {
+    "base": 0.03
+   }
+  },
+  "cervical_spondylosis": {
+   "where": [
+    "surgical",
+    "spine"
+   ],
+   "sticky": true,
+   "min_age": 35,
+   "text": {
+    "zh": "颈椎生理曲度变直，颈部活动轻度受限",
+    "en": "Straightened cervical lordosis, mildly restricted neck movement"
+   },
+   "surface": "颈椎病",
+   "icpc3": "LD65",
+   "summary": {
+    "zh": "颈椎病",
+    "en": "Cervical spondylosis"
+   },
+   "advice": "surgical_minor",
+   "rate": {
+    "base": 0.04,
+    "age": 0.003
+   }
+  },
+  "cervical_erosion": {
+   "where": [
+    "gyn",
+    "cervix"
+   ],
+   "sticky": true,
+   "sex": "female",
+   "max_age": 50,
+   "text": {
+    "zh": "宫颈轻度糜烂样改变",
+    "en": "Mild cervical ectropion"
+   },
+   "surface": "宫颈糜烂",
+   "icpc3": null,
+   "summary": {
+    "zh": "宫颈糜烂样改变",
+    "en": "Cervical ectropion"
+   },
+   "advice": "gyn",
+   "rate": {
+    "base": 0.15
+   }
+  },
+  "airflow_limitation": {
+   "where": [
+    "spirometry",
+    null
+   ],
+   "sticky": false,
+   "condition": {
+    "fev1_fvc": "<70"
+   },
+   "impression": {
+    "zh": "轻度阻塞性通气功能障碍",
+    "en": "Mild obstructive ventilatory defect"
+   },
+   "surface": "阻塞性通气功能障碍",
+   "icpc3": null,
+   "summary": {
+    "zh": "肺功能：阻塞性通气功能障碍",
+    "en": "Obstructive ventilatory defect"
+   },
+   "advice": "lung_function",
+   "rate": {
+    "base": 1.0
+   }
+  },
+  "restrictive_defect": {
+   "where": [
+    "spirometry",
+    null
+   ],
+   "sticky": false,
+   "condition": {
+    "fvc_pct": "<80"
+   },
+   "impression": {
+    "zh": "轻度限制性通气功能障碍",
+    "en": "Mild restrictive ventilatory defect"
+   },
+   "surface": "限制性通气功能障碍",
+   "icpc3": null,
+   "summary": {
+    "zh": "肺功能：限制性通气功能障碍",
+    "en": "Restrictive ventilatory defect"
+   },
+   "advice": "lung_function",
+   "rate": {
+    "base": 1.0
+   }
+  },
+  "arterial_stiff": {
+   "where": [
+    "arterial",
+    null
+   ],
+   "sticky": false,
+   "condition": {
+    "bapwv_l": ">1400"
+   },
+   "impression": {
+    "zh": "臂踝脉搏波传导速度增快，提示动脉弹性减退",
+    "en": "Increased baPWV, consistent with reduced arterial compliance"
+   },
+   "surface": "动脉硬化",
+   "icpc3": null,
+   "summary": {
+    "zh": "动脉弹性减退（baPWV增快）",
+    "en": "Reduced arterial compliance (raised baPWV)"
+   },
+   "advice": "vascular",
+   "rate": {
+    "base": 1.0
+   }
+  },
+  "abi_low": {
+   "where": [
+    "arterial",
+    null
+   ],
+   "sticky": false,
+   "condition": {
+    "abi_l": "<0.9"
+   },
+   "impression": {
+    "zh": "左侧踝臂指数减低，提示下肢动脉供血不足可能",
+    "en": "Reduced left ABI, suggesting lower-limb arterial disease"
+   },
+   "surface": "下肢动脉硬化闭塞症",
+   "icpc3": null,
+   "summary": {
+    "zh": "踝臂指数减低",
+    "en": "Reduced ankle-brachial index"
+   },
+   "advice": "vascular",
+   "rate": {
+    "base": 1.0
+   }
+  },
+  "visceral_fat_high": {
+   "where": [
+    "body_composition",
+    null
+   ],
+   "sticky": false,
+   "condition": {
+    "visceral_fat": ">9"
+   },
+   "impression": {
+    "zh": "内脏脂肪超标",
+    "en": "Excess visceral fat"
+   },
+   "surface": "腹型肥胖",
+   "icpc3": null,
+   "summary": {
+    "zh": "内脏脂肪超标",
+    "en": "Excess visceral fat"
+   },
+   "advice": "body_fat",
+   "rate": {
+    "base": 1.0
+   }
+  },
+  "lv_hypertrophy": {
+   "where": [
+    "echo",
+    null
+   ],
+   "sticky": false,
+   "condition": {
+    "ivs": ">11"
+   },
+   "impression": {
+    "zh": "室间隔增厚，左室肥厚可能",
+    "en": "Septal thickening; possible left ventricular hypertrophy"
+   },
+   "surface": "左心室肥厚",
+   "icpc3": null,
+   "summary": {
+    "zh": "室间隔增厚",
+    "en": "Septal thickening"
+   },
+   "advice": "echo_minor",
+   "rate": {
+    "base": 1.0
+   }
+  },
+  "diastolic_dysfunction": {
+   "where": [
+    "echo",
+    null
+   ],
+   "sticky": false,
+   "condition": {
+    "ea": "<1.0"
+   },
+   "impression": {
+    "zh": "左室舒张功能减低（E/A<1）",
+    "en": "Impaired left ventricular relaxation (E/A < 1)"
+   },
+   "surface": "左室舒张功能减退",
+   "icpc3": null,
+   "summary": {
+    "zh": "左室舒张功能减低",
+    "en": "Impaired LV relaxation"
+   },
+   "advice": "echo_minor",
+   "rate": {
+    "base": 1.0
+   }
+  },
+  "tr_trivial": {
+   "where": [
+    "echo",
+    null
+   ],
+   "sticky": false,
+   "impression": {
+    "zh": "三尖瓣少量反流",
+    "en": "Trivial tricuspid regurgitation"
+   },
+   "surface": "三尖瓣反流",
+   "icpc3": null,
+   "summary": {
+    "zh": "三尖瓣少量反流",
+    "en": "Trivial tricuspid regurgitation"
+   },
+   "advice": "echo_minor",
+   "rate": {
+    "base": 0.12,
+    "age": 0.003
+   }
+  },
+  "mr_trivial": {
+   "where": [
+    "echo",
+    null
+   ],
+   "sticky": false,
+   "impression": {
+    "zh": "二尖瓣少量反流",
+    "en": "Trivial mitral regurgitation"
+   },
+   "surface": "二尖瓣反流",
+   "icpc3": null,
+   "summary": {
+    "zh": "二尖瓣少量反流",
+    "en": "Trivial mitral regurgitation"
+   },
+   "advice": "echo_minor",
+   "rate": {
+    "base": 0.05,
+    "age": 0.002
+   }
+  },
+  "fundus_hypertensive": {
+   "where": [
+    "fundus_photo",
+    null
+   ],
+   "sticky": true,
+   "finding": {
+    "zh": "双眼视网膜动脉变细，反光增强，动静脉比例约1:2，可见动静脉交叉压迫征，未见出血及渗出。",
+    "en": "Retinal arteriolar narrowing with increased light reflex, A:V about 1:2, arteriovenous nicking; no haemorrhage or exudate."
+   },
+   "impression": {
+    "zh": "双眼视网膜动脉硬化（Ⅰ–Ⅱ级）",
+    "en": "Hypertensive retinopathy, grade I–II"
+   },
+   "surface": "视网膜动脉硬化",
+   "icpc3": null,
+   "summary": {
+    "zh": "视网膜动脉硬化",
+    "en": "Retinal arteriosclerosis"
+   },
+   "advice": "vascular",
+   "rate": {
+    "base": 0.02,
+    "age": 0.002,
+    "archetype": {
+     "hypertension": 5.0
+    }
+   }
+  },
+  "breast_calcification": {
+   "where": [
+    "mammography",
+    null
+   ],
+   "sticky": true,
+   "finding": {
+    "zh": "双侧乳腺呈散在纤维腺体型（b类），{side}乳外上象限见数枚散在粗大钙化，形态规则，未见成簇细小钙化，未见肿块及结构扭曲。",
+    "en": "Scattered fibroglandular density; a few coarse, regular calcifications in the upper outer {side_en} breast; no clustered microcalcification, mass or distortion."
+   },
+   "impression": {
+    "zh": "{side}乳良性钙化（BI-RADS 2类）",
+    "en": "Benign calcifications, {side_en} breast (BI-RADS 2)"
+   },
+   "surface": "乳腺钙化",
+   "icpc3": null,
+   "summary": {
+    "zh": "乳腺良性钙化",
+    "en": "Benign breast calcification"
+   },
+   "advice": "breast",
+   "rate": {
+    "base": 0.12,
+    "age": 0.003
+   }
+  },
+  "qi_deficiency": {
+   "where": [
+    "tcm",
+    "constitution"
+   ],
+   "sticky": true,
+   "text": {
+    "zh": "气虚质（倾向）",
+    "en": "Qi-deficiency tendency"
+   },
+   "surface": "气虚质",
+   "icpc3": null,
+   "summary": {
+    "zh": "中医体质：气虚质",
+    "en": "TCM constitution: qi deficiency"
+   },
+   "advice": "tcm",
+   "rate": {
+    "base": 0.1,
+    "sex": {
+     "female": 1.3,
+     "male": 0.8
+    }
+   }
+  },
+  "phlegm_damp": {
+   "where": [
+    "tcm",
+    "constitution"
+   ],
+   "sticky": true,
+   "text": {
+    "zh": "痰湿质（倾向）",
+    "en": "Phlegm-dampness tendency"
+   },
+   "surface": "痰湿质",
+   "icpc3": null,
+   "summary": {
+    "zh": "中医体质：痰湿质",
+    "en": "TCM constitution: phlegm-dampness"
+   },
+   "advice": "tcm",
+   "rate": {
+    "base": 0.08,
+    "archetype": {
+     "fatty_liver": 3.0,
+     "prediabetes_to_t2dm": 2.5,
+     "dyslipidemia_statin": 2.0
+    }
+   }
+  },
+  "yang_deficiency": {
+   "where": [
+    "tcm",
+    "constitution"
+   ],
+   "sticky": true,
+   "text": {
+    "zh": "阳虚质（倾向）",
+    "en": "Yang-deficiency tendency"
+   },
+   "surface": "阳虚质",
+   "icpc3": null,
+   "summary": {
+    "zh": "中医体质：阳虚质",
+    "en": "TCM constitution: yang deficiency"
+   },
+   "advice": "tcm",
+   "rate": {
+    "base": 0.08,
+    "sex": {
+     "female": 1.4,
+     "male": 0.7
+    }
+   }
+  },
+  "damp_heat": {
+   "where": [
+    "tcm",
+    "constitution"
+   ],
+   "sticky": true,
+   "text": {
+    "zh": "湿热质（倾向）",
+    "en": "Damp-heat tendency"
+   },
+   "surface": "湿热质",
+   "icpc3": null,
+   "summary": {
+    "zh": "中医体质：湿热质",
+    "en": "TCM constitution: damp-heat"
+   },
+   "advice": "tcm",
+   "rate": {
+    "base": 0.07,
+    "sex": {
+     "male": 1.3,
+     "female": 0.8
+    }
+   }
+  },
+  "hp_positive": {
+   "where": [
+    "hp_breath",
+    null
+   ],
+   "sticky": true,
+   "rate": {
+    "base": 0.4
+   },
+   "impression": {
+    "zh": "幽门螺杆菌阳性",
+    "en": "Helicobacter pylori positive"
+   },
+   "surface": "幽门螺杆菌感染",
+   "icpc3": null,
+   "summary": {
+    "zh": "幽门螺杆菌阳性",
+    "en": "H. pylori positive"
+   },
+   "advice": "hp"
+  },
+  "osteopenia": {
+   "where": [
+    "bmd",
+    null
+   ],
+   "sticky": true,
+   "min_age": 45,
+   "t_score": [
+    -2.4,
+    -1.1
+   ],
+   "impression": {
+    "zh": "骨量减少",
+    "en": "Osteopenia"
+   },
+   "surface": "骨量减少",
+   "icpc3": null,
+   "summary": {
+    "zh": "骨量减少",
+    "en": "Osteopenia"
+   },
+   "advice": "bone",
+   "rate": {
+    "base": 0.05,
+    "age": 0.01,
+    "sex": {
+     "female": 1.6,
+     "male": 0.7
+    }
+   }
+  },
+  "osteoporosis": {
+   "where": [
+    "bmd",
+    null
+   ],
+   "sticky": true,
+   "min_age": 55,
+   "t_score": [
+    -3.4,
+    -2.5
+   ],
+   "impression": {
+    "zh": "骨质疏松",
+    "en": "Osteoporosis"
+   },
+   "surface": "骨质疏松",
+   "icpc3": "LD81",
+   "summary": {
+    "zh": "骨质疏松",
+    "en": "Osteoporosis"
+   },
+   "advice": "bone",
+   "rate": {
+    "base": 0.02,
+    "age": 0.008,
+    "sex": {
+     "female": 2.0,
+     "male": 0.6
+    }
+   }
+  }
+ },
+ "advice": {
+  "fatty_liver": {
+   "zh": "脂肪肝：建议控制饮食、加强运动、控制体重，限制饮酒，定期复查肝功能及肝脏超声。",
+   "en": "Fatty liver: dietary control, regular exercise and weight management; limit alcohol; repeat liver function tests and ultrasound periodically."
+  },
+  "benign_cyst": {
+   "zh": "囊肿：多为良性，一般无需特殊处理，建议每年复查超声观察变化。",
+   "en": "Cyst: usually benign; annual ultrasound follow-up is sufficient."
+  },
+  "gb_polyp": {
+   "zh": "胆囊息肉样病变：建议每 6–12 个月复查超声，若增大或直径超过 10mm 请至肝胆外科就诊。",
+   "en": "Gallbladder polyp: ultrasound every 6–12 months; consult hepatobiliary surgery if it grows or exceeds 10 mm."
+  },
+  "gb_stone": {
+   "zh": "胆囊结石：建议低脂饮食，规律进食早餐，定期复查；如出现右上腹痛请及时就诊。",
+   "en": "Gallstones: low-fat diet, regular meals, periodic review; seek care for right upper quadrant pain."
+  },
+  "kidney_stone": {
+   "zh": "肾结石：建议多饮水，适当运动，定期复查泌尿系超声；如出现腰痛、血尿请及时就诊。",
+   "en": "Kidney stone: increase fluid intake, stay active, periodic ultrasound; seek care for flank pain or haematuria."
+  },
+  "thyroid_nodule": {
+   "zh": "甲状腺结节：建议每 6–12 个月复查甲状腺超声及甲状腺功能，必要时内分泌科就诊。",
+   "en": "Thyroid nodule: repeat thyroid ultrasound and function tests every 6–12 months; endocrinology review if indicated."
+  },
+  "thyroid_diffuse": {
+   "zh": "甲状腺弥漫性病变：建议内分泌科就诊，复查甲状腺功能及相关抗体。",
+   "en": "Diffuse thyroid change: endocrinology review with thyroid function and antibody tests."
+  },
+  "vascular": {
+   "zh": "血管相关异常：建议控制血压、血脂、血糖，戒烟，低盐低脂饮食，定期复查颈动脉超声。",
+   "en": "Vascular finding: control blood pressure, lipids and glucose; stop smoking; low-salt, low-fat diet; periodic carotid ultrasound."
+  },
+  "breast": {
+   "zh": "乳腺增生：建议保持心情舒畅，规律作息，每年复查乳腺超声。",
+   "en": "Fibrocystic change: annual breast ultrasound; no specific treatment needed."
+  },
+  "breast_nodule": {
+   "zh": "乳腺结节：建议 6 个月后复查乳腺超声，必要时乳腺外科就诊。",
+   "en": "Breast nodule: repeat ultrasound in 6 months; breast clinic review if indicated."
+  },
+  "prostate": {
+   "zh": "前列腺增生：建议避免久坐、憋尿，泌尿外科随诊，定期复查前列腺特异性抗原。",
+   "en": "Prostatic hyperplasia: urology follow-up; periodic PSA."
+  },
+  "fibroid": {
+   "zh": "子宫肌瘤：建议每年复查妇科超声，如月经量增多请妇科就诊。",
+   "en": "Uterine fibroid: annual pelvic ultrasound; gynaecology review if menorrhagia develops."
+  },
+  "lung_nodule": {
+   "zh": "肺微小结节：建议 12 个月后复查胸部 CT，戒烟。",
+   "en": "Small pulmonary nodule: repeat chest CT in 12 months; stop smoking."
+  },
+  "lung_markings": {
+   "zh": "两肺纹理增粗：多见于吸烟或慢性支气管炎，建议戒烟，必要时呼吸科就诊。",
+   "en": "Prominent lung markings: often related to smoking or chronic bronchitis; stop smoking."
+  },
+  "brady": {
+   "zh": "窦性心动过缓：如无不适一般无需处理，运动人群常见；如有头晕、乏力请心内科就诊。",
+   "en": "Sinus bradycardia: common in active individuals; cardiology review if dizziness or fatigue."
+  },
+  "ecg_minor": {
+   "zh": "心电图轻度异常：建议结合临床，必要时心内科就诊复查心电图。",
+   "en": "Minor ECG abnormality: correlate clinically; repeat ECG or cardiology review if indicated."
+  },
+  "dental": {
+   "zh": "口腔：建议口腔科就诊处理龋齿/牙结石，早晚刷牙，定期洁牙。",
+   "en": "Dental: see a dentist for caries or calculus; brush twice daily and have regular cleaning."
+  },
+  "eye": {
+   "zh": "眼科：建议注意用眼卫生，必要时眼科验光配镜。",
+   "en": "Eyes: eye hygiene; refraction and spectacles if needed."
+  },
+  "ent": {
+   "zh": "耳鼻喉科：建议避免刺激性饮食，戒烟，必要时耳鼻喉科就诊。",
+   "en": "ENT: avoid irritants, stop smoking; ENT review if symptomatic."
+  },
+  "surgical_minor": {
+   "zh": "外科：建议注意姿势，适当锻炼，避免久坐久站，必要时相关科室就诊。",
+   "en": "Surgical: posture and exercise; avoid prolonged sitting or standing; specialist review if needed."
+  },
+  "gyn": {
+   "zh": "妇科：建议定期妇科检查及宫颈细胞学筛查。",
+   "en": "Gynaecology: regular gynaecological examination and cervical screening."
+  },
+  "hp": {
+   "zh": "幽门螺杆菌阳性：建议消化内科就诊，评估是否需要根除治疗，注意分餐。",
+   "en": "H. pylori positive: gastroenterology review for eradication therapy."
+  },
+  "bone": {
+   "zh": "骨量减少/骨质疏松：建议补充钙剂及维生素 D，适当负重运动，定期复查骨密度。",
+   "en": "Low bone density: calcium and vitamin D, weight-bearing exercise, periodic DXA."
+  },
+  "lung_function": {
+   "zh": "肺通气功能异常：建议戒烟，避免粉尘及刺激性气体，呼吸科就诊复查肺功能（支气管舒张试验）。",
+   "en": "Abnormal spirometry: stop smoking, avoid dust and irritants; respiratory review with post-bronchodilator spirometry."
+  },
+  "echo_minor": {
+   "zh": "心脏超声轻度异常：多为生理性或年龄相关改变，建议结合临床，控制血压，必要时心内科随诊。",
+   "en": "Minor echocardiographic finding: often physiological or age-related; correlate clinically and control blood pressure."
+  },
+  "body_fat": {
+   "zh": "体脂率/内脏脂肪偏高：建议控制总热量，增加有氧运动与抗阻训练，减少腰围，定期复查。",
+   "en": "Raised body fat / visceral fat: reduce energy intake, add aerobic and resistance exercise, reduce waist circumference."
+  },
+  "tcm": {
+   "zh": "中医体质偏颇：建议根据体质类型调整饮食起居，规律作息，必要时中医科就诊调理。",
+   "en": "TCM constitutional imbalance: adjust diet and daily routine according to constitution type; TCM consultation if desired."
+  },
+  "lab_hepatitis": {
+   "zh": "肝炎病毒标志物阳性（{items}）：建议感染科或肝病科就诊，复查肝功能、HBV-DNA 及肝脏超声，家人建议筛查并接种疫苗。",
+   "en": "Positive hepatitis serology ({items}): hepatology review with liver function tests, HBV DNA and ultrasound; screen and vaccinate household contacts."
+  },
+  "lab_coag": {
+   "zh": "凝血功能异常（{items}）：建议排除采血因素后复查凝血功能，必要时血液科就诊。",
+   "en": "Abnormal coagulation ({items}): repeat after excluding sampling artefact; haematology review if persistent."
+  },
+  "lab_cardiac": {
+   "zh": "心肌标志物异常（{items}）：建议心内科就诊，复查心电图、心肌标志物及心脏超声。",
+   "en": "Abnormal cardiac markers ({items}): cardiology review with ECG, repeat markers and echocardiography."
+  },
+  "lab_renal_early": {
+   "zh": "尿微量白蛋白异常（{items}）：提示早期肾损伤可能，建议控制血压、血糖，3 个月内复查尿白蛋白/肌酐比值，必要时肾内科就诊。",
+   "en": "Raised urine albumin ({items}): possible early kidney damage; control blood pressure and glucose; repeat UACR within 3 months."
+  },
+  "lab_immune": {
+   "zh": "免疫/风湿指标异常（{items}）：建议风湿免疫科就诊，结合关节症状进一步检查。",
+   "en": "Abnormal immunology ({items}): rheumatology review, correlate with joint symptoms."
+  },
+  "lab_pancreas": {
+   "zh": "胰酶异常（{items}）：建议复查，如有上腹痛请消化内科就诊。",
+   "en": "Abnormal pancreatic enzymes ({items}): repeat; gastroenterology review if abdominal pain."
+  },
+  "lab_stool": {
+   "zh": "便潜血阳性：建议消化内科就诊，必要时行胃肠镜检查。",
+   "en": "Positive faecal occult blood: gastroenterology review; endoscopy if indicated."
+  },
+  "lab_hp": {
+   "zh": "幽门螺杆菌抗体阳性：抗体阳性不能区分现症感染与既往感染，建议行碳13/碳14呼气试验确认后决定是否根除。",
+   "en": "H. pylori antibody positive: serology cannot distinguish current from past infection; confirm with a urea breath test."
+  },
+  "lab_cervical": {
+   "zh": "宫颈癌筛查异常（{items}）：建议妇科就诊，必要时行阴道镜检查；高危型 HPV 阳性者 12 个月后复查。",
+   "en": "Abnormal cervical screening ({items}): gynaecology review; colposcopy if indicated; repeat HPV in 12 months."
+  },
+  "lab_lipid": {
+   "zh": "血脂异常（{items}）：建议低脂饮食，控制体重，加强运动，3–6 个月复查血脂；必要时心内科或内分泌科就诊。",
+   "en": "Dyslipidaemia ({items}): low-fat diet, weight control, exercise; repeat lipids in 3–6 months."
+  },
+  "lab_glucose": {
+   "zh": "血糖异常（{items}）：建议控制饮食、加强运动，复查空腹血糖及糖化血红蛋白，必要时内分泌科就诊。",
+   "en": "Abnormal glucose ({items}): diet and exercise; repeat fasting glucose and HbA1c; endocrinology review if indicated."
+  },
+  "lab_liver": {
+   "zh": "肝功能异常（{items}）：建议戒酒，避免肝损药物，休息，2–4 周后复查肝功能。",
+   "en": "Abnormal liver function ({items}): avoid alcohol and hepatotoxic drugs; repeat in 2–4 weeks."
+  },
+  "lab_renal": {
+   "zh": "肾功能异常（{items}）：建议多饮水，避免肾毒性药物，肾内科就诊复查。",
+   "en": "Abnormal renal function ({items}): hydration, avoid nephrotoxic drugs; nephrology review."
+  },
+  "lab_ua": {
+   "zh": "尿酸偏高：建议低嘌呤饮食，限制饮酒，多饮水，定期复查。",
+   "en": "Raised uric acid: low-purine diet, limit alcohol, hydration, periodic review."
+  },
+  "lab_cbc": {
+   "zh": "血常规异常（{items}）：建议复查血常规，必要时血液科就诊。",
+   "en": "Abnormal blood count ({items}): repeat CBC; haematology review if persistent."
+  },
+  "lab_anemia": {
+   "zh": "贫血（{items}）：建议查找病因，补充含铁食物，血液科或消化科就诊。",
+   "en": "Anaemia ({items}): investigate cause; iron-rich diet; haematology review."
+  },
+  "lab_thyroid": {
+   "zh": "甲状腺功能异常（{items}）：建议内分泌科就诊，复查甲状腺功能。",
+   "en": "Abnormal thyroid function ({items}): endocrinology review."
+  },
+  "lab_tumor": {
+   "zh": "肿瘤标志物偏高（{items}）：单项轻度升高多无临床意义，建议 1–3 个月复查，必要时专科就诊。",
+   "en": "Raised tumour marker ({items}): mild isolated elevation is often non-specific; repeat in 1–3 months."
+  },
+  "lab_urine": {
+   "zh": "尿常规异常（{items}）：建议清洁中段尿复查，必要时肾内科或泌尿科就诊。",
+   "en": "Abnormal urinalysis ({items}): repeat with a clean-catch sample."
+  },
+  "lab_bp": {
+   "zh": "血压偏高：建议低盐饮食，规律作息，家庭自测血压并记录，如持续升高请心内科就诊。",
+   "en": "Raised blood pressure: low-salt diet, home blood pressure monitoring; cardiology review if persistent."
+  },
+  "lab_bmi": {
+   "zh": "超重/肥胖：建议控制饮食总量，增加运动，减轻体重。",
+   "en": "Overweight/obesity: reduce energy intake, increase activity."
+  },
+  "lab_other": {
+   "zh": "其他检验异常（{items}）：建议结合临床，定期复查。",
+   "en": "Other abnormal results ({items}): correlate clinically and repeat."
+  },
+  "normal": {
+   "zh": "本次体检未见明显异常，建议保持健康的生活方式，定期体检。",
+   "en": "No significant abnormality found. Maintain a healthy lifestyle and have regular check-ups."
+  },
+  "closing": {
+   "zh": [
+    "以上建议仅供参考，如有不适请及时就医。",
+    "本报告不作为疾病诊断证明，具体诊疗请遵专科医师意见。"
+   ],
+   "en": [
+    "These recommendations are for guidance only; seek medical care if symptomatic."
+   ]
+  }
+ },
+ "lab_groups": {
+  "hgb:high": "lab_cbc",
+  "rbc:high": "lab_cbc",
+  "hct:high": "lab_cbc",
+  "mcv:high": "lab_cbc",
+  "mch:high": "lab_cbc",
+  "mchc:high": "lab_cbc",
+  "ferritin:high": "lab_other",
+  "serum_iron:high": "lab_other",
+  "hdl:low": "lab_lipid",
+  "hdl:high": "lab_other",
+  "glu:low": "lab_other",
+  "chol": "lab_lipid",
+  "tg": "lab_lipid",
+  "hdl": "lab_lipid",
+  "ldl": "lab_lipid",
+  "apoa1": "lab_lipid",
+  "apob": "lab_lipid",
+  "lpa": "lab_lipid",
+  "glu": "lab_glucose",
+  "hba1c": "lab_glucose",
+  "ga": "lab_glucose",
+  "alt": "lab_liver",
+  "ast": "lab_liver",
+  "ggt": "lab_liver",
+  "alp": "lab_liver",
+  "tbil": "lab_liver",
+  "dbil": "lab_liver",
+  "ibil": "lab_liver",
+  "tba": "lab_liver",
+  "crea": "lab_renal",
+  "urea": "lab_renal",
+  "cysc": "lab_renal",
+  "egfr": "lab_renal",
+  "ua": "lab_ua",
+  "wbc": "lab_cbc",
+  "plt": "lab_cbc",
+  "neut_pct": "lab_cbc",
+  "lymph_pct": "lab_cbc",
+  "hgb": "lab_anemia",
+  "rbc": "lab_anemia",
+  "hct": "lab_anemia",
+  "mcv": "lab_anemia",
+  "mch": "lab_anemia",
+  "mchc": "lab_anemia",
+  "ferritin": "lab_anemia",
+  "serum_iron": "lab_anemia",
+  "tsh": "lab_thyroid",
+  "ft3": "lab_thyroid",
+  "ft4": "lab_thyroid",
+  "tt3": "lab_thyroid",
+  "tt4": "lab_thyroid",
+  "tpoab": "lab_thyroid",
+  "afp": "lab_tumor",
+  "cea": "lab_tumor",
+  "psa": "lab_tumor",
+  "ca125": "lab_tumor",
+  "urine_pro": "lab_urine",
+  "urine_glu": "lab_urine",
+  "urine_bld": "lab_urine",
+  "urine_ket": "lab_urine",
+  "urine_nit": "lab_urine",
+  "urine_rbc": "lab_urine",
+  "urine_wbc": "lab_urine",
+  "sbp": "lab_bp",
+  "dbp": "lab_bp",
+  "bmi": "lab_bmi",
+  "waist": "lab_bmi",
+  "hbsag": "lab_hepatitis",
+  "hbeag": "lab_hepatitis",
+  "hbeab": "lab_hepatitis",
+  "hbcab": "lab_hepatitis",
+  "hcvab": "lab_hepatitis",
+  "pt": "lab_coag",
+  "inr": "lab_coag",
+  "aptt": "lab_coag",
+  "tt": "lab_coag",
+  "fib": "lab_coag",
+  "ddimer": "lab_coag",
+  "ldh": "lab_cardiac",
+  "ck": "lab_cardiac",
+  "ckmb": "lab_cardiac",
+  "hstni": "lab_cardiac",
+  "ntprobnp": "lab_cardiac",
+  "umalb": "lab_renal_early",
+  "uacr": "lab_renal_early",
+  "b2mg": "lab_renal_early",
+  "insulin": "lab_glucose",
+  "cpep": "lab_glucose",
+  "ogtt2h": "lab_glucose",
+  "tgab": "lab_thyroid",
+  "tg_protein": "lab_thyroid",
+  "rf": "lab_immune",
+  "aso": "lab_immune",
+  "ccp": "lab_immune",
+  "igg": "lab_immune",
+  "iga": "lab_immune",
+  "igm": "lab_immune",
+  "c3": "lab_immune",
+  "c4": "lab_immune",
+  "amy": "lab_pancreas",
+  "lps": "lab_pancreas",
+  "che": "lab_liver",
+  "pa": "lab_liver",
+  "nonhdl": "lab_lipid",
+  "fobt": "lab_stool",
+  "hp_ab": "lab_hp",
+  "hpv16": "lab_cervical",
+  "hpv18": "lab_cervical",
+  "hpv_other": "lab_cervical",
+  "tct": "lab_cervical",
+  "ca199": "lab_tumor",
+  "ca153": "lab_tumor",
+  "ca724": "lab_tumor",
+  "cyfra211": "lab_tumor",
+  "nse": "lab_tumor",
+  "scc": "lab_tumor",
+  "fpsa": "lab_tumor",
+  "fpsa_ratio": "lab_tumor",
+  "pg1": "lab_tumor",
+  "pg2": "lab_tumor",
+  "pgr": "lab_tumor",
+  "body_fat": "lab_bmi",
+  "visceral_fat": "lab_bmi"
+ },
+ "lab_ignore": [
+  "abi_l",
+  "abi_r",
+  "abo",
+  "ag_ratio",
+  "bapwv_l",
+  "bapwv_r",
+  "baso_abs",
+  "baso_pct",
+  "bmr",
+  "ea",
+  "eos_abs",
+  "eos_pct",
+  "fev1",
+  "fev1_fvc",
+  "fev1_pct",
+  "fvc",
+  "fvc_pct",
+  "glb",
+  "height",
+  "ivs",
+  "la",
+  "lvedd",
+  "lvef",
+  "lymph_abs",
+  "mono_abs",
+  "mono_pct",
+  "mpv",
+  "muscle_mass",
+  "neut_abs",
+  "pct",
+  "pdw",
+  "pr_interval",
+  "pulse",
+  "qrs_axis",
+  "qrs_duration",
+  "qtc",
+  "rdw",
+  "resp",
+  "rh",
+  "spo2",
+  "urine_ph",
+  "urine_sg",
+  "weight"
+ ],
+ "summary": {
+  "zh": {
+   "titles": [
+    "总检结论",
+    "终检结论",
+    "体检结论与建议",
+    "综合报告单",
+    "健康体检总结"
+   ],
+   "conclusion": "主要结论",
+   "advice": "健康建议",
+   "abnormal_lead": "本次体检发现以下异常：",
+   "lab_lead": "检验异常：",
+   "exam_lead": "检查异常：",
+   "signature": "总检医师",
+   "history_labels": {
+    "hypertension": "高血压病史",
+    "prediabetes_to_t2dm": "2型糖尿病病史",
+    "dyslipidemia_statin": "高脂血症病史",
+    "thyroid_disorder": "甲状腺功能减退病史",
+    "iron_deficiency_anemia": "缺铁性贫血病史",
+    "ckd_progression": "慢性肾脏病病史",
+    "fatty_liver": "脂肪肝病史"
+   }
+  },
+  "en": {
+   "titles": [
+    "Summary and Recommendations",
+    "Overall Conclusion",
+    "Physician Summary"
+   ],
+   "conclusion": "Findings",
+   "advice": "Recommendations",
+   "abnormal_lead": "The following abnormalities were noted:",
+   "lab_lead": "Laboratory:",
+   "exam_lead": "Examination:",
+   "signature": "Reviewing physician",
+   "history_labels": {
+    "hypertension": "Hypertension",
+    "prediabetes_to_t2dm": "Type 2 diabetes",
+    "dyslipidemia_statin": "Hyperlipidaemia",
+    "thyroid_disorder": "Hypothyroidism",
+    "iron_deficiency_anemia": "Iron-deficiency anaemia",
+    "ckd_progression": "Chronic kidney disease",
+    "fatty_liver": "Fatty liver"
+   }
+  }
+ },
+ "acuity": {
+  "five_point": [
+   "5.2",
+   "5.1",
+   "5.0",
+   "4.9",
+   "4.8",
+   "4.7",
+   "4.6",
+   "4.5",
+   "4.3",
+   "4.0"
+  ],
+  "decimal": [
+   "1.5",
+   "1.2",
+   "1.0",
+   "0.8",
+   "0.6",
+   "0.5",
+   "0.4",
+   "0.3",
+   "0.2",
+   "0.1"
+  ],
+  "normal_index": [
+   0,
+   1,
+   2
+  ],
+  "low_index": [
+   3,
+   4,
+   5,
+   6,
+   7,
+   8,
+   9
+  ]
+ },
+ "book": {
+  "zh": {
+   "cover_titles": [
+    "健康体检报告",
+    "体检报告书",
+    "个人健康体检报告",
+    "健康体检报告书"
+   ],
+   "basic_info": "基本信息",
+   "checkup_no": [
+    "体检编号",
+    "体检号",
+    "档案号"
+   ],
+   "package": "体检套餐",
+   "checkup_date": "体检日期",
+   "general": "一般检查",
+   "lab": "实验室检查",
+   "aux": "辅助检查",
+   "dept_exam": "科室检查",
+   "item": "检查项目",
+   "result": "检查结果",
+   "guide": "报告阅读说明",
+   "guide_text": [
+    "本报告仅反映受检者本次体检时的健康状况，不作为疾病诊断证明。",
+    "标有↑或↓的项目表示高于或低于参考范围，请结合总检建议阅读。"
+   ],
+   "examiner": "检查医师",
+   "reviewer": "审核医师",
+   "left": "左",
+   "right": "右",
+   "left_eye": "左眼",
+   "right_eye": "右眼",
+   "t_score": "T值",
+   "dob": "DOB值",
+   "reference": "参考值"
+  },
+  "en": {
+   "cover_titles": [
+    "Health Check-up Report",
+    "Annual Health Screening Report",
+    "Medical Examination Report"
+   ],
+   "basic_info": "Basic Information",
+   "checkup_no": [
+    "Report No.",
+    "Check-up ID"
+   ],
+   "package": "Package",
+   "checkup_date": "Examination date",
+   "general": "General Examination",
+   "lab": "Laboratory Tests",
+   "aux": "Investigations",
+   "dept_exam": "Clinical Examination",
+   "item": "Item",
+   "result": "Result",
+   "guide": "How to read this report",
+   "guide_text": [
+    "This report reflects the examinee's status on the day of examination and is not a diagnosis.",
+    "Values marked H/L are above/below the reference range; please read together with the recommendations."
+   ],
+   "examiner": "Examined by",
+   "reviewer": "Reviewed by",
+   "left": "L",
+   "right": "R",
+   "left_eye": "Left eye",
+   "right_eye": "Right eye",
+   "t_score": "T-score",
+   "dob": "DOB",
+   "reference": "Reference"
+  }
+ },
+ "outpatient": {
+  "zh": {
+   "titles": [
+    "门诊病历",
+    "门诊病历记录",
+    "门诊复诊记录"
+   ],
+   "cc": "主诉",
+   "hpi": "现病史",
+   "pmh": "既往史",
+   "pe": "体格检查",
+   "aux": "辅助检查",
+   "dx": "诊断",
+   "plan": "处理",
+   "doctor": "医师",
+   "dept": "科室",
+   "visit_no": [
+    "门诊号",
+    "就诊号",
+    "病历号"
+   ],
+   "vitals_line": "T {temp}℃  P {pulse}次/分  R {resp}次/分  BP {sbp}/{dbp}mmHg  体重 {weight}kg",
+   "hpi_templates": [
+    "患者{dur}前无明显诱因出现{s1}{s2_clause}，{course}。{history_clause}",
+    "{dur}来{s1}{s2_clause}，{course}，今来复诊。{history_clause}"
+   ],
+   "s2_clause": "，伴{s2}",
+   "course_words": [
+    "无加重",
+    "程度轻，间断发作",
+    "近日略有加重",
+    "休息后可缓解"
+   ],
+   "history_clause": {
+    "medication": "规律服用{drug}，未自行停药。",
+    "none": "既往体健。"
+   },
+   "followup_cc": [
+    "{dx}复诊",
+    "{dx}复查",
+    "复查{dx}"
+   ],
+   "plan_templates": [
+    "1. 继续目前治疗；2. 复查{labs}；3. 低盐低脂饮食，规律作息；4. {interval}后复诊。",
+    "1. 复查{labs}；2. 继续用药，监测{monitor}；3. 不适随诊。"
+   ],
+   "monitor": {
+    "hypertension": "血压",
+    "prediabetes_to_t2dm": "血糖",
+    "dyslipidemia_statin": "血脂",
+    "iron_deficiency_anemia": "血常规",
+    "thyroid_disorder": "甲功",
+    "ckd_progression": "肾功能",
+    "fatty_liver": "肝功能",
+    "healthy": "症状"
+   },
+   "drugs": {
+    "hypertension": "氨氯地平",
+    "prediabetes_to_t2dm": "二甲双胍",
+    "dyslipidemia_statin": "阿托伐他汀",
+    "iron_deficiency_anemia": "多糖铁复合物",
+    "thyroid_disorder": "左甲状腺素钠"
+   },
+   "dx_surfaces": {
+    "hypertension": "高血压",
+    "prediabetes_to_t2dm": "2型糖尿病",
+    "dyslipidemia_statin": "高脂血症",
+    "iron_deficiency_anemia": "缺铁性贫血",
+    "thyroid_disorder": "甲状腺功能减退",
+    "ckd_progression": "慢性肾病",
+    "fatty_liver": "脂肪肝",
+    "uri": "上呼吸道感染"
+   },
+   "pmh_templates": [
+    "{dx}病史{years}年，{drug_clause}",
+    "否认高血压、糖尿病、冠心病病史。"
+   ],
+   "drug_clause": {
+    "medication": "口服{drug}治疗。",
+    "none": "未规律治疗。"
+   }
+  },
+  "en": {
+   "titles": [
+    "Outpatient Record",
+    "Clinic Note",
+    "Follow-up Visit Note"
+   ],
+   "cc": "Chief complaint",
+   "hpi": "History of present illness",
+   "pmh": "Past medical history",
+   "pe": "Examination",
+   "aux": "Investigations",
+   "dx": "Diagnosis",
+   "plan": "Plan",
+   "doctor": "Physician",
+   "dept": "Department",
+   "visit_no": [
+    "Visit No.",
+    "Encounter ID"
+   ],
+   "vitals_line": "T {temp}°C  P {pulse}/min  R {resp}/min  BP {sbp}/{dbp} mmHg  Weight {weight} kg",
+   "hpi_templates": [
+    "{s1_cap}{s2_clause} for {dur}, {course}. {history_clause}"
+   ],
+   "s2_clause": " with {s2}",
+   "course_words": [
+    "not worsening",
+    "mild and intermittent",
+    "slightly worse recently",
+    "relieved by rest"
+   ],
+   "history_clause": {
+    "medication": "Taking {drug} regularly.",
+    "none": "Otherwise well."
+   },
+   "followup_cc": [
+    "Follow-up for {dx}",
+    "{dx} review"
+   ],
+   "plan_templates": [
+    "1. Continue current treatment. 2. Repeat {labs}. 3. Low-salt, low-fat diet. 4. Review in {interval}.",
+    "1. Repeat {labs}. 2. Continue medication; monitor {monitor}. 3. Return if symptoms worsen."
+   ],
+   "monitor": {
+    "hypertension": "blood pressure",
+    "prediabetes_to_t2dm": "glucose",
+    "dyslipidemia_statin": "lipids",
+    "iron_deficiency_anemia": "blood count",
+    "thyroid_disorder": "thyroid function",
+    "ckd_progression": "renal function",
+    "fatty_liver": "liver function",
+    "healthy": "symptoms"
+   },
+   "drugs": {
+    "hypertension": "amlodipine",
+    "prediabetes_to_t2dm": "metformin",
+    "dyslipidemia_statin": "atorvastatin",
+    "iron_deficiency_anemia": "iron polysaccharide",
+    "thyroid_disorder": "levothyroxine"
+   },
+   "dx_surfaces": {
+    "hypertension": "hypertension",
+    "prediabetes_to_t2dm": "type 2 diabetes",
+    "dyslipidemia_statin": "hyperlipidaemia",
+    "iron_deficiency_anemia": "iron deficiency anaemia",
+    "thyroid_disorder": "hypothyroidism",
+    "ckd_progression": "chronic kidney disease",
+    "fatty_liver": "fatty liver",
+    "uri": "upper respiratory tract infection"
+   },
+   "pmh_templates": [
+    "{dx} for {years} years, {drug_clause}",
+    "No history of hypertension, diabetes or heart disease."
+   ],
+   "drug_clause": {
+    "medication": "on {drug}.",
+    "none": "not on regular treatment."
+   }
+  }
+ },
+ "ecg_report": {
+  "zh": {
+   "titles": [
+    "心电图报告",
+    "十二导联心电图报告单",
+    "常规心电图检查报告"
+   ],
+   "rhythm": "心律",
+   "sinus": "窦性心律",
+   "params": {
+    "pulse": "心率",
+    "pr_interval": "PR间期",
+    "qrs_duration": "QRS时限",
+    "qtc": "QT/QTc",
+    "qrs_axis": "电轴"
+   },
+   "finding": "心电图描述",
+   "impression": "心电图诊断",
+   "reporter": "报告医师",
+   "strip": "Ⅱ导联 25mm/s 10mm/mV"
+  },
+  "en": {
+   "titles": [
+    "ECG Report",
+    "12-lead Electrocardiogram Report"
+   ],
+   "rhythm": "Rhythm",
+   "sinus": "Sinus rhythm",
+   "params": {
+    "pulse": "Heart rate",
+    "pr_interval": "PR interval",
+    "qrs_duration": "QRS duration",
+    "qtc": "QT/QTc",
+    "qrs_axis": "Axis"
+   },
+   "finding": "Description",
+   "impression": "Interpretation",
+   "reporter": "Reported by",
+   "strip": "Lead II 25 mm/s 10 mm/mV"
+  }
+ },
+ "home_log": {
+  "zh": {
+   "bp_titles": [
+    "家庭血压记录",
+    "血压日记",
+    "血压监测记录表"
+   ],
+   "weight_titles": [
+    "体重记录",
+    "晨起体重"
+   ],
+   "date": "日期",
+   "time": "时间",
+   "sbp": "收缩压",
+   "dbp": "舒张压",
+   "pulse": "脉搏",
+   "weight": "体重",
+   "note": "备注",
+   "notes": [
+    "",
+    "",
+    "",
+    "晨起",
+    "服药后",
+    "睡前",
+    "运动后"
+   ],
+   "unit_row": [
+    "",
+    "",
+    "mmHg",
+    "mmHg",
+    "次/分"
+   ]
+  },
+  "en": {
+   "bp_titles": [
+    "Home Blood Pressure Log",
+    "BP Diary"
+   ],
+   "weight_titles": [
+    "Weight Log",
+    "Morning Weight"
+   ],
+   "date": "Date",
+   "time": "Time",
+   "sbp": "Systolic",
+   "dbp": "Diastolic",
+   "pulse": "Pulse",
+   "weight": "Weight",
+   "note": "Note",
+   "notes": [
+    "",
+    "",
+    "",
+    "morning",
+    "after medication",
+    "bedtime",
+    "after exercise"
+   ],
+   "unit_row": [
+    "",
+    "",
+    "mmHg",
+    "mmHg",
+    "bpm"
+   ]
+  }
+ },
+ "judgement": {
+  "rate": {
+   "zh": 0.3,
+   "en": 0.2
+  },
+  "zh": {
+   "label": "分级判定",
+   "critical_label": "重要异常结果提示",
+   "critical_text": "本次体检发现重要异常结果：{items}。已按规定通知受检者，请立即前往相应专科就诊。",
+   "grade_labels": {
+    "A": "未见异常",
+    "B": "轻度异常，暂无需处理",
+    "C": "需复查或改善生活方式",
+    "D": "需进一步检查或治疗",
+    "E": "治疗中"
+   },
+   "areas": {
+    "bp": "血压",
+    "obesity": "体重/体脂",
+    "lipid": "血脂",
+    "glucose": "血糖",
+    "liver": "肝功能",
+    "renal": "肾功能",
+    "ua": "尿酸",
+    "cbc": "血常规",
+    "urine": "尿常规",
+    "thyroid": "甲状腺功能",
+    "tumor": "肿瘤标志物",
+    "hepatitis": "肝炎标志物",
+    "coag": "凝血功能",
+    "cardiac": "心肌标志物",
+    "immune": "免疫",
+    "cervical": "宫颈癌筛查",
+    "stool": "便潜血",
+    "hp_serology": "幽门螺杆菌抗体",
+    "internal": "内科",
+    "surgical": "外科",
+    "eye": "眼科",
+    "ent": "耳鼻喉科",
+    "dental": "口腔科",
+    "gyn": "妇科",
+    "tcm": "中医体质",
+    "ecg": "心电图",
+    "chest_xray": "胸片",
+    "chest_ct": "胸部CT",
+    "abd_us": "腹部超声",
+    "thyroid_us": "甲状腺超声",
+    "carotid_us": "颈动脉超声",
+    "breast_us": "乳腺超声",
+    "prostate_us": "前列腺超声",
+    "gyn_us": "妇科超声",
+    "bmd": "骨密度",
+    "hp_breath": "呼气试验",
+    "spirometry": "肺功能",
+    "arterial": "动脉硬化",
+    "body_composition": "人体成分",
+    "echo": "心脏超声",
+    "fundus_photo": "眼底",
+    "mammography": "乳腺钼靶"
+   }
+  },
+  "en": {
+   "label": "Category",
+   "critical_label": "Critical result notice",
+   "critical_text": "A critical result was found at this examination: {items}. The examinee has been notified; please seek medical attention immediately.",
+   "grade_labels": {
+    "A": "No abnormality",
+    "B": "Minor abnormality, no action needed",
+    "C": "Re-examination or lifestyle change advised",
+    "D": "Further investigation or treatment",
+    "E": "Under treatment"
+   },
+   "areas": {
+    "bp": "Blood pressure",
+    "obesity": "Weight / body fat",
+    "lipid": "Lipids",
+    "glucose": "Glucose",
+    "liver": "Liver",
+    "renal": "Kidney",
+    "ua": "Uric acid",
+    "cbc": "Blood count",
+    "urine": "Urinalysis",
+    "thyroid": "Thyroid",
+    "tumor": "Tumour markers",
+    "hepatitis": "Hepatitis serology",
+    "coag": "Coagulation",
+    "cardiac": "Cardiac markers",
+    "immune": "Immunology",
+    "cervical": "Cervical screening",
+    "stool": "Faecal occult blood",
+    "hp_serology": "H. pylori antibody",
+    "internal": "Internal medicine",
+    "surgical": "Surgery",
+    "eye": "Ophthalmology",
+    "ent": "ENT",
+    "dental": "Dental",
+    "gyn": "Gynaecology",
+    "tcm": "TCM constitution",
+    "ecg": "ECG",
+    "chest_xray": "Chest X-ray",
+    "chest_ct": "Chest CT",
+    "abd_us": "Abdominal ultrasound",
+    "thyroid_us": "Thyroid ultrasound",
+    "carotid_us": "Carotid ultrasound",
+    "breast_us": "Breast ultrasound",
+    "prostate_us": "Prostate ultrasound",
+    "gyn_us": "Pelvic ultrasound",
+    "bmd": "Bone density",
+    "hp_breath": "Urea breath test",
+    "spirometry": "Spirometry",
+    "arterial": "Arterial stiffness",
+    "body_composition": "Body composition",
+    "echo": "Echocardiography",
+    "fundus_photo": "Fundus",
+    "mammography": "Mammography"
+   }
+  },
+  "area_order": [
+   "bp",
+   "obesity",
+   "lipid",
+   "glucose",
+   "liver",
+   "renal",
+   "ua",
+   "cbc",
+   "urine",
+   "thyroid",
+   "tumor",
+   "hepatitis",
+   "coag",
+   "cardiac",
+   "immune",
+   "cervical",
+   "stool",
+   "hp_serology",
+   "internal",
+   "surgical",
+   "eye",
+   "ent",
+   "dental",
+   "gyn",
+   "tcm",
+   "ecg",
+   "chest_xray",
+   "chest_ct",
+   "abd_us",
+   "thyroid_us",
+   "carotid_us",
+   "breast_us",
+   "prostate_us",
+   "gyn_us",
+   "bmd",
+   "hp_breath",
+   "spirometry",
+   "arterial",
+   "body_composition",
+   "echo",
+   "fundus_photo",
+   "mammography"
+  ],
+  "area_of": {
+   "sbp": "bp",
+   "dbp": "bp",
+   "bmi": "obesity",
+   "waist": "obesity",
+   "body_fat": "obesity",
+   "visceral_fat": "obesity",
+   "chol": "lipid",
+   "tg": "lipid",
+   "hdl": "lipid",
+   "ldl": "lipid",
+   "nonhdl": "lipid",
+   "apoa1": "lipid",
+   "apob": "lipid",
+   "lpa": "lipid",
+   "glu": "glucose",
+   "hba1c": "glucose",
+   "insulin": "glucose",
+   "cpep": "glucose",
+   "ogtt2h": "glucose",
+   "alt": "liver",
+   "ast": "liver",
+   "ggt": "liver",
+   "alp": "liver",
+   "tbil": "liver",
+   "dbil": "liver",
+   "ibil": "liver",
+   "tp": "liver",
+   "alb": "liver",
+   "tba": "liver",
+   "che": "liver",
+   "pa": "liver",
+   "crea": "renal",
+   "urea": "renal",
+   "cysc": "renal",
+   "egfr": "renal",
+   "umalb": "renal",
+   "uacr": "renal",
+   "b2mg": "renal",
+   "ua": "ua",
+   "wbc": "cbc",
+   "hgb": "cbc",
+   "plt": "cbc",
+   "rbc": "cbc",
+   "hct": "cbc",
+   "mcv": "cbc",
+   "mch": "cbc",
+   "mchc": "cbc",
+   "neut_pct": "cbc",
+   "lymph_pct": "cbc",
+   "ferritin": "cbc",
+   "serum_iron": "cbc",
+   "urine_pro": "urine",
+   "urine_glu": "urine",
+   "urine_bld": "urine",
+   "urine_ket": "urine",
+   "urine_nit": "urine",
+   "urine_rbc": "urine",
+   "urine_wbc": "urine",
+   "tsh": "thyroid",
+   "ft3": "thyroid",
+   "ft4": "thyroid",
+   "tt3": "thyroid",
+   "tt4": "thyroid",
+   "tpoab": "thyroid",
+   "tgab": "thyroid",
+   "tg_protein": "thyroid",
+   "afp": "tumor",
+   "cea": "tumor",
+   "psa": "tumor",
+   "fpsa_ratio": "tumor",
+   "ca125": "tumor",
+   "ca199": "tumor",
+   "ca153": "tumor",
+   "ca724": "tumor",
+   "cyfra211": "tumor",
+   "nse": "tumor",
+   "scc": "tumor",
+   "pg1": "tumor",
+   "pgr": "tumor",
+   "hbsag": "hepatitis",
+   "hbeag": "hepatitis",
+   "hbcab": "hepatitis",
+   "hcvab": "hepatitis",
+   "pt": "coag",
+   "inr": "coag",
+   "aptt": "coag",
+   "fib": "coag",
+   "ddimer": "coag",
+   "hstni": "cardiac",
+   "ntprobnp": "cardiac",
+   "ck": "cardiac",
+   "ckmb": "cardiac",
+   "rf": "immune",
+   "aso": "immune",
+   "ccp": "immune",
+   "igg": "immune",
+   "iga": "immune",
+   "igm": "immune",
+   "c3": "immune",
+   "c4": "immune",
+   "hpv16": "cervical",
+   "hpv18": "cervical",
+   "hpv_other": "cervical",
+   "tct": "cervical",
+   "fobt": "stool",
+   "hp_ab": "hp_serology"
+  },
+  "bands": {
+   "sbp": [
+    [
+     "A",
+     null,
+     130
+    ],
+    [
+     "B",
+     130,
+     140
+    ],
+    [
+     "C",
+     140,
+     160
+    ],
+    [
+     "D",
+     160,
+     null
+    ]
+   ],
+   "dbp": [
+    [
+     "A",
+     null,
+     85
+    ],
+    [
+     "B",
+     85,
+     90
+    ],
+    [
+     "C",
+     90,
+     100
+    ],
+    [
+     "D",
+     100,
+     null
+    ]
+   ],
+   "bmi": [
+    [
+     "C",
+     null,
+     17.0
+    ],
+    [
+     "B",
+     17.0,
+     18.5
+    ],
+    [
+     "A",
+     18.5,
+     25.0
+    ],
+    [
+     "B",
+     25.0,
+     30.0
+    ],
+    [
+     "C",
+     30.0,
+     null
+    ]
+   ],
+   "glu": [
+    [
+     "A",
+     null,
+     5.6
+    ],
+    [
+     "B",
+     5.6,
+     6.1
+    ],
+    [
+     "C",
+     6.1,
+     7.0
+    ],
+    [
+     "D",
+     7.0,
+     null
+    ]
+   ],
+   "hba1c": [
+    [
+     "A",
+     null,
+     5.6
+    ],
+    [
+     "B",
+     5.6,
+     6.0
+    ],
+    [
+     "C",
+     6.0,
+     6.5
+    ],
+    [
+     "D",
+     6.5,
+     null
+    ]
+   ],
+   "ldl": [
+    [
+     "B",
+     null,
+     1.55
+    ],
+    [
+     "A",
+     1.55,
+     3.1
+    ],
+    [
+     "B",
+     3.1,
+     3.6
+    ],
+    [
+     "C",
+     3.6,
+     4.65
+    ],
+    [
+     "D",
+     4.65,
+     null
+    ]
+   ],
+   "hdl": [
+    [
+     "D",
+     null,
+     0.9
+    ],
+    [
+     "C",
+     0.9,
+     1.03
+    ],
+    [
+     "A",
+     1.03,
+     null
+    ]
+   ],
+   "tg": [
+    [
+     "A",
+     null,
+     1.7
+    ],
+    [
+     "B",
+     1.7,
+     3.4
+    ],
+    [
+     "C",
+     3.4,
+     5.65
+    ],
+    [
+     "D",
+     5.65,
+     null
+    ]
+   ],
+   "chol": [
+    [
+     "B",
+     null,
+     3.6
+    ],
+    [
+     "A",
+     3.6,
+     5.2
+    ],
+    [
+     "B",
+     5.2,
+     5.7
+    ],
+    [
+     "C",
+     5.7,
+     6.75
+    ],
+    [
+     "D",
+     6.75,
+     null
+    ]
+   ],
+   "alt": [
+    [
+     "A",
+     null,
+     31
+    ],
+    [
+     "B",
+     31,
+     51
+    ],
+    [
+     "C",
+     51,
+     101
+    ],
+    [
+     "D",
+     101,
+     null
+    ]
+   ],
+   "ast": [
+    [
+     "A",
+     null,
+     31
+    ],
+    [
+     "B",
+     31,
+     36
+    ],
+    [
+     "C",
+     36,
+     51
+    ],
+    [
+     "D",
+     51,
+     null
+    ]
+   ],
+   "ggt": [
+    [
+     "A",
+     null,
+     51
+    ],
+    [
+     "B",
+     51,
+     81
+    ],
+    [
+     "C",
+     81,
+     101
+    ],
+    [
+     "D",
+     101,
+     null
+    ]
+   ],
+   "ua": [
+    [
+     "C",
+     null,
+     120
+    ],
+    [
+     "A",
+     120,
+     417
+    ],
+    [
+     "B",
+     417,
+     471
+    ],
+    [
+     "C",
+     471,
+     530
+    ],
+    [
+     "D",
+     530,
+     null
+    ]
+   ],
+   "crea": {
+    "male": [
+     [
+      "A",
+      null,
+      89
+     ],
+     [
+      "B",
+      89,
+      97
+     ],
+     [
+      "C",
+      97,
+      115
+     ],
+     [
+      "D",
+      115,
+      null
+     ]
+    ],
+    "female": [
+     [
+      "A",
+      null,
+      63
+     ],
+     [
+      "B",
+      63,
+      71
+     ],
+     [
+      "C",
+      71,
+      89
+     ],
+     [
+      "D",
+      89,
+      null
+     ]
+    ]
+   },
+   "egfr": [
+    [
+     "D",
+     null,
+     45
+    ],
+    [
+     "C",
+     45,
+     60
+    ],
+    [
+     "A",
+     60,
+     null
+    ]
+   ],
+   "hgb": {
+    "male": [
+     [
+      "D",
+      null,
+      110
+     ],
+     [
+      "C",
+      110,
+      121
+     ],
+     [
+      "B",
+      121,
+      131
+     ],
+     [
+      "A",
+      131,
+      167
+     ],
+     [
+      "B",
+      167,
+      181
+     ],
+     [
+      "D",
+      181,
+      null
+     ]
+    ],
+    "female": [
+     [
+      "D",
+      null,
+      100
+     ],
+     [
+      "C",
+      100,
+      111
+     ],
+     [
+      "B",
+      111,
+      121
+     ],
+     [
+      "A",
+      121,
+      147
+     ],
+     [
+      "B",
+      147,
+      161
+     ],
+     [
+      "D",
+      161,
+      null
+     ]
+    ]
+   },
+   "wbc": [
+    [
+     "D",
+     null,
+     2.0
+    ],
+    [
+     "C",
+     2.0,
+     2.6
+    ],
+    [
+     "B",
+     2.6,
+     3.1
+    ],
+    [
+     "A",
+     3.1,
+     8.5
+    ],
+    [
+     "B",
+     8.5,
+     10.0
+    ],
+    [
+     "C",
+     10.0,
+     12.0
+    ],
+    [
+     "D",
+     12.0,
+     null
+    ]
+   ],
+   "plt": [
+    [
+     "D",
+     null,
+     100
+    ],
+    [
+     "C",
+     100,
+     123
+    ],
+    [
+     "B",
+     123,
+     145
+    ],
+    [
+     "A",
+     145,
+     330
+    ],
+    [
+     "B",
+     330,
+     400
+    ],
+    [
+     "C",
+     400,
+     500
+    ],
+    [
+     "D",
+     500,
+     null
+    ]
+   ]
+  },
+  "qualitative_grade": {
+   "弱阳性": "B",
+   "+": "C",
+   "++": "D",
+   "+++": "D",
+   "阳性": "C",
+   "ASC-US": "C",
+   "LSIL": "D",
+   "ASC-H": "D"
+  },
+  "finding_grades": {
+   "fatty_liver": {
+    "mild": "B",
+    "moderate": "C"
+   },
+   "liver_cyst": "B",
+   "kidney_cyst": "B",
+   "gb_polyp": "B",
+   "gb_stone": "C",
+   "kidney_stone": "C",
+   "thyroid_nodule": "C",
+   "thyroid_diffuse": "C",
+   "carotid_imt": "B",
+   "carotid_plaque": "C",
+   "breast_hyperplasia": "B",
+   "breast_nodule": "C",
+   "prostate_hyperplasia": "B",
+   "uterine_fibroid": "B",
+   "lung_nodule": "C",
+   "lung_markings": "B",
+   "sinus_brady": "B",
+   "sinus_arrhythmia": "A",
+   "t_wave": "C",
+   "pac": "B",
+   "caries": "B",
+   "calculus": "B",
+   "missing_teeth": "B",
+   "myopia": "B",
+   "presbyopia_note": "A",
+   "fundus_arteriosclerosis": "B",
+   "conjunctivitis": "B",
+   "chronic_pharyngitis": "B",
+   "septal_deviation": "B",
+   "cerumen": "A",
+   "hearing_loss": "C",
+   "thyroid_enlarged": "C",
+   "varicose": "B",
+   "hemorrhoids": "B",
+   "scoliosis": "B",
+   "cervical_spondylosis": "B",
+   "cervical_erosion": "B",
+   "hp_positive": "C",
+   "osteopenia": "B",
+   "osteoporosis": "D",
+   "airflow_limitation": "C",
+   "restrictive_defect": "C",
+   "arterial_stiff": "B",
+   "abi_low": "D",
+   "visceral_fat_high": "B",
+   "lv_hypertrophy": "C",
+   "diastolic_dysfunction": "B",
+   "tr_trivial": "A",
+   "mr_trivial": "A",
+   "fundus_hypertensive": "B",
+   "breast_calcification": "B",
+   "qi_deficiency": "B",
+   "phlegm_damp": "B",
+   "yang_deficiency": "B",
+   "damp_heat": "B"
+  },
+  "critical": {
+   "sbp": [
+    null,
+    180
+   ],
+   "dbp": [
+    null,
+    110
+   ],
+   "glu": [
+    2.8,
+    16.7
+   ],
+   "hgb": [
+    60,
+    null
+   ],
+   "plt": [
+    30,
+    null
+   ],
+   "wbc": [
+    1.0,
+    30.0
+   ],
+   "k": [
+    2.5,
+    6.5
+   ],
+   "na": [
+    120,
+    160
+   ],
+   "crea": [
+    null,
+    707
+   ],
+   "alt": [
+    null,
+    600
+   ],
+   "ast": [
+    null,
+    600
+   ],
+   "hstni": [
+    null,
+    500
+   ],
+   "tbil": [
+    null,
+    171
+   ]
+  }
+ }
+}

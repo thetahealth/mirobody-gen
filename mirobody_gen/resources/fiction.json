@@ -1,0 +1,6920 @@
+{
+ "_source": "hand-authored",
+ "_note": "渲染器印在纸上的人名、地名、机构名的唯一来源。姓名用字与常见英文名是公共知识，地名为生造组合；用固定种子抽样，并剔除在真实语料提取文本中出现过的任何候选。隐私闸门把这里当白名单：输出文件里的姓名与机构名必须属于本文件。",
+ "_provenance": {
+  "script": "scripts/build_fiction.py",
+  "seed": 20260923,
+  "filtered_against_corpus": true
+ },
+ "_vocabulary_fields": [
+  "institution_types"
+ ],
+ "institution_types": [
+  "Clinical Laboratories",
+  "Family Clinic",
+  "General Hospital",
+  "Health Screening Centre",
+  "Medical Centre",
+  "Pathology Services",
+  "中医医院",
+  "临床检验中心",
+  "健康体检中心",
+  "区健康管理中心",
+  "医学检验所",
+  "妇幼保健院",
+  "市中心医院",
+  "市第人民医院",
+  "社区卫生服务中心",
+  "门诊部"
+ ],
+ "person_names_zh": [
+  "苏雪",
+  "丁萱",
+  "夏敏",
+  "陶清",
+  "韩安磊",
+  "贾勇磊",
+  "叶敏",
+  "秦然伟",
+  "覃飞",
+  "龙轩源",
+  "叶萱平",
+  "武娟琳",
+  "韦然磊",
+  "董英",
+  "龙波薇",
+  "秦宁",
+  "唐乐",
+  "肖力凯",
+  "郑宇",
+  "莫翔",
+  "戴蕾浩",
+  "杜健",
+  "于婷健",
+  "严芳",
+  "黎松磊",
+  "严鑫涵",
+  "尹杰飞",
+  "孟清",
+  "钱洋源",
+  "李欣",
+  "潘岚",
+  "金凯磊",
+  "肖楠",
+  "邱建松",
+  "黎海丽",
+  "苏军",
+  "陶凯瑶",
+  "朱霞",
+  "向静健",
+  "尹敏悦",
+  "郝腾涛",
+  "侯海艳",
+  "尹岚海",
+  "付辉平",
+  "苏健",
+  "秦峰",
+  "曾雪",
+  "钟涛",
+  "卢波",
+  "吴英",
+  "史琳",
+  "冯宁乐",
+  "汤帆明",
+  "彭翔",
+  "刘彤远",
+  "叶芳辉",
+  "高宇",
+  "蔡欣",
+  "孟柏",
+  "程娜雪",
+  "高鑫帆",
+  "雷霞健",
+  "付安然",
+  "邓柏雪",
+  "黎勇飞",
+  "于秀刚",
+  "蔡远晨",
+  "陈磊军",
+  "周乐泽",
+  "贺瑶欣",
+  "史乐娜",
+  "侯轩博",
+  "向欣红",
+  "谢萱睿",
+  "梁建",
+  "金宁勇",
+  "沈涵",
+  "杨力",
+  "夏欣",
+  "黄峰",
+  "陈玉霞",
+  "彭萍琳",
+  "魏文",
+  "吕源海",
+  "白博",
+  "曾欣婷",
+  "吴敏蕾",
+  "钱文清",
+  "郭桂帆",
+  "朱波建",
+  "汤娜勇",
+  "秦凯娜",
+  "冯红",
+  "于雪超",
+  "黎萍",
+  "贾欣萍",
+  "于艳瑶",
+  "马雪桂",
+  "崔磊萱",
+  "曹玉博",
+  "吴宇瑶",
+  "孟玉华",
+  "周秀岚",
+  "马康军",
+  "贾芳",
+  "钟康萱",
+  "廖玉红",
+  "马彤腾",
+  "黄敏艳",
+  "韦琳翔",
+  "郝英轩",
+  "韦华轩",
+  "夏欣平",
+  "韦泽勇",
+  "段薇萱",
+  "郝娟源",
+  "毛杰清",
+  "董悦航",
+  "魏伟宇",
+  "薛力涵",
+  "马海峰",
+  "段松洋",
+  "孔刚远",
+  "姜海",
+  "梁英秀",
+  "毛涛萱",
+  "邱艳",
+  "于雪",
+  "王蕾健",
+  "万洋健",
+  "邵鑫",
+  "袁帆杰",
+  "钱力刚",
+  "梁平力",
+  "陶岚",
+  "余娟",
+  "朱柏丽",
+  "彭萍婷",
+  "夏康峰",
+  "龙刚佳",
+  "程源康",
+  "邱刚",
+  "冯岚涵",
+  "尹娜明",
+  "严勇",
+  "崔波健",
+  "邵海悦",
+  "谢艳娜",
+  "丁泽霞",
+  "袁辉安",
+  "黎宇海",
+  "姜帆",
+  "莫晨婷",
+  "吕平轩",
+  "郑芳建",
+  "邹桂佳",
+  "郝敏",
+  "钟薇",
+  "李敏海",
+  "范飞",
+  "林帆",
+  "方红",
+  "向伟博",
+  "邱强彤",
+  "唐杰",
+  "严泽英",
+  "万宁源",
+  "魏琳波",
+  "闫翔雪",
+  "白彤",
+  "汤蕾",
+  "何彤",
+  "梁超博",
+  "孙松辉",
+  "覃波洋",
+  "宋秀",
+  "韦峰睿",
+  "杨强敏",
+  "邵萱清",
+  "贺婷宇",
+  "莫明怡",
+  "覃凯华",
+  "尹华腾",
+  "马瑶建",
+  "郑岚",
+  "周悦军",
+  "覃鑫",
+  "韦康",
+  "石琳丽",
+  "吴飞薇",
+  "卢伟",
+  "王蕾霞",
+  "郝洋波",
+  "江浩阳",
+  "田帆文",
+  "朱萱",
+  "钱红清",
+  "莫蕾阳",
+  "陈艳安",
+  "龙洋",
+  "董飞然",
+  "邹敏宁",
+  "马磊红",
+  "万轩勇",
+  "胡建",
+  "王远宁",
+  "余平艳",
+  "沈峰佳",
+  "梁航娜",
+  "夏超",
+  "蒋涵萍",
+  "潘浩",
+  "黎华翔",
+  "彭桂",
+  "尹然",
+  "薛博鑫",
+  "许文",
+  "顾宁丽",
+  "于静",
+  "谭涵川",
+  "范睿娟",
+  "范飞霞",
+  "高雪松",
+  "钟航",
+  "龚源凯",
+  "覃清",
+  "侯霞刚",
+  "覃敏琳",
+  "邓涵超",
+  "林雪瑶",
+  "范峰娟",
+  "肖桂川",
+  "贺阳",
+  "孙瑶",
+  "罗伟",
+  "侯磊",
+  "钱瑶远",
+  "金力乐",
+  "郑远",
+  "曾磊",
+  "陆明悦",
+  "马海乐",
+  "武霞",
+  "唐强雪",
+  "曹文帆",
+  "邹力平",
+  "蒋翔帆",
+  "许帆平",
+  "邓伟",
+  "雷力",
+  "蒋霞勇",
+  "孟轩晨",
+  "秦文",
+  "汪远欣",
+  "田瑶军",
+  "徐柏",
+  "莫红薇",
+  "周悦柏",
+  "唐凯超",
+  "谢峰",
+  "史娟怡",
+  "郝岚安",
+  "吕远佳",
+  "付杰",
+  "孟腾超",
+  "龚博",
+  "方娟艳",
+  "白源",
+  "孙敏建",
+  "雷宇",
+  "江力晨",
+  "陆辉英",
+  "郭翔静",
+  "沈萍琳",
+  "龙桂",
+  "孔秀睿",
+  "沈航",
+  "苏飞",
+  "于伟",
+  "毛萍清",
+  "贺力杰",
+  "徐柏波",
+  "雷磊松",
+  "曾军浩",
+  "熊博静",
+  "闫柏超",
+  "胡欣",
+  "龙艳",
+  "肖瑶伟",
+  "黎浩萱",
+  "沈佳悦",
+  "李薇瑶",
+  "闫辉",
+  "姜乐强",
+  "何岚",
+  "何超霞",
+  "熊波",
+  "石辉娜",
+  "肖安",
+  "潘健悦",
+  "汤刚军",
+  "韩川伟",
+  "顾阳",
+  "廖强琳",
+  "向然",
+  "任海",
+  "蒋霞",
+  "汪安蕾",
+  "郑雪",
+  "肖浩彤",
+  "孔静涵",
+  "江泽",
+  "马宇英",
+  "孙然",
+  "曾怡远",
+  "邵佳艳",
+  "杜芳",
+  "魏鑫英",
+  "蒋博",
+  "史宁华"
+ ],
+ "person_names_en": [
+  "Hao Palmer",
+  "Hannah Lau",
+  "Alice Ng",
+  "James Leung",
+  "Nora Palmer",
+  "Chen Barker",
+  "Emily Hughes",
+  "Paul Hayes",
+  "Ella Ho",
+  "Karen Barker",
+  "Hao Tsang",
+  "Nancy Leung",
+  "Ella Barker",
+  "Nora Holland",
+  "Paul Sutton",
+  "Ella Chan",
+  "Owen Tsang",
+  "Susan Hayes",
+  "Alice Chambers",
+  "Ella Webb",
+  "Xin Holland",
+  "David Webb",
+  "Jun Lau",
+  "Wei Carter",
+  "Mary Leung",
+  "David Yip",
+  "David Fletcher",
+  "Hui Lowe",
+  "Adam Lambert",
+  "Nora Kwok",
+  "Grace Fletcher",
+  "Jun Palmer",
+  "Ming Ng",
+  "Kevin Ng",
+  "Nora Ho",
+  "Megan Wong",
+  "Lucas Lim",
+  "Megan Warren",
+  "Henry Lambert",
+  "Daniel Tan",
+  "Jun Carter",
+  "Mark Holland",
+  "Chloe Webb",
+  "Karen Sutton",
+  "Paul Doyle",
+  "Ming Fox",
+  "Susan Tan",
+  "Henry Ho",
+  "Chen Leung",
+  "John Fletcher",
+  "Emily Yip",
+  "Emily Chambers",
+  "Ryan Palmer",
+  "Steven Yip",
+  "Ella Kwok",
+  "Nora Chambers",
+  "Laura Webb",
+  "Owen Warren",
+  "Emily Wong",
+  "Min Palmer",
+  "Owen Holland",
+  "Yan Tsang",
+  "Mark Carter",
+  "Mark Chan",
+  "Owen Bennett",
+  "Hui Chambers",
+  "Xin Leung",
+  "Yan Ng",
+  "Ling Porter",
+  "Hannah Porter",
+  "Brian Holland",
+  "Ryan Warren",
+  "Mary Chambers",
+  "Mark Chambers",
+  "Laura Ho",
+  "Ming Hughes",
+  "Alice Carter",
+  "Megan Tan",
+  "Wei Holland",
+  "Owen Lambert",
+  "Megan Sutton",
+  "Megan Lowe",
+  "Xin Fox",
+  "Grace Yip",
+  "Adam Tan",
+  "Ella Carter",
+  "John Leung",
+  "Mary Webb",
+  "Daniel Carter",
+  "Mark Fletcher",
+  "Linda Chambers",
+  "John Chan",
+  "Eric Fletcher",
+  "Adam Ng",
+  "Adam Porter",
+  "Kevin Carter",
+  "Ling Fletcher",
+  "Alice Sutton",
+  "Adam Carter",
+  "Ling Sutton",
+  "Nancy Holland",
+  "Xin Palmer",
+  "Linda Barker",
+  "Linda Carter",
+  "Adam Tsang",
+  "Kevin Webb",
+  "Hui Carter",
+  "Alice Tan",
+  "Yan Tan",
+  "Nora Lambert",
+  "Emily Lambert",
+  "Chen Ho",
+  "Nancy Hughes",
+  "John Carter",
+  "Grace Tan",
+  "Nora Wong",
+  "Hao Tan",
+  "Hao Hughes",
+  "Linda Hughes",
+  "Karen Lim",
+  "Lucas Fox",
+  "Hao Holland",
+  "James Tan",
+  "Hao Doyle",
+  "Nancy Ng",
+  "Grace Carter",
+  "Wei Chan",
+  "Ming Tan",
+  "Daniel Wong",
+  "Paul Wong",
+  "Owen Ho",
+  "Karen Palmer",
+  "Daniel Hughes",
+  "Grace Fox",
+  "Brian Hughes",
+  "Nancy Fox",
+  "Karen Fletcher",
+  "Daniel Chambers",
+  "Hannah Chan",
+  "Ryan Chambers",
+  "Kevin Sutton",
+  "John Lau",
+  "Kevin Chan",
+  "Ella Chambers",
+  "Min Ho",
+  "Karen Lowe",
+  "Ming Carter",
+  "Kevin Yip",
+  "Chloe Lau",
+  "Adam Chan",
+  "Ella Sutton",
+  "Kevin Tsang",
+  "David Porter",
+  "James Kwok",
+  "Eric Chambers",
+  "Karen Warren",
+  "Megan Ng",
+  "Steven Tan",
+  "Xin Carter",
+  "Owen Hayes",
+  "Yan Carter",
+  "Hannah Ng",
+  "Steven Chambers",
+  "Eric Carter",
+  "Hui Hughes",
+  "Laura Tsang",
+  "Ella Fletcher",
+  "Chen Fox",
+  "Xin Lowe",
+  "Ryan Bennett",
+  "Xin Bennett",
+  "Ling Lau",
+  "Kevin Barker",
+  "Susan Lim",
+  "Kevin Palmer",
+  "Jun Kwok",
+  "Mary Palmer",
+  "Steven Warren",
+  "Karen Fox",
+  "Chloe Chambers",
+  "Steven Lowe",
+  "James Warren",
+  "Brian Barker",
+  "Min Leung",
+  "Linda Porter",
+  "Grace Kwok",
+  "Alice Lau",
+  "Mark Ho",
+  "Chloe Yip",
+  "Lucas Chambers",
+  "Laura Lowe",
+  "Daniel Lau",
+  "Owen Chambers",
+  "Paul Fletcher",
+  "Daniel Lowe",
+  "Hui Chan",
+  "Megan Doyle",
+  "Ella Tsang",
+  "Adam Palmer",
+  "Alice Kwok"
+ ],
+ "places_zh": [
+  "芷沅",
+  "晗澜",
+  "桐曦",
+  "霖蘅",
+  "峪岚",
+  "湄麓",
+  "麓砚",
+  "霁璟",
+  "岫桐",
+  "樾沅",
+  "桐沅",
+  "穗湄",
+  "珩棠",
+  "珩芷",
+  "沅棠",
+  "穗杉",
+  "涟湄",
+  "峪禾",
+  "翎珩",
+  "澜麓",
+  "穗樾",
+  "渚霖",
+  "溪芷",
+  "晗珩",
+  "澜珩",
+  "樾穗",
+  "桐樾",
+  "渚杉",
+  "樾汀",
+  "曦晗",
+  "湄峪",
+  "蘅珩",
+  "樾珩",
+  "璟樾",
+  "岫曦",
+  "湄禾",
+  "桐麓",
+  "砚岫",
+  "湄沅",
+  "湄樾",
+  "沅渚",
+  "霖峪",
+  "涟樾",
+  "杉麓",
+  "杉翎",
+  "苓禾",
+  "翎霁",
+  "渚芷",
+  "汀澜",
+  "渚砚",
+  "晗溪",
+  "棠岫",
+  "翎苓",
+  "苓霁",
+  "澜棠",
+  "澜渚",
+  "苓珩",
+  "汀涟",
+  "蘅芷",
+  "禾桐",
+  "岫澄",
+  "岚汀",
+  "穗珩",
+  "涟麓",
+  "湄曦",
+  "岚璟",
+  "砚溪",
+  "璟珩",
+  "汀湄",
+  "桐杉",
+  "渚棠",
+  "溪霁",
+  "霁穗",
+  "涟渚",
+  "璟晗",
+  "曦沅",
+  "澜霖",
+  "砚桐",
+  "杉渚",
+  "砚蘅",
+  "樾霁",
+  "蘅澜",
+  "曦穗",
+  "棠霁",
+  "曦棠",
+  "苓澄",
+  "樾砚",
+  "岫蘅",
+  "棠珩",
+  "翎晗",
+  "棠樾",
+  "桐霁",
+  "禾穗",
+  "杉穗",
+  "曦溪",
+  "翎汀",
+  "霖璟",
+  "珩霖",
+  "曦岫",
+  "蘅苓",
+  "霁澄",
+  "棠渚",
+  "砚苓",
+  "岫芷",
+  "湄晗",
+  "蘅沅",
+  "霁麓",
+  "樾璟",
+  "汀峪",
+  "曦樾",
+  "霁岫",
+  "峪砚",
+  "棠涟",
+  "曦澄",
+  "璟芷",
+  "峪桐",
+  "沅穗",
+  "苓汀",
+  "沅汀",
+  "澜溪",
+  "峪棠",
+  "峪璟",
+  "渚岚",
+  "翎溪",
+  "翎沅",
+  "晗璟",
+  "苓沅",
+  "芷棠",
+  "峪湄",
+  "霖岫",
+  "澜蘅",
+  "溪岫",
+  "澜穗",
+  "湄棠",
+  "澄蘅",
+  "樾霖",
+  "樾杉",
+  "涟霖",
+  "蘅翎",
+  "峪沅",
+  "桐汀",
+  "禾璟",
+  "沅麓",
+  "澜霁",
+  "汀晗",
+  "桐蘅",
+  "澄棠",
+  "杉晗",
+  "桐溪",
+  "峪渚",
+  "澜芷",
+  "翎杉",
+  "珩湄",
+  "穗禾",
+  "麓蘅",
+  "杉峪",
+  "棠蘅",
+  "芷穗",
+  "麓杉",
+  "禾沅",
+  "溪砚",
+  "珩峪",
+  "沅岚",
+  "蘅桐",
+  "穗砚",
+  "芷霖",
+  "霖桐",
+  "涟曦",
+  "晗霁",
+  "汀澄",
+  "沅苓",
+  "杉禾",
+  "穗麓",
+  "晗翎",
+  "璟澄",
+  "渚涟",
+  "穗芷",
+  "晗棠",
+  "禾溪",
+  "岫樾",
+  "珩樾",
+  "湄汀",
+  "蘅樾",
+  "霁珩",
+  "苓峪",
+  "澜湄",
+  "蘅晗",
+  "汀溪",
+  "禾渚",
+  "霖芷",
+  "岚澄",
+  "澄璟",
+  "岚溪",
+  "霁晗",
+  "溪麓",
+  "砚涟",
+  "涟澜",
+  "麓桐",
+  "溪珩",
+  "澜砚",
+  "砚岚",
+  "汀麓",
+  "翎蘅",
+  "晗杉",
+  "溪涟",
+  "溪晗",
+  "溪曦",
+  "翎樾",
+  "涟砚",
+  "曦苓",
+  "璟溪",
+  "砚霖",
+  "霖麓",
+  "霖澜",
+  "芷霁",
+  "砚樾",
+  "桐棠",
+  "渚穗",
+  "曦湄",
+  "蘅杉",
+  "珩杉",
+  "杉曦",
+  "晗岫",
+  "澜岚",
+  "渚禾",
+  "渚澜",
+  "棠穗",
+  "翎麓",
+  "杉蘅",
+  "澄麓",
+  "湄澜",
+  "溪渚",
+  "杉汀",
+  "渚溪",
+  "沅澜",
+  "禾曦",
+  "棠溪",
+  "蘅湄",
+  "穗澜",
+  "湄蘅",
+  "砚珩",
+  "禾霁",
+  "璟渚",
+  "樾苓",
+  "岫沅",
+  "霁翎",
+  "沅桐",
+  "穗晗",
+  "澄翎",
+  "珩霁",
+  "曦杉",
+  "杉苓",
+  "麓岫",
+  "禾汀",
+  "涟汀",
+  "樾渚",
+  "溪璟",
+  "澄沅",
+  "峪翎",
+  "霖汀",
+  "麓珩",
+  "曦翎",
+  "璟霖",
+  "砚澜",
+  "禾砚",
+  "岫翎",
+  "苓曦",
+  "砚穗",
+  "禾峪",
+  "苓涟",
+  "沅涟",
+  "澜澄",
+  "湄珩",
+  "沅霁",
+  "杉溪",
+  "璟苓",
+  "澜汀",
+  "珩岫",
+  "杉湄",
+  "澜翎",
+  "珩穗",
+  "渚霁",
+  "麓澜",
+  "桐岫",
+  "翎渚",
+  "翎砚",
+  "湄涟",
+  "禾麓",
+  "岚麓",
+  "曦砚",
+  "蘅涟",
+  "晗穗",
+  "砚霁",
+  "棠汀",
+  "岚珩",
+  "岫汀",
+  "芷曦",
+  "汀渚",
+  "岫澜",
+  "霁桐",
+  "穗沅",
+  "峪澄",
+  "峪汀",
+  "岚渚",
+  "桐砚",
+  "苓翎",
+  "苓霖",
+  "涟晗",
+  "湄溪",
+  "澄峪",
+  "沅霖",
+  "岚蘅",
+  "岫霁",
+  "晗麓",
+  "涟璟",
+  "杉霁",
+  "禾苓",
+  "沅砚",
+  "霖禾",
+  "澄禾",
+  "澄岚",
+  "澄穗",
+  "砚沅",
+  "霖樾",
+  "杉桐",
+  "麓溪",
+  "霖沅",
+  "峪穗",
+  "璟岫",
+  "棠芷",
+  "岫璟",
+  "渚澄",
+  "澜涟",
+  "麓禾",
+  "樾涟",
+  "湄岚",
+  "霖砚",
+  "翎峪",
+  "棠桐",
+  "汀杉",
+  "桐穗",
+  "樾晗",
+  "霁峪",
+  "汀穗",
+  "岚翎",
+  "晗曦",
+  "晗澄",
+  "棠霖",
+  "渚晗",
+  "汀苓",
+  "棠砚",
+  "汀翎",
+  "岚岫",
+  "溪霖",
+  "砚曦",
+  "禾霖",
+  "湄桐",
+  "湄芷",
+  "澄珩",
+  "珩涟",
+  "蘅岫",
+  "蘅汀",
+  "霁曦",
+  "澄桐",
+  "澄岫",
+  "棠苓",
+  "晗湄",
+  "麓霁",
+  "桐璟",
+  "麓汀",
+  "涟溪",
+  "涟峪",
+  "湄渚",
+  "涟珩",
+  "涟杉",
+  "璟棠",
+  "曦蘅",
+  "桐翎",
+  "砚澄",
+  "桐苓",
+  "桐珩",
+  "麓璟",
+  "晗蘅",
+  "汀桐",
+  "汀芷",
+  "霖苓",
+  "禾晗",
+  "苓澜",
+  "穗曦",
+  "穗峪",
+  "樾澜",
+  "霖溪",
+  "沅晗",
+  "渚璟",
+  "湄杉",
+  "杉璟",
+  "涟翎",
+  "桐晗",
+  "沅珩",
+  "岫苓",
+  "棠杉",
+  "涟澄",
+  "晗涟",
+  "蘅棠",
+  "砚湄",
+  "澄晗",
+  "麓穗",
+  "湄苓",
+  "芷澜",
+  "苓璟",
+  "渚岫",
+  "桐渚",
+  "珩蘅",
+  "岫杉",
+  "湄穗",
+  "珩曦",
+  "峪霁",
+  "翎芷",
+  "珩桐",
+  "翎桐"
+ ],
+ "places_en": [
+  "Vellvale",
+  "Vellstead",
+  "Fernhollow",
+  "Rookmere",
+  "Sablemere",
+  "Kestwick",
+  "Tarnvale",
+  "Rookstead",
+  "Tarnholt",
+  "Pellcombe",
+  "Sablevale",
+  "Yarmere",
+  "Mistlecombe",
+  "Mistlevale",
+  "Tarnwick",
+  "Pellmere",
+  "Tarnstead",
+  "Brackholt",
+  "Quillmere",
+  "Yarholt",
+  "Mistlestead",
+  "Quillstead",
+  "Brackmoor",
+  "Pellholt",
+  "Sablemoor",
+  "Rookholt",
+  "Quillcombe",
+  "Ossenmere",
+  "Fernstead",
+  "Lornmere",
+  "Kestmoor",
+  "Rookcombe",
+  "Rookhollow",
+  "Lornhollow",
+  "Brackcombe",
+  "Quillhollow",
+  "Rookmoor",
+  "Mistlemere",
+  "Tarnmere",
+  "Wrenholt",
+  "Ossenvale",
+  "Quillvale",
+  "Pellwick",
+  "Yarvale",
+  "Pellhollow",
+  "Ossenholt",
+  "Wrencombe",
+  "Keststead",
+  "Yarhollow",
+  "Pellvale",
+  "Fernmere",
+  "Wrenmoor",
+  "Quillmoor",
+  "Lornholt",
+  "Yarcombe",
+  "Tarnhollow",
+  "Mistlehollow",
+  "Kestvale",
+  "Wrenhollow",
+  "Brackhollow",
+  "Yarmoor",
+  "Mistlemoor",
+  "Ossenwick",
+  "Wrenstead",
+  "Whinmoor",
+  "Ossenstead",
+  "Pellstead",
+  "Yarstead",
+  "Sableholt",
+  "Whinhollow",
+  "Quillwick",
+  "Brackvale",
+  "Ferncombe",
+  "Whinvale",
+  "Wrenvale",
+  "Fernvale",
+  "Lorncombe",
+  "Rookwick",
+  "Sablecombe",
+  "Tarnmoor",
+  "Fernwick",
+  "Mistlewick",
+  "Vellholt",
+  "Kesthollow",
+  "Vellhollow",
+  "Pellmoor",
+  "Lornstead",
+  "Ossencombe",
+  "Lornvale",
+  "Fernmoor",
+  "Lornwick",
+  "Lornmoor",
+  "Rookvale",
+  "Wrenmere",
+  "Brackwick",
+  "Sablewick",
+  "Yarwick",
+  "Kestholt",
+  "Kestmere",
+  "Ossenmoor",
+  "Whinstead",
+  "Vellwick",
+  "Mistleholt",
+  "Brackmere",
+  "Vellmere",
+  "Tarncombe",
+  "Whinholt",
+  "Whinmere",
+  "Whinwick",
+  "Sablehollow"
+ ],
+ "institutions": [
+  {
+   "name": "芷沅门诊部",
+   "language": "zh",
+   "kind": "clinic"
+  },
+  {
+   "name": "芷沅市中心医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "晗澜市第九人民医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "晗澜社区卫生服务中心",
+   "language": "zh",
+   "kind": "clinic"
+  },
+  {
+   "name": "桐曦市中心医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "桐曦医学检验所",
+   "language": "zh",
+   "kind": "lab"
+  },
+  {
+   "name": "霖蘅社区卫生服务中心",
+   "language": "zh",
+   "kind": "clinic"
+  },
+  {
+   "name": "霖蘅健康体检中心",
+   "language": "zh",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "峪岚门诊部",
+   "language": "zh",
+   "kind": "clinic"
+  },
+  {
+   "name": "峪岚社区卫生服务中心",
+   "language": "zh",
+   "kind": "clinic"
+  },
+  {
+   "name": "湄麓市中心医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "湄麓医学检验所",
+   "language": "zh",
+   "kind": "lab"
+  },
+  {
+   "name": "麓砚区健康管理中心",
+   "language": "zh",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "麓砚社区卫生服务中心",
+   "language": "zh",
+   "kind": "clinic"
+  },
+  {
+   "name": "霁璟区健康管理中心",
+   "language": "zh",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "霁璟中医医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "岫桐临床检验中心",
+   "language": "zh",
+   "kind": "lab"
+  },
+  {
+   "name": "岫桐市中心医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "樾沅区健康管理中心",
+   "language": "zh",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "樾沅妇幼保健院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "桐沅区健康管理中心",
+   "language": "zh",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "桐沅市第一人民医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "穗湄医学检验所",
+   "language": "zh",
+   "kind": "lab"
+  },
+  {
+   "name": "穗湄健康体检中心",
+   "language": "zh",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "珩棠社区卫生服务中心",
+   "language": "zh",
+   "kind": "clinic"
+  },
+  {
+   "name": "珩棠妇幼保健院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "珩芷医学检验所",
+   "language": "zh",
+   "kind": "lab"
+  },
+  {
+   "name": "珩芷市中心医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "沅棠区健康管理中心",
+   "language": "zh",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "沅棠临床检验中心",
+   "language": "zh",
+   "kind": "lab"
+  },
+  {
+   "name": "穗杉医学检验所",
+   "language": "zh",
+   "kind": "lab"
+  },
+  {
+   "name": "穗杉区健康管理中心",
+   "language": "zh",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "涟湄区健康管理中心",
+   "language": "zh",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "涟湄门诊部",
+   "language": "zh",
+   "kind": "clinic"
+  },
+  {
+   "name": "峪禾临床检验中心",
+   "language": "zh",
+   "kind": "lab"
+  },
+  {
+   "name": "峪禾健康体检中心",
+   "language": "zh",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "翎珩妇幼保健院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "翎珩门诊部",
+   "language": "zh",
+   "kind": "clinic"
+  },
+  {
+   "name": "澜麓临床检验中心",
+   "language": "zh",
+   "kind": "lab"
+  },
+  {
+   "name": "澜麓社区卫生服务中心",
+   "language": "zh",
+   "kind": "clinic"
+  },
+  {
+   "name": "穗樾临床检验中心",
+   "language": "zh",
+   "kind": "lab"
+  },
+  {
+   "name": "穗樾区健康管理中心",
+   "language": "zh",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "渚霖医学检验所",
+   "language": "zh",
+   "kind": "lab"
+  },
+  {
+   "name": "渚霖社区卫生服务中心",
+   "language": "zh",
+   "kind": "clinic"
+  },
+  {
+   "name": "溪芷中医医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "溪芷社区卫生服务中心",
+   "language": "zh",
+   "kind": "clinic"
+  },
+  {
+   "name": "晗珩医学检验所",
+   "language": "zh",
+   "kind": "lab"
+  },
+  {
+   "name": "晗珩妇幼保健院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "澜珩医学检验所",
+   "language": "zh",
+   "kind": "lab"
+  },
+  {
+   "name": "澜珩妇幼保健院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "樾穗社区卫生服务中心",
+   "language": "zh",
+   "kind": "clinic"
+  },
+  {
+   "name": "樾穗健康体检中心",
+   "language": "zh",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "桐樾市第三人民医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "桐樾市中心医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "渚杉中医医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "渚杉市中心医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "樾汀中医医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "樾汀健康体检中心",
+   "language": "zh",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "曦晗门诊部",
+   "language": "zh",
+   "kind": "clinic"
+  },
+  {
+   "name": "曦晗妇幼保健院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "湄峪中医医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "湄峪健康体检中心",
+   "language": "zh",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "蘅珩健康体检中心",
+   "language": "zh",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "蘅珩妇幼保健院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "樾珩社区卫生服务中心",
+   "language": "zh",
+   "kind": "clinic"
+  },
+  {
+   "name": "樾珩临床检验中心",
+   "language": "zh",
+   "kind": "lab"
+  },
+  {
+   "name": "璟樾健康体检中心",
+   "language": "zh",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "璟樾区健康管理中心",
+   "language": "zh",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "岫曦健康体检中心",
+   "language": "zh",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "岫曦门诊部",
+   "language": "zh",
+   "kind": "clinic"
+  },
+  {
+   "name": "湄禾社区卫生服务中心",
+   "language": "zh",
+   "kind": "clinic"
+  },
+  {
+   "name": "湄禾医学检验所",
+   "language": "zh",
+   "kind": "lab"
+  },
+  {
+   "name": "桐麓临床检验中心",
+   "language": "zh",
+   "kind": "lab"
+  },
+  {
+   "name": "桐麓中医医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "砚岫妇幼保健院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "砚岫中医医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "湄沅门诊部",
+   "language": "zh",
+   "kind": "clinic"
+  },
+  {
+   "name": "湄沅区健康管理中心",
+   "language": "zh",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "湄樾市第八人民医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "湄樾门诊部",
+   "language": "zh",
+   "kind": "clinic"
+  },
+  {
+   "name": "沅渚区健康管理中心",
+   "language": "zh",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "沅渚市第九人民医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "霖峪门诊部",
+   "language": "zh",
+   "kind": "clinic"
+  },
+  {
+   "name": "霖峪社区卫生服务中心",
+   "language": "zh",
+   "kind": "clinic"
+  },
+  {
+   "name": "涟樾门诊部",
+   "language": "zh",
+   "kind": "clinic"
+  },
+  {
+   "name": "涟樾健康体检中心",
+   "language": "zh",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "杉麓社区卫生服务中心",
+   "language": "zh",
+   "kind": "clinic"
+  },
+  {
+   "name": "杉麓中医医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "杉翎临床检验中心",
+   "language": "zh",
+   "kind": "lab"
+  },
+  {
+   "name": "杉翎区健康管理中心",
+   "language": "zh",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "苓禾医学检验所",
+   "language": "zh",
+   "kind": "lab"
+  },
+  {
+   "name": "苓禾健康体检中心",
+   "language": "zh",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "翎霁医学检验所",
+   "language": "zh",
+   "kind": "lab"
+  },
+  {
+   "name": "翎霁妇幼保健院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "渚芷中医医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "渚芷社区卫生服务中心",
+   "language": "zh",
+   "kind": "clinic"
+  },
+  {
+   "name": "汀澜社区卫生服务中心",
+   "language": "zh",
+   "kind": "clinic"
+  },
+  {
+   "name": "汀澜医学检验所",
+   "language": "zh",
+   "kind": "lab"
+  },
+  {
+   "name": "渚砚社区卫生服务中心",
+   "language": "zh",
+   "kind": "clinic"
+  },
+  {
+   "name": "渚砚中医医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "晗溪临床检验中心",
+   "language": "zh",
+   "kind": "lab"
+  },
+  {
+   "name": "晗溪医学检验所",
+   "language": "zh",
+   "kind": "lab"
+  },
+  {
+   "name": "棠岫中医医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "棠岫健康体检中心",
+   "language": "zh",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "翎苓社区卫生服务中心",
+   "language": "zh",
+   "kind": "clinic"
+  },
+  {
+   "name": "翎苓门诊部",
+   "language": "zh",
+   "kind": "clinic"
+  },
+  {
+   "name": "苓霁市第九人民医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "苓霁区健康管理中心",
+   "language": "zh",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "澜棠妇幼保健院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "澜棠市中心医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "澜渚健康体检中心",
+   "language": "zh",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "澜渚市第九人民医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "苓珩医学检验所",
+   "language": "zh",
+   "kind": "lab"
+  },
+  {
+   "name": "苓珩健康体检中心",
+   "language": "zh",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "汀涟社区卫生服务中心",
+   "language": "zh",
+   "kind": "clinic"
+  },
+  {
+   "name": "汀涟市中心医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "蘅芷区健康管理中心",
+   "language": "zh",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "蘅芷社区卫生服务中心",
+   "language": "zh",
+   "kind": "clinic"
+  },
+  {
+   "name": "禾桐市中心医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "禾桐临床检验中心",
+   "language": "zh",
+   "kind": "lab"
+  },
+  {
+   "name": "岫澄中医医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "岫澄临床检验中心",
+   "language": "zh",
+   "kind": "lab"
+  },
+  {
+   "name": "岚汀妇幼保健院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "岚汀中医医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "穗珩妇幼保健院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "穗珩门诊部",
+   "language": "zh",
+   "kind": "clinic"
+  },
+  {
+   "name": "涟麓医学检验所",
+   "language": "zh",
+   "kind": "lab"
+  },
+  {
+   "name": "涟麓市第六人民医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "湄曦区健康管理中心",
+   "language": "zh",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "湄曦中医医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "岚璟妇幼保健院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "岚璟临床检验中心",
+   "language": "zh",
+   "kind": "lab"
+  },
+  {
+   "name": "砚溪临床检验中心",
+   "language": "zh",
+   "kind": "lab"
+  },
+  {
+   "name": "砚溪市第二人民医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "璟珩中医医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "璟珩门诊部",
+   "language": "zh",
+   "kind": "clinic"
+  },
+  {
+   "name": "汀湄中医医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "汀湄妇幼保健院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "桐杉健康体检中心",
+   "language": "zh",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "桐杉市中心医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "渚棠中医医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "渚棠社区卫生服务中心",
+   "language": "zh",
+   "kind": "clinic"
+  },
+  {
+   "name": "溪霁中医医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "溪霁临床检验中心",
+   "language": "zh",
+   "kind": "lab"
+  },
+  {
+   "name": "霁穗妇幼保健院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "霁穗临床检验中心",
+   "language": "zh",
+   "kind": "lab"
+  },
+  {
+   "name": "涟渚健康体检中心",
+   "language": "zh",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "涟渚医学检验所",
+   "language": "zh",
+   "kind": "lab"
+  },
+  {
+   "name": "璟晗健康体检中心",
+   "language": "zh",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "璟晗医学检验所",
+   "language": "zh",
+   "kind": "lab"
+  },
+  {
+   "name": "曦沅市中心医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "曦沅门诊部",
+   "language": "zh",
+   "kind": "clinic"
+  },
+  {
+   "name": "澜霖妇幼保健院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "澜霖市第二人民医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "砚桐市第九人民医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "砚桐健康体检中心",
+   "language": "zh",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "杉渚市第七人民医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "杉渚区健康管理中心",
+   "language": "zh",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "砚蘅中医医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "砚蘅市第二人民医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "樾霁中医医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "樾霁门诊部",
+   "language": "zh",
+   "kind": "clinic"
+  },
+  {
+   "name": "蘅澜健康体检中心",
+   "language": "zh",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "蘅澜中医医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "曦穗市第二人民医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "曦穗健康体检中心",
+   "language": "zh",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "棠霁妇幼保健院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "棠霁医学检验所",
+   "language": "zh",
+   "kind": "lab"
+  },
+  {
+   "name": "曦棠健康体检中心",
+   "language": "zh",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "曦棠妇幼保健院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "苓澄门诊部",
+   "language": "zh",
+   "kind": "clinic"
+  },
+  {
+   "name": "苓澄妇幼保健院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "樾砚健康体检中心",
+   "language": "zh",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "樾砚临床检验中心",
+   "language": "zh",
+   "kind": "lab"
+  },
+  {
+   "name": "岫蘅中医医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "岫蘅市第一人民医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "棠珩市第二人民医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "棠珩社区卫生服务中心",
+   "language": "zh",
+   "kind": "clinic"
+  },
+  {
+   "name": "翎晗社区卫生服务中心",
+   "language": "zh",
+   "kind": "clinic"
+  },
+  {
+   "name": "翎晗医学检验所",
+   "language": "zh",
+   "kind": "lab"
+  },
+  {
+   "name": "棠樾市第九人民医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "棠樾市中心医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "桐霁医学检验所",
+   "language": "zh",
+   "kind": "lab"
+  },
+  {
+   "name": "桐霁健康体检中心",
+   "language": "zh",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "禾穗门诊部",
+   "language": "zh",
+   "kind": "clinic"
+  },
+  {
+   "name": "禾穗市第六人民医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "杉穗妇幼保健院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "杉穗临床检验中心",
+   "language": "zh",
+   "kind": "lab"
+  },
+  {
+   "name": "曦溪市第六人民医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "曦溪区健康管理中心",
+   "language": "zh",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "翎汀市第四人民医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "翎汀中医医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "霖璟市第二人民医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "霖璟市中心医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "珩霖临床检验中心",
+   "language": "zh",
+   "kind": "lab"
+  },
+  {
+   "name": "珩霖健康体检中心",
+   "language": "zh",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "曦岫市第三人民医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "曦岫健康体检中心",
+   "language": "zh",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "蘅苓区健康管理中心",
+   "language": "zh",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "蘅苓社区卫生服务中心",
+   "language": "zh",
+   "kind": "clinic"
+  },
+  {
+   "name": "霁澄区健康管理中心",
+   "language": "zh",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "霁澄市中心医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "棠渚区健康管理中心",
+   "language": "zh",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "棠渚健康体检中心",
+   "language": "zh",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "砚苓健康体检中心",
+   "language": "zh",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "砚苓社区卫生服务中心",
+   "language": "zh",
+   "kind": "clinic"
+  },
+  {
+   "name": "岫芷市第五人民医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "岫芷临床检验中心",
+   "language": "zh",
+   "kind": "lab"
+  },
+  {
+   "name": "湄晗社区卫生服务中心",
+   "language": "zh",
+   "kind": "clinic"
+  },
+  {
+   "name": "湄晗市第五人民医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "蘅沅社区卫生服务中心",
+   "language": "zh",
+   "kind": "clinic"
+  },
+  {
+   "name": "蘅沅临床检验中心",
+   "language": "zh",
+   "kind": "lab"
+  },
+  {
+   "name": "霁麓市中心医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "霁麓区健康管理中心",
+   "language": "zh",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "樾璟妇幼保健院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "樾璟市中心医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "汀峪社区卫生服务中心",
+   "language": "zh",
+   "kind": "clinic"
+  },
+  {
+   "name": "汀峪妇幼保健院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "曦樾临床检验中心",
+   "language": "zh",
+   "kind": "lab"
+  },
+  {
+   "name": "曦樾医学检验所",
+   "language": "zh",
+   "kind": "lab"
+  },
+  {
+   "name": "霁岫市第二人民医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "霁岫区健康管理中心",
+   "language": "zh",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "峪砚医学检验所",
+   "language": "zh",
+   "kind": "lab"
+  },
+  {
+   "name": "峪砚门诊部",
+   "language": "zh",
+   "kind": "clinic"
+  },
+  {
+   "name": "棠涟市中心医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "棠涟临床检验中心",
+   "language": "zh",
+   "kind": "lab"
+  },
+  {
+   "name": "曦澄门诊部",
+   "language": "zh",
+   "kind": "clinic"
+  },
+  {
+   "name": "曦澄医学检验所",
+   "language": "zh",
+   "kind": "lab"
+  },
+  {
+   "name": "璟芷区健康管理中心",
+   "language": "zh",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "璟芷市中心医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "峪桐市第七人民医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "峪桐市中心医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "沅穗中医医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "沅穗健康体检中心",
+   "language": "zh",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "苓汀医学检验所",
+   "language": "zh",
+   "kind": "lab"
+  },
+  {
+   "name": "苓汀中医医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "沅汀健康体检中心",
+   "language": "zh",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "沅汀医学检验所",
+   "language": "zh",
+   "kind": "lab"
+  },
+  {
+   "name": "澜溪妇幼保健院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "澜溪社区卫生服务中心",
+   "language": "zh",
+   "kind": "clinic"
+  },
+  {
+   "name": "峪棠门诊部",
+   "language": "zh",
+   "kind": "clinic"
+  },
+  {
+   "name": "峪棠中医医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "峪璟临床检验中心",
+   "language": "zh",
+   "kind": "lab"
+  },
+  {
+   "name": "峪璟门诊部",
+   "language": "zh",
+   "kind": "clinic"
+  },
+  {
+   "name": "渚岚门诊部",
+   "language": "zh",
+   "kind": "clinic"
+  },
+  {
+   "name": "渚岚区健康管理中心",
+   "language": "zh",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "翎溪区健康管理中心",
+   "language": "zh",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "翎溪市中心医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "翎沅市第七人民医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "翎沅中医医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "晗璟临床检验中心",
+   "language": "zh",
+   "kind": "lab"
+  },
+  {
+   "name": "晗璟市第五人民医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "苓沅健康体检中心",
+   "language": "zh",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "苓沅门诊部",
+   "language": "zh",
+   "kind": "clinic"
+  },
+  {
+   "name": "芷棠健康体检中心",
+   "language": "zh",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "芷棠区健康管理中心",
+   "language": "zh",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "峪湄区健康管理中心",
+   "language": "zh",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "峪湄市第四人民医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "霖岫市第二人民医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "霖岫区健康管理中心",
+   "language": "zh",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "澜蘅临床检验中心",
+   "language": "zh",
+   "kind": "lab"
+  },
+  {
+   "name": "澜蘅妇幼保健院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "溪岫社区卫生服务中心",
+   "language": "zh",
+   "kind": "clinic"
+  },
+  {
+   "name": "溪岫临床检验中心",
+   "language": "zh",
+   "kind": "lab"
+  },
+  {
+   "name": "澜穗中医医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "澜穗临床检验中心",
+   "language": "zh",
+   "kind": "lab"
+  },
+  {
+   "name": "湄棠社区卫生服务中心",
+   "language": "zh",
+   "kind": "clinic"
+  },
+  {
+   "name": "湄棠中医医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "澄蘅临床检验中心",
+   "language": "zh",
+   "kind": "lab"
+  },
+  {
+   "name": "澄蘅区健康管理中心",
+   "language": "zh",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "樾霖社区卫生服务中心",
+   "language": "zh",
+   "kind": "clinic"
+  },
+  {
+   "name": "樾霖市中心医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "樾杉妇幼保健院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "樾杉市中心医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "涟霖市第二人民医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "涟霖妇幼保健院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "蘅翎健康体检中心",
+   "language": "zh",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "蘅翎区健康管理中心",
+   "language": "zh",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "峪沅健康体检中心",
+   "language": "zh",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "峪沅社区卫生服务中心",
+   "language": "zh",
+   "kind": "clinic"
+  },
+  {
+   "name": "桐汀市第七人民医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "桐汀妇幼保健院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "禾璟门诊部",
+   "language": "zh",
+   "kind": "clinic"
+  },
+  {
+   "name": "禾璟中医医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "沅麓健康体检中心",
+   "language": "zh",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "沅麓市第三人民医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "澜霁门诊部",
+   "language": "zh",
+   "kind": "clinic"
+  },
+  {
+   "name": "澜霁健康体检中心",
+   "language": "zh",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "汀晗门诊部",
+   "language": "zh",
+   "kind": "clinic"
+  },
+  {
+   "name": "汀晗妇幼保健院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "桐蘅门诊部",
+   "language": "zh",
+   "kind": "clinic"
+  },
+  {
+   "name": "桐蘅市中心医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "澄棠中医医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "澄棠临床检验中心",
+   "language": "zh",
+   "kind": "lab"
+  },
+  {
+   "name": "杉晗妇幼保健院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "杉晗中医医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "桐溪中医医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "桐溪市中心医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "峪渚社区卫生服务中心",
+   "language": "zh",
+   "kind": "clinic"
+  },
+  {
+   "name": "峪渚健康体检中心",
+   "language": "zh",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "澜芷中医医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "澜芷区健康管理中心",
+   "language": "zh",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "翎杉医学检验所",
+   "language": "zh",
+   "kind": "lab"
+  },
+  {
+   "name": "翎杉妇幼保健院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "珩湄区健康管理中心",
+   "language": "zh",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "珩湄中医医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "穗禾区健康管理中心",
+   "language": "zh",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "穗禾健康体检中心",
+   "language": "zh",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "麓蘅医学检验所",
+   "language": "zh",
+   "kind": "lab"
+  },
+  {
+   "name": "麓蘅区健康管理中心",
+   "language": "zh",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "杉峪市中心医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "杉峪门诊部",
+   "language": "zh",
+   "kind": "clinic"
+  },
+  {
+   "name": "棠蘅市中心医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "棠蘅医学检验所",
+   "language": "zh",
+   "kind": "lab"
+  },
+  {
+   "name": "芷穗妇幼保健院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "芷穗中医医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "麓杉社区卫生服务中心",
+   "language": "zh",
+   "kind": "clinic"
+  },
+  {
+   "name": "麓杉市中心医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "禾沅健康体检中心",
+   "language": "zh",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "禾沅市中心医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "溪砚市中心医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "溪砚市第五人民医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "珩峪市第五人民医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "珩峪妇幼保健院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "沅岚门诊部",
+   "language": "zh",
+   "kind": "clinic"
+  },
+  {
+   "name": "沅岚市中心医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "蘅桐门诊部",
+   "language": "zh",
+   "kind": "clinic"
+  },
+  {
+   "name": "蘅桐市第二人民医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "穗砚健康体检中心",
+   "language": "zh",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "穗砚市第九人民医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "芷霖区健康管理中心",
+   "language": "zh",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "芷霖中医医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "霖桐社区卫生服务中心",
+   "language": "zh",
+   "kind": "clinic"
+  },
+  {
+   "name": "霖桐健康体检中心",
+   "language": "zh",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "涟曦门诊部",
+   "language": "zh",
+   "kind": "clinic"
+  },
+  {
+   "name": "涟曦妇幼保健院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "晗霁临床检验中心",
+   "language": "zh",
+   "kind": "lab"
+  },
+  {
+   "name": "晗霁妇幼保健院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "汀澄门诊部",
+   "language": "zh",
+   "kind": "clinic"
+  },
+  {
+   "name": "汀澄中医医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "沅苓区健康管理中心",
+   "language": "zh",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "沅苓临床检验中心",
+   "language": "zh",
+   "kind": "lab"
+  },
+  {
+   "name": "杉禾医学检验所",
+   "language": "zh",
+   "kind": "lab"
+  },
+  {
+   "name": "杉禾社区卫生服务中心",
+   "language": "zh",
+   "kind": "clinic"
+  },
+  {
+   "name": "穗麓区健康管理中心",
+   "language": "zh",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "穗麓医学检验所",
+   "language": "zh",
+   "kind": "lab"
+  },
+  {
+   "name": "晗翎健康体检中心",
+   "language": "zh",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "晗翎区健康管理中心",
+   "language": "zh",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "璟澄社区卫生服务中心",
+   "language": "zh",
+   "kind": "clinic"
+  },
+  {
+   "name": "璟澄区健康管理中心",
+   "language": "zh",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "渚涟中医医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "渚涟健康体检中心",
+   "language": "zh",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "穗芷社区卫生服务中心",
+   "language": "zh",
+   "kind": "clinic"
+  },
+  {
+   "name": "穗芷临床检验中心",
+   "language": "zh",
+   "kind": "lab"
+  },
+  {
+   "name": "晗棠市第二人民医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "晗棠区健康管理中心",
+   "language": "zh",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "禾溪社区卫生服务中心",
+   "language": "zh",
+   "kind": "clinic"
+  },
+  {
+   "name": "禾溪市第一人民医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "岫樾妇幼保健院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "岫樾健康体检中心",
+   "language": "zh",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "珩樾中医医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "珩樾市第六人民医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "湄汀妇幼保健院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "湄汀医学检验所",
+   "language": "zh",
+   "kind": "lab"
+  },
+  {
+   "name": "蘅樾医学检验所",
+   "language": "zh",
+   "kind": "lab"
+  },
+  {
+   "name": "蘅樾门诊部",
+   "language": "zh",
+   "kind": "clinic"
+  },
+  {
+   "name": "霁珩社区卫生服务中心",
+   "language": "zh",
+   "kind": "clinic"
+  },
+  {
+   "name": "霁珩区健康管理中心",
+   "language": "zh",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "苓峪中医医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "苓峪妇幼保健院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "澜湄门诊部",
+   "language": "zh",
+   "kind": "clinic"
+  },
+  {
+   "name": "澜湄健康体检中心",
+   "language": "zh",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "蘅晗医学检验所",
+   "language": "zh",
+   "kind": "lab"
+  },
+  {
+   "name": "蘅晗健康体检中心",
+   "language": "zh",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "汀溪社区卫生服务中心",
+   "language": "zh",
+   "kind": "clinic"
+  },
+  {
+   "name": "汀溪市第八人民医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "禾渚市第九人民医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "禾渚市中心医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "霖芷健康体检中心",
+   "language": "zh",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "霖芷妇幼保健院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "岚澄临床检验中心",
+   "language": "zh",
+   "kind": "lab"
+  },
+  {
+   "name": "岚澄中医医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "澄璟区健康管理中心",
+   "language": "zh",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "澄璟市第七人民医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "岚溪门诊部",
+   "language": "zh",
+   "kind": "clinic"
+  },
+  {
+   "name": "岚溪健康体检中心",
+   "language": "zh",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "霁晗医学检验所",
+   "language": "zh",
+   "kind": "lab"
+  },
+  {
+   "name": "霁晗中医医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "溪麓市中心医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "溪麓妇幼保健院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "砚涟市中心医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "砚涟市第五人民医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "涟澜中医医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "涟澜妇幼保健院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "麓桐区健康管理中心",
+   "language": "zh",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "麓桐市第七人民医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "溪珩市中心医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "溪珩医学检验所",
+   "language": "zh",
+   "kind": "lab"
+  },
+  {
+   "name": "澜砚医学检验所",
+   "language": "zh",
+   "kind": "lab"
+  },
+  {
+   "name": "澜砚健康体检中心",
+   "language": "zh",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "砚岚市第八人民医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "砚岚门诊部",
+   "language": "zh",
+   "kind": "clinic"
+  },
+  {
+   "name": "汀麓门诊部",
+   "language": "zh",
+   "kind": "clinic"
+  },
+  {
+   "name": "汀麓妇幼保健院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "翎蘅市中心医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "翎蘅区健康管理中心",
+   "language": "zh",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "晗杉区健康管理中心",
+   "language": "zh",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "晗杉临床检验中心",
+   "language": "zh",
+   "kind": "lab"
+  },
+  {
+   "name": "溪涟市中心医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "溪涟门诊部",
+   "language": "zh",
+   "kind": "clinic"
+  },
+  {
+   "name": "溪晗市第六人民医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "溪晗社区卫生服务中心",
+   "language": "zh",
+   "kind": "clinic"
+  },
+  {
+   "name": "溪曦市中心医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "溪曦临床检验中心",
+   "language": "zh",
+   "kind": "lab"
+  },
+  {
+   "name": "翎樾医学检验所",
+   "language": "zh",
+   "kind": "lab"
+  },
+  {
+   "name": "翎樾临床检验中心",
+   "language": "zh",
+   "kind": "lab"
+  },
+  {
+   "name": "涟砚临床检验中心",
+   "language": "zh",
+   "kind": "lab"
+  },
+  {
+   "name": "涟砚市第一人民医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "曦苓医学检验所",
+   "language": "zh",
+   "kind": "lab"
+  },
+  {
+   "name": "曦苓门诊部",
+   "language": "zh",
+   "kind": "clinic"
+  },
+  {
+   "name": "璟溪妇幼保健院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "璟溪中医医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "砚霖妇幼保健院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "砚霖医学检验所",
+   "language": "zh",
+   "kind": "lab"
+  },
+  {
+   "name": "霖麓门诊部",
+   "language": "zh",
+   "kind": "clinic"
+  },
+  {
+   "name": "霖麓医学检验所",
+   "language": "zh",
+   "kind": "lab"
+  },
+  {
+   "name": "霖澜健康体检中心",
+   "language": "zh",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "霖澜中医医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "芷霁区健康管理中心",
+   "language": "zh",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "芷霁市第九人民医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "砚樾区健康管理中心",
+   "language": "zh",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "砚樾健康体检中心",
+   "language": "zh",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "桐棠中医医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "桐棠社区卫生服务中心",
+   "language": "zh",
+   "kind": "clinic"
+  },
+  {
+   "name": "渚穗市第四人民医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "渚穗健康体检中心",
+   "language": "zh",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "曦湄社区卫生服务中心",
+   "language": "zh",
+   "kind": "clinic"
+  },
+  {
+   "name": "曦湄健康体检中心",
+   "language": "zh",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "蘅杉妇幼保健院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "蘅杉市中心医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "珩杉社区卫生服务中心",
+   "language": "zh",
+   "kind": "clinic"
+  },
+  {
+   "name": "珩杉妇幼保健院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "杉曦社区卫生服务中心",
+   "language": "zh",
+   "kind": "clinic"
+  },
+  {
+   "name": "杉曦妇幼保健院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "晗岫医学检验所",
+   "language": "zh",
+   "kind": "lab"
+  },
+  {
+   "name": "晗岫健康体检中心",
+   "language": "zh",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "澜岚临床检验中心",
+   "language": "zh",
+   "kind": "lab"
+  },
+  {
+   "name": "澜岚妇幼保健院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "渚禾中医医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "渚禾市中心医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "渚澜妇幼保健院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "渚澜医学检验所",
+   "language": "zh",
+   "kind": "lab"
+  },
+  {
+   "name": "棠穗社区卫生服务中心",
+   "language": "zh",
+   "kind": "clinic"
+  },
+  {
+   "name": "棠穗妇幼保健院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "翎麓中医医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "翎麓门诊部",
+   "language": "zh",
+   "kind": "clinic"
+  },
+  {
+   "name": "杉蘅市第五人民医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "杉蘅临床检验中心",
+   "language": "zh",
+   "kind": "lab"
+  },
+  {
+   "name": "澄麓妇幼保健院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "澄麓市第四人民医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "湄澜市第五人民医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "湄澜中医医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "溪渚临床检验中心",
+   "language": "zh",
+   "kind": "lab"
+  },
+  {
+   "name": "溪渚门诊部",
+   "language": "zh",
+   "kind": "clinic"
+  },
+  {
+   "name": "杉汀临床检验中心",
+   "language": "zh",
+   "kind": "lab"
+  },
+  {
+   "name": "杉汀区健康管理中心",
+   "language": "zh",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "渚溪医学检验所",
+   "language": "zh",
+   "kind": "lab"
+  },
+  {
+   "name": "渚溪健康体检中心",
+   "language": "zh",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "沅澜临床检验中心",
+   "language": "zh",
+   "kind": "lab"
+  },
+  {
+   "name": "沅澜社区卫生服务中心",
+   "language": "zh",
+   "kind": "clinic"
+  },
+  {
+   "name": "禾曦妇幼保健院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "禾曦门诊部",
+   "language": "zh",
+   "kind": "clinic"
+  },
+  {
+   "name": "棠溪健康体检中心",
+   "language": "zh",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "棠溪市中心医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "蘅湄门诊部",
+   "language": "zh",
+   "kind": "clinic"
+  },
+  {
+   "name": "蘅湄市第五人民医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "穗澜妇幼保健院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "穗澜市中心医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "湄蘅临床检验中心",
+   "language": "zh",
+   "kind": "lab"
+  },
+  {
+   "name": "湄蘅医学检验所",
+   "language": "zh",
+   "kind": "lab"
+  },
+  {
+   "name": "砚珩临床检验中心",
+   "language": "zh",
+   "kind": "lab"
+  },
+  {
+   "name": "砚珩健康体检中心",
+   "language": "zh",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "禾霁医学检验所",
+   "language": "zh",
+   "kind": "lab"
+  },
+  {
+   "name": "禾霁中医医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "璟渚区健康管理中心",
+   "language": "zh",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "璟渚中医医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "樾苓健康体检中心",
+   "language": "zh",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "樾苓临床检验中心",
+   "language": "zh",
+   "kind": "lab"
+  },
+  {
+   "name": "岫沅区健康管理中心",
+   "language": "zh",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "岫沅妇幼保健院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "霁翎健康体检中心",
+   "language": "zh",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "霁翎妇幼保健院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "沅桐区健康管理中心",
+   "language": "zh",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "沅桐妇幼保健院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "穗晗医学检验所",
+   "language": "zh",
+   "kind": "lab"
+  },
+  {
+   "name": "穗晗市第五人民医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "澄翎门诊部",
+   "language": "zh",
+   "kind": "clinic"
+  },
+  {
+   "name": "澄翎区健康管理中心",
+   "language": "zh",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "珩霁妇幼保健院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "珩霁健康体检中心",
+   "language": "zh",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "曦杉中医医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "曦杉临床检验中心",
+   "language": "zh",
+   "kind": "lab"
+  },
+  {
+   "name": "杉苓妇幼保健院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "杉苓中医医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "麓岫临床检验中心",
+   "language": "zh",
+   "kind": "lab"
+  },
+  {
+   "name": "麓岫中医医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "禾汀社区卫生服务中心",
+   "language": "zh",
+   "kind": "clinic"
+  },
+  {
+   "name": "禾汀健康体检中心",
+   "language": "zh",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "涟汀社区卫生服务中心",
+   "language": "zh",
+   "kind": "clinic"
+  },
+  {
+   "name": "涟汀临床检验中心",
+   "language": "zh",
+   "kind": "lab"
+  },
+  {
+   "name": "樾渚社区卫生服务中心",
+   "language": "zh",
+   "kind": "clinic"
+  },
+  {
+   "name": "樾渚市第五人民医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "溪璟中医医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "溪璟妇幼保健院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "澄沅市中心医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "澄沅健康体检中心",
+   "language": "zh",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "峪翎市中心医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "峪翎妇幼保健院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "霖汀医学检验所",
+   "language": "zh",
+   "kind": "lab"
+  },
+  {
+   "name": "霖汀门诊部",
+   "language": "zh",
+   "kind": "clinic"
+  },
+  {
+   "name": "麓珩社区卫生服务中心",
+   "language": "zh",
+   "kind": "clinic"
+  },
+  {
+   "name": "麓珩健康体检中心",
+   "language": "zh",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "曦翎市第九人民医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "曦翎市中心医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "璟霖市中心医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "璟霖中医医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "砚澜医学检验所",
+   "language": "zh",
+   "kind": "lab"
+  },
+  {
+   "name": "砚澜市第二人民医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "禾砚市中心医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "禾砚市第一人民医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "岫翎门诊部",
+   "language": "zh",
+   "kind": "clinic"
+  },
+  {
+   "name": "岫翎妇幼保健院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "苓曦市中心医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "苓曦社区卫生服务中心",
+   "language": "zh",
+   "kind": "clinic"
+  },
+  {
+   "name": "砚穗妇幼保健院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "砚穗社区卫生服务中心",
+   "language": "zh",
+   "kind": "clinic"
+  },
+  {
+   "name": "禾峪门诊部",
+   "language": "zh",
+   "kind": "clinic"
+  },
+  {
+   "name": "禾峪市中心医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "苓涟健康体检中心",
+   "language": "zh",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "苓涟社区卫生服务中心",
+   "language": "zh",
+   "kind": "clinic"
+  },
+  {
+   "name": "沅涟健康体检中心",
+   "language": "zh",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "沅涟中医医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "澜澄妇幼保健院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "澜澄区健康管理中心",
+   "language": "zh",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "湄珩社区卫生服务中心",
+   "language": "zh",
+   "kind": "clinic"
+  },
+  {
+   "name": "湄珩健康体检中心",
+   "language": "zh",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "沅霁妇幼保健院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "沅霁社区卫生服务中心",
+   "language": "zh",
+   "kind": "clinic"
+  },
+  {
+   "name": "杉溪临床检验中心",
+   "language": "zh",
+   "kind": "lab"
+  },
+  {
+   "name": "杉溪门诊部",
+   "language": "zh",
+   "kind": "clinic"
+  },
+  {
+   "name": "璟苓社区卫生服务中心",
+   "language": "zh",
+   "kind": "clinic"
+  },
+  {
+   "name": "璟苓市中心医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "澜汀临床检验中心",
+   "language": "zh",
+   "kind": "lab"
+  },
+  {
+   "name": "澜汀社区卫生服务中心",
+   "language": "zh",
+   "kind": "clinic"
+  },
+  {
+   "name": "珩岫中医医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "珩岫临床检验中心",
+   "language": "zh",
+   "kind": "lab"
+  },
+  {
+   "name": "杉湄门诊部",
+   "language": "zh",
+   "kind": "clinic"
+  },
+  {
+   "name": "杉湄妇幼保健院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "澜翎市中心医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "澜翎医学检验所",
+   "language": "zh",
+   "kind": "lab"
+  },
+  {
+   "name": "珩穗妇幼保健院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "珩穗社区卫生服务中心",
+   "language": "zh",
+   "kind": "clinic"
+  },
+  {
+   "name": "渚霁健康体检中心",
+   "language": "zh",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "渚霁临床检验中心",
+   "language": "zh",
+   "kind": "lab"
+  },
+  {
+   "name": "麓澜中医医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "麓澜门诊部",
+   "language": "zh",
+   "kind": "clinic"
+  },
+  {
+   "name": "桐岫医学检验所",
+   "language": "zh",
+   "kind": "lab"
+  },
+  {
+   "name": "桐岫临床检验中心",
+   "language": "zh",
+   "kind": "lab"
+  },
+  {
+   "name": "翎渚市中心医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "翎渚市第一人民医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "翎砚临床检验中心",
+   "language": "zh",
+   "kind": "lab"
+  },
+  {
+   "name": "翎砚妇幼保健院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "湄涟门诊部",
+   "language": "zh",
+   "kind": "clinic"
+  },
+  {
+   "name": "湄涟医学检验所",
+   "language": "zh",
+   "kind": "lab"
+  },
+  {
+   "name": "禾麓妇幼保健院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "禾麓中医医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "岚麓妇幼保健院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "岚麓市中心医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "曦砚妇幼保健院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "曦砚门诊部",
+   "language": "zh",
+   "kind": "clinic"
+  },
+  {
+   "name": "蘅涟市第八人民医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "蘅涟区健康管理中心",
+   "language": "zh",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "晗穗中医医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "晗穗医学检验所",
+   "language": "zh",
+   "kind": "lab"
+  },
+  {
+   "name": "砚霁门诊部",
+   "language": "zh",
+   "kind": "clinic"
+  },
+  {
+   "name": "砚霁临床检验中心",
+   "language": "zh",
+   "kind": "lab"
+  },
+  {
+   "name": "棠汀市中心医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "棠汀健康体检中心",
+   "language": "zh",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "岚珩中医医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "岚珩市第三人民医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "岫汀健康体检中心",
+   "language": "zh",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "岫汀区健康管理中心",
+   "language": "zh",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "芷曦区健康管理中心",
+   "language": "zh",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "芷曦社区卫生服务中心",
+   "language": "zh",
+   "kind": "clinic"
+  },
+  {
+   "name": "汀渚妇幼保健院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "汀渚市中心医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "岫澜妇幼保健院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "岫澜市第四人民医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "霁桐市中心医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "霁桐医学检验所",
+   "language": "zh",
+   "kind": "lab"
+  },
+  {
+   "name": "穗沅临床检验中心",
+   "language": "zh",
+   "kind": "lab"
+  },
+  {
+   "name": "穗沅区健康管理中心",
+   "language": "zh",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "峪澄临床检验中心",
+   "language": "zh",
+   "kind": "lab"
+  },
+  {
+   "name": "峪澄市第七人民医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "峪汀市中心医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "峪汀社区卫生服务中心",
+   "language": "zh",
+   "kind": "clinic"
+  },
+  {
+   "name": "岚渚区健康管理中心",
+   "language": "zh",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "岚渚健康体检中心",
+   "language": "zh",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "桐砚区健康管理中心",
+   "language": "zh",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "桐砚中医医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "苓翎中医医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "苓翎门诊部",
+   "language": "zh",
+   "kind": "clinic"
+  },
+  {
+   "name": "苓霖中医医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "苓霖临床检验中心",
+   "language": "zh",
+   "kind": "lab"
+  },
+  {
+   "name": "涟晗区健康管理中心",
+   "language": "zh",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "涟晗健康体检中心",
+   "language": "zh",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "湄溪市第六人民医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "湄溪妇幼保健院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "澄峪医学检验所",
+   "language": "zh",
+   "kind": "lab"
+  },
+  {
+   "name": "澄峪市中心医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "沅霖市中心医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "沅霖医学检验所",
+   "language": "zh",
+   "kind": "lab"
+  },
+  {
+   "name": "岚蘅健康体检中心",
+   "language": "zh",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "岚蘅临床检验中心",
+   "language": "zh",
+   "kind": "lab"
+  },
+  {
+   "name": "岫霁中医医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "岫霁社区卫生服务中心",
+   "language": "zh",
+   "kind": "clinic"
+  },
+  {
+   "name": "晗麓妇幼保健院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "晗麓医学检验所",
+   "language": "zh",
+   "kind": "lab"
+  },
+  {
+   "name": "涟璟社区卫生服务中心",
+   "language": "zh",
+   "kind": "clinic"
+  },
+  {
+   "name": "涟璟门诊部",
+   "language": "zh",
+   "kind": "clinic"
+  },
+  {
+   "name": "杉霁中医医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "杉霁医学检验所",
+   "language": "zh",
+   "kind": "lab"
+  },
+  {
+   "name": "禾苓市中心医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "禾苓临床检验中心",
+   "language": "zh",
+   "kind": "lab"
+  },
+  {
+   "name": "沅砚中医医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "沅砚区健康管理中心",
+   "language": "zh",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "霖禾医学检验所",
+   "language": "zh",
+   "kind": "lab"
+  },
+  {
+   "name": "霖禾临床检验中心",
+   "language": "zh",
+   "kind": "lab"
+  },
+  {
+   "name": "澄禾社区卫生服务中心",
+   "language": "zh",
+   "kind": "clinic"
+  },
+  {
+   "name": "澄禾健康体检中心",
+   "language": "zh",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "澄岚市第六人民医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "澄岚社区卫生服务中心",
+   "language": "zh",
+   "kind": "clinic"
+  },
+  {
+   "name": "澄穗中医医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "澄穗妇幼保健院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "砚沅健康体检中心",
+   "language": "zh",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "砚沅医学检验所",
+   "language": "zh",
+   "kind": "lab"
+  },
+  {
+   "name": "霖樾临床检验中心",
+   "language": "zh",
+   "kind": "lab"
+  },
+  {
+   "name": "霖樾健康体检中心",
+   "language": "zh",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "杉桐妇幼保健院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "杉桐医学检验所",
+   "language": "zh",
+   "kind": "lab"
+  },
+  {
+   "name": "麓溪市中心医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "麓溪临床检验中心",
+   "language": "zh",
+   "kind": "lab"
+  },
+  {
+   "name": "霖沅中医医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "霖沅临床检验中心",
+   "language": "zh",
+   "kind": "lab"
+  },
+  {
+   "name": "峪穗中医医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "峪穗区健康管理中心",
+   "language": "zh",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "璟岫健康体检中心",
+   "language": "zh",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "璟岫门诊部",
+   "language": "zh",
+   "kind": "clinic"
+  },
+  {
+   "name": "棠芷妇幼保健院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "棠芷市第五人民医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "岫璟妇幼保健院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "岫璟中医医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "渚澄中医医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "渚澄社区卫生服务中心",
+   "language": "zh",
+   "kind": "clinic"
+  },
+  {
+   "name": "澜涟中医医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "澜涟门诊部",
+   "language": "zh",
+   "kind": "clinic"
+  },
+  {
+   "name": "麓禾妇幼保健院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "麓禾社区卫生服务中心",
+   "language": "zh",
+   "kind": "clinic"
+  },
+  {
+   "name": "樾涟妇幼保健院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "樾涟门诊部",
+   "language": "zh",
+   "kind": "clinic"
+  },
+  {
+   "name": "湄岚区健康管理中心",
+   "language": "zh",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "湄岚市第一人民医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "霖砚市第一人民医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "霖砚门诊部",
+   "language": "zh",
+   "kind": "clinic"
+  },
+  {
+   "name": "翎峪社区卫生服务中心",
+   "language": "zh",
+   "kind": "clinic"
+  },
+  {
+   "name": "翎峪市第一人民医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "棠桐市第九人民医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "棠桐临床检验中心",
+   "language": "zh",
+   "kind": "lab"
+  },
+  {
+   "name": "汀杉医学检验所",
+   "language": "zh",
+   "kind": "lab"
+  },
+  {
+   "name": "汀杉门诊部",
+   "language": "zh",
+   "kind": "clinic"
+  },
+  {
+   "name": "桐穗医学检验所",
+   "language": "zh",
+   "kind": "lab"
+  },
+  {
+   "name": "桐穗妇幼保健院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "樾晗医学检验所",
+   "language": "zh",
+   "kind": "lab"
+  },
+  {
+   "name": "樾晗临床检验中心",
+   "language": "zh",
+   "kind": "lab"
+  },
+  {
+   "name": "霁峪临床检验中心",
+   "language": "zh",
+   "kind": "lab"
+  },
+  {
+   "name": "霁峪市第五人民医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "汀穗社区卫生服务中心",
+   "language": "zh",
+   "kind": "clinic"
+  },
+  {
+   "name": "汀穗区健康管理中心",
+   "language": "zh",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "岚翎中医医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "岚翎社区卫生服务中心",
+   "language": "zh",
+   "kind": "clinic"
+  },
+  {
+   "name": "晗曦市中心医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "晗曦区健康管理中心",
+   "language": "zh",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "晗澄临床检验中心",
+   "language": "zh",
+   "kind": "lab"
+  },
+  {
+   "name": "晗澄区健康管理中心",
+   "language": "zh",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "棠霖妇幼保健院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "棠霖健康体检中心",
+   "language": "zh",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "渚晗市第八人民医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "渚晗妇幼保健院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "汀苓社区卫生服务中心",
+   "language": "zh",
+   "kind": "clinic"
+  },
+  {
+   "name": "汀苓健康体检中心",
+   "language": "zh",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "棠砚医学检验所",
+   "language": "zh",
+   "kind": "lab"
+  },
+  {
+   "name": "棠砚市中心医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "汀翎妇幼保健院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "汀翎临床检验中心",
+   "language": "zh",
+   "kind": "lab"
+  },
+  {
+   "name": "岚岫妇幼保健院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "岚岫区健康管理中心",
+   "language": "zh",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "溪霖社区卫生服务中心",
+   "language": "zh",
+   "kind": "clinic"
+  },
+  {
+   "name": "溪霖市中心医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "砚曦医学检验所",
+   "language": "zh",
+   "kind": "lab"
+  },
+  {
+   "name": "砚曦市第四人民医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "禾霖市第五人民医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "禾霖市中心医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "湄桐妇幼保健院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "湄桐医学检验所",
+   "language": "zh",
+   "kind": "lab"
+  },
+  {
+   "name": "湄芷医学检验所",
+   "language": "zh",
+   "kind": "lab"
+  },
+  {
+   "name": "湄芷区健康管理中心",
+   "language": "zh",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "澄珩市中心医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "澄珩社区卫生服务中心",
+   "language": "zh",
+   "kind": "clinic"
+  },
+  {
+   "name": "珩涟区健康管理中心",
+   "language": "zh",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "珩涟医学检验所",
+   "language": "zh",
+   "kind": "lab"
+  },
+  {
+   "name": "蘅岫社区卫生服务中心",
+   "language": "zh",
+   "kind": "clinic"
+  },
+  {
+   "name": "蘅岫妇幼保健院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "蘅汀妇幼保健院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "蘅汀市中心医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "霁曦门诊部",
+   "language": "zh",
+   "kind": "clinic"
+  },
+  {
+   "name": "霁曦临床检验中心",
+   "language": "zh",
+   "kind": "lab"
+  },
+  {
+   "name": "澄桐健康体检中心",
+   "language": "zh",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "澄桐妇幼保健院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "澄岫妇幼保健院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "澄岫门诊部",
+   "language": "zh",
+   "kind": "clinic"
+  },
+  {
+   "name": "棠苓临床检验中心",
+   "language": "zh",
+   "kind": "lab"
+  },
+  {
+   "name": "棠苓妇幼保健院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "晗湄区健康管理中心",
+   "language": "zh",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "晗湄妇幼保健院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "麓霁门诊部",
+   "language": "zh",
+   "kind": "clinic"
+  },
+  {
+   "name": "麓霁社区卫生服务中心",
+   "language": "zh",
+   "kind": "clinic"
+  },
+  {
+   "name": "桐璟门诊部",
+   "language": "zh",
+   "kind": "clinic"
+  },
+  {
+   "name": "桐璟医学检验所",
+   "language": "zh",
+   "kind": "lab"
+  },
+  {
+   "name": "麓汀区健康管理中心",
+   "language": "zh",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "麓汀妇幼保健院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "涟溪健康体检中心",
+   "language": "zh",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "涟溪市中心医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "涟峪临床检验中心",
+   "language": "zh",
+   "kind": "lab"
+  },
+  {
+   "name": "涟峪社区卫生服务中心",
+   "language": "zh",
+   "kind": "clinic"
+  },
+  {
+   "name": "湄渚健康体检中心",
+   "language": "zh",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "湄渚市第一人民医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "涟珩社区卫生服务中心",
+   "language": "zh",
+   "kind": "clinic"
+  },
+  {
+   "name": "涟珩门诊部",
+   "language": "zh",
+   "kind": "clinic"
+  },
+  {
+   "name": "涟杉医学检验所",
+   "language": "zh",
+   "kind": "lab"
+  },
+  {
+   "name": "涟杉市第六人民医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "璟棠社区卫生服务中心",
+   "language": "zh",
+   "kind": "clinic"
+  },
+  {
+   "name": "璟棠市中心医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "曦蘅门诊部",
+   "language": "zh",
+   "kind": "clinic"
+  },
+  {
+   "name": "曦蘅妇幼保健院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "桐翎市中心医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "桐翎市第九人民医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "砚澄市中心医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "砚澄市第八人民医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "桐苓社区卫生服务中心",
+   "language": "zh",
+   "kind": "clinic"
+  },
+  {
+   "name": "桐苓区健康管理中心",
+   "language": "zh",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "桐珩社区卫生服务中心",
+   "language": "zh",
+   "kind": "clinic"
+  },
+  {
+   "name": "桐珩市第七人民医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "麓璟妇幼保健院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "麓璟区健康管理中心",
+   "language": "zh",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "晗蘅医学检验所",
+   "language": "zh",
+   "kind": "lab"
+  },
+  {
+   "name": "晗蘅妇幼保健院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "汀桐健康体检中心",
+   "language": "zh",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "汀桐临床检验中心",
+   "language": "zh",
+   "kind": "lab"
+  },
+  {
+   "name": "汀芷市中心医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "汀芷门诊部",
+   "language": "zh",
+   "kind": "clinic"
+  },
+  {
+   "name": "霖苓中医医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "霖苓区健康管理中心",
+   "language": "zh",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "禾晗市第五人民医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "禾晗市中心医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "苓澜妇幼保健院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "苓澜社区卫生服务中心",
+   "language": "zh",
+   "kind": "clinic"
+  },
+  {
+   "name": "穗曦市中心医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "穗曦区健康管理中心",
+   "language": "zh",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "穗峪医学检验所",
+   "language": "zh",
+   "kind": "lab"
+  },
+  {
+   "name": "穗峪市第八人民医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "樾澜医学检验所",
+   "language": "zh",
+   "kind": "lab"
+  },
+  {
+   "name": "樾澜妇幼保健院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "霖溪区健康管理中心",
+   "language": "zh",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "霖溪市第九人民医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "沅晗临床检验中心",
+   "language": "zh",
+   "kind": "lab"
+  },
+  {
+   "name": "沅晗社区卫生服务中心",
+   "language": "zh",
+   "kind": "clinic"
+  },
+  {
+   "name": "渚璟妇幼保健院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "渚璟临床检验中心",
+   "language": "zh",
+   "kind": "lab"
+  },
+  {
+   "name": "湄杉区健康管理中心",
+   "language": "zh",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "湄杉门诊部",
+   "language": "zh",
+   "kind": "clinic"
+  },
+  {
+   "name": "杉璟中医医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "杉璟临床检验中心",
+   "language": "zh",
+   "kind": "lab"
+  },
+  {
+   "name": "涟翎健康体检中心",
+   "language": "zh",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "涟翎区健康管理中心",
+   "language": "zh",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "桐晗健康体检中心",
+   "language": "zh",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "桐晗区健康管理中心",
+   "language": "zh",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "沅珩市第九人民医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "沅珩市中心医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "岫苓区健康管理中心",
+   "language": "zh",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "岫苓市第七人民医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "棠杉健康体检中心",
+   "language": "zh",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "棠杉门诊部",
+   "language": "zh",
+   "kind": "clinic"
+  },
+  {
+   "name": "涟澄临床检验中心",
+   "language": "zh",
+   "kind": "lab"
+  },
+  {
+   "name": "涟澄门诊部",
+   "language": "zh",
+   "kind": "clinic"
+  },
+  {
+   "name": "晗涟临床检验中心",
+   "language": "zh",
+   "kind": "lab"
+  },
+  {
+   "name": "晗涟医学检验所",
+   "language": "zh",
+   "kind": "lab"
+  },
+  {
+   "name": "蘅棠医学检验所",
+   "language": "zh",
+   "kind": "lab"
+  },
+  {
+   "name": "蘅棠市中心医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "砚湄妇幼保健院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "砚湄中医医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "澄晗社区卫生服务中心",
+   "language": "zh",
+   "kind": "clinic"
+  },
+  {
+   "name": "澄晗妇幼保健院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "麓穗临床检验中心",
+   "language": "zh",
+   "kind": "lab"
+  },
+  {
+   "name": "麓穗妇幼保健院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "湄苓临床检验中心",
+   "language": "zh",
+   "kind": "lab"
+  },
+  {
+   "name": "湄苓健康体检中心",
+   "language": "zh",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "芷澜社区卫生服务中心",
+   "language": "zh",
+   "kind": "clinic"
+  },
+  {
+   "name": "芷澜区健康管理中心",
+   "language": "zh",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "苓璟市第四人民医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "苓璟医学检验所",
+   "language": "zh",
+   "kind": "lab"
+  },
+  {
+   "name": "渚岫健康体检中心",
+   "language": "zh",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "渚岫妇幼保健院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "桐渚健康体检中心",
+   "language": "zh",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "桐渚社区卫生服务中心",
+   "language": "zh",
+   "kind": "clinic"
+  },
+  {
+   "name": "珩蘅区健康管理中心",
+   "language": "zh",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "珩蘅临床检验中心",
+   "language": "zh",
+   "kind": "lab"
+  },
+  {
+   "name": "岫杉区健康管理中心",
+   "language": "zh",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "岫杉妇幼保健院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "湄穗门诊部",
+   "language": "zh",
+   "kind": "clinic"
+  },
+  {
+   "name": "湄穗市中心医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "珩曦健康体检中心",
+   "language": "zh",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "珩曦区健康管理中心",
+   "language": "zh",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "峪霁门诊部",
+   "language": "zh",
+   "kind": "clinic"
+  },
+  {
+   "name": "峪霁中医医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "翎芷临床检验中心",
+   "language": "zh",
+   "kind": "lab"
+  },
+  {
+   "name": "翎芷社区卫生服务中心",
+   "language": "zh",
+   "kind": "clinic"
+  },
+  {
+   "name": "珩桐门诊部",
+   "language": "zh",
+   "kind": "clinic"
+  },
+  {
+   "name": "珩桐社区卫生服务中心",
+   "language": "zh",
+   "kind": "clinic"
+  },
+  {
+   "name": "翎桐社区卫生服务中心",
+   "language": "zh",
+   "kind": "clinic"
+  },
+  {
+   "name": "翎桐市第七人民医院",
+   "language": "zh",
+   "kind": "hospital"
+  },
+  {
+   "name": "Vellvale General Hospital",
+   "language": "en",
+   "kind": "hospital"
+  },
+  {
+   "name": "Vellvale Pathology Services",
+   "language": "en",
+   "kind": "lab"
+  },
+  {
+   "name": "Vellvale Family Clinic",
+   "language": "en",
+   "kind": "clinic"
+  },
+  {
+   "name": "Vellstead Clinical Laboratories",
+   "language": "en",
+   "kind": "lab"
+  },
+  {
+   "name": "Vellstead General Hospital",
+   "language": "en",
+   "kind": "hospital"
+  },
+  {
+   "name": "Vellstead Pathology Services",
+   "language": "en",
+   "kind": "lab"
+  },
+  {
+   "name": "Fernhollow Health Screening Centre",
+   "language": "en",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "Fernhollow Medical Centre",
+   "language": "en",
+   "kind": "hospital"
+  },
+  {
+   "name": "Fernhollow Family Clinic",
+   "language": "en",
+   "kind": "clinic"
+  },
+  {
+   "name": "Rookmere Health Screening Centre",
+   "language": "en",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "Rookmere Pathology Services",
+   "language": "en",
+   "kind": "lab"
+  },
+  {
+   "name": "Rookmere Medical Centre",
+   "language": "en",
+   "kind": "hospital"
+  },
+  {
+   "name": "Sablemere General Hospital",
+   "language": "en",
+   "kind": "hospital"
+  },
+  {
+   "name": "Sablemere Pathology Services",
+   "language": "en",
+   "kind": "lab"
+  },
+  {
+   "name": "Sablemere Health Screening Centre",
+   "language": "en",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "Kestwick Family Clinic",
+   "language": "en",
+   "kind": "clinic"
+  },
+  {
+   "name": "Kestwick Medical Centre",
+   "language": "en",
+   "kind": "hospital"
+  },
+  {
+   "name": "Kestwick General Hospital",
+   "language": "en",
+   "kind": "hospital"
+  },
+  {
+   "name": "Tarnvale Family Clinic",
+   "language": "en",
+   "kind": "clinic"
+  },
+  {
+   "name": "Tarnvale Pathology Services",
+   "language": "en",
+   "kind": "lab"
+  },
+  {
+   "name": "Tarnvale Health Screening Centre",
+   "language": "en",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "Rookstead Pathology Services",
+   "language": "en",
+   "kind": "lab"
+  },
+  {
+   "name": "Rookstead Clinical Laboratories",
+   "language": "en",
+   "kind": "lab"
+  },
+  {
+   "name": "Rookstead General Hospital",
+   "language": "en",
+   "kind": "hospital"
+  },
+  {
+   "name": "Tarnholt General Hospital",
+   "language": "en",
+   "kind": "hospital"
+  },
+  {
+   "name": "Tarnholt Clinical Laboratories",
+   "language": "en",
+   "kind": "lab"
+  },
+  {
+   "name": "Tarnholt Medical Centre",
+   "language": "en",
+   "kind": "hospital"
+  },
+  {
+   "name": "Pellcombe Medical Centre",
+   "language": "en",
+   "kind": "hospital"
+  },
+  {
+   "name": "Pellcombe Health Screening Centre",
+   "language": "en",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "Pellcombe Family Clinic",
+   "language": "en",
+   "kind": "clinic"
+  },
+  {
+   "name": "Sablevale General Hospital",
+   "language": "en",
+   "kind": "hospital"
+  },
+  {
+   "name": "Sablevale Medical Centre",
+   "language": "en",
+   "kind": "hospital"
+  },
+  {
+   "name": "Sablevale Pathology Services",
+   "language": "en",
+   "kind": "lab"
+  },
+  {
+   "name": "Yarmere Family Clinic",
+   "language": "en",
+   "kind": "clinic"
+  },
+  {
+   "name": "Yarmere Health Screening Centre",
+   "language": "en",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "Yarmere General Hospital",
+   "language": "en",
+   "kind": "hospital"
+  },
+  {
+   "name": "Mistlecombe Pathology Services",
+   "language": "en",
+   "kind": "lab"
+  },
+  {
+   "name": "Mistlecombe Health Screening Centre",
+   "language": "en",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "Mistlecombe Medical Centre",
+   "language": "en",
+   "kind": "hospital"
+  },
+  {
+   "name": "Mistlevale General Hospital",
+   "language": "en",
+   "kind": "hospital"
+  },
+  {
+   "name": "Mistlevale Family Clinic",
+   "language": "en",
+   "kind": "clinic"
+  },
+  {
+   "name": "Mistlevale Medical Centre",
+   "language": "en",
+   "kind": "hospital"
+  },
+  {
+   "name": "Tarnwick Family Clinic",
+   "language": "en",
+   "kind": "clinic"
+  },
+  {
+   "name": "Tarnwick General Hospital",
+   "language": "en",
+   "kind": "hospital"
+  },
+  {
+   "name": "Tarnwick Pathology Services",
+   "language": "en",
+   "kind": "lab"
+  },
+  {
+   "name": "Pellmere Pathology Services",
+   "language": "en",
+   "kind": "lab"
+  },
+  {
+   "name": "Pellmere Clinical Laboratories",
+   "language": "en",
+   "kind": "lab"
+  },
+  {
+   "name": "Pellmere General Hospital",
+   "language": "en",
+   "kind": "hospital"
+  },
+  {
+   "name": "Tarnstead Clinical Laboratories",
+   "language": "en",
+   "kind": "lab"
+  },
+  {
+   "name": "Tarnstead Health Screening Centre",
+   "language": "en",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "Tarnstead Pathology Services",
+   "language": "en",
+   "kind": "lab"
+  },
+  {
+   "name": "Brackholt Family Clinic",
+   "language": "en",
+   "kind": "clinic"
+  },
+  {
+   "name": "Brackholt Clinical Laboratories",
+   "language": "en",
+   "kind": "lab"
+  },
+  {
+   "name": "Brackholt General Hospital",
+   "language": "en",
+   "kind": "hospital"
+  },
+  {
+   "name": "Quillmere Family Clinic",
+   "language": "en",
+   "kind": "clinic"
+  },
+  {
+   "name": "Quillmere Health Screening Centre",
+   "language": "en",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "Quillmere General Hospital",
+   "language": "en",
+   "kind": "hospital"
+  },
+  {
+   "name": "Yarholt General Hospital",
+   "language": "en",
+   "kind": "hospital"
+  },
+  {
+   "name": "Yarholt Clinical Laboratories",
+   "language": "en",
+   "kind": "lab"
+  },
+  {
+   "name": "Yarholt Pathology Services",
+   "language": "en",
+   "kind": "lab"
+  },
+  {
+   "name": "Mistlestead General Hospital",
+   "language": "en",
+   "kind": "hospital"
+  },
+  {
+   "name": "Mistlestead Health Screening Centre",
+   "language": "en",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "Mistlestead Clinical Laboratories",
+   "language": "en",
+   "kind": "lab"
+  },
+  {
+   "name": "Quillstead Medical Centre",
+   "language": "en",
+   "kind": "hospital"
+  },
+  {
+   "name": "Quillstead Clinical Laboratories",
+   "language": "en",
+   "kind": "lab"
+  },
+  {
+   "name": "Quillstead General Hospital",
+   "language": "en",
+   "kind": "hospital"
+  },
+  {
+   "name": "Brackmoor Family Clinic",
+   "language": "en",
+   "kind": "clinic"
+  },
+  {
+   "name": "Brackmoor Pathology Services",
+   "language": "en",
+   "kind": "lab"
+  },
+  {
+   "name": "Brackmoor Medical Centre",
+   "language": "en",
+   "kind": "hospital"
+  },
+  {
+   "name": "Pellholt Family Clinic",
+   "language": "en",
+   "kind": "clinic"
+  },
+  {
+   "name": "Pellholt Pathology Services",
+   "language": "en",
+   "kind": "lab"
+  },
+  {
+   "name": "Pellholt Clinical Laboratories",
+   "language": "en",
+   "kind": "lab"
+  },
+  {
+   "name": "Sablemoor General Hospital",
+   "language": "en",
+   "kind": "hospital"
+  },
+  {
+   "name": "Sablemoor Health Screening Centre",
+   "language": "en",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "Sablemoor Pathology Services",
+   "language": "en",
+   "kind": "lab"
+  },
+  {
+   "name": "Rookholt General Hospital",
+   "language": "en",
+   "kind": "hospital"
+  },
+  {
+   "name": "Rookholt Health Screening Centre",
+   "language": "en",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "Rookholt Family Clinic",
+   "language": "en",
+   "kind": "clinic"
+  },
+  {
+   "name": "Quillcombe Medical Centre",
+   "language": "en",
+   "kind": "hospital"
+  },
+  {
+   "name": "Quillcombe Health Screening Centre",
+   "language": "en",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "Quillcombe Clinical Laboratories",
+   "language": "en",
+   "kind": "lab"
+  },
+  {
+   "name": "Ossenmere General Hospital",
+   "language": "en",
+   "kind": "hospital"
+  },
+  {
+   "name": "Ossenmere Health Screening Centre",
+   "language": "en",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "Ossenmere Clinical Laboratories",
+   "language": "en",
+   "kind": "lab"
+  },
+  {
+   "name": "Fernstead General Hospital",
+   "language": "en",
+   "kind": "hospital"
+  },
+  {
+   "name": "Fernstead Health Screening Centre",
+   "language": "en",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "Lornmere Health Screening Centre",
+   "language": "en",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "Lornmere Medical Centre",
+   "language": "en",
+   "kind": "hospital"
+  },
+  {
+   "name": "Lornmere Pathology Services",
+   "language": "en",
+   "kind": "lab"
+  },
+  {
+   "name": "Kestmoor Medical Centre",
+   "language": "en",
+   "kind": "hospital"
+  },
+  {
+   "name": "Kestmoor Family Clinic",
+   "language": "en",
+   "kind": "clinic"
+  },
+  {
+   "name": "Kestmoor Clinical Laboratories",
+   "language": "en",
+   "kind": "lab"
+  },
+  {
+   "name": "Rookcombe Clinical Laboratories",
+   "language": "en",
+   "kind": "lab"
+  },
+  {
+   "name": "Rookcombe Pathology Services",
+   "language": "en",
+   "kind": "lab"
+  },
+  {
+   "name": "Rookcombe Health Screening Centre",
+   "language": "en",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "Rookhollow Clinical Laboratories",
+   "language": "en",
+   "kind": "lab"
+  },
+  {
+   "name": "Rookhollow Health Screening Centre",
+   "language": "en",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "Rookhollow General Hospital",
+   "language": "en",
+   "kind": "hospital"
+  },
+  {
+   "name": "Lornhollow Pathology Services",
+   "language": "en",
+   "kind": "lab"
+  },
+  {
+   "name": "Lornhollow General Hospital",
+   "language": "en",
+   "kind": "hospital"
+  },
+  {
+   "name": "Lornhollow Health Screening Centre",
+   "language": "en",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "Brackcombe Family Clinic",
+   "language": "en",
+   "kind": "clinic"
+  },
+  {
+   "name": "Brackcombe Pathology Services",
+   "language": "en",
+   "kind": "lab"
+  },
+  {
+   "name": "Brackcombe Health Screening Centre",
+   "language": "en",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "Quillhollow General Hospital",
+   "language": "en",
+   "kind": "hospital"
+  },
+  {
+   "name": "Quillhollow Medical Centre",
+   "language": "en",
+   "kind": "hospital"
+  },
+  {
+   "name": "Quillhollow Pathology Services",
+   "language": "en",
+   "kind": "lab"
+  },
+  {
+   "name": "Rookmoor Clinical Laboratories",
+   "language": "en",
+   "kind": "lab"
+  },
+  {
+   "name": "Rookmoor Health Screening Centre",
+   "language": "en",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "Rookmoor General Hospital",
+   "language": "en",
+   "kind": "hospital"
+  },
+  {
+   "name": "Mistlemere Family Clinic",
+   "language": "en",
+   "kind": "clinic"
+  },
+  {
+   "name": "Mistlemere Pathology Services",
+   "language": "en",
+   "kind": "lab"
+  },
+  {
+   "name": "Mistlemere Health Screening Centre",
+   "language": "en",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "Tarnmere General Hospital",
+   "language": "en",
+   "kind": "hospital"
+  },
+  {
+   "name": "Tarnmere Medical Centre",
+   "language": "en",
+   "kind": "hospital"
+  },
+  {
+   "name": "Tarnmere Health Screening Centre",
+   "language": "en",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "Wrenholt Clinical Laboratories",
+   "language": "en",
+   "kind": "lab"
+  },
+  {
+   "name": "Wrenholt Medical Centre",
+   "language": "en",
+   "kind": "hospital"
+  },
+  {
+   "name": "Wrenholt Family Clinic",
+   "language": "en",
+   "kind": "clinic"
+  },
+  {
+   "name": "Ossenvale Medical Centre",
+   "language": "en",
+   "kind": "hospital"
+  },
+  {
+   "name": "Ossenvale General Hospital",
+   "language": "en",
+   "kind": "hospital"
+  },
+  {
+   "name": "Ossenvale Family Clinic",
+   "language": "en",
+   "kind": "clinic"
+  },
+  {
+   "name": "Quillvale Health Screening Centre",
+   "language": "en",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "Quillvale Medical Centre",
+   "language": "en",
+   "kind": "hospital"
+  },
+  {
+   "name": "Quillvale Family Clinic",
+   "language": "en",
+   "kind": "clinic"
+  },
+  {
+   "name": "Pellwick General Hospital",
+   "language": "en",
+   "kind": "hospital"
+  },
+  {
+   "name": "Pellwick Family Clinic",
+   "language": "en",
+   "kind": "clinic"
+  },
+  {
+   "name": "Pellwick Health Screening Centre",
+   "language": "en",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "Yarvale Clinical Laboratories",
+   "language": "en",
+   "kind": "lab"
+  },
+  {
+   "name": "Yarvale General Hospital",
+   "language": "en",
+   "kind": "hospital"
+  },
+  {
+   "name": "Yarvale Pathology Services",
+   "language": "en",
+   "kind": "lab"
+  },
+  {
+   "name": "Pellhollow Pathology Services",
+   "language": "en",
+   "kind": "lab"
+  },
+  {
+   "name": "Pellhollow Family Clinic",
+   "language": "en",
+   "kind": "clinic"
+  },
+  {
+   "name": "Pellhollow Clinical Laboratories",
+   "language": "en",
+   "kind": "lab"
+  },
+  {
+   "name": "Ossenholt Pathology Services",
+   "language": "en",
+   "kind": "lab"
+  },
+  {
+   "name": "Ossenholt General Hospital",
+   "language": "en",
+   "kind": "hospital"
+  },
+  {
+   "name": "Ossenholt Medical Centre",
+   "language": "en",
+   "kind": "hospital"
+  },
+  {
+   "name": "Wrencombe General Hospital",
+   "language": "en",
+   "kind": "hospital"
+  },
+  {
+   "name": "Wrencombe Clinical Laboratories",
+   "language": "en",
+   "kind": "lab"
+  },
+  {
+   "name": "Wrencombe Pathology Services",
+   "language": "en",
+   "kind": "lab"
+  },
+  {
+   "name": "Keststead Medical Centre",
+   "language": "en",
+   "kind": "hospital"
+  },
+  {
+   "name": "Keststead Clinical Laboratories",
+   "language": "en",
+   "kind": "lab"
+  },
+  {
+   "name": "Yarhollow General Hospital",
+   "language": "en",
+   "kind": "hospital"
+  },
+  {
+   "name": "Yarhollow Clinical Laboratories",
+   "language": "en",
+   "kind": "lab"
+  },
+  {
+   "name": "Yarhollow Pathology Services",
+   "language": "en",
+   "kind": "lab"
+  },
+  {
+   "name": "Pellvale Pathology Services",
+   "language": "en",
+   "kind": "lab"
+  },
+  {
+   "name": "Pellvale Family Clinic",
+   "language": "en",
+   "kind": "clinic"
+  },
+  {
+   "name": "Pellvale Health Screening Centre",
+   "language": "en",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "Fernmere Medical Centre",
+   "language": "en",
+   "kind": "hospital"
+  },
+  {
+   "name": "Fernmere Family Clinic",
+   "language": "en",
+   "kind": "clinic"
+  },
+  {
+   "name": "Fernmere General Hospital",
+   "language": "en",
+   "kind": "hospital"
+  },
+  {
+   "name": "Wrenmoor Pathology Services",
+   "language": "en",
+   "kind": "lab"
+  },
+  {
+   "name": "Wrenmoor General Hospital",
+   "language": "en",
+   "kind": "hospital"
+  },
+  {
+   "name": "Wrenmoor Clinical Laboratories",
+   "language": "en",
+   "kind": "lab"
+  },
+  {
+   "name": "Quillmoor Family Clinic",
+   "language": "en",
+   "kind": "clinic"
+  },
+  {
+   "name": "Quillmoor Clinical Laboratories",
+   "language": "en",
+   "kind": "lab"
+  },
+  {
+   "name": "Quillmoor Health Screening Centre",
+   "language": "en",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "Lornholt Health Screening Centre",
+   "language": "en",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "Lornholt Clinical Laboratories",
+   "language": "en",
+   "kind": "lab"
+  },
+  {
+   "name": "Lornholt General Hospital",
+   "language": "en",
+   "kind": "hospital"
+  },
+  {
+   "name": "Yarcombe Pathology Services",
+   "language": "en",
+   "kind": "lab"
+  },
+  {
+   "name": "Yarcombe General Hospital",
+   "language": "en",
+   "kind": "hospital"
+  },
+  {
+   "name": "Yarcombe Medical Centre",
+   "language": "en",
+   "kind": "hospital"
+  },
+  {
+   "name": "Tarnhollow Medical Centre",
+   "language": "en",
+   "kind": "hospital"
+  },
+  {
+   "name": "Tarnhollow Clinical Laboratories",
+   "language": "en",
+   "kind": "lab"
+  },
+  {
+   "name": "Tarnhollow General Hospital",
+   "language": "en",
+   "kind": "hospital"
+  },
+  {
+   "name": "Mistlehollow Health Screening Centre",
+   "language": "en",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "Mistlehollow Pathology Services",
+   "language": "en",
+   "kind": "lab"
+  },
+  {
+   "name": "Mistlehollow Family Clinic",
+   "language": "en",
+   "kind": "clinic"
+  },
+  {
+   "name": "Kestvale Clinical Laboratories",
+   "language": "en",
+   "kind": "lab"
+  },
+  {
+   "name": "Kestvale Medical Centre",
+   "language": "en",
+   "kind": "hospital"
+  },
+  {
+   "name": "Kestvale Family Clinic",
+   "language": "en",
+   "kind": "clinic"
+  },
+  {
+   "name": "Wrenhollow Clinical Laboratories",
+   "language": "en",
+   "kind": "lab"
+  },
+  {
+   "name": "Wrenhollow General Hospital",
+   "language": "en",
+   "kind": "hospital"
+  },
+  {
+   "name": "Wrenhollow Medical Centre",
+   "language": "en",
+   "kind": "hospital"
+  },
+  {
+   "name": "Brackhollow Medical Centre",
+   "language": "en",
+   "kind": "hospital"
+  },
+  {
+   "name": "Brackhollow Pathology Services",
+   "language": "en",
+   "kind": "lab"
+  },
+  {
+   "name": "Brackhollow Health Screening Centre",
+   "language": "en",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "Yarmoor Clinical Laboratories",
+   "language": "en",
+   "kind": "lab"
+  },
+  {
+   "name": "Yarmoor Medical Centre",
+   "language": "en",
+   "kind": "hospital"
+  },
+  {
+   "name": "Yarmoor Family Clinic",
+   "language": "en",
+   "kind": "clinic"
+  },
+  {
+   "name": "Mistlemoor Pathology Services",
+   "language": "en",
+   "kind": "lab"
+  },
+  {
+   "name": "Mistlemoor General Hospital",
+   "language": "en",
+   "kind": "hospital"
+  },
+  {
+   "name": "Mistlemoor Family Clinic",
+   "language": "en",
+   "kind": "clinic"
+  },
+  {
+   "name": "Ossenwick Health Screening Centre",
+   "language": "en",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "Ossenwick General Hospital",
+   "language": "en",
+   "kind": "hospital"
+  },
+  {
+   "name": "Ossenwick Clinical Laboratories",
+   "language": "en",
+   "kind": "lab"
+  },
+  {
+   "name": "Wrenstead Health Screening Centre",
+   "language": "en",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "Wrenstead General Hospital",
+   "language": "en",
+   "kind": "hospital"
+  },
+  {
+   "name": "Wrenstead Clinical Laboratories",
+   "language": "en",
+   "kind": "lab"
+  },
+  {
+   "name": "Whinmoor Clinical Laboratories",
+   "language": "en",
+   "kind": "lab"
+  },
+  {
+   "name": "Whinmoor Medical Centre",
+   "language": "en",
+   "kind": "hospital"
+  },
+  {
+   "name": "Whinmoor Family Clinic",
+   "language": "en",
+   "kind": "clinic"
+  },
+  {
+   "name": "Ossenstead Clinical Laboratories",
+   "language": "en",
+   "kind": "lab"
+  },
+  {
+   "name": "Ossenstead Health Screening Centre",
+   "language": "en",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "Ossenstead Pathology Services",
+   "language": "en",
+   "kind": "lab"
+  },
+  {
+   "name": "Pellstead Health Screening Centre",
+   "language": "en",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "Pellstead General Hospital",
+   "language": "en",
+   "kind": "hospital"
+  },
+  {
+   "name": "Yarstead Clinical Laboratories",
+   "language": "en",
+   "kind": "lab"
+  },
+  {
+   "name": "Yarstead Medical Centre",
+   "language": "en",
+   "kind": "hospital"
+  },
+  {
+   "name": "Yarstead General Hospital",
+   "language": "en",
+   "kind": "hospital"
+  },
+  {
+   "name": "Sableholt General Hospital",
+   "language": "en",
+   "kind": "hospital"
+  },
+  {
+   "name": "Sableholt Family Clinic",
+   "language": "en",
+   "kind": "clinic"
+  },
+  {
+   "name": "Sableholt Health Screening Centre",
+   "language": "en",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "Whinhollow Family Clinic",
+   "language": "en",
+   "kind": "clinic"
+  },
+  {
+   "name": "Whinhollow Medical Centre",
+   "language": "en",
+   "kind": "hospital"
+  },
+  {
+   "name": "Whinhollow Clinical Laboratories",
+   "language": "en",
+   "kind": "lab"
+  },
+  {
+   "name": "Quillwick Pathology Services",
+   "language": "en",
+   "kind": "lab"
+  },
+  {
+   "name": "Quillwick Health Screening Centre",
+   "language": "en",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "Quillwick General Hospital",
+   "language": "en",
+   "kind": "hospital"
+  },
+  {
+   "name": "Brackvale Medical Centre",
+   "language": "en",
+   "kind": "hospital"
+  },
+  {
+   "name": "Brackvale Clinical Laboratories",
+   "language": "en",
+   "kind": "lab"
+  },
+  {
+   "name": "Brackvale Family Clinic",
+   "language": "en",
+   "kind": "clinic"
+  },
+  {
+   "name": "Ferncombe Clinical Laboratories",
+   "language": "en",
+   "kind": "lab"
+  },
+  {
+   "name": "Ferncombe General Hospital",
+   "language": "en",
+   "kind": "hospital"
+  },
+  {
+   "name": "Ferncombe Family Clinic",
+   "language": "en",
+   "kind": "clinic"
+  },
+  {
+   "name": "Whinvale General Hospital",
+   "language": "en",
+   "kind": "hospital"
+  },
+  {
+   "name": "Whinvale Clinical Laboratories",
+   "language": "en",
+   "kind": "lab"
+  },
+  {
+   "name": "Whinvale Pathology Services",
+   "language": "en",
+   "kind": "lab"
+  },
+  {
+   "name": "Wrenvale Medical Centre",
+   "language": "en",
+   "kind": "hospital"
+  },
+  {
+   "name": "Wrenvale Health Screening Centre",
+   "language": "en",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "Wrenvale General Hospital",
+   "language": "en",
+   "kind": "hospital"
+  },
+  {
+   "name": "Fernvale Health Screening Centre",
+   "language": "en",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "Fernvale Medical Centre",
+   "language": "en",
+   "kind": "hospital"
+  },
+  {
+   "name": "Fernvale Clinical Laboratories",
+   "language": "en",
+   "kind": "lab"
+  },
+  {
+   "name": "Lorncombe General Hospital",
+   "language": "en",
+   "kind": "hospital"
+  },
+  {
+   "name": "Lorncombe Family Clinic",
+   "language": "en",
+   "kind": "clinic"
+  },
+  {
+   "name": "Lorncombe Health Screening Centre",
+   "language": "en",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "Rookwick Pathology Services",
+   "language": "en",
+   "kind": "lab"
+  },
+  {
+   "name": "Rookwick Health Screening Centre",
+   "language": "en",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "Rookwick Medical Centre",
+   "language": "en",
+   "kind": "hospital"
+  },
+  {
+   "name": "Sablecombe Medical Centre",
+   "language": "en",
+   "kind": "hospital"
+  },
+  {
+   "name": "Sablecombe Pathology Services",
+   "language": "en",
+   "kind": "lab"
+  },
+  {
+   "name": "Sablecombe Health Screening Centre",
+   "language": "en",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "Tarnmoor Clinical Laboratories",
+   "language": "en",
+   "kind": "lab"
+  },
+  {
+   "name": "Tarnmoor General Hospital",
+   "language": "en",
+   "kind": "hospital"
+  },
+  {
+   "name": "Tarnmoor Pathology Services",
+   "language": "en",
+   "kind": "lab"
+  },
+  {
+   "name": "Fernwick Clinical Laboratories",
+   "language": "en",
+   "kind": "lab"
+  },
+  {
+   "name": "Fernwick Health Screening Centre",
+   "language": "en",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "Fernwick General Hospital",
+   "language": "en",
+   "kind": "hospital"
+  },
+  {
+   "name": "Mistlewick Family Clinic",
+   "language": "en",
+   "kind": "clinic"
+  },
+  {
+   "name": "Mistlewick Medical Centre",
+   "language": "en",
+   "kind": "hospital"
+  },
+  {
+   "name": "Mistlewick Health Screening Centre",
+   "language": "en",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "Vellholt Medical Centre",
+   "language": "en",
+   "kind": "hospital"
+  },
+  {
+   "name": "Vellholt Pathology Services",
+   "language": "en",
+   "kind": "lab"
+  },
+  {
+   "name": "Vellholt Family Clinic",
+   "language": "en",
+   "kind": "clinic"
+  },
+  {
+   "name": "Kesthollow Family Clinic",
+   "language": "en",
+   "kind": "clinic"
+  },
+  {
+   "name": "Kesthollow Clinical Laboratories",
+   "language": "en",
+   "kind": "lab"
+  },
+  {
+   "name": "Kesthollow General Hospital",
+   "language": "en",
+   "kind": "hospital"
+  },
+  {
+   "name": "Vellhollow General Hospital",
+   "language": "en",
+   "kind": "hospital"
+  },
+  {
+   "name": "Vellhollow Clinical Laboratories",
+   "language": "en",
+   "kind": "lab"
+  },
+  {
+   "name": "Vellhollow Pathology Services",
+   "language": "en",
+   "kind": "lab"
+  },
+  {
+   "name": "Pellmoor General Hospital",
+   "language": "en",
+   "kind": "hospital"
+  },
+  {
+   "name": "Pellmoor Clinical Laboratories",
+   "language": "en",
+   "kind": "lab"
+  },
+  {
+   "name": "Pellmoor Medical Centre",
+   "language": "en",
+   "kind": "hospital"
+  },
+  {
+   "name": "Lornstead Health Screening Centre",
+   "language": "en",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "Lornstead Pathology Services",
+   "language": "en",
+   "kind": "lab"
+  },
+  {
+   "name": "Lornstead General Hospital",
+   "language": "en",
+   "kind": "hospital"
+  },
+  {
+   "name": "Ossencombe Clinical Laboratories",
+   "language": "en",
+   "kind": "lab"
+  },
+  {
+   "name": "Ossencombe Family Clinic",
+   "language": "en",
+   "kind": "clinic"
+  },
+  {
+   "name": "Ossencombe Health Screening Centre",
+   "language": "en",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "Lornvale Family Clinic",
+   "language": "en",
+   "kind": "clinic"
+  },
+  {
+   "name": "Lornvale Clinical Laboratories",
+   "language": "en",
+   "kind": "lab"
+  },
+  {
+   "name": "Lornvale Pathology Services",
+   "language": "en",
+   "kind": "lab"
+  },
+  {
+   "name": "Fernmoor Clinical Laboratories",
+   "language": "en",
+   "kind": "lab"
+  },
+  {
+   "name": "Fernmoor Health Screening Centre",
+   "language": "en",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "Fernmoor Pathology Services",
+   "language": "en",
+   "kind": "lab"
+  },
+  {
+   "name": "Lornwick Clinical Laboratories",
+   "language": "en",
+   "kind": "lab"
+  },
+  {
+   "name": "Lornwick General Hospital",
+   "language": "en",
+   "kind": "hospital"
+  },
+  {
+   "name": "Lornwick Medical Centre",
+   "language": "en",
+   "kind": "hospital"
+  },
+  {
+   "name": "Lornmoor Clinical Laboratories",
+   "language": "en",
+   "kind": "lab"
+  },
+  {
+   "name": "Lornmoor Family Clinic",
+   "language": "en",
+   "kind": "clinic"
+  },
+  {
+   "name": "Lornmoor Pathology Services",
+   "language": "en",
+   "kind": "lab"
+  },
+  {
+   "name": "Rookvale General Hospital",
+   "language": "en",
+   "kind": "hospital"
+  },
+  {
+   "name": "Rookvale Medical Centre",
+   "language": "en",
+   "kind": "hospital"
+  },
+  {
+   "name": "Rookvale Health Screening Centre",
+   "language": "en",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "Wrenmere Clinical Laboratories",
+   "language": "en",
+   "kind": "lab"
+  },
+  {
+   "name": "Wrenmere Health Screening Centre",
+   "language": "en",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "Wrenmere Pathology Services",
+   "language": "en",
+   "kind": "lab"
+  },
+  {
+   "name": "Brackwick Health Screening Centre",
+   "language": "en",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "Brackwick General Hospital",
+   "language": "en",
+   "kind": "hospital"
+  },
+  {
+   "name": "Brackwick Medical Centre",
+   "language": "en",
+   "kind": "hospital"
+  },
+  {
+   "name": "Sablewick Family Clinic",
+   "language": "en",
+   "kind": "clinic"
+  },
+  {
+   "name": "Sablewick Clinical Laboratories",
+   "language": "en",
+   "kind": "lab"
+  },
+  {
+   "name": "Sablewick Medical Centre",
+   "language": "en",
+   "kind": "hospital"
+  },
+  {
+   "name": "Yarwick Clinical Laboratories",
+   "language": "en",
+   "kind": "lab"
+  },
+  {
+   "name": "Yarwick Family Clinic",
+   "language": "en",
+   "kind": "clinic"
+  },
+  {
+   "name": "Yarwick Medical Centre",
+   "language": "en",
+   "kind": "hospital"
+  },
+  {
+   "name": "Kestholt Pathology Services",
+   "language": "en",
+   "kind": "lab"
+  },
+  {
+   "name": "Kestholt General Hospital",
+   "language": "en",
+   "kind": "hospital"
+  },
+  {
+   "name": "Kestholt Health Screening Centre",
+   "language": "en",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "Kestmere Medical Centre",
+   "language": "en",
+   "kind": "hospital"
+  },
+  {
+   "name": "Kestmere Health Screening Centre",
+   "language": "en",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "Kestmere Clinical Laboratories",
+   "language": "en",
+   "kind": "lab"
+  },
+  {
+   "name": "Ossenmoor Pathology Services",
+   "language": "en",
+   "kind": "lab"
+  },
+  {
+   "name": "Ossenmoor Clinical Laboratories",
+   "language": "en",
+   "kind": "lab"
+  },
+  {
+   "name": "Ossenmoor Health Screening Centre",
+   "language": "en",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "Whinstead Health Screening Centre",
+   "language": "en",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "Whinstead General Hospital",
+   "language": "en",
+   "kind": "hospital"
+  },
+  {
+   "name": "Vellwick Medical Centre",
+   "language": "en",
+   "kind": "hospital"
+  },
+  {
+   "name": "Vellwick Health Screening Centre",
+   "language": "en",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "Vellwick General Hospital",
+   "language": "en",
+   "kind": "hospital"
+  },
+  {
+   "name": "Mistleholt Medical Centre",
+   "language": "en",
+   "kind": "hospital"
+  },
+  {
+   "name": "Mistleholt Family Clinic",
+   "language": "en",
+   "kind": "clinic"
+  },
+  {
+   "name": "Mistleholt General Hospital",
+   "language": "en",
+   "kind": "hospital"
+  },
+  {
+   "name": "Brackmere Pathology Services",
+   "language": "en",
+   "kind": "lab"
+  },
+  {
+   "name": "Brackmere Clinical Laboratories",
+   "language": "en",
+   "kind": "lab"
+  },
+  {
+   "name": "Brackmere Medical Centre",
+   "language": "en",
+   "kind": "hospital"
+  },
+  {
+   "name": "Vellmere Clinical Laboratories",
+   "language": "en",
+   "kind": "lab"
+  },
+  {
+   "name": "Vellmere General Hospital",
+   "language": "en",
+   "kind": "hospital"
+  },
+  {
+   "name": "Vellmere Pathology Services",
+   "language": "en",
+   "kind": "lab"
+  },
+  {
+   "name": "Tarncombe General Hospital",
+   "language": "en",
+   "kind": "hospital"
+  },
+  {
+   "name": "Tarncombe Family Clinic",
+   "language": "en",
+   "kind": "clinic"
+  },
+  {
+   "name": "Tarncombe Clinical Laboratories",
+   "language": "en",
+   "kind": "lab"
+  },
+  {
+   "name": "Whinholt Clinical Laboratories",
+   "language": "en",
+   "kind": "lab"
+  },
+  {
+   "name": "Whinholt General Hospital",
+   "language": "en",
+   "kind": "hospital"
+  },
+  {
+   "name": "Whinholt Medical Centre",
+   "language": "en",
+   "kind": "hospital"
+  },
+  {
+   "name": "Whinmere Health Screening Centre",
+   "language": "en",
+   "kind": "checkup_center"
+  },
+  {
+   "name": "Whinmere Medical Centre",
+   "language": "en",
+   "kind": "hospital"
+  },
+  {
+   "name": "Whinmere General Hospital",
+   "language": "en",
+   "kind": "hospital"
+  },
+  {
+   "name": "Whinwick Pathology Services",
+   "language": "en",
+   "kind": "lab"
+  },
+  {
+   "name": "Whinwick Family Clinic",
+   "language": "en",
+   "kind": "clinic"
+  },
+  {
+   "name": "Whinwick General Hospital",
+   "language": "en",
+   "kind": "hospital"
+  },
+  {
+   "name": "Sablehollow General Hospital",
+   "language": "en",
+   "kind": "hospital"
+  },
+  {
+   "name": "Sablehollow Clinical Laboratories",
+   "language": "en",
+   "kind": "lab"
+  },
+  {
+   "name": "Sablehollow Medical Centre",
+   "language": "en",
+   "kind": "hospital"
+  }
+ ]
+}

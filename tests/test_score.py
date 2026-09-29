@@ -1,0 +1,110 @@
+"""评分器的契约测试。
+
+    python3 -m pytest tests/test_score.py -q
+
+与 MedRepBench 官方脚本逐字段一致的那条测试需要官方脚本本身：
+`MEDREPBENCH_SCORER=/path/to/scripts/evaluate_objective.py`。它不在本仓库里
+（数据集 CC BY-NC 4.0，脚本随数据集发布，不再分发），没有就跳过。
+"""
+
+from __future__ import annotations
+
+import json
+import os
+import pathlib
+import subprocess
+import sys
+import tempfile
+import unittest
+
+REPO = pathlib.Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(REPO))
+
+from mirobody_gen.harness import score  # noqa: E402
+
+
+def item(name, value="1.0", unit="", rng="", flag=""):
+    return {"item_name": name, "item_value": value, "item_unit": unit, "item_range": rng, "is_abnormal": flag}
+
+
+class Matching(unittest.TestCase):
+    def test_hungarian_finds_the_optimum(self):
+        cost = [[4, 1, 3], [2, 0, 5], [3, 2, 2]]
+        assignment = score.hungarian(cost)
+        self.assertEqual(sum(cost[i][j] for i, j in enumerate(assignment)), 5)
+
+    def test_truncation_turns_an_extra_row_into_a_miss(self):
+        """官方口径的第 2 个坑：前面多抽一行，最后一行真读数被挤掉。"""
+        refs = [item("白细胞计数"), item("红细胞计数")]
+        preds = [item("姓名", "张三"), item("白细胞计数"), item("红细胞计数")]
+        self.assertEqual(score.official(refs, preds, truncate=True)["item_name"], 1)
+        self.assertEqual(score.official(refs, preds, truncate=False)["item_name"], 2)
+        pairs = score.align(refs, preds)
+        self.assertEqual(len(pairs), 2)
+
+    def test_name_cascade_and_relaxed_alignment(self):
+        """官方口径的第 1 个坑：名字写法不同，值再对也全算错；对齐口径把两件事分开。"""
+        refs = [item("白细胞计数(WBC)", "6.2")]
+        preds = [item("白细胞计数", "6.2")]
+        got = score.official(refs, preds)
+        self.assertEqual(got["item_name"] + got["item_value"], 0)
+        (i, j, s), = score.align(refs, preds)
+        self.assertGreaterEqual(s, 0.5)
+
+    def test_trailing_zero_is_not_normalized(self):
+        """12.80 与 12.8 在官方口径下不相等（只去整零小数）。"""
+        self.assertFalse(score.field_equal("item_value", "12.8", "12.80"))
+        self.assertTrue(score.field_equal("item_value", "12", "12.00"))
+
+
+class Oracle(unittest.TestCase):
+    def test_oracle_scores_one(self):
+        rec = {"file": "a.pdf", "kind": "lab_slip", "hazards": [], "printed_rows": [
+            {**item("白细胞计数", "6.2", "10^9/L", "3.5-9.5", "0"), "readable": True, "unreadable_fields": [],
+             "readings": [0], "alternatives": {}, "hazards": [], "table": 0},
+            {**item("血红蛋白", "", "g/L", "130-175", "0"), "readable": False, "unreadable_fields": [],
+             "readings": [1], "alternatives": {}, "hazards": [], "table": 0}]}
+        preds = {"a.pdf": [item("白细胞计数", "6.2", "10^9/L", "3.5-9.5", "0")]}
+        report = score.score([rec], preds)
+        self.assertEqual(report["v1"]["average"], 1.0)
+        self.assertEqual(report["aligned"]["row_recall"], 1.0)
+        self.assertEqual(report["aligned"]["row_precision"], 1.0)
+        self.assertEqual(report["abstain"]["hallucinated"], 0)
+
+    def test_abstention_counts_a_hallucinated_value(self):
+        rec = {"file": "a.pdf", "kind": "lab_slip", "hazards": [], "printed_rows": [
+            {**item("血红蛋白", "", "g/L", "130-175", "0"), "readable": False, "unreadable_fields": [],
+             "readings": [0], "alternatives": {}, "hazards": [], "table": 0}]}
+        report = score.score([rec], {"a.pdf": [item("血红蛋白", "130")]})
+        self.assertEqual(report["abstain"]["hallucinated"], 1)
+
+
+@unittest.skipUnless(os.environ.get("MEDREPBENCH_SCORER"), "未提供 MedRepBench 官方评分脚本")
+class OfficialEquivalence(unittest.TestCase):
+    def test_v0_matches_the_official_script(self):
+        """同一份标注与预测，官方脚本与 V0 逐字段计数一致。"""
+        refs = [item("白细胞计数", "6.20", "10^9/L", "3.5~9.5", "0"), item("PT", "12.80", "", "9-14", ""),
+                item("血红蛋白", "88", "g/L", "115-150", "1")]
+        preds = [item("白细胞计数", "6.2", "10^9/L", "3.5-9.5", "0"), item("PT", "12.8", "", "9-14", "0"),
+                 item("血红蛋白", "88", "g/l", "115-150", "1")]
+        with tempfile.TemporaryDirectory() as tmp:
+            labels = pathlib.Path(tmp) / "labels.csv"
+            pred = pathlib.Path(tmp) / "pred.jsonl"
+            import csv
+            with labels.open("w", newline="", encoding="utf-8") as fh:
+                w = csv.DictWriter(fh, fieldnames=["image", "meta", "items"])
+                w.writeheader()
+                w.writerow({"image": "x", "meta": json.dumps({"type": "Laboratory"}),
+                            "items": json.dumps(refs, ensure_ascii=False)})
+            pred.write_text(json.dumps({"image": "x", "items": preds}, ensure_ascii=False) + "\n", encoding="utf-8")
+            out = subprocess.run([sys.executable, os.environ["MEDREPBENCH_SCORER"], "--labels", str(labels),
+                                  "--predictions", str(pred)], capture_output=True, text=True, check=True).stdout
+        official = {line.split("_recall:")[0]: int(line.split("(")[1].split("/")[0])
+                    for line in out.splitlines() if "_recall:" in line and "(" in line}
+        ours = score.official(refs, preds)
+        self.assertEqual({f"{k}": v for k, v in ours.items()},
+                         {("is_abnormal" if k == "is_abnormal" else k): v for k, v in official.items()})
+
+
+if __name__ == "__main__":
+    unittest.main()

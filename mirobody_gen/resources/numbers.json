@@ -1,0 +1,258 @@
+{
+ "_source": "format-token",
+ "_note": "参考集（不随仓库分发）的版式与规模聚合统计：只含计数与分位数，由 scripts/build_numbers.py 生成",
+ "_provenance": {
+  "script": "scripts/build_numbers.py"
+ },
+ "_vocabulary_fields": [],
+ "fingerprint": {
+  "primary": {
+   "documents": 627,
+   "fingerprints": 491,
+   "ratio": 0.7830940988835726,
+   "singleton_share_of_fingerprints": 0.9531568228105907,
+   "singleton_share_of_documents": 0.7464114832535885,
+   "largest_families": [
+    60,
+    37,
+    8
+   ]
+  },
+  "sensitivity": {
+   "columns": {
+    "documents": 627,
+    "fingerprints": 310,
+    "ratio": 0.4944178628389155,
+    "singleton_share_of_fingerprints": 0.8096774193548387,
+    "singleton_share_of_documents": 0.4003189792663477,
+    "largest_families": [
+     168,
+     22,
+     17
+    ]
+   },
+   "columns+pages+languages": {
+    "documents": 627,
+    "fingerprints": 370,
+    "ratio": 0.5901116427432217,
+    "singleton_share_of_fingerprints": 0.8405405405405405,
+    "singleton_share_of_documents": 0.4960127591706539,
+    "largest_families": [
+     69,
+     54,
+     18
+    ]
+   },
+   "primary": {
+    "documents": 627,
+    "fingerprints": 491,
+    "ratio": 0.7830940988835726,
+    "singleton_share_of_fingerprints": 0.9531568228105907,
+    "singleton_share_of_documents": 0.7464114832535885,
+    "largest_families": [
+     60,
+     37,
+     8
+    ]
+   }
+  }
+ },
+ "rows_per_document": [
+  [
+   0,
+   141
+  ],
+  [
+   1,
+   56
+  ],
+  [
+   2,
+   17
+  ],
+  [
+   3,
+   23
+  ],
+  [
+   4,
+   38
+  ],
+  [
+   5,
+   31
+  ],
+  [
+   6,
+   24
+  ],
+  [
+   7,
+   27
+  ],
+  [
+   8,
+   25
+  ],
+  [
+   9,
+   17
+  ],
+  [
+   10,
+   12
+  ],
+  [
+   11,
+   19
+  ],
+  [
+   12,
+   14
+  ],
+  [
+   13,
+   10
+  ],
+  [
+   14,
+   12
+  ],
+  [
+   15,
+   14
+  ],
+  [
+   16,
+   6
+  ],
+  [
+   17,
+   13
+  ],
+  [
+   18,
+   6
+  ],
+  [
+   19,
+   11
+  ],
+  [
+   20,
+   4
+  ],
+  [
+   21,
+   4
+  ],
+  [
+   22,
+   9
+  ],
+  [
+   23,
+   9
+  ],
+  [
+   24,
+   7
+  ],
+  [
+   25,
+   13
+  ],
+  [
+   26,
+   11
+  ],
+  [
+   27,
+   3
+  ],
+  [
+   28,
+   5
+  ],
+  [
+   29,
+   1
+  ],
+  [
+   31,
+   3
+  ],
+  [
+   32,
+   2
+  ],
+  [
+   33,
+   6
+  ],
+  [
+   34,
+   1
+  ],
+  [
+   35,
+   1
+  ],
+  [
+   36,
+   3
+  ],
+  [
+   38,
+   3
+  ],
+  [
+   39,
+   7
+  ],
+  [
+   40,
+   8
+  ],
+  [
+   41,
+   2
+  ],
+  [
+   42,
+   1
+  ],
+  [
+   46,
+   1
+  ],
+  [
+   49,
+   1
+  ],
+  [
+   54,
+   1
+  ],
+  [
+   59,
+   1
+  ],
+  [
+   65,
+   1
+  ],
+  [
+   71,
+   1
+  ],
+  [
+   76,
+   1
+  ],
+  [
+   86,
+   1
+  ]
+ ]
+}

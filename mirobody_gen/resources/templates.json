@@ -1,0 +1,533 @@
+{
+ "_source": "hand-authored",
+ "_note": "渲染器印在纸上的固定文字的唯一来源：套餐标题、报告标题、受检者字段标签、免责声明、页脚、横幅、水印。全部手写，都是检验单上通用的公开表述。放在 spec 而不是代码里，是为了让每一句印上纸的固定文字都能被审、都过隐私闸门的回放检测；它们同时被声明为公共词汇，回放检测在这些词条内部的窗口上豁免。 2026-09-29 补：panel_titles 覆盖扩充后的全部套餐组；column_sets_extra / column_roles_extra 是美式化验单（正常值/异常值分列、实验室代码列）的列头写法，取自两家大型商业实验室的公开样例报告说明页。",
+ "_provenance": {
+  "author": "hand-authored in this repository",
+  "script": null
+ },
+ "_vocabulary_fields": [
+  "age_format",
+  "ambiguous_reference_headers",
+  "banner",
+  "book_titles",
+  "bp",
+  "column_roles_extra",
+  "column_sets_extra",
+  "departments",
+  "disclaimers",
+  "doc_titles",
+  "export_category",
+  "flag_rows",
+  "lab_code_pool",
+  "missing_values",
+  "multiple_dates",
+  "narrative_labels",
+  "notes",
+  "page_number",
+  "panel_titles",
+  "power_styles",
+  "previous_header",
+  "printed_at",
+  "sex_short",
+  "sex_words",
+  "specimens",
+  "stamps",
+  "subject_labels",
+  "summary",
+  "unit_localization",
+  "watermarks",
+  "yes_no"
+ ],
+ "panel_titles": {
+  "vitals": [
+   "一般检查",
+   "General Examination"
+  ],
+  "cbc": [
+   "血常规",
+   "Complete Blood Count"
+  ],
+  "anemia": [
+   "贫血相关检测",
+   "Anaemia Studies"
+  ],
+  "liver": [
+   "肝功能",
+   "Liver Function Tests"
+  ],
+  "renal": [
+   "肾功能",
+   "Renal Function"
+  ],
+  "electrolyte": [
+   "电解质",
+   "Electrolytes"
+  ],
+  "lipid": [
+   "血脂",
+   "Lipid Profile"
+  ],
+  "glucose": [
+   "血糖",
+   "Glucose"
+  ],
+  "thyroid": [
+   "甲状腺功能",
+   "Thyroid Function"
+  ],
+  "urinalysis": [
+   "尿常规",
+   "Urinalysis"
+  ],
+  "inflammation": [
+   "炎症指标",
+   "Inflammatory Markers"
+  ],
+  "tumor": [
+   "肿瘤标志物",
+   "Tumour Markers"
+  ],
+  "vitamin": [
+   "维生素",
+   "Vitamins"
+  ],
+  "cardiac": [
+   "心肌酶",
+   "Cardiac Enzymes"
+  ],
+  "ecg": [
+   "心电图",
+   "Electrocardiogram"
+  ],
+  "body_composition": [
+   "人体成分",
+   "Body Composition"
+  ],
+  "blood_type": [
+   "血型",
+   "Blood Group"
+  ],
+  "coagulation": [
+   "凝血功能",
+   "Coagulation"
+  ],
+  "coagulation_full": [
+   "凝血功能",
+   "Coagulation"
+  ],
+  "liver_full": [
+   "肝功能",
+   "Liver Function Tests"
+  ],
+  "renal_early": [
+   "肾早期损伤",
+   "Early Renal Injury Markers"
+  ],
+  "electrolyte_full": [
+   "电解质",
+   "Electrolytes"
+  ],
+  "pancreas": [
+   "胰腺功能",
+   "Pancreatic Enzymes"
+  ],
+  "lipid_full": [
+   "血脂",
+   "Lipid Profile"
+  ],
+  "glucose_full": [
+   "血糖",
+   "Glucose"
+  ],
+  "glucose_ogtt": [
+   "糖耐量",
+   "Glucose Tolerance"
+  ],
+  "thyroid_full": [
+   "甲状腺功能",
+   "Thyroid Function"
+  ],
+  "stool": [
+   "便常规",
+   "Stool"
+  ],
+  "immune": [
+   "免疫风湿",
+   "Immunology"
+  ],
+  "hepatitis": [
+   "肝炎病毒标志物",
+   "Hepatitis Serology"
+  ],
+  "hepatitis_full": [
+   "肝炎病毒标志物",
+   "Hepatitis Serology"
+  ],
+  "hp": [
+   "幽门螺杆菌",
+   "Helicobacter pylori"
+  ],
+  "tumor_full": [
+   "肿瘤标志物",
+   "Tumour Markers"
+  ],
+  "cervical": [
+   "宫颈癌筛查",
+   "Cervical Screening"
+  ],
+  "cardiac_full": [
+   "心肌标志物",
+   "Cardiac Markers"
+  ],
+  "spirometry": [
+   "肺功能",
+   "Spirometry"
+  ],
+  "arterial": [
+   "动脉硬化检测",
+   "Arterial Stiffness"
+  ],
+  "echo": [
+   "超声心动图",
+   "Echocardiography"
+  ]
+ },
+ "doc_titles": {
+  "zh": [
+   "{t}",
+   "{t}检验报告单",
+   "检验报告单",
+   "临床检验报告"
+  ],
+  "en": [
+   "Laboratory Report",
+   "{t} Report",
+   "Pathology Report"
+  ]
+ },
+ "book_titles": {
+  "zh": [
+   "健康体检报告",
+   "体检报告",
+   "个人健康体检报告"
+  ],
+  "en": [
+   "Health Check-up Report",
+   "Annual Health Screening"
+  ]
+ },
+ "specimens": {
+  "zh": [
+   "血清",
+   "全血",
+   "静脉血"
+  ],
+  "en": [
+   "Serum"
+  ],
+  "urine": [
+   "尿液",
+   "Urine"
+  ]
+ },
+ "departments": {
+  "zh": [
+   "内科",
+   "体检中心",
+   "内分泌科",
+   "心内科",
+   "门诊"
+  ],
+  "en": [
+   "Internal Medicine",
+   "Health Check-up Centre",
+   "Endocrinology",
+   "Cardiology",
+   "Outpatient Clinic"
+  ]
+ },
+ "subject_labels": {
+  "zh": {
+   "name": "姓名",
+   "sex": "性别",
+   "age": "年龄",
+   "pid": [
+    "门诊号",
+    "病历号",
+    "ID号"
+   ],
+   "lab_no": "标本号",
+   "department": "科室",
+   "specimen": "标本类型",
+   "doctor": "送检医生"
+  },
+  "en": {
+   "name": "Name",
+   "sex": "Sex",
+   "age": "Age",
+   "pid": [
+    "MRN"
+   ],
+   "lab_no": "Lab No.",
+   "specimen": "Specimen",
+   "doctor": "Requested by"
+  }
+ },
+ "sex_words": {
+  "zh": {
+   "male": "男",
+   "female": "女"
+  },
+  "en": {
+   "male": "Male",
+   "female": "Female"
+  }
+ },
+ "sex_short": {
+  "zh": [
+   "男",
+   "女"
+  ],
+  "en": [
+   "M",
+   "F"
+  ]
+ },
+ "age_format": {
+  "zh": "{n}岁",
+  "en": "{n} Y"
+ },
+ "bp": {
+  "zh": "血压",
+  "en": "Blood Pressure",
+  "abbr": "BP",
+  "reference": "90-139/60-89"
+ },
+ "disclaimers": {
+  "zh": [
+   "本报告仅对所检标本负责，如有疑问请于三日内咨询。"
+  ],
+  "en": [
+   "This report relates only to the specimen received."
+  ]
+ },
+ "notes": {
+  "zh": [
+   "以上结果仅对本次送检标本负责。",
+   "如结果与临床不符，请结合临床或复查。",
+   "请携带本报告复诊，遵医嘱定期复查。",
+   "标本溶血、脂血可能影响部分项目结果。"
+  ],
+  "en": [
+   "Results relate only to the specimen as received.",
+   "Please interpret in the clinical context; repeat testing if indicated.",
+   "Haemolysed or lipaemic samples may affect some results."
+  ]
+ },
+ "narrative_labels": {
+  "zh": [
+   "备注",
+   "建议",
+   "提醒",
+   "注",
+   "温馨提示"
+  ],
+  "en": [
+   "Comment",
+   "Note"
+  ]
+ },
+ "summary": {
+  "zh": {
+   "label": "小结",
+   "high": "偏高",
+   "low": "偏低"
+  },
+  "en": {
+   "label": "Summary",
+   "high": "high",
+   "low": "low"
+  }
+ },
+ "missing_values": {
+  "zh": [
+   "",
+   "--",
+   "未做",
+   "/"
+  ],
+  "en": [
+   "",
+   "--",
+   "N/A",
+   "Not done"
+  ]
+ },
+ "flag_rows": {
+  "zh": {
+   "count": "异常项目数",
+   "any": "是否异常"
+  },
+  "en": {
+   "count": "Abnormal results",
+   "any": "Flagged"
+  }
+ },
+ "yes_no": {
+  "zh": [
+   "是",
+   "否"
+  ],
+  "en": [
+   "Yes",
+   "No"
+  ]
+ },
+ "ambiguous_reference_headers": {
+  "zh": [
+   "提示",
+   "结果提示"
+  ],
+  "en": [
+   "Indicator"
+  ]
+ },
+ "previous_header": {
+  "zh-Hans": "上次结果",
+  "zh-Hant": "上次結果",
+  "en": "Previous"
+ },
+ "banner": "SYNTHETIC SAMPLE — GENERATED DATA, NOT A REAL PATIENT RECORD",
+ "page_number": {
+  "zh": "第 {i} 页 / 共 {n} 页",
+  "en": "Page {i} of {n}"
+ },
+ "printed_at": {
+  "zh": "打印时间：{t}",
+  "en": "Printed {t}"
+ },
+ "watermarks": {
+  "zh": [
+   "仅供临床参考"
+  ],
+  "en": [
+   "COPY"
+  ]
+ },
+ "stamps": {
+  "zh": "检验专用章",
+  "en": "VERIFIED"
+ },
+ "export_category": {
+  "zh": {
+   "routine": "体检",
+   "other": "门诊"
+  },
+  "en": {
+   "routine": "Check-up",
+   "other": "Visit"
+  }
+ },
+ "multiple_dates": {
+  "zh": [
+   "采样时间",
+   "接收时间",
+   "报告时间",
+   "打印时间"
+  ],
+  "en": [
+   "Collected",
+   "Received",
+   "Reported",
+   "Printed"
+  ]
+ },
+ "unit_localization": {
+  "en": {
+   "次/分": "/min"
+  }
+ },
+ "power_styles": {
+  "_weights": {
+   "10^9/L": 10,
+   "×10^9/L": 8,
+   "x10^9/L": 3,
+   "10*9/L": 3,
+   "10E9/L": 2,
+   "G/L": 1
+  },
+  "10^9/L": {
+   "10^9/L": "10^9/L",
+   "×10^9/L": "×10^9/L",
+   "x10^9/L": "x10^9/L",
+   "10*9/L": "10*9/L",
+   "10E9/L": "10E9/L",
+   "G/L": "G/L"
+  },
+  "10^12/L": {
+   "10^9/L": "10^12/L",
+   "×10^9/L": "×10^12/L",
+   "x10^9/L": "x10^12/L",
+   "10*9/L": "10*12/L",
+   "10E9/L": "10E12/L",
+   "G/L": "T/L"
+  },
+  "_note": "×10⁹/L（上标 9，U+2079）不在内：渲染用的内置字体（Droid Sans Fallback / Charis SIL）都没有这个字形，印出来是空字符。等图像层换带上标字形的字体再加回来。"
+ },
+ "column_sets_extra": [
+  {
+   "value": [
+    "name",
+    "result_in",
+    "result_out",
+    "reference",
+    "unit",
+    "lab"
+   ],
+   "documents": 14,
+   "language": "en"
+  },
+  {
+   "value": [
+    "name",
+    "result",
+    "flag",
+    "unit",
+    "reference",
+    "lab"
+   ],
+   "documents": 9,
+   "language": "en"
+  },
+  {
+   "value": [
+    "name",
+    "result_in",
+    "result_out",
+    "reference"
+   ],
+   "documents": 5,
+   "language": "en"
+  }
+ ],
+ "column_roles_extra": {
+  "In Range": "result_in",
+  "Out Of Range": "result_out",
+  "Out of Range": "result_out",
+  "Lab": "lab",
+  "LAB": "lab",
+  "TESTS": "name",
+  "UNITS": "unit",
+  "REFERENCE INTERVAL": "reference",
+  "Reference Range": "reference"
+ },
+ "lab_code_pool": [
+  "QB",
+  "EZ",
+  "TE",
+  "AM",
+  "01",
+  "02",
+  "BN"
+ ]
+}

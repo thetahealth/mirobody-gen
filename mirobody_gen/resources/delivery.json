@@ -1,0 +1,62 @@
+{
+ "_source": "hand-authored",
+ "_note": "交付形态（文本层 / 扫描 / 手机照片 / 劣化件 / 屏幕）的分层与场景权重、严重度分布、栅格化分辨率、笔圈率。校准依据是参考集图像的聚合统计（numbers_images.json）。",
+ "_provenance": {
+  "script": "scripts/build_profile.py",
+  "calibrated_against": "numbers_images.json"
+ },
+ "_vocabulary_fields": [],
+ "tier_weights": {
+  "T0": 0.28,
+  "T2": 0.22,
+  "T3": 0.24,
+  "T4": 0.06,
+  "T6": 0.2
+ },
+ "scene_weights": {
+  "T2": {
+   "flatbed_scan": 30,
+   "app_enhanced": 30,
+   "scan_grayscale": 20,
+   "scan_lowres": 10,
+   "colored_slip": 10
+  },
+  "T3": {
+   "clean_photo": 25,
+   "phone_flat_top": 18,
+   "wechat_photo": 20,
+   "phone_creased": 10,
+   "phone_bent": 5,
+   "phone_oblique": 6,
+   "phone_lowlight": 5,
+   "phone_flash": 3,
+   "phone_through_cover": 3,
+   "phone_landscape": 5
+  },
+  "T4": {
+   "photocopy": 30,
+   "multi_gen_copy": 15,
+   "fax_thermal": 15,
+   "aged_archive": 10,
+   "low_quality_print": 15,
+   "heavy_compression": 15
+  },
+  "T6": {
+   "screenshot": 50,
+   "desktop_screenshot": 38,
+   "screen_photo": 12
+  }
+ },
+ "severity_weights": {
+  "mild": 0.45,
+  "moderate": 0.4,
+  "severe": 0.15
+ },
+ "dpi_of_tier": {
+  "T2": 200,
+  "T3": 260,
+  "T4": 200,
+  "T6": 150
+ },
+ "annotate_rate": 0.15
+}

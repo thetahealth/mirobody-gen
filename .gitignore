@@ -1,0 +1,82 @@
+# Allow-list ignore rules.
+#
+# Everything under the repository root is ignored by default; only the paths listed
+# below can be tracked. A new top-level directory therefore cannot reach the
+# repository by accident: the failure mode is "my file will not commit", never
+# "a document was published". See docs/PRIVACY.md.
+
+/*
+
+# ── Tracked paths ─────────────────────────────────────────────────
+!/.gitignore
+!/.gitattributes
+!/.githooks/
+!/.github/
+!/README.md
+!/README.zh-CN.md
+!/LICENSE
+!/CHANGELOG.md
+!/CONTRIBUTING.md
+!/SECURITY.md
+!/CODE_OF_CONDUCT.md
+!/CITATION.cff
+!/pyproject.toml
+!/mirobody_gen/
+!/scripts/
+!/tests/
+!/docs/
+
+# ── Never tracked, even if the allow-list above is widened ────────
+# Local reference material, its derivatives, caches and generated corpora.
+corpus/
+rows/
+analysis/
+pipeline/
+library/
+out/
+build/
+dist/
+_scratch/
+.cache/
+
+# ── Documents and images anywhere ─────────────────────────────────
+# Generated reports and reference material look identical to git. Neither is
+# tracked; a curated sample needs an explicit `git add -f` and a note in the PR.
+*.pdf
+*.jpg
+*.jpeg
+*.png
+*.gif
+*.tif
+*.tiff
+*.webp
+*.bmp
+*.heic
+*.xlsx
+*.xls
+*.xlsm
+*.docx
+*.doc
+*.pptx
+*.csv
+*.tsv
+*.zip
+*.tar
+*.tar.gz
+*.7z
+
+# ── Environment noise ─────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.env
+.env.*
+.DS_Store
+.idea/
+.vscode/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+*.log

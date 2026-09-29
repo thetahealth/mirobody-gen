@@ -1,0 +1,49 @@
+# CI runs everything that does not need the private reference set.
+#
+# The replay-detection half of the privacy gate builds its index from the reference
+# set, which is never in the repository, so CI runs the gate with --skip-replay.
+# The spec regeneration (drift) test also needs the reference set and skips itself.
+# Both run before every release on a machine that has the reference set.
+name: checks
+
+on: [push, pull_request]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.11", "3.12"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - run: pip install -e ".[dev]"
+      - name: Lint (correctness rules only)
+        run: ruff check mirobody_gen scripts tests
+      - name: Contract tests
+        run: python -m pytest tests -q
+      - name: Small build with rendering and pairs
+        run: mirobody-gen build --seed 7 --people 6 --out out/ci --render --pairs 2
+      - name: Readability audit
+        run: mirobody-gen audit-readability out/ci/files.jsonl out/ci/pairs.jsonl
+      - name: Privacy gate (PII, allow-lists, provenance; no replay index in CI)
+        run: mirobody-gen audit-privacy --targets mirobody_gen/resources out/ci --skip-replay
+      - name: Clinical audit
+        run: mirobody-gen audit-clinical out/ci/manifest.jsonl
+      - name: Clinical audit self-test
+        run: mirobody-gen audit-clinical --selftest
+      - name: Wheel builds and ships its resources
+        run: |
+          pip install build
+          python -m build --wheel
+          python - <<'EOF'
+          import glob, zipfile
+          names = zipfile.ZipFile(glob.glob("dist/*.whl")[0]).namelist()
+          assert any(n.endswith("resources/indicators.json") for n in names), names[:20]
+          EOF
+      - name: Pre-commit privacy hook is executable
+        run: |
+          test -x .githooks/pre-commit
+          .githooks/pre-commit --check

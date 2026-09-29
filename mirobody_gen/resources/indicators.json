@@ -1,0 +1,5482 @@
+{
+  "_vocabulary_fields": [
+    "zh",
+    "en",
+    "abbr",
+    "unit",
+    "name_variants",
+    "value_kind",
+    "panel",
+    "panels"
+  ],
+  "_source": "public-standard",
+  "_note": "参考区间来自 WS/T 404.1–.8 与 WS/T 405 及通行临床区间；生物学变异 CVI/CVG 来自 Westgard/EFLM 公开数据库；LOINC 为构建时向 mirobody.engine.resolve 查询所得，记录的是『这个打印名解析得出与否』，供评测区分召回与弃权。本文件不含任何来自真实语料的取值。",
+  "_provenance": {
+    "script": "scripts/build_indicators.py",
+    "indicators": 172,
+    "loinc_resolved": 129,
+    "reference_sources": [
+      "Bethesda（TBS）2014 宫颈细胞学报告系统；《中国子宫颈癌筛查指南（2023）》：NILM 为未见上皮内病变或恶性细胞",
+      "KDIGO 2012 慢性肾脏病评估与管理指南（UACR < 30 mg/g）",
+      "WHO《Pulse Oximetry Training Manual》：健康成人静息 SpO₂ 95%–100%",
+      "WS/T 404（临床常用生化检验项目参考区间）",
+      "WS/T 405—2012（血细胞分析参考区间）",
+      "《中国高血压防治指南（2018 年修订版）》靶器官损害判据：baPWV ≥ 1400 cm/s、ABI < 0.9；《中国动脉硬化检测临床应用专家共识》",
+      "中华医学会《慢性阻塞性肺疾病诊治指南（2021 年修订版）》与 GOLD 2024：FEV1/FVC < 0.70 为持续气流受限",
+      "中华医学会《肺功能检查指南——肺量计检查》与 ATS/ERS 2022 解读标准：占预计值 ≥ 80% 为正常",
+      "中国2型糖尿病防治指南（2020年版）",
+      "中国成人血脂异常防治指南（2016年修订版）",
+      "中国成人超重和肥胖症预防控制指南（BMI/腰围切点）",
+      "中国成年人超声心动图检查测量指南（2016）",
+      "中国高血压防治指南（2018年修订版）",
+      "临床心电图学通用正常值",
+      "全国临床检验操作规程（第4版）",
+      "厂商试剂说明书区间（随检测系统而变，生成时按此口径印出）",
+      "由恒等式定义"
+    ]
+  },
+  "indicators": [
+    {
+      "key": "height",
+      "zh": "身高",
+      "en": "Height",
+      "abbr": "",
+      "unit": "cm",
+      "decimals": 1,
+      "reference": null,
+      "reference_source": "全国临床检验操作规程（第4版）",
+      "cvi": null,
+      "cvg": null,
+      "panel": "vitals",
+      "name_variants": [
+        "身長",
+        "Height",
+        "身高(cm)"
+      ],
+      "value_kind": "quantitative",
+      "derived_from": null,
+      "sex_specific": null,
+      "note": "",
+      "positive_rate": null,
+      "positive_values": null,
+      "categories": null,
+      "loinc": "8302-2",
+      "expect_resolvable": true
+    },
+    {
+      "key": "weight",
+      "zh": "体重",
+      "en": "Body weight",
+      "abbr": "",
+      "unit": "kg",
+      "decimals": 1,
+      "reference": null,
+      "reference_source": "全国临床检验操作规程（第4版）",
+      "cvi": null,
+      "cvg": null,
+      "panel": "vitals",
+      "name_variants": [
+        "體重",
+        "Body Weight",
+        "体重(kg)"
+      ],
+      "value_kind": "quantitative",
+      "derived_from": null,
+      "sex_specific": null,
+      "note": "",
+      "positive_rate": null,
+      "positive_values": null,
+      "categories": null,
+      "loinc": "29463-7",
+      "expect_resolvable": true
+    },
+    {
+      "key": "bmi",
+      "zh": "体重指数",
+      "en": "Body mass index",
+      "abbr": "BMI",
+      "unit": "kg/m²",
+      "decimals": 1,
+      "reference": [
+        "range",
+        18.5,
+        23.9
+      ],
+      "reference_source": "中国成人超重和肥胖症预防控制指南（BMI/腰围切点）",
+      "cvi": null,
+      "cvg": null,
+      "panel": "vitals",
+      "name_variants": [
+        "身体质量指数",
+        "BMI",
+        "体质指数"
+      ],
+      "value_kind": "quantitative",
+      "derived_from": "weight / (height/100)**2",
+      "sex_specific": null,
+      "note": "",
+      "positive_rate": null,
+      "positive_values": null,
+      "categories": null,
+      "loinc": "39156-5",
+      "expect_resolvable": true
+    },
+    {
+      "key": "waist",
+      "zh": "腰围",
+      "en": "Waist circumference",
+      "abbr": "",
+      "unit": "cm",
+      "decimals": 1,
+      "reference": [
+        "range_sex",
+        [
+          0,
+          90
+        ],
+        [
+          0,
+          85
+        ]
+      ],
+      "reference_source": "中国成人超重和肥胖症预防控制指南（BMI/腰围切点）",
+      "cvi": null,
+      "cvg": null,
+      "panel": "vitals",
+      "name_variants": [
+        "腰圍"
+      ],
+      "value_kind": "quantitative",
+      "derived_from": "2.8 * bmi + (19 if male else 13)",
+      "sex_specific": null,
+      "note": "",
+      "positive_rate": null,
+      "positive_values": null,
+      "categories": null,
+      "loinc": null,
+      "expect_resolvable": false
+    },
+    {
+      "key": "sbp",
+      "zh": "收缩压",
+      "en": "Systolic blood pressure",
+      "abbr": "SBP",
+      "unit": "mmHg",
+      "decimals": 0,
+      "reference": [
+        "range",
+        90,
+        139
+      ],
+      "reference_source": "中国高血压防治指南（2018年修订版）",
+      "cvi": null,
+      "cvg": null,
+      "panel": "vitals",
+      "name_variants": [
+        "收縮壓",
+        "Systolic Blood Pressure",
+        "血压收缩压"
+      ],
+      "value_kind": "quantitative",
+      "derived_from": null,
+      "sex_specific": null,
+      "note": "",
+      "positive_rate": null,
+      "positive_values": null,
+      "categories": null,
+      "loinc": "8480-6",
+      "expect_resolvable": true
+    },
+    {
+      "key": "dbp",
+      "zh": "舒张压",
+      "en": "Diastolic blood pressure",
+      "abbr": "DBP",
+      "unit": "mmHg",
+      "decimals": 0,
+      "reference": [
+        "range",
+        60,
+        89
+      ],
+      "reference_source": "中国高血压防治指南（2018年修订版）",
+      "cvi": null,
+      "cvg": null,
+      "panel": "vitals",
+      "name_variants": [
+        "舒張壓",
+        "Diastolic Blood Pressure"
+      ],
+      "value_kind": "quantitative",
+      "derived_from": null,
+      "sex_specific": null,
+      "note": "",
+      "positive_rate": null,
+      "positive_values": null,
+      "categories": null,
+      "loinc": "8462-4",
+      "expect_resolvable": true
+    },
+    {
+      "key": "pulse",
+      "zh": "心率",
+      "en": "Heart rate",
+      "abbr": "HR",
+      "unit": "次/分",
+      "decimals": 0,
+      "reference": [
+        "range",
+        60,
+        100
+      ],
+      "reference_source": "临床心电图学通用正常值",
+      "cvi": null,
+      "cvg": null,
+      "panel": "vitals",
+      "name_variants": [
+        "脉搏",
+        "脈搏",
+        "Heart Rate",
+        "Pulse"
+      ],
+      "value_kind": "quantitative",
+      "derived_from": null,
+      "sex_specific": null,
+      "note": "",
+      "positive_rate": null,
+      "positive_values": null,
+      "categories": null,
+      "loinc": "8867-4",
+      "expect_resolvable": true
+    },
+    {
+      "key": "resp",
+      "zh": "呼吸",
+      "en": "Respiratory rate",
+      "abbr": "RR",
+      "unit": "次/分",
+      "decimals": 0,
+      "reference": [
+        "range",
+        12,
+        20
+      ],
+      "reference_source": "全国临床检验操作规程（第4版）",
+      "cvi": null,
+      "cvg": null,
+      "panel": "vitals",
+      "name_variants": [
+        "呼吸频率"
+      ],
+      "value_kind": "quantitative",
+      "derived_from": null,
+      "sex_specific": null,
+      "note": "",
+      "positive_rate": null,
+      "positive_values": null,
+      "categories": null,
+      "loinc": "9279-1",
+      "expect_resolvable": true
+    },
+    {
+      "key": "temp",
+      "zh": "体温",
+      "en": "Body temperature",
+      "abbr": "T",
+      "unit": "℃",
+      "decimals": 1,
+      "reference": [
+        "range",
+        36.0,
+        37.2
+      ],
+      "reference_source": "全国临床检验操作规程（第4版）",
+      "cvi": 0.5,
+      "cvg": 0.5,
+      "panel": "vitals",
+      "name_variants": [
+        "體溫",
+        "Temperature",
+        "体温(℃)"
+      ],
+      "value_kind": "quantitative",
+      "derived_from": null,
+      "sex_specific": null,
+      "note": "",
+      "positive_rate": null,
+      "positive_values": null,
+      "categories": null,
+      "loinc": "8310-5",
+      "expect_resolvable": true
+    },
+    {
+      "key": "wbc",
+      "zh": "白细胞计数",
+      "en": "White blood cell count",
+      "abbr": "WBC",
+      "unit": "10^9/L",
+      "decimals": 2,
+      "reference": [
+        "range",
+        3.5,
+        9.5
+      ],
+      "reference_source": "WS/T 405—2012（血细胞分析参考区间）",
+      "cvi": 11.4,
+      "cvg": 21.3,
+      "panel": "cbc",
+      "name_variants": [
+        "白细胞",
+        "白細胞計數",
+        "白细胞总数",
+        "WBC",
+        "白细胞计数(WBC)",
+        "白血球"
+      ],
+      "value_kind": "quantitative",
+      "derived_from": null,
+      "sex_specific": null,
+      "note": "",
+      "positive_rate": null,
+      "positive_values": null,
+      "categories": null,
+      "loinc": "26464-8",
+      "expect_resolvable": true
+    },
+    {
+      "key": "rbc",
+      "zh": "红细胞计数",
+      "en": "Red blood cell count",
+      "abbr": "RBC",
+      "unit": "10^12/L",
+      "decimals": 2,
+      "reference": [
+        "range_sex",
+        [
+          4.3,
+          5.8
+        ],
+        [
+          3.8,
+          5.1
+        ]
+      ],
+      "reference_source": "WS/T 405—2012（血细胞分析参考区间）",
+      "cvi": 3.2,
+      "cvg": 6.3,
+      "panel": "cbc",
+      "name_variants": [
+        "红细胞",
+        "紅細胞計數",
+        "RBC",
+        "紅血球"
+      ],
+      "value_kind": "quantitative",
+      "derived_from": null,
+      "sex_specific": null,
+      "note": "",
+      "positive_rate": null,
+      "positive_values": null,
+      "categories": null,
+      "loinc": "26453-1",
+      "expect_resolvable": true
+    },
+    {
+      "key": "hgb",
+      "zh": "血红蛋白",
+      "en": "Hemoglobin",
+      "abbr": "HGB",
+      "unit": "g/L",
+      "decimals": 0,
+      "reference": [
+        "range_sex",
+        [
+          130,
+          175
+        ],
+        [
+          115,
+          150
+        ]
+      ],
+      "reference_source": "WS/T 405—2012（血细胞分析参考区间）",
+      "cvi": 2.85,
+      "cvg": 6.8,
+      "panel": "cbc",
+      "name_variants": [
+        "血色素",
+        "血紅蛋白",
+        "血紅素",
+        "Hemoglobin",
+        "HGB",
+        "Hb"
+      ],
+      "value_kind": "quantitative",
+      "derived_from": "rbc * mch",
+      "sex_specific": null,
+      "note": "繁体『血紅素』在台湾就是血红蛋白，但折叠成简体『血红素』后会被索引答成 HbA1c——这是 mirobody 已知的坑，刻意留作素材",
+      "positive_rate": null,
+      "positive_values": null,
+      "categories": null,
+      "loinc": "718-7",
+      "expect_resolvable": true
+    },
+    {
+      "key": "hct",
+      "zh": "红细胞压积",
+      "en": "Hematocrit",
+      "abbr": "HCT",
+      "unit": "%",
+      "decimals": 1,
+      "reference": [
+        "range_sex",
+        [
+          40,
+          50
+        ],
+        [
+          35,
+          45
+        ]
+      ],
+      "reference_source": "WS/T 405—2012（血细胞分析参考区间）",
+      "cvi": 2.7,
+      "cvg": 6.41,
+      "panel": "cbc",
+      "name_variants": [
+        "血细胞比容",
+        "红细胞比容",
+        "HCT",
+        "Hct"
+      ],
+      "value_kind": "quantitative",
+      "derived_from": "rbc * mcv / 10",
+      "sex_specific": null,
+      "note": "",
+      "positive_rate": null,
+      "positive_values": null,
+      "categories": null,
+      "loinc": "4544-3",
+      "expect_resolvable": true
+    },
+    {
+      "key": "mcv",
+      "zh": "平均红细胞体积",
+      "en": "Mean corpuscular volume",
+      "abbr": "MCV",
+      "unit": "fL",
+      "decimals": 1,
+      "reference": [
+        "range",
+        82,
+        100
+      ],
+      "reference_source": "WS/T 405—2012（血细胞分析参考区间）",
+      "cvi": 1.4,
+      "cvg": 4.85,
+      "panel": "cbc",
+      "name_variants": [
+        "MCV"
+      ],
+      "value_kind": "quantitative",
+      "derived_from": null,
+      "sex_specific": null,
+      "note": "",
+      "positive_rate": null,
+      "positive_values": null,
+      "categories": null,
+      "loinc": "30428-7",
+      "expect_resolvable": true
+    },
+    {
+      "key": "mch",
+      "zh": "平均红细胞血红蛋白量",
+      "en": "Mean corpuscular hemoglobin",
+      "abbr": "MCH",
+      "unit": "pg",
+      "decimals": 1,
+      "reference": [
+        "range",
+        27,
+        34
+      ],
+      "reference_source": "WS/T 405—2012（血细胞分析参考区间）",
+      "cvi": 1.6,
+      "cvg": 5.2,
+      "panel": "cbc",
+      "name_variants": [
+        "平均血红蛋白量",
+        "MCH"
+      ],
+      "value_kind": "quantitative",
+      "derived_from": "mchc * mcv / 1000",
+      "sex_specific": null,
+      "note": "",
+      "positive_rate": null,
+      "positive_values": null,
+      "categories": null,
+      "loinc": "785-6",
+      "expect_resolvable": true
+    },
+    {
+      "key": "mchc",
+      "zh": "平均红细胞血红蛋白浓度",
+      "en": "Mean corpuscular hemoglobin concentration",
+      "abbr": "MCHC",
+      "unit": "g/L",
+      "decimals": 0,
+      "reference": [
+        "range",
+        316,
+        354
+      ],
+      "reference_source": "WS/T 405—2012（血细胞分析参考区间）",
+      "cvi": 1.7,
+      "cvg": 2.8,
+      "panel": "cbc",
+      "name_variants": [
+        "平均血红蛋白浓度",
+        "MCHC"
+      ],
+      "value_kind": "quantitative",
+      "derived_from": null,
+      "sex_specific": null,
+      "note": "",
+      "positive_rate": null,
+      "positive_values": null,
+      "categories": null,
+      "loinc": "786-4",
+      "expect_resolvable": true
+    },
+    {
+      "key": "rdw",
+      "zh": "红细胞分布宽度",
+      "en": "Red cell distribution width",
+      "abbr": "RDW-CV",
+      "unit": "%",
+      "decimals": 1,
+      "reference": [
+        "range",
+        11.5,
+        14.5
+      ],
+      "reference_source": "全国临床检验操作规程（第4版）",
+      "cvi": 3.5,
+      "cvg": 5.7,
+      "panel": "cbc",
+      "name_variants": [
+        "RDW",
+        "RDW-CV"
+      ],
+      "value_kind": "quantitative",
+      "derived_from": null,
+      "sex_specific": null,
+      "note": "",
+      "positive_rate": null,
+      "positive_values": null,
+      "categories": null,
+      "loinc": "30385-9",
+      "expect_resolvable": true
+    },
+    {
+      "key": "plt",
+      "zh": "血小板计数",
+      "en": "Platelet count",
+      "abbr": "PLT",
+      "unit": "10^9/L",
+      "decimals": 0,
+      "reference": [
+        "range",
+        125,
+        350
+      ],
+      "reference_source": "WS/T 405—2012（血细胞分析参考区间）",
+      "cvi": 9.1,
+      "cvg": 21.9,
+      "panel": "cbc",
+      "name_variants": [
+        "血小板",
+        "血小板總數",
+        "PLT"
+      ],
+      "value_kind": "quantitative",
+      "derived_from": null,
+      "sex_specific": null,
+      "note": "",
+      "positive_rate": null,
+      "positive_values": null,
+      "categories": null,
+      "loinc": "26515-7",
+      "expect_resolvable": true
+    },
+    {
+      "key": "mpv",
+      "zh": "平均血小板体积",
+      "en": "Mean platelet volume",
+      "abbr": "MPV",
+      "unit": "fL",
+      "decimals": 1,
+      "reference": [
+        "range",
+        7.6,
+        13.2
+      ],
+      "reference_source": "全国临床检验操作规程（第4版）",
+      "cvi": 4.3,
+      "cvg": 8.0,
+      "panel": "cbc",
+      "name_variants": [
+        "血小板平均体积",
+        "MPV"
+      ],
+      "value_kind": "quantitative",
+      "derived_from": null,
+      "sex_specific": null,
+      "note": "",
+      "positive_rate": null,
+      "positive_values": null,
+      "categories": null,
+      "loinc": "28542-9",
+      "expect_resolvable": true
+    },
+    {
+      "key": "pdw",
+      "zh": "血小板分布宽度",
+      "en": "Platelet distribution width",
+      "abbr": "PDW",
+      "unit": "fL",
+      "decimals": 1,
+      "reference": [
+        "range",
+        9.0,
+        17.0
+      ],
+      "reference_source": "全国临床检验操作规程（第4版）",
+      "cvi": null,
+      "cvg": null,
+      "panel": "cbc",
+      "name_variants": [
+        "PDW"
+      ],
+      "value_kind": "quantitative",
+      "derived_from": null,
+      "sex_specific": null,
+      "note": "",
+      "positive_rate": null,
+      "positive_values": null,
+      "categories": null,
+      "loinc": "32207-3",
+      "expect_resolvable": true
+    },
+    {
+      "key": "pct",
+      "zh": "血小板压积",
+      "en": "Plateletcrit",
+      "abbr": "PCT",
+      "unit": "%",
+      "decimals": 3,
+      "reference": [
+        "range",
+        0.108,
+        0.282
+      ],
+      "reference_source": "全国临床检验操作规程（第4版）",
+      "cvi": null,
+      "cvg": null,
+      "panel": "cbc",
+      "name_variants": [
+        "血小板比积",
+        "PCT"
+      ],
+      "value_kind": "quantitative",
+      "derived_from": null,
+      "sex_specific": null,
+      "note": "",
+      "positive_rate": null,
+      "positive_values": null,
+      "categories": null,
+      "loinc": "51637-7",
+      "expect_resolvable": true
+    },
+    {
+      "key": "neut_pct",
+      "zh": "中性粒细胞百分比",
+      "en": "Neutrophil percentage",
+      "abbr": "NEUT%",
+      "unit": "%",
+      "decimals": 1,
+      "reference": [
+        "range",
+        40,
+        75
+      ],
+      "reference_source": "WS/T 405—2012（血细胞分析参考区间）",
+      "cvi": 12.0,
+      "cvg": 20.0,
+      "panel": "cbc",
+      "name_variants": [
+        "中性粒细胞%",
+        "中性细胞比率",
+        "NEUT%",
+        "中性粒细胞比率"
+      ],
+      "value_kind": "quantitative",
+      "derived_from": null,
+      "sex_specific": null,
+      "note": "与『中性粒细胞绝对值』同名不同单位 → 不同 LOINC（26511-6 vs 26499-4）",
+      "positive_rate": null,
+      "positive_values": null,
+      "categories": null,
+      "loinc": "26511-6",
+      "expect_resolvable": true
+    },
+    {
+      "key": "lymph_pct",
+      "zh": "淋巴细胞百分比",
+      "en": "Lymphocyte percentage",
+      "abbr": "LYMPH%",
+      "unit": "%",
+      "decimals": 1,
+      "reference": [
+        "range",
+        20,
+        50
+      ],
+      "reference_source": "WS/T 405—2012（血细胞分析参考区间）",
+      "cvi": 10.9,
+      "cvg": 20.0,
+      "panel": "cbc",
+      "name_variants": [
+        "淋巴细胞%",
+        "淋巴细胞比率",
+        "LYM%"
+      ],
+      "value_kind": "quantitative",
+      "derived_from": null,
+      "sex_specific": null,
+      "note": "",
+      "positive_rate": null,
+      "positive_values": null,
+      "categories": null,
+      "loinc": "26478-8",
+      "expect_resolvable": true
+    },
+    {
+      "key": "mono_pct",
+      "zh": "单核细胞百分比",
+      "en": "Monocyte percentage",
+      "abbr": "MONO%",
+      "unit": "%",
+      "decimals": 1,
+      "reference": [
+        "range",
+        3,
+        10
+      ],
+      "reference_source": "WS/T 405—2012（血细胞分析参考区间）",
+      "cvi": 17.8,
+      "cvg": 27.0,
+      "panel": "cbc",
+      "name_variants": [
+        "单核细胞%",
+        "MONO%"
+      ],
+      "value_kind": "quantitative",
+      "derived_from": null,
+      "sex_specific": null,
+      "note": "",
+      "positive_rate": null,
+      "positive_values": null,
+      "categories": null,
+      "loinc": "26485-3",
+      "expect_resolvable": true
+    },
+    {
+      "key": "eos_pct",
+      "zh": "嗜酸性粒细胞百分比",
+      "en": "Eosinophil percentage",
+      "abbr": "EO%",
+      "unit": "%",
+      "decimals": 1,
+      "reference": [
+        "range",
+        0.4,
+        8.0
+      ],
+      "reference_source": "WS/T 405—2012（血细胞分析参考区间）",
+      "cvi": 21.0,
+      "cvg": 60.0,
+      "panel": "cbc",
+      "name_variants": [
+        "嗜酸性粒细胞%",
+        "EOS%"
+      ],
+      "value_kind": "quantitative",
+      "derived_from": null,
+      "sex_specific": null,
+      "note": "",
+      "positive_rate": null,
+      "positive_values": null,
+      "categories": null,
+      "loinc": "26450-7",
+      "expect_resolvable": true
+    },
+    {
+      "key": "baso_pct",
+      "zh": "嗜碱性粒细胞百分比",
+      "en": "Basophil percentage",
+      "abbr": "BASO%",
+      "unit": "%",
+      "decimals": 1,
+      "reference": [
+        "range",
+        0,
+        1
+      ],
+      "reference_source": "WS/T 405—2012（血细胞分析参考区间）",
+      "cvi": 25.0,
+      "cvg": 70.0,
+      "panel": "cbc",
+      "name_variants": [
+        "嗜碱性粒细胞%",
+        "BASO%"
+      ],
+      "value_kind": "quantitative",
+      "derived_from": null,
+      "sex_specific": null,
+      "note": "",
+      "positive_rate": null,
+      "positive_values": null,
+      "categories": null,
+      "loinc": "30180-4",
+      "expect_resolvable": true
+    },
+    {
+      "key": "neut_abs",
+      "zh": "中性粒细胞绝对值",
+      "en": "Neutrophil count",
+      "abbr": "NEUT#",
+      "unit": "10^9/L",
+      "decimals": 2,
+      "reference": [
+        "range",
+        1.8,
+        6.3
+      ],
+      "reference_source": "WS/T 405—2012（血细胞分析参考区间）",
+      "cvi": 16.0,
+      "cvg": 28.0,
+      "panel": "cbc",
+      "name_variants": [
+        "中性粒细胞#",
+        "中性粒细胞数",
+        "NEUT#"
+      ],
+      "value_kind": "quantitative",
+      "derived_from": "wbc * neut_pct/100",
+      "sex_specific": null,
+      "note": "",
+      "positive_rate": null,
+      "positive_values": null,
+      "categories": null,
+      "loinc": "26499-4",
+      "expect_resolvable": true
+    },
+    {
+      "key": "lymph_abs",
+      "zh": "淋巴细胞绝对值",
+      "en": "Lymphocyte count",
+      "abbr": "LYMPH#",
+      "unit": "10^9/L",
+      "decimals": 2,
+      "reference": [
+        "range",
+        1.1,
+        3.2
+      ],
+      "reference_source": "WS/T 405—2012（血细胞分析参考区间）",
+      "cvi": 10.4,
+      "cvg": 23.0,
+      "panel": "cbc",
+      "name_variants": [
+        "淋巴细胞#",
+        "淋巴细胞数",
+        "LYM#"
+      ],
+      "value_kind": "quantitative",
+      "derived_from": "wbc * lymph_pct/100",
+      "sex_specific": null,
+      "note": "",
+      "positive_rate": null,
+      "positive_values": null,
+      "categories": null,
+      "loinc": "26474-7",
+      "expect_resolvable": true
+    },
+    {
+      "key": "mono_abs",
+      "zh": "单核细胞绝对值",
+      "en": "Monocyte count",
+      "abbr": "MONO#",
+      "unit": "10^9/L",
+      "decimals": 2,
+      "reference": [
+        "range",
+        0.1,
+        0.6
+      ],
+      "reference_source": "WS/T 405—2012（血细胞分析参考区间）",
+      "cvi": 17.0,
+      "cvg": 26.0,
+      "panel": "cbc",
+      "name_variants": [
+        "单核细胞#",
+        "MONO#"
+      ],
+      "value_kind": "quantitative",
+      "derived_from": "wbc * mono_pct/100",
+      "sex_specific": null,
+      "note": "",
+      "positive_rate": null,
+      "positive_values": null,
+      "categories": null,
+      "loinc": "26484-6",
+      "expect_resolvable": true
+    },
+    {
+      "key": "eos_abs",
+      "zh": "嗜酸性粒细胞绝对值",
+      "en": "Eosinophil count",
+      "abbr": "EO#",
+      "unit": "10^9/L",
+      "decimals": 2,
+      "reference": [
+        "range",
+        0.02,
+        0.52
+      ],
+      "reference_source": "WS/T 405—2012（血细胞分析参考区间）",
+      "cvi": 21.0,
+      "cvg": 60.0,
+      "panel": "cbc",
+      "name_variants": [
+        "嗜酸性粒细胞#",
+        "EOS#"
+      ],
+      "value_kind": "quantitative",
+      "derived_from": "wbc * eos_pct/100",
+      "sex_specific": null,
+      "note": "",
+      "positive_rate": null,
+      "positive_values": null,
+      "categories": null,
+      "loinc": "26449-9",
+      "expect_resolvable": true
+    },
+    {
+      "key": "baso_abs",
+      "zh": "嗜碱性粒细胞绝对值",
+      "en": "Basophil count",
+      "abbr": "BASO#",
+      "unit": "10^9/L",
+      "decimals": 2,
+      "reference": [
+        "range",
+        0,
+        0.06
+      ],
+      "reference_source": "WS/T 405—2012（血细胞分析参考区间）",
+      "cvi": 25.0,
+      "cvg": 70.0,
+      "panel": "cbc",
+      "name_variants": [
+        "嗜碱性粒细胞#",
+        "BASO#"
+      ],
+      "value_kind": "quantitative",
+      "derived_from": "wbc * baso_pct/100",
+      "sex_specific": null,
+      "note": "",
+      "positive_rate": null,
+      "positive_values": null,
+      "categories": null,
+      "loinc": "26444-0",
+      "expect_resolvable": true
+    },
+    {
+      "key": "alt",
+      "zh": "丙氨酸氨基转移酶",
+      "en": "Alanine aminotransferase",
+      "abbr": "ALT",
+      "unit": "U/L",
+      "decimals": 0,
+      "reference": [
+        "range_sex",
+        [
+          9,
+          50
+        ],
+        [
+          7,
+          40
+        ]
+      ],
+      "reference_source": "WS/T 404（临床常用生化检验项目参考区间）",
+      "cvi": 19.4,
+      "cvg": 41.6,
+      "panel": "chemistry",
+      "name_variants": [
+        "谷丙转氨酶",
+        "穀丙轉氨酶",
+        "血清丙氨酸氨基转移酶",
+        "ALT",
+        "GPT",
+        "谷丙轉氨酶"
+      ],
+      "value_kind": "quantitative",
+      "derived_from": null,
+      "sex_specific": null,
+      "note": "",
+      "positive_rate": null,
+      "positive_values": null,
+      "categories": null,
+      "loinc": "1742-6",
+      "expect_resolvable": true
+    },
+    {
+      "key": "ast",
+      "zh": "天门冬氨酸氨基转移酶",
+      "en": "Aspartate aminotransferase",
+      "abbr": "AST",
+      "unit": "U/L",
+      "decimals": 0,
+      "reference": [
+        "range_sex",
+        [
+          15,
+          40
+        ],
+        [
+          13,
+          35
+        ]
+      ],
+      "reference_source": "WS/T 404（临床常用生化检验项目参考区间）",
+      "cvi": 12.3,
+      "cvg": 23.1,
+      "panel": "chemistry",
+      "name_variants": [
+        "谷草转氨酶",
+        "AST",
+        "GOT",
+        "天冬氨酸氨基转移酶",
+        "谷草轉氨酶"
+      ],
+      "value_kind": "quantitative",
+      "derived_from": null,
+      "sex_specific": null,
+      "note": "",
+      "positive_rate": null,
+      "positive_values": null,
+      "categories": null,
+      "loinc": "1920-8",
+      "expect_resolvable": true
+    },
+    {
+      "key": "alp",
+      "zh": "碱性磷酸酶",
+      "en": "Alkaline phosphatase",
+      "abbr": "ALP",
+      "unit": "U/L",
+      "decimals": 0,
+      "reference": [
+        "range_sex",
+        [
+          45,
+          125
+        ],
+        [
+          35,
+          100
+        ]
+      ],
+      "reference_source": "WS/T 404（临床常用生化检验项目参考区间）",
+      "cvi": 6.45,
+      "cvg": 26.1,
+      "panel": "chemistry",
+      "name_variants": [
+        "鹼性磷酸酶",
+        "ALP",
+        "AKP"
+      ],
+      "value_kind": "quantitative",
+      "derived_from": null,
+      "sex_specific": null,
+      "note": "",
+      "positive_rate": null,
+      "positive_values": null,
+      "categories": null,
+      "loinc": "6768-6",
+      "expect_resolvable": true
+    },
+    {
+      "key": "ggt",
+      "zh": "γ-谷氨酰基转移酶",
+      "en": "Gamma-glutamyl transferase",
+      "abbr": "GGT",
+      "unit": "U/L",
+      "decimals": 0,
+      "reference": [
+        "range_sex",
+        [
+          10,
+          60
+        ],
+        [
+          7,
+          45
+        ]
+      ],
+      "reference_source": "WS/T 404（临床常用生化检验项目参考区间）",
+      "cvi": 13.4,
+      "cvg": 42.15,
+      "panel": "chemistry",
+      "name_variants": [
+        "谷氨酰转肽酶",
+        "γ-谷氨酰转肽酶",
+        "GGT",
+        "γ-GT"
+      ],
+      "value_kind": "quantitative",
+      "derived_from": null,
+      "sex_specific": null,
+      "note": "",
+      "positive_rate": null,
+      "positive_values": null,
+      "categories": null,
+      "loinc": "2324-2",
+      "expect_resolvable": true
+    },
+    {
+      "key": "tp",
+      "zh": "总蛋白",
+      "en": "Total protein",
+      "abbr": "TP",
+      "unit": "g/L",
+      "decimals": 1,
+      "reference": [
+        "range",
+        65,
+        85
+      ],
+      "reference_source": "WS/T 404（临床常用生化检验项目参考区间）",
+      "cvi": 2.75,
+      "cvg": 4.7,
+      "panel": "chemistry",
+      "name_variants": [
+        "總蛋白",
+        "血清总蛋白",
+        "TP"
+      ],
+      "value_kind": "quantitative",
+      "derived_from": null,
+      "sex_specific": null,
+      "note": "",
+      "positive_rate": null,
+      "positive_values": null,
+      "categories": null,
+      "loinc": "2885-2",
+      "expect_resolvable": true
+    },
+    {
+      "key": "alb",
+      "zh": "白蛋白",
+      "en": "Albumin",
+      "abbr": "ALB",
+      "unit": "g/L",
+      "decimals": 1,
+      "reference": [
+        "range",
+        40,
+        55
+      ],
+      "reference_source": "WS/T 404（临床常用生化检验项目参考区间）",
+      "cvi": 3.2,
+      "cvg": 4.75,
+      "panel": "chemistry",
+      "name_variants": [
+        "白蛋白",
+        "ALB",
+        "Alb"
+      ],
+      "value_kind": "quantitative",
+      "derived_from": null,
+      "sex_specific": null,
+      "note": "",
+      "positive_rate": null,
+      "positive_values": null,
+      "categories": null,
+      "loinc": "1751-7",
+      "expect_resolvable": true
+    },
+    {
+      "key": "glb",
+      "zh": "球蛋白",
+      "en": "Globulin",
+      "abbr": "GLB",
+      "unit": "g/L",
+      "decimals": 1,
+      "reference": [
+        "range",
+        20,
+        40
+      ],
+      "reference_source": "由恒等式定义",
+      "cvi": null,
+      "cvg": null,
+      "panel": "chemistry",
+      "name_variants": [
+        "球蛋白",
+        "GLB"
+      ],
+      "value_kind": "quantitative",
+      "derived_from": "tp - alb",
+      "sex_specific": null,
+      "note": "",
+      "positive_rate": null,
+      "positive_values": null,
+      "categories": null,
+      "loinc": "14016-0",
+      "expect_resolvable": true
+    },
+    {
+      "key": "ag_ratio",
+      "zh": "白球比",
+      "en": "Albumin/globulin ratio",
+      "abbr": "A/G",
+      "unit": "",
+      "decimals": 2,
+      "reference": [
+        "range",
+        1.2,
+        2.4
+      ],
+      "reference_source": "由恒等式定义",
+      "cvi": null,
+      "cvg": null,
+      "panel": "chemistry",
+      "name_variants": [
+        "白球比值",
+        "A/G",
+        "白蛋白/球蛋白"
+      ],
+      "value_kind": "quantitative",
+      "derived_from": "alb / glb",
+      "sex_specific": null,
+      "note": "",
+      "positive_rate": null,
+      "positive_values": null,
+      "categories": null,
+      "loinc": "1759-0",
+      "expect_resolvable": true
+    },
+    {
+      "key": "tbil",
+      "zh": "总胆红素",
+      "en": "Total bilirubin",
+      "abbr": "TBIL",
+      "unit": "μmol/L",
+      "decimals": 1,
+      "reference": [
+        "range_sex",
+        [
+          0,
+          26.0
+        ],
+        [
+          0,
+          21.0
+        ]
+      ],
+      "reference_source": "WS/T 404（临床常用生化检验项目参考区间）",
+      "cvi": 21.8,
+      "cvg": 28.4,
+      "panel": "chemistry",
+      "name_variants": [
+        "總膽紅素",
+        "血清总胆红素",
+        "TBIL",
+        "T-BIL"
+      ],
+      "value_kind": "quantitative",
+      "derived_from": null,
+      "sex_specific": null,
+      "note": "WS/T 404.4—2018 表 1：男≤26.0、女≤21.0、不分性别≤23.0",
+      "positive_rate": null,
+      "positive_values": null,
+      "categories": null,
+      "loinc": "1975-2",
+      "expect_resolvable": true
+    },
+    {
+      "key": "dbil",
+      "zh": "直接胆红素",
+      "en": "Direct bilirubin",
+      "abbr": "DBIL",
+      "unit": "μmol/L",
+      "decimals": 1,
+      "reference": [
+        "upper",
+        8.0
+      ],
+      "reference_source": "WS/T 404（临床常用生化检验项目参考区间）",
+      "cvi": 36.8,
+      "cvg": 43.2,
+      "panel": "chemistry",
+      "name_variants": [
+        "结合胆红素",
+        "DBIL",
+        "D-BIL"
+      ],
+      "value_kind": "quantitative",
+      "derived_from": "tbil × 直接胆红素占比",
+      "sex_specific": null,
+      "note": "WS/T 404.4 按检测系统分层：罗氏≤8.0，贝克曼≤4.0",
+      "positive_rate": null,
+      "positive_values": null,
+      "categories": null,
+      "loinc": "1968-7",
+      "expect_resolvable": true
+    },
+    {
+      "key": "ibil",
+      "zh": "间接胆红素",
+      "en": "Indirect bilirubin",
+      "abbr": "IBIL",
+      "unit": "μmol/L",
+      "decimals": 1,
+      "reference": [
+        "range",
+        0,
+        18.0
+      ],
+      "reference_source": "由恒等式定义",
+      "cvi": null,
+      "cvg": null,
+      "panel": "chemistry",
+      "name_variants": [
+        "非结合胆红素",
+        "IBIL",
+        "I-BIL"
+      ],
+      "value_kind": "quantitative",
+      "derived_from": "tbil - dbil",
+      "sex_specific": null,
+      "note": "",
+      "positive_rate": null,
+      "positive_values": null,
+      "categories": null,
+      "loinc": "1971-1",
+      "expect_resolvable": true
+    },
+    {
+      "key": "tba",
+      "zh": "总胆汁酸",
+      "en": "Total bile acid",
+      "abbr": "TBA",
+      "unit": "μmol/L",
+      "decimals": 1,
+      "reference": [
+        "upper",
+        10.0
+      ],
+      "reference_source": "全国临床检验操作规程（第4版）",
+      "cvi": null,
+      "cvg": null,
+      "panel": "chemistry",
+      "name_variants": [
+        "胆汁酸",
+        "TBA"
+      ],
+      "value_kind": "quantitative",
+      "derived_from": null,
+      "sex_specific": null,
+      "note": "",
+      "positive_rate": null,
+      "positive_values": null,
+      "categories": null,
+      "loinc": "14628-2",
+      "expect_resolvable": true
+    },
+    {
+      "key": "urea",
+      "zh": "尿素",
+      "en": "Urea",
+      "abbr": "BUN",
+      "unit": "mmol/L",
+      "decimals": 2,
+      "reference": [
+        "range_sex",
+        [
+          3.1,
+          8.0
+        ],
+        [
+          2.6,
+          7.5
+        ]
+      ],
+      "reference_source": "WS/T 404（临床常用生化检验项目参考区间）",
+      "cvi": 12.1,
+      "cvg": 18.7,
+      "panel": "chemistry",
+      "name_variants": [
+        "血清尿素",
+        "尿素氮",
+        "BUN",
+        "Urea",
+        "尿素氮(BUN)"
+      ],
+      "value_kind": "quantitative",
+      "derived_from": null,
+      "sex_specific": null,
+      "note": "",
+      "positive_rate": null,
+      "positive_values": null,
+      "categories": null,
+      "loinc": "3094-0",
+      "expect_resolvable": true
+    },
+    {
+      "key": "crea",
+      "zh": "肌酐",
+      "en": "Creatinine",
+      "abbr": "CREA",
+      "unit": "μmol/L",
+      "decimals": 0,
+      "reference": [
+        "range_sex",
+        [
+          57,
+          97
+        ],
+        [
+          41,
+          73
+        ]
+      ],
+      "reference_source": "WS/T 404（临床常用生化检验项目参考区间）",
+      "cvi": 5.95,
+      "cvg": 14.7,
+      "panel": "chemistry",
+      "name_variants": [
+        "肌酸酐",
+        "血清肌酐",
+        "CREA",
+        "Cr",
+        "Scr"
+      ],
+      "value_kind": "quantitative",
+      "derived_from": null,
+      "sex_specific": null,
+      "note": "",
+      "positive_rate": null,
+      "positive_values": null,
+      "categories": null,
+      "loinc": "2160-0",
+      "expect_resolvable": true
+    },
+    {
+      "key": "ua",
+      "zh": "尿酸",
+      "en": "Uric acid",
+      "abbr": "UA",
+      "unit": "μmol/L",
+      "decimals": 0,
+      "reference": [
+        "range_sex",
+        [
+          208,
+          428
+        ],
+        [
+          155,
+          357
+        ]
+      ],
+      "reference_source": "WS/T 404（临床常用生化检验项目参考区间）",
+      "cvi": 8.6,
+      "cvg": 17.5,
+      "panel": "chemistry",
+      "name_variants": [
+        "血清尿酸",
+        "尿酸",
+        "UA",
+        "尿酸(UA)"
+      ],
+      "value_kind": "quantitative",
+      "derived_from": null,
+      "sex_specific": null,
+      "note": "",
+      "positive_rate": null,
+      "positive_values": null,
+      "categories": null,
+      "loinc": "3084-1",
+      "expect_resolvable": true
+    },
+    {
+      "key": "cysc",
+      "zh": "胱抑素C",
+      "en": "Cystatin C",
+      "abbr": "CysC",
+      "unit": "mg/L",
+      "decimals": 2,
+      "reference": [
+        "range",
+        0.59,
+        1.03
+      ],
+      "reference_source": "厂商试剂说明书区间（随检测系统而变，生成时按此口径印出）",
+      "cvi": null,
+      "cvg": null,
+      "panel": "chemistry",
+      "name_variants": [
+        "半胱氨酸蛋白酶抑制剂C"
+      ],
+      "value_kind": "quantitative",
+      "derived_from": null,
+      "sex_specific": null,
+      "note": "",
+      "positive_rate": null,
+      "positive_values": null,
+      "categories": null,
+      "loinc": "33863-2",
+      "expect_resolvable": true
+    },
+    {
+      "key": "egfr",
+      "zh": "估算肾小球滤过率",
+      "en": "Estimated GFR",
+      "abbr": "eGFR",
+      "unit": "mL/min/1.73m²",
+      "decimals": 0,
+      "reference": [
+        "lower",
+        90
+      ],
+      "reference_source": "由恒等式定义",
+      "cvi": null,
+      "cvg": null,
+      "panel": "chemistry",
+      "name_variants": [
+        "eGFR",
+        "肾小球滤过率估算值"
+      ],
+      "value_kind": "quantitative",
+      "derived_from": "CKD-EPI 2021(crea, age, sex)",
+      "sex_specific": null,
+      "note": "",
+      "positive_rate": null,
+      "positive_values": null,
+      "categories": null,
+      "loinc": "48642-3",
+      "expect_resolvable": true
+    },
+    {
+      "key": "glu",
+      "zh": "空腹血糖",
+      "en": "Fasting plasma glucose",
+      "abbr": "FPG",
+      "unit": "mmol/L",
+      "decimals": 2,
+      "reference": [
+        "range",
+        3.9,
+        6.1
+      ],
+      "reference_source": "中国2型糖尿病防治指南（2020年版）",
+      "cvi": 5.6,
+      "cvg": 7.5,
+      "panel": "glucose",
+      "name_variants": [
+        "葡萄糖",
+        "血糖",
+        "空腹葡萄糖",
+        "GLU",
+        "FBG",
+        "飯前血糖",
+        "血糖(空腹)",
+        "空腹血糖(HK)"
+      ],
+      "value_kind": "quantitative",
+      "derived_from": null,
+      "sex_specific": null,
+      "note": "",
+      "positive_rate": null,
+      "positive_values": null,
+      "categories": null,
+      "loinc": "1558-6",
+      "expect_resolvable": true
+    },
+    {
+      "key": "hba1c",
+      "zh": "糖化血红蛋白",
+      "en": "Glycated hemoglobin",
+      "abbr": "HbA1c",
+      "unit": "%",
+      "decimals": 1,
+      "reference": [
+        "range",
+        4.0,
+        6.0
+      ],
+      "reference_source": "中国2型糖尿病防治指南（2020年版）",
+      "cvi": 1.9,
+      "cvg": 5.7,
+      "panel": "glucose",
+      "name_variants": [
+        "糖化血色素",
+        "HbA1c",
+        "糖化血红蛋白A1c"
+      ],
+      "value_kind": "quantitative",
+      "derived_from": null,
+      "sex_specific": null,
+      "note": "",
+      "positive_rate": null,
+      "positive_values": null,
+      "categories": null,
+      "loinc": "4548-4",
+      "expect_resolvable": true
+    },
+    {
+      "key": "ga",
+      "zh": "糖化血清白蛋白",
+      "en": "Glycated albumin",
+      "abbr": "GA",
+      "unit": "%",
+      "decimals": 1,
+      "reference": [
+        "range",
+        11.0,
+        16.0
+      ],
+      "reference_source": "厂商试剂说明书区间（随检测系统而变，生成时按此口径印出）",
+      "cvi": null,
+      "cvg": null,
+      "panel": "glucose",
+      "name_variants": [
+        "糖化白蛋白",
+        "GA"
+      ],
+      "value_kind": "quantitative",
+      "derived_from": null,
+      "sex_specific": null,
+      "note": "",
+      "positive_rate": null,
+      "positive_values": null,
+      "categories": null,
+      "loinc": null,
+      "expect_resolvable": false
+    },
+    {
+      "key": "chol",
+      "zh": "总胆固醇",
+      "en": "Total cholesterol",
+      "abbr": "TC",
+      "unit": "mmol/L",
+      "decimals": 2,
+      "reference": [
+        "upper",
+        5.18
+      ],
+      "reference_source": "中国成人血脂异常防治指南（2016年修订版）",
+      "cvi": 5.95,
+      "cvg": 15.3,
+      "panel": "lipid",
+      "name_variants": [
+        "胆固醇",
+        "總膽固醇",
+        "血清总胆固醇",
+        "TC",
+        "CHOL",
+        "Cholesterol, Total"
+      ],
+      "value_kind": "quantitative",
+      "derived_from": null,
+      "sex_specific": null,
+      "note": "",
+      "positive_rate": null,
+      "positive_values": null,
+      "categories": null,
+      "loinc": "2093-3",
+      "expect_resolvable": true
+    },
+    {
+      "key": "tg",
+      "zh": "甘油三酯",
+      "en": "Triglycerides",
+      "abbr": "TG",
+      "unit": "mmol/L",
+      "decimals": 2,
+      "reference": [
+        "upper",
+        1.7
+      ],
+      "reference_source": "中国成人血脂异常防治指南（2016年修订版）",
+      "cvi": 19.9,
+      "cvg": 32.7,
+      "panel": "lipid",
+      "name_variants": [
+        "三酰甘油",
+        "甘油三脂",
+        "TG",
+        "Triglyceride",
+        "三酸甘油酯",
+        "三酸甘油脂"
+      ],
+      "value_kind": "quantitative",
+      "derived_from": null,
+      "sex_specific": null,
+      "note": "",
+      "positive_rate": null,
+      "positive_values": null,
+      "categories": null,
+      "loinc": "2571-8",
+      "expect_resolvable": true
+    },
+    {
+      "key": "hdl",
+      "zh": "高密度脂蛋白胆固醇",
+      "en": "HDL cholesterol",
+      "abbr": "HDL-C",
+      "unit": "mmol/L",
+      "decimals": 2,
+      "reference": [
+        "lower",
+        1.04
+      ],
+      "reference_source": "中国成人血脂异常防治指南（2016年修订版）",
+      "cvi": 7.3,
+      "cvg": 21.2,
+      "panel": "lipid",
+      "name_variants": [
+        "高密度脂蛋白",
+        "HDL-C",
+        "HDL Cholesterol",
+        "高密度膽固醇"
+      ],
+      "value_kind": "quantitative",
+      "derived_from": null,
+      "sex_specific": null,
+      "note": "",
+      "positive_rate": null,
+      "positive_values": null,
+      "categories": null,
+      "loinc": "2085-9",
+      "expect_resolvable": true
+    },
+    {
+      "key": "ldl",
+      "zh": "低密度脂蛋白胆固醇",
+      "en": "LDL cholesterol",
+      "abbr": "LDL-C",
+      "unit": "mmol/L",
+      "decimals": 2,
+      "reference": [
+        "upper",
+        3.37
+      ],
+      "reference_source": "中国成人血脂异常防治指南（2016年修订版）",
+      "cvi": 7.8,
+      "cvg": 20.4,
+      "panel": "lipid",
+      "name_variants": [
+        "低密度脂蛋白",
+        "LDL-C",
+        "LDL Cholesterol",
+        "低密度膽固醇"
+      ],
+      "value_kind": "quantitative",
+      "derived_from": "Friedewald: chol - hdl - tg/2.2",
+      "sex_specific": null,
+      "note": "",
+      "positive_rate": null,
+      "positive_values": null,
+      "categories": null,
+      "loinc": "13457-7",
+      "expect_resolvable": true
+    },
+    {
+      "key": "apoa1",
+      "zh": "载脂蛋白A1",
+      "en": "Apolipoprotein A1",
+      "abbr": "ApoA1",
+      "unit": "g/L",
+      "decimals": 2,
+      "reference": [
+        "range",
+        1.2,
+        1.6
+      ],
+      "reference_source": "中国成人血脂异常防治指南（2016年修订版）",
+      "cvi": 6.5,
+      "cvg": 13.4,
+      "panel": "lipid",
+      "name_variants": [
+        "APOA1",
+        "ApoA-I"
+      ],
+      "value_kind": "quantitative",
+      "derived_from": null,
+      "sex_specific": null,
+      "note": "",
+      "positive_rate": null,
+      "positive_values": null,
+      "categories": null,
+      "loinc": "1869-7",
+      "expect_resolvable": true
+    },
+    {
+      "key": "apob",
+      "zh": "载脂蛋白B",
+      "en": "Apolipoprotein B",
+      "abbr": "ApoB",
+      "unit": "g/L",
+      "decimals": 2,
+      "reference": [
+        "range",
+        0.6,
+        1.1
+      ],
+      "reference_source": "中国成人血脂异常防治指南（2016年修订版）",
+      "cvi": 6.9,
+      "cvg": 22.8,
+      "panel": "lipid",
+      "name_variants": [
+        "APOB",
+        "ApoB100"
+      ],
+      "value_kind": "quantitative",
+      "derived_from": null,
+      "sex_specific": null,
+      "note": "",
+      "positive_rate": null,
+      "positive_values": null,
+      "categories": null,
+      "loinc": "1884-6",
+      "expect_resolvable": true
+    },
+    {
+      "key": "lpa",
+      "zh": "脂蛋白(a)",
+      "en": "Lipoprotein(a)",
+      "abbr": "Lp(a)",
+      "unit": "mg/L",
+      "decimals": 0,
+      "reference": [
+        "upper",
+        300
+      ],
+      "reference_source": "中国成人血脂异常防治指南（2016年修订版）",
+      "cvi": 8.0,
+      "cvg": 85.0,
+      "panel": "lipid",
+      "name_variants": [
+        "脂蛋白a",
+        "LP(a)"
+      ],
+      "value_kind": "quantitative",
+      "derived_from": null,
+      "sex_specific": null,
+      "note": "",
+      "positive_rate": null,
+      "positive_values": null,
+      "categories": null,
+      "loinc": "2576-7",
+      "expect_resolvable": true
+    },
+    {
+      "key": "k",
+      "zh": "钾",
+      "en": "Potassium",
+      "abbr": "K",
+      "unit": "mmol/L",
+      "decimals": 2,
+      "reference": [
+        "range",
+        3.5,
+        5.3
+      ],
+      "reference_source": "WS/T 404（临床常用生化检验项目参考区间）",
+      "cvi": 4.6,
+      "cvg": 5.6,
+      "panel": "chemistry",
+      "name_variants": [
+        "血清钾",
+        "K+",
+        "钾离子"
+      ],
+      "value_kind": "quantitative",
+      "derived_from": null,
+      "sex_specific": null,
+      "note": "",
+      "positive_rate": null,
+      "positive_values": null,
+      "categories": null,
+      "loinc": "2823-3",
+      "expect_resolvable": true
+    },
+    {
+      "key": "na",
+      "zh": "钠",
+      "en": "Sodium",
+      "abbr": "Na",
+      "unit": "mmol/L",
+      "decimals": 1,
+      "reference": [
+        "range",
+        137,
+        147
+      ],
+      "reference_source": "WS/T 404（临床常用生化检验项目参考区间）",
+      "cvi": 0.6,
+      "cvg": 0.7,
+      "panel": "chemistry",
+      "name_variants": [
+        "血清钠",
+        "Na+",
+        "钠离子"
+      ],
+      "value_kind": "quantitative",
+      "derived_from": null,
+      "sex_specific": null,
+      "note": "",
+      "positive_rate": null,
+      "positive_values": null,
+      "categories": null,
+      "loinc": "2951-2",
+      "expect_resolvable": true
+    },
+    {
+      "key": "cl",
+      "zh": "氯",
+      "en": "Chloride",
+      "abbr": "Cl",
+      "unit": "mmol/L",
+      "decimals": 1,
+      "reference": [
+        "range",
+        99,
+        110
+      ],
+      "reference_source": "WS/T 404（临床常用生化检验项目参考区间）",
+      "cvi": 1.2,
+      "cvg": 1.5,
+      "panel": "chemistry",
+      "name_variants": [
+        "血清氯",
+        "Cl-",
+        "氯离子"
+      ],
+      "value_kind": "quantitative",
+      "derived_from": null,
+      "sex_specific": null,
+      "note": "",
+      "positive_rate": null,
+      "positive_values": null,
+      "categories": null,
+      "loinc": "2075-0",
+      "expect_resolvable": true
+    },
+    {
+      "key": "ca",
+      "zh": "钙",
+      "en": "Calcium",
+      "abbr": "Ca",
+      "unit": "mmol/L",
+      "decimals": 2,
+      "reference": [
+        "range",
+        2.11,
+        2.52
+      ],
+      "reference_source": "WS/T 404（临床常用生化检验项目参考区间）",
+      "cvi": 2.1,
+      "cvg": 2.5,
+      "panel": "chemistry",
+      "name_variants": [
+        "血清钙",
+        "总钙",
+        "Ca"
+      ],
+      "value_kind": "quantitative",
+      "derived_from": null,
+      "sex_specific": null,
+      "note": "",
+      "positive_rate": null,
+      "positive_values": null,
+      "categories": null,
+      "loinc": "17861-6",
+      "expect_resolvable": true
+    },
+    {
+      "key": "phos",
+      "zh": "无机磷",
+      "en": "Phosphorus",
+      "abbr": "P",
+      "unit": "mmol/L",
+      "decimals": 2,
+      "reference": [
+        "range",
+        0.85,
+        1.51
+      ],
+      "reference_source": "WS/T 404（临床常用生化检验项目参考区间）",
+      "cvi": 8.2,
+      "cvg": 9.4,
+      "panel": "chemistry",
+      "name_variants": [
+        "磷",
+        "血清磷"
+      ],
+      "value_kind": "quantitative",
+      "derived_from": null,
+      "sex_specific": null,
+      "note": "",
+      "positive_rate": null,
+      "positive_values": null,
+      "categories": null,
+      "loinc": "2777-1",
+      "expect_resolvable": true
+    },
+    {
+      "key": "mg",
+      "zh": "镁",
+      "en": "Magnesium",
+      "abbr": "Mg",
+      "unit": "mmol/L",
+      "decimals": 2,
+      "reference": [
+        "range",
+        0.75,
+        1.02
+      ],
+      "reference_source": "WS/T 404（临床常用生化检验项目参考区间）",
+      "cvi": 3.6,
+      "cvg": 6.4,
+      "panel": "chemistry",
+      "name_variants": [
+        "血清镁"
+      ],
+      "value_kind": "quantitative",
+      "derived_from": null,
+      "sex_specific": null,
+      "note": "",
+      "positive_rate": null,
+      "positive_values": null,
+      "categories": null,
+      "loinc": "19123-9",
+      "expect_resolvable": true
+    },
+    {
+      "key": "ldh",
+      "zh": "乳酸脱氢酶",
+      "en": "Lactate dehydrogenase",
+      "abbr": "LDH",
+      "unit": "U/L",
+      "decimals": 0,
+      "reference": [
+        "range",
+        120,
+        250
+      ],
+      "reference_source": "WS/T 404（临床常用生化检验项目参考区间）",
+      "cvi": 8.6,
+      "cvg": 14.7,
+      "panel": "chemistry",
+      "name_variants": [
+        "LDH",
+        "乳酸去氢酶"
+      ],
+      "value_kind": "quantitative",
+      "derived_from": null,
+      "sex_specific": null,
+      "note": "",
+      "positive_rate": null,
+      "positive_values": null,
+      "categories": null,
+      "loinc": "14804-9",
+      "expect_resolvable": true
+    },
+    {
+      "key": "ck",
+      "zh": "肌酸激酶",
+      "en": "Creatine kinase",
+      "abbr": "CK",
+      "unit": "U/L",
+      "decimals": 0,
+      "reference": [
+        "range_sex",
+        [
+          50,
+          310
+        ],
+        [
+          40,
+          200
+        ]
+      ],
+      "reference_source": "WS/T 404（临床常用生化检验项目参考区间）",
+      "cvi": 22.8,
+      "cvg": 40.0,
+      "panel": "chemistry",
+      "name_variants": [
+        "CK",
+        "肌酸磷酸激酶",
+        "CPK"
+      ],
+      "value_kind": "quantitative",
+      "derived_from": null,
+      "sex_specific": null,
+      "note": "",
+      "positive_rate": null,
+      "positive_values": null,
+      "categories": null,
+      "loinc": "2157-6",
+      "expect_resolvable": true
+    },
+    {
+      "key": "ckmb",
+      "zh": "肌酸激酶同工酶",
+      "en": "Creatine kinase MB",
+      "abbr": "CK-MB",
+      "unit": "U/L",
+      "decimals": 1,
+      "reference": [
+        "upper",
+        25
+      ],
+      "reference_source": "厂商试剂说明书区间（随检测系统而变，生成时按此口径印出）",
+      "cvi": null,
+      "cvg": null,
+      "panel": "chemistry",
+      "name_variants": [
+        "CK-MB",
+        "肌酸激酶同工酶MB"
+      ],
+      "value_kind": "quantitative",
+      "derived_from": null,
+      "sex_specific": null,
+      "note": "",
+      "positive_rate": null,
+      "positive_values": null,
+      "categories": null,
+      "loinc": "13969-1",
+      "expect_resolvable": true
+    },
+    {
+      "key": "tsh",
+      "zh": "促甲状腺激素",
+      "en": "Thyroid stimulating hormone",
+      "abbr": "TSH",
+      "unit": "mIU/L",
+      "decimals": 3,
+      "reference": [
+        "range",
+        0.27,
+        4.2
+      ],
+      "reference_source": "厂商试剂说明书区间（随检测系统而变，生成时按此口径印出）",
+      "cvi": 19.3,
+      "cvg": 24.6,
+      "panel": "thyroid",
+      "name_variants": [
+        "促甲状腺素",
+        "TSH",
+        "超敏促甲状腺激素"
+      ],
+      "value_kind": "quantitative",
+      "derived_from": null,
+      "sex_specific": null,
+      "note": "",
+      "positive_rate": null,
+      "positive_values": null,
+      "categories": null,
+      "loinc": "3016-3",
+      "expect_resolvable": true
+    },
+    {
+      "key": "ft3",
+      "zh": "游离三碘甲状腺原氨酸",
+      "en": "Free triiodothyronine",
+      "abbr": "FT3",
+      "unit": "pmol/L",
+      "decimals": 2,
+      "reference": [
+        "range",
+        3.1,
+        6.8
+      ],
+      "reference_source": "厂商试剂说明书区间（随检测系统而变，生成时按此口径印出）",
+      "cvi": 7.9,
+      "cvg": 17.6,
+      "panel": "thyroid",
+      "name_variants": [
+        "游离T3",
+        "FT3"
+      ],
+      "value_kind": "quantitative",
+      "derived_from": null,
+      "sex_specific": null,
+      "note": "",
+      "positive_rate": null,
+      "positive_values": null,
+      "categories": null,
+      "loinc": "3051-0",
+      "expect_resolvable": true
+    },
+    {
+      "key": "ft4",
+      "zh": "游离甲状腺素",
+      "en": "Free thyroxine",
+      "abbr": "FT4",
+      "unit": "pmol/L",
+      "decimals": 2,
+      "reference": [
+        "range",
+        12.0,
+        22.0
+      ],
+      "reference_source": "厂商试剂说明书区间（随检测系统而变，生成时按此口径印出）",
+      "cvi": 5.7,
+      "cvg": 12.1,
+      "panel": "thyroid",
+      "name_variants": [
+        "游离T4",
+        "FT4"
+      ],
+      "value_kind": "quantitative",
+      "derived_from": null,
+      "sex_specific": null,
+      "note": "",
+      "positive_rate": null,
+      "positive_values": null,
+      "categories": null,
+      "loinc": "3024-7",
+      "expect_resolvable": true
+    },
+    {
+      "key": "tt3",
+      "zh": "总三碘甲状腺原氨酸",
+      "en": "Total triiodothyronine",
+      "abbr": "TT3",
+      "unit": "nmol/L",
+      "decimals": 2,
+      "reference": [
+        "range",
+        1.3,
+        3.1
+      ],
+      "reference_source": "厂商试剂说明书区间（随检测系统而变，生成时按此口径印出）",
+      "cvi": 8.7,
+      "cvg": 17.6,
+      "panel": "thyroid",
+      "name_variants": [
+        "总T3",
+        "TT3"
+      ],
+      "value_kind": "quantitative",
+      "derived_from": null,
+      "sex_specific": null,
+      "note": "",
+      "positive_rate": null,
+      "positive_values": null,
+      "categories": null,
+      "loinc": "3053-6",
+      "expect_resolvable": true
+    },
+    {
+      "key": "tt4",
+      "zh": "总甲状腺素",
+      "en": "Total thyroxine",
+      "abbr": "TT4",
+      "unit": "nmol/L",
+      "decimals": 1,
+      "reference": [
+        "range",
+        66,
+        181
+      ],
+      "reference_source": "厂商试剂说明书区间（随检测系统而变，生成时按此口径印出）",
+      "cvi": 4.9,
+      "cvg": 10.9,
+      "panel": "thyroid",
+      "name_variants": [
+        "总T4",
+        "TT4"
+      ],
+      "value_kind": "quantitative",
+      "derived_from": null,
+      "sex_specific": null,
+      "note": "",
+      "positive_rate": null,
+      "positive_values": null,
+      "categories": null,
+      "loinc": "3026-2",
+      "expect_resolvable": true
+    },
+    {
+      "key": "tpoab",
+      "zh": "甲状腺过氧化物酶抗体",
+      "en": "Thyroid peroxidase antibody",
+      "abbr": "TPOAb",
+      "unit": "IU/mL",
+      "decimals": 1,
+      "reference": [
+        "upper",
+        34
+      ],
+      "reference_source": "厂商试剂说明书区间（随检测系统而变，生成时按此口径印出）",
+      "cvi": null,
+      "cvg": null,
+      "panel": "thyroid",
+      "name_variants": [
+        "抗TPO抗体",
+        "TPOAb"
+      ],
+      "value_kind": "quantitative",
+      "derived_from": null,
+      "sex_specific": null,
+      "note": "",
+      "positive_rate": null,
+      "positive_values": null,
+      "categories": null,
+      "loinc": "8099-4",
+      "expect_resolvable": true
+    },
+    {
+      "key": "crp",
+      "zh": "C反应蛋白",
+      "en": "C-reactive protein",
+      "abbr": "CRP",
+      "unit": "mg/L",
+      "decimals": 2,
+      "reference": [
+        "upper",
+        8.0
+      ],
+      "reference_source": "全国临床检验操作规程（第4版）",
+      "cvi": 42.2,
+      "cvg": 76.3,
+      "panel": "inflammation",
+      "name_variants": [
+        "CRP",
+        "C-反应蛋白"
+      ],
+      "value_kind": "quantitative",
+      "derived_from": null,
+      "sex_specific": null,
+      "note": "",
+      "positive_rate": null,
+      "positive_values": null,
+      "categories": null,
+      "loinc": "14634-0",
+      "expect_resolvable": true
+    },
+    {
+      "key": "hscrp",
+      "zh": "超敏C反应蛋白",
+      "en": "High-sensitivity CRP",
+      "abbr": "hs-CRP",
+      "unit": "mg/L",
+      "decimals": 2,
+      "reference": [
+        "upper",
+        3.0
+      ],
+      "reference_source": "全国临床检验操作规程（第4版）",
+      "cvi": 42.2,
+      "cvg": 76.3,
+      "panel": "inflammation",
+      "name_variants": [
+        "hsCRP",
+        "超敏C-反应蛋白"
+      ],
+      "value_kind": "quantitative",
+      "derived_from": null,
+      "sex_specific": null,
+      "note": "",
+      "positive_rate": null,
+      "positive_values": null,
+      "categories": null,
+      "loinc": "30522-7",
+      "expect_resolvable": true
+    },
+    {
+      "key": "esr",
+      "zh": "红细胞沉降率",
+      "en": "Erythrocyte sedimentation rate",
+      "abbr": "ESR",
+      "unit": "mm/h",
+      "decimals": 0,
+      "reference": [
+        "range_sex",
+        [
+          0,
+          15
+        ],
+        [
+          0,
+          20
+        ]
+      ],
+      "reference_source": "全国临床检验操作规程（第4版）",
+      "cvi": null,
+      "cvg": null,
+      "panel": "inflammation",
+      "name_variants": [
+        "血沉",
+        "血沉速率",
+        "ESR"
+      ],
+      "value_kind": "quantitative",
+      "derived_from": null,
+      "sex_specific": null,
+      "note": "",
+      "positive_rate": null,
+      "positive_values": null,
+      "categories": null,
+      "loinc": "30341-2",
+      "expect_resolvable": true
+    },
+    {
+      "key": "hcy",
+      "zh": "同型半胱氨酸",
+      "en": "Homocysteine",
+      "abbr": "Hcy",
+      "unit": "μmol/L",
+      "decimals": 1,
+      "reference": [
+        "upper",
+        15.0
+      ],
+      "reference_source": "厂商试剂说明书区间（随检测系统而变，生成时按此口径印出）",
+      "cvi": 8.4,
+      "cvg": 25.0,
+      "panel": "chemistry",
+      "name_variants": [
+        "Hcy",
+        "血浆同型半胱氨酸"
+      ],
+      "value_kind": "quantitative",
+      "derived_from": null,
+      "sex_specific": null,
+      "note": "",
+      "positive_rate": null,
+      "positive_values": null,
+      "categories": null,
+      "loinc": "13965-9",
+      "expect_resolvable": true
+    },
+    {
+      "key": "vitd",
+      "zh": "25-羟基维生素D",
+      "en": "25-hydroxyvitamin D",
+      "abbr": "25(OH)D",
+      "unit": "ng/mL",
+      "decimals": 1,
+      "reference": [
+        "range",
+        30,
+        100
+      ],
+      "reference_source": "厂商试剂说明书区间（随检测系统而变，生成时按此口径印出）",
+      "cvi": 12.1,
+      "cvg": 25.0,
+      "panel": "vitamin",
+      "name_variants": [
+        "维生素D",
+        "25-OH-VD",
+        "25羟基维生素D"
+      ],
+      "value_kind": "quantitative",
+      "derived_from": null,
+      "sex_specific": null,
+      "note": "实测 mirobody 解析不出这个名字——刻意留作考弃权的素材",
+      "positive_rate": null,
+      "positive_values": null,
+      "categories": null,
+      "loinc": null,
+      "expect_resolvable": false
+    },
+    {
+      "key": "ferritin",
+      "zh": "铁蛋白",
+      "en": "Ferritin",
+      "abbr": "FER",
+      "unit": "ng/mL",
+      "decimals": 1,
+      "reference": [
+        "range_sex",
+        [
+          30,
+          400
+        ],
+        [
+          13,
+          150
+        ]
+      ],
+      "reference_source": "厂商试剂说明书区间（随检测系统而变，生成时按此口径印出）",
+      "cvi": 14.2,
+      "cvg": 15.0,
+      "panel": "anemia",
+      "name_variants": [
+        "血清铁蛋白",
+        "Ferritin"
+      ],
+      "value_kind": "quantitative",
+      "derived_from": null,
+      "sex_specific": null,
+      "note": "",
+      "positive_rate": null,
+      "positive_values": null,
+      "categories": null,
+      "loinc": "20567-4",
+      "expect_resolvable": true
+    },
+    {
+      "key": "serum_iron",
+      "zh": "血清铁",
+      "en": "Serum iron",
+      "abbr": "Fe",
+      "unit": "μmol/L",
+      "decimals": 1,
+      "reference": [
+        "range_sex",
+        [
+          11.6,
+          31.3
+        ],
+        [
+          9.0,
+          30.4
+        ]
+      ],
+      "reference_source": "全国临床检验操作规程（第4版）",
+      "cvi": 26.5,
+      "cvg": 23.2,
+      "panel": "anemia",
+      "name_variants": [
+        "铁",
+        "血清铁"
+      ],
+      "value_kind": "quantitative",
+      "derived_from": null,
+      "sex_specific": null,
+      "note": "",
+      "positive_rate": null,
+      "positive_values": null,
+      "categories": null,
+      "loinc": "2498-4",
+      "expect_resolvable": true
+    },
+    {
+      "key": "b12",
+      "zh": "维生素B12",
+      "en": "Vitamin B12",
+      "abbr": "VB12",
+      "unit": "pmol/L",
+      "decimals": 0,
+      "reference": [
+        "range",
+        145,
+        569
+      ],
+      "reference_source": "厂商试剂说明书区间（随检测系统而变，生成时按此口径印出）",
+      "cvi": 14.5,
+      "cvg": 32.0,
+      "panel": "anemia",
+      "name_variants": [
+        "VitB12",
+        "钴胺素"
+      ],
+      "value_kind": "quantitative",
+      "derived_from": null,
+      "sex_specific": null,
+      "note": "",
+      "positive_rate": null,
+      "positive_values": null,
+      "categories": null,
+      "loinc": "2132-9",
+      "expect_resolvable": true
+    },
+    {
+      "key": "folate",
+      "zh": "叶酸",
+      "en": "Folate",
+      "abbr": "FA",
+      "unit": "nmol/L",
+      "decimals": 1,
+      "reference": [
+        "range",
+        7.0,
+        46.4
+      ],
+      "reference_source": "厂商试剂说明书区间（随检测系统而变，生成时按此口径印出）",
+      "cvi": 24.0,
+      "cvg": 37.0,
+      "panel": "anemia",
+      "name_variants": [
+        "血清叶酸"
+      ],
+      "value_kind": "quantitative",
+      "derived_from": null,
+      "sex_specific": null,
+      "note": "",
+      "positive_rate": null,
+      "positive_values": null,
+      "categories": null,
+      "loinc": "2284-8",
+      "expect_resolvable": true
+    },
+    {
+      "key": "afp",
+      "zh": "甲胎蛋白",
+      "en": "Alpha-fetoprotein",
+      "abbr": "AFP",
+      "unit": "ng/mL",
+      "decimals": 2,
+      "reference": [
+        "upper",
+        7.0
+      ],
+      "reference_source": "厂商试剂说明书区间（随检测系统而变，生成时按此口径印出）",
+      "cvi": null,
+      "cvg": null,
+      "panel": "tumor",
+      "name_variants": [
+        "AFP"
+      ],
+      "value_kind": "quantitative",
+      "derived_from": null,
+      "sex_specific": null,
+      "note": "",
+      "positive_rate": null,
+      "positive_values": null,
+      "categories": null,
+      "loinc": "1834-1",
+      "expect_resolvable": true
+    },
+    {
+      "key": "cea",
+      "zh": "癌胚抗原",
+      "en": "Carcinoembryonic antigen",
+      "abbr": "CEA",
+      "unit": "ng/mL",
+      "decimals": 2,
+      "reference": [
+        "upper",
+        5.0
+      ],
+      "reference_source": "厂商试剂说明书区间（随检测系统而变，生成时按此口径印出）",
+      "cvi": null,
+      "cvg": null,
+      "panel": "tumor",
+      "name_variants": [
+        "CEA"
+      ],
+      "value_kind": "quantitative",
+      "derived_from": null,
+      "sex_specific": null,
+      "note": "实测 mirobody 解析不出——留作考弃权的素材",
+      "positive_rate": null,
+      "positive_values": null,
+      "categories": null,
+      "loinc": null,
+      "expect_resolvable": false
+    },
+    {
+      "key": "psa",
+      "zh": "前列腺特异性抗原",
+      "en": "Prostate specific antigen",
+      "abbr": "PSA",
+      "unit": "ng/mL",
+      "decimals": 2,
+      "reference": [
+        "upper",
+        4.0
+      ],
+      "reference_source": "厂商试剂说明书区间（随检测系统而变，生成时按此口径印出）",
+      "cvi": null,
+      "cvg": null,
+      "panel": "tumor",
+      "name_variants": [
+        "总PSA",
+        "tPSA"
+      ],
+      "value_kind": "quantitative",
+      "derived_from": null,
+      "sex_specific": "male",
+      "note": "",
+      "positive_rate": null,
+      "positive_values": null,
+      "categories": null,
+      "loinc": "15324-7",
+      "expect_resolvable": true
+    },
+    {
+      "key": "ca125",
+      "zh": "糖类抗原125",
+      "en": "Cancer antigen 125",
+      "abbr": "CA125",
+      "unit": "U/mL",
+      "decimals": 1,
+      "reference": [
+        "upper",
+        35.0
+      ],
+      "reference_source": "厂商试剂说明书区间（随检测系统而变，生成时按此口径印出）",
+      "cvi": null,
+      "cvg": null,
+      "panel": "tumor",
+      "name_variants": [
+        "CA-125"
+      ],
+      "value_kind": "quantitative",
+      "derived_from": null,
+      "sex_specific": "female",
+      "note": "",
+      "positive_rate": null,
+      "positive_values": null,
+      "categories": null,
+      "loinc": "10334-1",
+      "expect_resolvable": true
+    },
+    {
+      "key": "urine_sg",
+      "zh": "尿比重",
+      "en": "Urine specific gravity",
+      "abbr": "SG",
+      "unit": "",
+      "decimals": 3,
+      "reference": [
+        "range",
+        1.003,
+        1.03
+      ],
+      "reference_source": "全国临床检验操作规程（第4版）",
+      "cvi": null,
+      "cvg": null,
+      "panel": "urinalysis",
+      "name_variants": [
+        "比重",
+        "SG"
+      ],
+      "value_kind": "quantitative",
+      "derived_from": null,
+      "sex_specific": null,
+      "note": "",
+      "positive_rate": null,
+      "positive_values": null,
+      "categories": null,
+      "loinc": "2965-2",
+      "expect_resolvable": true
+    },
+    {
+      "key": "urine_ph",
+      "zh": "尿酸碱度",
+      "en": "Urine pH",
+      "abbr": "pH",
+      "unit": "",
+      "decimals": 1,
+      "reference": [
+        "range",
+        4.5,
+        8.0
+      ],
+      "reference_source": "全国临床检验操作规程（第4版）",
+      "cvi": null,
+      "cvg": null,
+      "panel": "urinalysis",
+      "name_variants": [
+        "酸碱度",
+        "尿PH",
+        "pH"
+      ],
+      "value_kind": "quantitative",
+      "derived_from": null,
+      "sex_specific": null,
+      "note": "",
+      "positive_rate": null,
+      "positive_values": null,
+      "categories": null,
+      "loinc": "2756-5",
+      "expect_resolvable": true
+    },
+    {
+      "key": "urine_pro",
+      "zh": "尿蛋白",
+      "en": "Urine protein",
+      "abbr": "PRO",
+      "unit": "",
+      "decimals": 0,
+      "reference": [
+        "qualitative",
+        "阴性"
+      ],
+      "reference_source": "全国临床检验操作规程（第4版）",
+      "cvi": null,
+      "cvg": null,
+      "panel": "urinalysis",
+      "name_variants": [
+        "蛋白质",
+        "尿蛋白定性",
+        "PRO"
+      ],
+      "value_kind": "qualitative",
+      "derived_from": null,
+      "sex_specific": null,
+      "note": "",
+      "positive_rate": null,
+      "positive_values": null,
+      "categories": null,
+      "loinc": "2887-8",
+      "expect_resolvable": true
+    },
+    {
+      "key": "urine_glu",
+      "zh": "尿葡萄糖",
+      "en": "Urine glucose",
+      "abbr": "GLU",
+      "unit": "",
+      "decimals": 0,
+      "reference": [
+        "qualitative",
+        "阴性"
+      ],
+      "reference_source": "全国临床检验操作规程（第4版）",
+      "cvi": null,
+      "cvg": null,
+      "panel": "urinalysis",
+      "name_variants": [
+        "尿糖",
+        "葡萄糖(尿)",
+        "U-GLU"
+      ],
+      "value_kind": "qualitative",
+      "derived_from": null,
+      "sex_specific": null,
+      "note": "实测 mirobody 解析不出『尿葡萄糖』——留作考弃权的素材",
+      "positive_rate": null,
+      "positive_values": null,
+      "categories": null,
+      "loinc": null,
+      "expect_resolvable": false
+    },
+    {
+      "key": "urine_bld",
+      "zh": "尿潜血",
+      "en": "Urine occult blood",
+      "abbr": "BLD",
+      "unit": "",
+      "decimals": 0,
+      "reference": [
+        "qualitative",
+        "阴性"
+      ],
+      "reference_source": "全国临床检验操作规程（第4版）",
+      "cvi": null,
+      "cvg": null,
+      "panel": "urinalysis",
+      "name_variants": [
+        "隐血",
+        "潜血",
+        "BLD"
+      ],
+      "value_kind": "qualitative",
+      "derived_from": null,
+      "sex_specific": null,
+      "note": "",
+      "positive_rate": null,
+      "positive_values": null,
+      "categories": null,
+      "loinc": null,
+      "expect_resolvable": false
+    },
+    {
+      "key": "urine_ket",
+      "zh": "尿酮体",
+      "en": "Urine ketone",
+      "abbr": "KET",
+      "unit": "",
+      "decimals": 0,
+      "reference": [
+        "qualitative",
+        "阴性"
+      ],
+      "reference_source": "全国临床检验操作规程（第4版）",
+      "cvi": null,
+      "cvg": null,
+      "panel": "urinalysis",
+      "name_variants": [
+        "酮体",
+        "KET"
+      ],
+      "value_kind": "qualitative",
+      "derived_from": null,
+      "sex_specific": null,
+      "note": "",
+      "positive_rate": null,
+      "positive_values": null,
+      "categories": null,
+      "loinc": "49779-2",
+      "expect_resolvable": true
+    },
+    {
+      "key": "urine_nit",
+      "zh": "亚硝酸盐",
+      "en": "Nitrite",
+      "abbr": "NIT",
+      "unit": "",
+      "decimals": 0,
+      "reference": [
+        "qualitative",
+        "阴性"
+      ],
+      "reference_source": "全国临床检验操作规程（第4版）",
+      "cvi": null,
+      "cvg": null,
+      "panel": "urinalysis",
+      "name_variants": [
+        "尿亚硝酸盐",
+        "NIT"
+      ],
+      "value_kind": "qualitative",
+      "derived_from": null,
+      "sex_specific": null,
+      "note": "",
+      "positive_rate": null,
+      "positive_values": null,
+      "categories": null,
+      "loinc": "32710-6",
+      "expect_resolvable": true
+    },
+    {
+      "key": "urine_rbc",
+      "zh": "镜检红细胞",
+      "en": "Urine RBC (microscopy)",
+      "abbr": "U-RBC",
+      "unit": "/HP",
+      "decimals": 1,
+      "reference": [
+        "range",
+        0,
+        3
+      ],
+      "reference_source": "全国临床检验操作规程（第4版）",
+      "cvi": null,
+      "cvg": null,
+      "panel": "urinalysis",
+      "name_variants": [
+        "尿红细胞",
+        "红细胞(镜检)"
+      ],
+      "value_kind": "quantitative",
+      "derived_from": null,
+      "sex_specific": null,
+      "note": "",
+      "positive_rate": null,
+      "positive_values": null,
+      "categories": null,
+      "loinc": null,
+      "expect_resolvable": false
+    },
+    {
+      "key": "urine_wbc",
+      "zh": "镜检白细胞",
+      "en": "Urine WBC (microscopy)",
+      "abbr": "U-WBC",
+      "unit": "/HP",
+      "decimals": 1,
+      "reference": [
+        "range",
+        0,
+        5
+      ],
+      "reference_source": "全国临床检验操作规程（第4版）",
+      "cvi": null,
+      "cvg": null,
+      "panel": "urinalysis",
+      "name_variants": [
+        "尿白细胞",
+        "白细胞(镜检)"
+      ],
+      "value_kind": "quantitative",
+      "derived_from": null,
+      "sex_specific": null,
+      "note": "",
+      "positive_rate": null,
+      "positive_values": null,
+      "categories": null,
+      "loinc": null,
+      "expect_resolvable": false
+    },
+    {
+      "key": "pr_interval",
+      "zh": "PR间期",
+      "en": "PR interval",
+      "abbr": "PR",
+      "unit": "ms",
+      "decimals": 0,
+      "reference": [
+        "range",
+        120,
+        200
+      ],
+      "reference_source": "临床心电图学通用正常值",
+      "cvi": null,
+      "cvg": null,
+      "panel": "ecg",
+      "name_variants": [
+        "P-R间期"
+      ],
+      "value_kind": "quantitative",
+      "derived_from": null,
+      "sex_specific": null,
+      "note": "",
+      "positive_rate": null,
+      "positive_values": null,
+      "categories": null,
+      "loinc": "8625-6",
+      "expect_resolvable": true
+    },
+    {
+      "key": "qrs_duration",
+      "zh": "QRS时限",
+      "en": "QRS duration",
+      "abbr": "QRS",
+      "unit": "ms",
+      "decimals": 0,
+      "reference": [
+        "range",
+        60,
+        110
+      ],
+      "reference_source": "临床心电图学通用正常值",
+      "cvi": null,
+      "cvg": null,
+      "panel": "ecg",
+      "name_variants": [
+        "QRS波时限"
+      ],
+      "value_kind": "quantitative",
+      "derived_from": null,
+      "sex_specific": null,
+      "note": "",
+      "positive_rate": null,
+      "positive_values": null,
+      "categories": null,
+      "loinc": null,
+      "expect_resolvable": false
+    },
+    {
+      "key": "qtc",
+      "zh": "QTc间期",
+      "en": "QTc interval",
+      "abbr": "QTc",
+      "unit": "ms",
+      "decimals": 0,
+      "reference": [
+        "range",
+        350,
+        440
+      ],
+      "reference_source": "临床心电图学通用正常值",
+      "cvi": null,
+      "cvg": null,
+      "panel": "ecg",
+      "name_variants": [
+        "QTC间期",
+        "校正QT间期"
+      ],
+      "value_kind": "quantitative",
+      "derived_from": null,
+      "sex_specific": null,
+      "note": "",
+      "positive_rate": null,
+      "positive_values": null,
+      "categories": null,
+      "loinc": "8636-3",
+      "expect_resolvable": true
+    },
+    {
+      "key": "qrs_axis",
+      "zh": "QRS电轴",
+      "en": "QRS axis",
+      "abbr": "",
+      "unit": "°",
+      "decimals": 0,
+      "reference": [
+        "range",
+        -30,
+        90
+      ],
+      "reference_source": "临床心电图学通用正常值",
+      "cvi": null,
+      "cvg": null,
+      "panel": "ecg",
+      "name_variants": [
+        "心电轴"
+      ],
+      "value_kind": "quantitative",
+      "derived_from": null,
+      "sex_specific": null,
+      "note": "",
+      "positive_rate": null,
+      "positive_values": null,
+      "categories": null,
+      "loinc": "8632-2",
+      "expect_resolvable": true
+    },
+    {
+      "key": "spo2",
+      "zh": "血氧饱和度",
+      "en": "Oxygen saturation",
+      "abbr": "SpO2",
+      "unit": "%",
+      "decimals": 0,
+      "reference": [
+        "range",
+        95,
+        100
+      ],
+      "reference_source": "WHO《Pulse Oximetry Training Manual》：健康成人静息 SpO₂ 95%–100%",
+      "cvi": 0.5,
+      "cvg": 0.5,
+      "panel": "vitals",
+      "name_variants": [
+        "血氧",
+        "SpO₂",
+        "指脉氧"
+      ],
+      "value_kind": "quantitative",
+      "derived_from": null,
+      "sex_specific": null,
+      "note": "",
+      "positive_rate": null,
+      "positive_values": null,
+      "categories": null,
+      "loinc": "20564-1",
+      "expect_resolvable": true
+    },
+    {
+      "key": "hbsag",
+      "zh": "乙肝表面抗原",
+      "en": "Hepatitis B surface antigen",
+      "abbr": "HBsAg",
+      "unit": "",
+      "decimals": 0,
+      "reference": [
+        "qualitative",
+        "阴性"
+      ],
+      "reference_source": "全国临床检验操作规程（第4版）",
+      "cvi": null,
+      "cvg": null,
+      "panel": "hepatitis",
+      "name_variants": [
+        "HBsAg",
+        "乙型肝炎表面抗原",
+        "乙型肝炎表面抗原(HK)"
+      ],
+      "value_kind": "qualitative",
+      "derived_from": null,
+      "sex_specific": null,
+      "note": "",
+      "positive_rate": 0.06,
+      "positive_values": [
+        [
+          "阳性",
+          1
+        ]
+      ],
+      "categories": null,
+      "loinc": "5196-1",
+      "expect_resolvable": true
+    },
+    {
+      "key": "hbsab",
+      "zh": "乙肝表面抗体",
+      "en": "Hepatitis B surface antibody",
+      "abbr": "HBsAb",
+      "unit": "",
+      "decimals": 0,
+      "reference": [
+        "qualitative",
+        "阴性"
+      ],
+      "reference_source": "全国临床检验操作规程（第4版）",
+      "cvi": null,
+      "cvg": null,
+      "panel": "hepatitis",
+      "name_variants": [
+        "Anti-HBs",
+        "乙型肝炎表面抗體"
+      ],
+      "value_kind": "qualitative",
+      "derived_from": null,
+      "sex_specific": null,
+      "note": "接种过疫苗的人为阳性，阳性不是异常",
+      "positive_rate": 0.55,
+      "positive_values": [
+        [
+          "阳性",
+          1
+        ]
+      ],
+      "categories": null,
+      "loinc": "5193-8",
+      "expect_resolvable": true
+    },
+    {
+      "key": "hbeag",
+      "zh": "乙肝e抗原",
+      "en": "Hepatitis B e antigen",
+      "abbr": "HBeAg",
+      "unit": "",
+      "decimals": 0,
+      "reference": [
+        "qualitative",
+        "阴性"
+      ],
+      "reference_source": "全国临床检验操作规程（第4版）",
+      "cvi": null,
+      "cvg": null,
+      "panel": "hepatitis",
+      "name_variants": [
+        "HBeAg"
+      ],
+      "value_kind": "qualitative",
+      "derived_from": null,
+      "sex_specific": null,
+      "note": "",
+      "positive_rate": 0.02,
+      "positive_values": [
+        [
+          "阳性",
+          1
+        ]
+      ],
+      "categories": null,
+      "loinc": "13954-3",
+      "expect_resolvable": true
+    },
+    {
+      "key": "hbeab",
+      "zh": "乙肝e抗体",
+      "en": "Hepatitis B e antibody",
+      "abbr": "HBeAb",
+      "unit": "",
+      "decimals": 0,
+      "reference": [
+        "qualitative",
+        "阴性"
+      ],
+      "reference_source": "全国临床检验操作规程（第4版）",
+      "cvi": null,
+      "cvg": null,
+      "panel": "hepatitis",
+      "name_variants": [
+        "Anti-HBe"
+      ],
+      "value_kind": "qualitative",
+      "derived_from": null,
+      "sex_specific": null,
+      "note": "",
+      "positive_rate": 0.05,
+      "positive_values": [
+        [
+          "阳性",
+          1
+        ]
+      ],
+      "categories": null,
+      "loinc": "13953-5",
+      "expect_resolvable": true
+    },
+    {
+      "key": "hbcab",
+      "zh": "乙肝核心抗体",
+      "en": "Hepatitis B core antibody",
+      "abbr": "HBcAb",
+      "unit": "",
+      "decimals": 0,
+      "reference": [
+        "qualitative",
+        "阴性"
+      ],
+      "reference_source": "全国临床检验操作规程（第4版）",
+      "cvi": null,
+      "cvg": null,
+      "panel": "hepatitis",
+      "name_variants": [
+        "Anti-HBc"
+      ],
+      "value_kind": "qualitative",
+      "derived_from": null,
+      "sex_specific": null,
+      "note": "",
+      "positive_rate": 0.08,
+      "positive_values": [
+        [
+          "阳性",
+          1
+        ]
+      ],
+      "categories": null,
+      "loinc": "13952-7",
+      "expect_resolvable": true
+    },
+    {
+      "key": "hcvab",
+      "zh": "丙肝抗体",
+      "en": "Hepatitis C antibody",
+      "abbr": "HCV-Ab",
+      "unit": "",
+      "decimals": 0,
+      "reference": [
+        "qualitative",
+        "阴性"
+      ],
+      "reference_source": "全国临床检验操作规程（第4版）",
+      "cvi": null,
+      "cvg": null,
+      "panel": "hepatitis",
+      "name_variants": [
+        "Anti-HCV",
+        "丙型肝炎抗體"
+      ],
+      "value_kind": "qualitative",
+      "derived_from": null,
+      "sex_specific": null,
+      "note": "",
+      "positive_rate": 0.005,
+      "positive_values": [
+        [
+          "阳性",
+          1
+        ]
+      ],
+      "categories": null,
+      "loinc": "13955-0",
+      "expect_resolvable": true
+    },
+    {
+      "key": "ca199",
+      "zh": "糖类抗原19-9",
+      "en": "Cancer antigen 19-9",
+      "abbr": "CA19-9",
+      "unit": "U/mL",
+      "decimals": 2,
+      "reference": [
+        "upper",
+        37.0
+      ],
+      "reference_source": "厂商试剂说明书区间（随检测系统而变，生成时按此口径印出）",
+      "cvi": 16.0,
+      "cvg": 102.0,
+      "panel": "tumor",
+      "name_variants": [
+        "CA199",
+        "CA 19-9",
+        "糖類抗原19-9"
+      ],
+      "value_kind": "quantitative",
+      "derived_from": null,
+      "sex_specific": null,
+      "note": "",
+      "positive_rate": null,
+      "positive_values": null,
+      "categories": null,
+      "loinc": "24108-3",
+      "expect_resolvable": true
+    },
+    {
+      "key": "ca153",
+      "zh": "糖类抗原15-3",
+      "en": "Cancer antigen 15-3",
+      "abbr": "CA15-3",
+      "unit": "U/mL",
+      "decimals": 2,
+      "reference": [
+        "upper",
+        25.0
+      ],
+      "reference_source": "厂商试剂说明书区间（随检测系统而变，生成时按此口径印出）",
+      "cvi": 6.2,
+      "cvg": 62.9,
+      "panel": "tumor",
+      "name_variants": [
+        "CA153",
+        "CA 15-3"
+      ],
+      "value_kind": "quantitative",
+      "derived_from": null,
+      "sex_specific": "female",
+      "note": "",
+      "positive_rate": null,
+      "positive_values": null,
+      "categories": null,
+      "loinc": "6875-9",
+      "expect_resolvable": true
+    },
+    {
+      "key": "ca724",
+      "zh": "糖类抗原72-4",
+      "en": "Cancer antigen 72-4",
+      "abbr": "CA72-4",
+      "unit": "U/mL",
+      "decimals": 2,
+      "reference": [
+        "upper",
+        6.9
+      ],
+      "reference_source": "厂商试剂说明书区间（随检测系统而变，生成时按此口径印出）",
+      "cvi": 20.0,
+      "cvg": null,
+      "panel": "tumor",
+      "name_variants": [
+        "CA724"
+      ],
+      "value_kind": "quantitative",
+      "derived_from": null,
+      "sex_specific": null,
+      "note": "",
+      "positive_rate": null,
+      "positive_values": null,
+      "categories": null,
+      "loinc": "17843-4",
+      "expect_resolvable": true
+    },
+    {
+      "key": "cyfra211",
+      "zh": "细胞角蛋白19片段",
+      "en": "Cytokeratin 19 fragment",
+      "abbr": "CYFRA21-1",
+      "unit": "ng/mL",
+      "decimals": 2,
+      "reference": [
+        "upper",
+        3.3
+      ],
+      "reference_source": "厂商试剂说明书区间（随检测系统而变，生成时按此口径印出）",
+      "cvi": 10.0,
+      "cvg": null,
+      "panel": "tumor",
+      "name_variants": [
+        "CYFRA 21-1",
+        "非小细胞肺癌相关抗原"
+      ],
+      "value_kind": "quantitative",
+      "derived_from": null,
+      "sex_specific": null,
+      "note": "",
+      "positive_rate": null,
+      "positive_values": null,
+      "categories": null,
+      "loinc": null,
+      "expect_resolvable": false
+    },
+    {
+      "key": "nse",
+      "zh": "神经元特异性烯醇化酶",
+      "en": "Neuron-specific enolase",
+      "abbr": "NSE",
+      "unit": "ng/mL",
+      "decimals": 2,
+      "reference": [
+        "upper",
+        16.3
+      ],
+      "reference_source": "厂商试剂说明书区间（随检测系统而变，生成时按此口径印出）",
+      "cvi": 10.0,
+      "cvg": null,
+      "panel": "tumor",
+      "name_variants": [
+        "NSE"
+      ],
+      "value_kind": "quantitative",
+      "derived_from": null,
+      "sex_specific": null,
+      "note": "",
+      "positive_rate": null,
+      "positive_values": null,
+      "categories": null,
+      "loinc": null,
+      "expect_resolvable": false
+    },
+    {
+      "key": "scc",
+      "zh": "鳞状细胞癌抗原",
+      "en": "Squamous cell carcinoma antigen",
+      "abbr": "SCC",
+      "unit": "ng/mL",
+      "decimals": 2,
+      "reference": [
+        "upper",
+        1.5
+      ],
+      "reference_source": "厂商试剂说明书区间（随检测系统而变，生成时按此口径印出）",
+      "cvi": 12.0,
+      "cvg": null,
+      "panel": "tumor",
+      "name_variants": [
+        "SCC-Ag",
+        "鳞状上皮细胞癌抗原"
+      ],
+      "value_kind": "quantitative",
+      "derived_from": null,
+      "sex_specific": null,
+      "note": "",
+      "positive_rate": null,
+      "positive_values": null,
+      "categories": null,
+      "loinc": null,
+      "expect_resolvable": false
+    },
+    {
+      "key": "fpsa",
+      "zh": "游离前列腺特异性抗原",
+      "en": "Free PSA",
+      "abbr": "fPSA",
+      "unit": "ng/mL",
+      "decimals": 3,
+      "reference": [
+        "upper",
+        1.0
+      ],
+      "reference_source": "厂商试剂说明书区间（随检测系统而变，生成时按此口径印出）",
+      "cvi": null,
+      "cvg": null,
+      "panel": "tumor",
+      "name_variants": [
+        "f-PSA",
+        "游离PSA"
+      ],
+      "value_kind": "quantitative",
+      "derived_from": "psa × 个体游离比例（0.08–0.45）",
+      "sex_specific": "male",
+      "note": "",
+      "positive_rate": null,
+      "positive_values": null,
+      "categories": null,
+      "loinc": "10886-0",
+      "expect_resolvable": true
+    },
+    {
+      "key": "fpsa_ratio",
+      "zh": "游离PSA/总PSA比值",
+      "en": "Free/total PSA ratio",
+      "abbr": "f/tPSA",
+      "unit": "",
+      "decimals": 2,
+      "reference": [
+        "lower",
+        0.16
+      ],
+      "reference_source": "由恒等式定义",
+      "cvi": null,
+      "cvg": null,
+      "panel": "tumor",
+      "name_variants": [
+        "fPSA/tPSA",
+        "F/T"
+      ],
+      "value_kind": "quantitative",
+      "derived_from": "fpsa / psa",
+      "sex_specific": "male",
+      "note": "",
+      "positive_rate": null,
+      "positive_values": null,
+      "categories": null,
+      "loinc": null,
+      "expect_resolvable": false
+    },
+    {
+      "key": "pg1",
+      "zh": "胃蛋白酶原Ⅰ",
+      "en": "Pepsinogen I",
+      "abbr": "PGⅠ",
+      "unit": "ng/mL",
+      "decimals": 1,
+      "reference": [
+        "lower",
+        70.0
+      ],
+      "reference_source": "厂商试剂说明书区间（随检测系统而变，生成时按此口径印出）",
+      "cvi": 8.0,
+      "cvg": 30.0,
+      "panel": "tumor",
+      "name_variants": [
+        "PGI",
+        "胃蛋白酶原I"
+      ],
+      "value_kind": "quantitative",
+      "derived_from": null,
+      "sex_specific": null,
+      "note": "",
+      "positive_rate": null,
+      "positive_values": null,
+      "categories": null,
+      "loinc": "2736-7",
+      "expect_resolvable": true
+    },
+    {
+      "key": "pg2",
+      "zh": "胃蛋白酶原Ⅱ",
+      "en": "Pepsinogen II",
+      "abbr": "PGⅡ",
+      "unit": "ng/mL",
+      "decimals": 1,
+      "reference": [
+        "upper",
+        20.0
+      ],
+      "reference_source": "厂商试剂说明书区间（随检测系统而变，生成时按此口径印出）",
+      "cvi": 9.0,
+      "cvg": 35.0,
+      "panel": "tumor",
+      "name_variants": [
+        "PGII",
+        "胃蛋白酶原II"
+      ],
+      "value_kind": "quantitative",
+      "derived_from": null,
+      "sex_specific": null,
+      "note": "",
+      "positive_rate": null,
+      "positive_values": null,
+      "categories": null,
+      "loinc": "2738-3",
+      "expect_resolvable": true
+    },
+    {
+      "key": "pgr",
+      "zh": "胃蛋白酶原比值",
+      "en": "Pepsinogen I/II ratio",
+      "abbr": "PGR",
+      "unit": "",
+      "decimals": 2,
+      "reference": [
+        "lower",
+        3.0
+      ],
+      "reference_source": "由恒等式定义",
+      "cvi": null,
+      "cvg": null,
+      "panel": "tumor",
+      "name_variants": [
+        "PGⅠ/PGⅡ",
+        "PGI/PGII"
+      ],
+      "value_kind": "quantitative",
+      "derived_from": "pg1 / pg2",
+      "sex_specific": null,
+      "note": "",
+      "positive_rate": null,
+      "positive_values": null,
+      "categories": null,
+      "loinc": null,
+      "expect_resolvable": false
+    },
+    {
+      "key": "pt",
+      "zh": "凝血酶原时间",
+      "en": "Prothrombin time",
+      "abbr": "PT",
+      "unit": "s",
+      "decimals": 1,
+      "reference": [
+        "range",
+        11.0,
+        14.0
+      ],
+      "reference_source": "全国临床检验操作规程（第4版）",
+      "cvi": 2.4,
+      "cvg": 6.8,
+      "panel": "coagulation",
+      "name_variants": [
+        "PT",
+        "血浆凝血酶原时间"
+      ],
+      "value_kind": "quantitative",
+      "derived_from": null,
+      "sex_specific": null,
+      "note": "",
+      "positive_rate": null,
+      "positive_values": null,
+      "categories": null,
+      "loinc": "5902-2",
+      "expect_resolvable": true
+    },
+    {
+      "key": "inr",
+      "zh": "国际标准化比值",
+      "en": "International normalised ratio",
+      "abbr": "INR",
+      "unit": "",
+      "decimals": 2,
+      "reference": [
+        "range",
+        0.8,
+        1.2
+      ],
+      "reference_source": "全国临床检验操作规程（第4版）",
+      "cvi": 2.4,
+      "cvg": 6.8,
+      "panel": "coagulation",
+      "name_variants": [
+        "INR",
+        "PT-INR"
+      ],
+      "value_kind": "quantitative",
+      "derived_from": null,
+      "sex_specific": null,
+      "note": "",
+      "positive_rate": null,
+      "positive_values": null,
+      "categories": null,
+      "loinc": "34714-6",
+      "expect_resolvable": true
+    },
+    {
+      "key": "aptt",
+      "zh": "活化部分凝血活酶时间",
+      "en": "Activated partial thromboplastin time",
+      "abbr": "APTT",
+      "unit": "s",
+      "decimals": 1,
+      "reference": [
+        "range",
+        25.0,
+        37.0
+      ],
+      "reference_source": "全国临床检验操作规程（第4版）",
+      "cvi": 2.7,
+      "cvg": 8.6,
+      "panel": "coagulation",
+      "name_variants": [
+        "APTT",
+        "部分凝血活酶时间"
+      ],
+      "value_kind": "quantitative",
+      "derived_from": null,
+      "sex_specific": null,
+      "note": "",
+      "positive_rate": null,
+      "positive_values": null,
+      "categories": null,
+      "loinc": "3173-2",
+      "expect_resolvable": true
+    },
+    {
+      "key": "tt",
+      "zh": "凝血酶时间",
+      "en": "Thrombin time",
+      "abbr": "TT",
+      "unit": "s",
+      "decimals": 1,
+      "reference": [
+        "range",
+        14.0,
+        21.0
+      ],
+      "reference_source": "全国临床检验操作规程（第4版）",
+      "cvi": 3.0,
+      "cvg": 8.0,
+      "panel": "coagulation",
+      "name_variants": [
+        "TT"
+      ],
+      "value_kind": "quantitative",
+      "derived_from": null,
+      "sex_specific": null,
+      "note": "",
+      "positive_rate": null,
+      "positive_values": null,
+      "categories": null,
+      "loinc": "21032-8",
+      "expect_resolvable": true
+    },
+    {
+      "key": "fib",
+      "zh": "纤维蛋白原",
+      "en": "Fibrinogen",
+      "abbr": "FIB",
+      "unit": "g/L",
+      "decimals": 2,
+      "reference": [
+        "range",
+        2.0,
+        4.0
+      ],
+      "reference_source": "全国临床检验操作规程（第4版）",
+      "cvi": 10.7,
+      "cvg": 15.8,
+      "panel": "coagulation",
+      "name_variants": [
+        "FIB",
+        "Fbg",
+        "纤维蛋白原含量"
+      ],
+      "value_kind": "quantitative",
+      "derived_from": null,
+      "sex_specific": null,
+      "note": "",
+      "positive_rate": null,
+      "positive_values": null,
+      "categories": null,
+      "loinc": "97016-0",
+      "expect_resolvable": true
+    },
+    {
+      "key": "ddimer",
+      "zh": "D-二聚体",
+      "en": "D-dimer",
+      "abbr": "D-D",
+      "unit": "mg/L FEU",
+      "decimals": 2,
+      "reference": [
+        "upper",
+        0.5
+      ],
+      "reference_source": "厂商试剂说明书区间（随检测系统而变，生成时按此口径印出）",
+      "cvi": 23.0,
+      "cvg": 28.0,
+      "panel": "coagulation",
+      "name_variants": [
+        "D-Dimer",
+        "DD",
+        "D二聚体"
+      ],
+      "value_kind": "quantitative",
+      "derived_from": null,
+      "sex_specific": null,
+      "note": "",
+      "positive_rate": null,
+      "positive_values": null,
+      "categories": null,
+      "loinc": "71427-9",
+      "expect_resolvable": true
+    },
+    {
+      "key": "abo",
+      "zh": "ABO血型",
+      "en": "ABO blood group",
+      "abbr": "ABO",
+      "unit": "",
+      "decimals": 0,
+      "reference": null,
+      "reference_source": "全国临床检验操作规程（第4版）",
+      "cvi": null,
+      "cvg": null,
+      "panel": "blood_type",
+      "name_variants": [
+        "血型",
+        "ABO"
+      ],
+      "value_kind": "categorical",
+      "derived_from": null,
+      "sex_specific": null,
+      "note": "",
+      "positive_rate": null,
+      "positive_values": null,
+      "categories": [
+        [
+          "A",
+          28
+        ],
+        [
+          "B",
+          24
+        ],
+        [
+          "O",
+          41
+        ],
+        [
+          "AB",
+          7
+        ]
+      ],
+      "loinc": "883-9",
+      "expect_resolvable": true
+    },
+    {
+      "key": "rh",
+      "zh": "Rh(D)血型",
+      "en": "Rh(D) type",
+      "abbr": "Rh",
+      "unit": "",
+      "decimals": 0,
+      "reference": null,
+      "reference_source": "全国临床检验操作规程（第4版）",
+      "cvi": null,
+      "cvg": null,
+      "panel": "blood_type",
+      "name_variants": [
+        "RhD",
+        "Rh血型"
+      ],
+      "value_kind": "categorical",
+      "derived_from": null,
+      "sex_specific": null,
+      "note": "",
+      "positive_rate": null,
+      "positive_values": null,
+      "categories": [
+        [
+          "阳性",
+          99
+        ],
+        [
+          "阴性",
+          1
+        ]
+      ],
+      "loinc": null,
+      "expect_resolvable": false
+    },
+    {
+      "key": "umalb",
+      "zh": "尿微量白蛋白",
+      "en": "Urine microalbumin",
+      "abbr": "mALB",
+      "unit": "mg/L",
+      "decimals": 1,
+      "reference": [
+        "upper",
+        20.0
+      ],
+      "reference_source": "KDIGO 2012 慢性肾脏病评估与管理指南（UACR < 30 mg/g）",
+      "cvi": 36.0,
+      "cvg": 55.0,
+      "panel": "renal_early",
+      "name_variants": [
+        "尿微量清蛋白",
+        "U-mALB"
+      ],
+      "value_kind": "quantitative",
+      "derived_from": null,
+      "sex_specific": null,
+      "note": "",
+      "positive_rate": null,
+      "positive_values": null,
+      "categories": null,
+      "loinc": "14957-5",
+      "expect_resolvable": true
+    },
+    {
+      "key": "uacr",
+      "zh": "尿白蛋白/肌酐比值",
+      "en": "Urine albumin/creatinine ratio",
+      "abbr": "UACR",
+      "unit": "mg/g",
+      "decimals": 1,
+      "reference": [
+        "upper",
+        30.0
+      ],
+      "reference_source": "KDIGO 2012 慢性肾脏病评估与管理指南（UACR < 30 mg/g）",
+      "cvi": 30.0,
+      "cvg": 50.0,
+      "panel": "renal_early",
+      "name_variants": [
+        "ACR",
+        "尿微量白蛋白肌酐比"
+      ],
+      "value_kind": "quantitative",
+      "derived_from": null,
+      "sex_specific": null,
+      "note": "",
+      "positive_rate": null,
+      "positive_values": null,
+      "categories": null,
+      "loinc": null,
+      "expect_resolvable": false
+    },
+    {
+      "key": "b2mg",
+      "zh": "β2-微球蛋白",
+      "en": "Beta-2 microglobulin",
+      "abbr": "β2-MG",
+      "unit": "mg/L",
+      "decimals": 2,
+      "reference": [
+        "range",
+        1.0,
+        3.0
+      ],
+      "reference_source": "厂商试剂说明书区间（随检测系统而变，生成时按此口径印出）",
+      "cvi": 5.9,
+      "cvg": 15.0,
+      "panel": "renal_early",
+      "name_variants": [
+        "β2微球蛋白",
+        "B2-MG"
+      ],
+      "value_kind": "quantitative",
+      "derived_from": null,
+      "sex_specific": null,
+      "note": "",
+      "positive_rate": null,
+      "positive_values": null,
+      "categories": null,
+      "loinc": "1952-1",
+      "expect_resolvable": true
+    },
+    {
+      "key": "hstni",
+      "zh": "超敏肌钙蛋白I",
+      "en": "High-sensitivity troponin I",
+      "abbr": "hs-cTnI",
+      "unit": "ng/L",
+      "decimals": 1,
+      "reference": [
+        "upper",
+        26.2
+      ],
+      "reference_source": "厂商试剂说明书区间（随检测系统而变，生成时按此口径印出）",
+      "cvi": 9.7,
+      "cvg": 57.0,
+      "panel": "cardiac",
+      "name_variants": [
+        "hs-TnI",
+        "肌钙蛋白I"
+      ],
+      "value_kind": "quantitative",
+      "derived_from": null,
+      "sex_specific": null,
+      "note": "",
+      "positive_rate": null,
+      "positive_values": null,
+      "categories": null,
+      "loinc": null,
+      "expect_resolvable": false
+    },
+    {
+      "key": "ntprobnp",
+      "zh": "N末端脑钠肽前体",
+      "en": "NT-proBNP",
+      "abbr": "NT-proBNP",
+      "unit": "pg/mL",
+      "decimals": 0,
+      "reference": [
+        "upper",
+        125.0
+      ],
+      "reference_source": "厂商试剂说明书区间（随检测系统而变，生成时按此口径印出）",
+      "cvi": 30.0,
+      "cvg": 40.0,
+      "panel": "cardiac",
+      "name_variants": [
+        "NT-proBNP",
+        "氨基末端B型利钠肽原"
+      ],
+      "value_kind": "quantitative",
+      "derived_from": null,
+      "sex_specific": null,
+      "note": "",
+      "positive_rate": null,
+      "positive_values": null,
+      "categories": null,
+      "loinc": null,
+      "expect_resolvable": false
+    },
+    {
+      "key": "insulin",
+      "zh": "空腹胰岛素",
+      "en": "Fasting insulin",
+      "abbr": "INS",
+      "unit": "μIU/mL",
+      "decimals": 2,
+      "reference": [
+        "range",
+        2.6,
+        24.9
+      ],
+      "reference_source": "厂商试剂说明书区间（随检测系统而变，生成时按此口径印出）",
+      "cvi": 21.0,
+      "cvg": 58.0,
+      "panel": "glucose",
+      "name_variants": [
+        "胰岛素",
+        "FINS"
+      ],
+      "value_kind": "quantitative",
+      "derived_from": null,
+      "sex_specific": null,
+      "note": "",
+      "positive_rate": null,
+      "positive_values": null,
+      "categories": null,
+      "loinc": null,
+      "expect_resolvable": false
+    },
+    {
+      "key": "cpep",
+      "zh": "C肽",
+      "en": "C-peptide",
+      "abbr": "C-P",
+      "unit": "ng/mL",
+      "decimals": 2,
+      "reference": [
+        "range",
+        1.1,
+        4.4
+      ],
+      "reference_source": "厂商试剂说明书区间（随检测系统而变，生成时按此口径印出）",
+      "cvi": 9.3,
+      "cvg": 30.0,
+      "panel": "glucose",
+      "name_variants": [
+        "C-肽",
+        "空腹C肽"
+      ],
+      "value_kind": "quantitative",
+      "derived_from": null,
+      "sex_specific": null,
+      "note": "",
+      "positive_rate": null,
+      "positive_values": null,
+      "categories": null,
+      "loinc": "1986-9",
+      "expect_resolvable": true
+    },
+    {
+      "key": "ogtt2h",
+      "zh": "餐后2小时血糖",
+      "en": "2-hour post-load glucose",
+      "abbr": "2hPG",
+      "unit": "mmol/L",
+      "decimals": 2,
+      "reference": [
+        "upper",
+        7.8
+      ],
+      "reference_source": "中国2型糖尿病防治指南（2020年版）",
+      "cvi": null,
+      "cvg": null,
+      "panel": "glucose",
+      "name_variants": [
+        "OGTT 2h",
+        "糖负荷后2小时血糖",
+        "餐后两小时血糖"
+      ],
+      "value_kind": "quantitative",
+      "derived_from": "glu × 个体餐后系数（1.05–1.9）",
+      "sex_specific": null,
+      "note": "",
+      "positive_rate": null,
+      "positive_values": null,
+      "categories": null,
+      "loinc": "1521-4",
+      "expect_resolvable": true
+    },
+    {
+      "key": "tgab",
+      "zh": "甲状腺球蛋白抗体",
+      "en": "Thyroglobulin antibody",
+      "abbr": "TgAb",
+      "unit": "IU/mL",
+      "decimals": 1,
+      "reference": [
+        "upper",
+        115.0
+      ],
+      "reference_source": "厂商试剂说明书区间（随检测系统而变，生成时按此口径印出）",
+      "cvi": 12.0,
+      "cvg": 60.0,
+      "panel": "thyroid",
+      "name_variants": [
+        "TGAb",
+        "抗甲状腺球蛋白抗体"
+      ],
+      "value_kind": "quantitative",
+      "derived_from": null,
+      "sex_specific": null,
+      "note": "",
+      "positive_rate": null,
+      "positive_values": null,
+      "categories": null,
+      "loinc": "8098-6",
+      "expect_resolvable": true
+    },
+    {
+      "key": "tg_protein",
+      "zh": "甲状腺球蛋白",
+      "en": "Thyroglobulin",
+      "abbr": "Tg",
+      "unit": "ng/mL",
+      "decimals": 2,
+      "reference": [
+        "range",
+        3.5,
+        77.0
+      ],
+      "reference_source": "厂商试剂说明书区间（随检测系统而变，生成时按此口径印出）",
+      "cvi": 8.0,
+      "cvg": 40.0,
+      "panel": "thyroid",
+      "name_variants": [
+        "TG",
+        "甲状腺球蛋白(Tg)"
+      ],
+      "value_kind": "quantitative",
+      "derived_from": null,
+      "sex_specific": null,
+      "note": "",
+      "positive_rate": null,
+      "positive_values": null,
+      "categories": null,
+      "loinc": "3013-0",
+      "expect_resolvable": true
+    },
+    {
+      "key": "rf",
+      "zh": "类风湿因子",
+      "en": "Rheumatoid factor",
+      "abbr": "RF",
+      "unit": "IU/mL",
+      "decimals": 1,
+      "reference": [
+        "upper",
+        20.0
+      ],
+      "reference_source": "厂商试剂说明书区间（随检测系统而变，生成时按此口径印出）",
+      "cvi": 8.5,
+      "cvg": 40.0,
+      "panel": "immune",
+      "name_variants": [
+        "RF",
+        "類風濕因子"
+      ],
+      "value_kind": "quantitative",
+      "derived_from": null,
+      "sex_specific": null,
+      "note": "",
+      "positive_rate": null,
+      "positive_values": null,
+      "categories": null,
+      "loinc": "11572-5",
+      "expect_resolvable": true
+    },
+    {
+      "key": "aso",
+      "zh": "抗链球菌溶血素O",
+      "en": "Antistreptolysin O",
+      "abbr": "ASO",
+      "unit": "IU/mL",
+      "decimals": 0,
+      "reference": [
+        "upper",
+        200.0
+      ],
+      "reference_source": "厂商试剂说明书区间（随检测系统而变，生成时按此口径印出）",
+      "cvi": 10.0,
+      "cvg": 40.0,
+      "panel": "immune",
+      "name_variants": [
+        "ASO",
+        "抗O"
+      ],
+      "value_kind": "quantitative",
+      "derived_from": null,
+      "sex_specific": null,
+      "note": "",
+      "positive_rate": null,
+      "positive_values": null,
+      "categories": null,
+      "loinc": null,
+      "expect_resolvable": false
+    },
+    {
+      "key": "ccp",
+      "zh": "抗环瓜氨酸肽抗体",
+      "en": "Anti-CCP antibody",
+      "abbr": "抗CCP",
+      "unit": "U/mL",
+      "decimals": 1,
+      "reference": [
+        "upper",
+        25.0
+      ],
+      "reference_source": "厂商试剂说明书区间（随检测系统而变，生成时按此口径印出）",
+      "cvi": 10.0,
+      "cvg": 40.0,
+      "panel": "immune",
+      "name_variants": [
+        "Anti-CCP",
+        "抗CCP抗体"
+      ],
+      "value_kind": "quantitative",
+      "derived_from": null,
+      "sex_specific": null,
+      "note": "",
+      "positive_rate": null,
+      "positive_values": null,
+      "categories": null,
+      "loinc": "33935-8",
+      "expect_resolvable": true
+    },
+    {
+      "key": "igg",
+      "zh": "免疫球蛋白G",
+      "en": "Immunoglobulin G",
+      "abbr": "IgG",
+      "unit": "g/L",
+      "decimals": 2,
+      "reference": [
+        "range",
+        7.0,
+        16.0
+      ],
+      "reference_source": "全国临床检验操作规程（第4版）",
+      "cvi": 4.5,
+      "cvg": 16.5,
+      "panel": "immune",
+      "name_variants": [
+        "IgG"
+      ],
+      "value_kind": "quantitative",
+      "derived_from": null,
+      "sex_specific": null,
+      "note": "",
+      "positive_rate": null,
+      "positive_values": null,
+      "categories": null,
+      "loinc": null,
+      "expect_resolvable": false
+    },
+    {
+      "key": "iga",
+      "zh": "免疫球蛋白A",
+      "en": "Immunoglobulin A",
+      "abbr": "IgA",
+      "unit": "g/L",
+      "decimals": 2,
+      "reference": [
+        "range",
+        0.7,
+        4.0
+      ],
+      "reference_source": "全国临床检验操作规程（第4版）",
+      "cvi": 5.4,
+      "cvg": 36.0,
+      "panel": "immune",
+      "name_variants": [
+        "IgA"
+      ],
+      "value_kind": "quantitative",
+      "derived_from": null,
+      "sex_specific": null,
+      "note": "",
+      "positive_rate": null,
+      "positive_values": null,
+      "categories": null,
+      "loinc": null,
+      "expect_resolvable": false
+    },
+    {
+      "key": "igm",
+      "zh": "免疫球蛋白M",
+      "en": "Immunoglobulin M",
+      "abbr": "IgM",
+      "unit": "g/L",
+      "decimals": 2,
+      "reference": [
+        "range",
+        0.4,
+        2.3
+      ],
+      "reference_source": "全国临床检验操作规程（第4版）",
+      "cvi": 5.9,
+      "cvg": 47.0,
+      "panel": "immune",
+      "name_variants": [
+        "IgM"
+      ],
+      "value_kind": "quantitative",
+      "derived_from": null,
+      "sex_specific": null,
+      "note": "",
+      "positive_rate": null,
+      "positive_values": null,
+      "categories": null,
+      "loinc": null,
+      "expect_resolvable": false
+    },
+    {
+      "key": "c3",
+      "zh": "补体C3",
+      "en": "Complement C3",
+      "abbr": "C3",
+      "unit": "g/L",
+      "decimals": 2,
+      "reference": [
+        "range",
+        0.9,
+        1.8
+      ],
+      "reference_source": "全国临床检验操作规程（第4版）",
+      "cvi": 5.2,
+      "cvg": 15.0,
+      "panel": "immune",
+      "name_variants": [
+        "C3"
+      ],
+      "value_kind": "quantitative",
+      "derived_from": null,
+      "sex_specific": null,
+      "note": "",
+      "positive_rate": null,
+      "positive_values": null,
+      "categories": null,
+      "loinc": "4485-9",
+      "expect_resolvable": true
+    },
+    {
+      "key": "c4",
+      "zh": "补体C4",
+      "en": "Complement C4",
+      "abbr": "C4",
+      "unit": "g/L",
+      "decimals": 2,
+      "reference": [
+        "range",
+        0.1,
+        0.4
+      ],
+      "reference_source": "全国临床检验操作规程（第4版）",
+      "cvi": 8.9,
+      "cvg": 33.0,
+      "panel": "immune",
+      "name_variants": [
+        "C4"
+      ],
+      "value_kind": "quantitative",
+      "derived_from": null,
+      "sex_specific": null,
+      "note": "",
+      "positive_rate": null,
+      "positive_values": null,
+      "categories": null,
+      "loinc": "4498-2",
+      "expect_resolvable": true
+    },
+    {
+      "key": "amy",
+      "zh": "淀粉酶",
+      "en": "Amylase",
+      "abbr": "AMY",
+      "unit": "U/L",
+      "decimals": 0,
+      "reference": [
+        "range",
+        35,
+        135
+      ],
+      "reference_source": "WS/T 404（临床常用生化检验项目参考区间）",
+      "cvi": 8.7,
+      "cvg": 28.0,
+      "panel": "chemistry",
+      "name_variants": [
+        "血淀粉酶",
+        "AMS",
+        "澱粉酶"
+      ],
+      "value_kind": "quantitative",
+      "derived_from": null,
+      "sex_specific": null,
+      "note": "",
+      "positive_rate": null,
+      "positive_values": null,
+      "categories": null,
+      "loinc": "1798-8",
+      "expect_resolvable": true
+    },
+    {
+      "key": "lps",
+      "zh": "脂肪酶",
+      "en": "Lipase",
+      "abbr": "LPS",
+      "unit": "U/L",
+      "decimals": 0,
+      "reference": [
+        "range",
+        13,
+        60
+      ],
+      "reference_source": "厂商试剂说明书区间（随检测系统而变，生成时按此口径印出）",
+      "cvi": 23.0,
+      "cvg": 40.0,
+      "panel": "chemistry",
+      "name_variants": [
+        "LIP",
+        "血脂肪酶"
+      ],
+      "value_kind": "quantitative",
+      "derived_from": null,
+      "sex_specific": null,
+      "note": "",
+      "positive_rate": null,
+      "positive_values": null,
+      "categories": null,
+      "loinc": "3040-3",
+      "expect_resolvable": true
+    },
+    {
+      "key": "che",
+      "zh": "胆碱酯酶",
+      "en": "Cholinesterase",
+      "abbr": "CHE",
+      "unit": "U/L",
+      "decimals": 0,
+      "reference": [
+        "range",
+        5000,
+        12000
+      ],
+      "reference_source": "全国临床检验操作规程（第4版）",
+      "cvi": 5.4,
+      "cvg": 16.5,
+      "panel": "chemistry",
+      "name_variants": [
+        "ChE",
+        "假性胆碱酯酶"
+      ],
+      "value_kind": "quantitative",
+      "derived_from": null,
+      "sex_specific": null,
+      "note": "",
+      "positive_rate": null,
+      "positive_values": null,
+      "categories": null,
+      "loinc": "2098-2",
+      "expect_resolvable": true
+    },
+    {
+      "key": "pa",
+      "zh": "前白蛋白",
+      "en": "Prealbumin",
+      "abbr": "PA",
+      "unit": "mg/L",
+      "decimals": 0,
+      "reference": [
+        "range",
+        200,
+        400
+      ],
+      "reference_source": "全国临床检验操作规程（第4版）",
+      "cvi": 10.9,
+      "cvg": 20.0,
+      "panel": "chemistry",
+      "name_variants": [
+        "PAB",
+        "前清蛋白"
+      ],
+      "value_kind": "quantitative",
+      "derived_from": null,
+      "sex_specific": null,
+      "note": "",
+      "positive_rate": null,
+      "positive_values": null,
+      "categories": null,
+      "loinc": "14338-8",
+      "expect_resolvable": true
+    },
+    {
+      "key": "nonhdl",
+      "zh": "非高密度脂蛋白胆固醇",
+      "en": "Non-HDL cholesterol",
+      "abbr": "non-HDL-C",
+      "unit": "mmol/L",
+      "decimals": 2,
+      "reference": [
+        "upper",
+        4.1
+      ],
+      "reference_source": "中国成人血脂异常防治指南（2016年修订版）",
+      "cvi": null,
+      "cvg": null,
+      "panel": "lipid",
+      "name_variants": [
+        "Non-HDL-C",
+        "非HDL胆固醇"
+      ],
+      "value_kind": "quantitative",
+      "derived_from": "chol - hdl",
+      "sex_specific": null,
+      "note": "",
+      "positive_rate": null,
+      "positive_values": null,
+      "categories": null,
+      "loinc": "43396-1",
+      "expect_resolvable": true
+    },
+    {
+      "key": "fobt",
+      "zh": "便潜血",
+      "en": "Faecal occult blood",
+      "abbr": "FOBT",
+      "unit": "",
+      "decimals": 0,
+      "reference": [
+        "qualitative",
+        "阴性"
+      ],
+      "reference_source": "全国临床检验操作规程（第4版）",
+      "cvi": null,
+      "cvg": null,
+      "panel": "stool",
+      "name_variants": [
+        "大便隐血",
+        "粪便隐血试验",
+        "大便隱血"
+      ],
+      "value_kind": "qualitative",
+      "derived_from": null,
+      "sex_specific": null,
+      "note": "",
+      "positive_rate": 0.04,
+      "positive_values": [
+        [
+          "阳性",
+          3
+        ],
+        [
+          "弱阳性",
+          1
+        ]
+      ],
+      "categories": null,
+      "loinc": "2335-8",
+      "expect_resolvable": true
+    },
+    {
+      "key": "hp_ab",
+      "zh": "幽门螺杆菌抗体",
+      "en": "Helicobacter pylori antibody",
+      "abbr": "Hp-Ab",
+      "unit": "",
+      "decimals": 0,
+      "reference": [
+        "qualitative",
+        "阴性"
+      ],
+      "reference_source": "厂商试剂说明书区间（随检测系统而变，生成时按此口径印出）",
+      "cvi": null,
+      "cvg": null,
+      "panel": "hp",
+      "name_variants": [
+        "HP抗体",
+        "幽门螺旋杆菌抗体"
+      ],
+      "value_kind": "qualitative",
+      "derived_from": null,
+      "sex_specific": null,
+      "note": "",
+      "positive_rate": 0.4,
+      "positive_values": [
+        [
+          "阳性",
+          1
+        ]
+      ],
+      "categories": null,
+      "loinc": null,
+      "expect_resolvable": false
+    },
+    {
+      "key": "fvc",
+      "zh": "用力肺活量",
+      "en": "Forced vital capacity",
+      "abbr": "FVC",
+      "unit": "L",
+      "decimals": 2,
+      "reference": [
+        "range_sex",
+        [
+          2.8,
+          5.5
+        ],
+        [
+          2.0,
+          4.2
+        ]
+      ],
+      "reference_source": "中华医学会《肺功能检查指南——肺量计检查》与 ATS/ERS 2022 解读标准：占预计值 ≥ 80% 为正常",
+      "cvi": 3.0,
+      "cvg": 12.0,
+      "panel": "spirometry",
+      "name_variants": [
+        "FVC"
+      ],
+      "value_kind": "quantitative",
+      "derived_from": null,
+      "sex_specific": null,
+      "note": "",
+      "positive_rate": null,
+      "positive_values": null,
+      "categories": null,
+      "loinc": "19869-7",
+      "expect_resolvable": true
+    },
+    {
+      "key": "fvc_pct",
+      "zh": "用力肺活量占预计值",
+      "en": "FVC % predicted",
+      "abbr": "FVC%pred",
+      "unit": "%",
+      "decimals": 0,
+      "reference": [
+        "lower",
+        80
+      ],
+      "reference_source": "中华医学会《肺功能检查指南——肺量计检查》与 ATS/ERS 2022 解读标准：占预计值 ≥ 80% 为正常",
+      "cvi": 3.0,
+      "cvg": 8.0,
+      "panel": "spirometry",
+      "name_variants": [
+        "FVC%",
+        "肺活量占预计值百分比"
+      ],
+      "value_kind": "quantitative",
+      "derived_from": null,
+      "sex_specific": null,
+      "note": "",
+      "positive_rate": null,
+      "positive_values": null,
+      "categories": null,
+      "loinc": null,
+      "expect_resolvable": false
+    },
+    {
+      "key": "fev1_fvc",
+      "zh": "一秒率",
+      "en": "FEV1/FVC",
+      "abbr": "FEV1/FVC",
+      "unit": "%",
+      "decimals": 1,
+      "reference": [
+        "lower",
+        70.0
+      ],
+      "reference_source": "中华医学会《慢性阻塞性肺疾病诊治指南（2021 年修订版）》与 GOLD 2024：FEV1/FVC < 0.70 为持续气流受限",
+      "cvi": 3.0,
+      "cvg": 6.0,
+      "panel": "spirometry",
+      "name_variants": [
+        "FEV1%",
+        "一秒率(FEV1/FVC)"
+      ],
+      "value_kind": "quantitative",
+      "derived_from": null,
+      "sex_specific": null,
+      "note": "",
+      "positive_rate": null,
+      "positive_values": null,
+      "categories": null,
+      "loinc": null,
+      "expect_resolvable": false
+    },
+    {
+      "key": "fev1",
+      "zh": "第一秒用力呼气容积",
+      "en": "FEV1",
+      "abbr": "FEV1",
+      "unit": "L",
+      "decimals": 2,
+      "reference": null,
+      "reference_source": "中华医学会《肺功能检查指南——肺量计检查》与 ATS/ERS 2022 解读标准：占预计值 ≥ 80% 为正常",
+      "cvi": null,
+      "cvg": null,
+      "panel": "spirometry",
+      "name_variants": [
+        "FEV1.0",
+        "一秒量"
+      ],
+      "value_kind": "quantitative",
+      "derived_from": "fvc × fev1_fvc / 100",
+      "sex_specific": null,
+      "note": "",
+      "positive_rate": null,
+      "positive_values": null,
+      "categories": null,
+      "loinc": null,
+      "expect_resolvable": false
+    },
+    {
+      "key": "fev1_pct",
+      "zh": "一秒量占预计值",
+      "en": "FEV1 % predicted",
+      "abbr": "FEV1%pred",
+      "unit": "%",
+      "decimals": 0,
+      "reference": [
+        "lower",
+        80
+      ],
+      "reference_source": "中华医学会《肺功能检查指南——肺量计检查》与 ATS/ERS 2022 解读标准：占预计值 ≥ 80% 为正常",
+      "cvi": null,
+      "cvg": null,
+      "panel": "spirometry",
+      "name_variants": [
+        "FEV1%pred"
+      ],
+      "value_kind": "quantitative",
+      "derived_from": "fvc_pct × fev1_fvc / 82",
+      "sex_specific": null,
+      "note": "",
+      "positive_rate": null,
+      "positive_values": null,
+      "categories": null,
+      "loinc": null,
+      "expect_resolvable": false
+    },
+    {
+      "key": "bapwv_l",
+      "zh": "左侧臂踝脉搏波传导速度",
+      "en": "baPWV (left)",
+      "abbr": "baPWV-L",
+      "unit": "cm/s",
+      "decimals": 0,
+      "reference": [
+        "upper",
+        1400
+      ],
+      "reference_source": "《中国高血压防治指南（2018 年修订版）》靶器官损害判据：baPWV ≥ 1400 cm/s、ABI < 0.9；《中国动脉硬化检测临床应用专家共识》",
+      "cvi": 6.0,
+      "cvg": 12.0,
+      "panel": "arterial",
+      "name_variants": [
+        "左baPWV",
+        "L-baPWV"
+      ],
+      "value_kind": "quantitative",
+      "derived_from": null,
+      "sex_specific": null,
+      "note": "",
+      "positive_rate": null,
+      "positive_values": null,
+      "categories": null,
+      "loinc": null,
+      "expect_resolvable": false
+    },
+    {
+      "key": "bapwv_r",
+      "zh": "右侧臂踝脉搏波传导速度",
+      "en": "baPWV (right)",
+      "abbr": "baPWV-R",
+      "unit": "cm/s",
+      "decimals": 0,
+      "reference": [
+        "upper",
+        1400
+      ],
+      "reference_source": "《中国高血压防治指南（2018 年修订版）》靶器官损害判据：baPWV ≥ 1400 cm/s、ABI < 0.9；《中国动脉硬化检测临床应用专家共识》",
+      "cvi": null,
+      "cvg": null,
+      "panel": "arterial",
+      "name_variants": [
+        "右baPWV",
+        "R-baPWV"
+      ],
+      "value_kind": "quantitative",
+      "derived_from": "bapwv_l × 个体左右差（0.94–1.06）",
+      "sex_specific": null,
+      "note": "",
+      "positive_rate": null,
+      "positive_values": null,
+      "categories": null,
+      "loinc": null,
+      "expect_resolvable": false
+    },
+    {
+      "key": "abi_l",
+      "zh": "左侧踝臂指数",
+      "en": "ABI (left)",
+      "abbr": "ABI-L",
+      "unit": "",
+      "decimals": 2,
+      "reference": [
+        "range",
+        0.9,
+        1.3
+      ],
+      "reference_source": "《中国高血压防治指南（2018 年修订版）》靶器官损害判据：baPWV ≥ 1400 cm/s、ABI < 0.9；《中国动脉硬化检测临床应用专家共识》",
+      "cvi": 4.0,
+      "cvg": 6.0,
+      "panel": "arterial",
+      "name_variants": [
+        "左ABI",
+        "L-ABI"
+      ],
+      "value_kind": "quantitative",
+      "derived_from": null,
+      "sex_specific": null,
+      "note": "",
+      "positive_rate": null,
+      "positive_values": null,
+      "categories": null,
+      "loinc": null,
+      "expect_resolvable": false
+    },
+    {
+      "key": "abi_r",
+      "zh": "右侧踝臂指数",
+      "en": "ABI (right)",
+      "abbr": "ABI-R",
+      "unit": "",
+      "decimals": 2,
+      "reference": [
+        "range",
+        0.9,
+        1.3
+      ],
+      "reference_source": "《中国高血压防治指南（2018 年修订版）》靶器官损害判据：baPWV ≥ 1400 cm/s、ABI < 0.9；《中国动脉硬化检测临床应用专家共识》",
+      "cvi": 4.0,
+      "cvg": 6.0,
+      "panel": "arterial",
+      "name_variants": [
+        "右ABI",
+        "R-ABI"
+      ],
+      "value_kind": "quantitative",
+      "derived_from": null,
+      "sex_specific": null,
+      "note": "",
+      "positive_rate": null,
+      "positive_values": null,
+      "categories": null,
+      "loinc": null,
+      "expect_resolvable": false
+    },
+    {
+      "key": "body_fat",
+      "zh": "体脂率",
+      "en": "Body fat percentage",
+      "abbr": "PBF",
+      "unit": "%",
+      "decimals": 1,
+      "reference": [
+        "range_sex",
+        [
+          10.0,
+          20.0
+        ],
+        [
+          18.0,
+          28.0
+        ]
+      ],
+      "reference_source": "厂商试剂说明书区间（随检测系统而变，生成时按此口径印出）",
+      "cvi": 3.0,
+      "cvg": 20.0,
+      "panel": "body_composition",
+      "name_variants": [
+        "体脂百分比",
+        "身體脂肪百分比",
+        "Body Fat"
+      ],
+      "value_kind": "quantitative",
+      "derived_from": null,
+      "sex_specific": null,
+      "note": "",
+      "positive_rate": null,
+      "positive_values": null,
+      "categories": null,
+      "loinc": "41982-0",
+      "expect_resolvable": true
+    },
+    {
+      "key": "visceral_fat",
+      "zh": "内脏脂肪等级",
+      "en": "Visceral fat level",
+      "abbr": "VFL",
+      "unit": "",
+      "decimals": 0,
+      "reference": [
+        "upper",
+        9
+      ],
+      "reference_source": "厂商试剂说明书区间（随检测系统而变，生成时按此口径印出）",
+      "cvi": 5.0,
+      "cvg": 30.0,
+      "panel": "body_composition",
+      "name_variants": [
+        "内脏脂肪指数",
+        "VFA level"
+      ],
+      "value_kind": "quantitative",
+      "derived_from": null,
+      "sex_specific": null,
+      "note": "",
+      "positive_rate": null,
+      "positive_values": null,
+      "categories": null,
+      "loinc": null,
+      "expect_resolvable": false
+    },
+    {
+      "key": "muscle_mass",
+      "zh": "骨骼肌量",
+      "en": "Skeletal muscle mass",
+      "abbr": "SMM",
+      "unit": "kg",
+      "decimals": 1,
+      "reference": [
+        "range_sex",
+        [
+          28.0,
+          45.0
+        ],
+        [
+          18.0,
+          30.0
+        ]
+      ],
+      "reference_source": "厂商试剂说明书区间（随检测系统而变，生成时按此口径印出）",
+      "cvi": 2.0,
+      "cvg": 12.0,
+      "panel": "body_composition",
+      "name_variants": [
+        "肌肉量",
+        "骨骼肌"
+      ],
+      "value_kind": "quantitative",
+      "derived_from": null,
+      "sex_specific": null,
+      "note": "",
+      "positive_rate": null,
+      "positive_values": null,
+      "categories": null,
+      "loinc": null,
+      "expect_resolvable": false
+    },
+    {
+      "key": "bmr",
+      "zh": "基础代谢率",
+      "en": "Basal metabolic rate",
+      "abbr": "BMR",
+      "unit": "kcal/d",
+      "decimals": 0,
+      "reference": [
+        "range_sex",
+        [
+          1400,
+          1900
+        ],
+        [
+          1100,
+          1500
+        ]
+      ],
+      "reference_source": "厂商试剂说明书区间（随检测系统而变，生成时按此口径印出）",
+      "cvi": 2.0,
+      "cvg": 10.0,
+      "panel": "body_composition",
+      "name_variants": [
+        "基础代谢",
+        "BMR(kcal)"
+      ],
+      "value_kind": "quantitative",
+      "derived_from": null,
+      "sex_specific": null,
+      "note": "",
+      "positive_rate": null,
+      "positive_values": null,
+      "categories": null,
+      "loinc": "82259-3",
+      "expect_resolvable": true
+    },
+    {
+      "key": "lvef",
+      "zh": "左室射血分数",
+      "en": "LV ejection fraction",
+      "abbr": "LVEF",
+      "unit": "%",
+      "decimals": 0,
+      "reference": [
+        "range",
+        55,
+        75
+      ],
+      "reference_source": "中国成年人超声心动图检查测量指南（2016）",
+      "cvi": 5.0,
+      "cvg": 6.0,
+      "panel": "echo",
+      "name_variants": [
+        "EF",
+        "射血分数"
+      ],
+      "value_kind": "quantitative",
+      "derived_from": null,
+      "sex_specific": null,
+      "note": "",
+      "positive_rate": null,
+      "positive_values": null,
+      "categories": null,
+      "loinc": null,
+      "expect_resolvable": false
+    },
+    {
+      "key": "lvedd",
+      "zh": "左室舒张末期内径",
+      "en": "LV end-diastolic diameter",
+      "abbr": "LVEDd",
+      "unit": "mm",
+      "decimals": 0,
+      "reference": [
+        "range_sex",
+        [
+          45,
+          55
+        ],
+        [
+          40,
+          50
+        ]
+      ],
+      "reference_source": "中国成年人超声心动图检查测量指南（2016）",
+      "cvi": 3.0,
+      "cvg": 6.0,
+      "panel": "echo",
+      "name_variants": [
+        "LVIDd",
+        "左室舒张末内径"
+      ],
+      "value_kind": "quantitative",
+      "derived_from": null,
+      "sex_specific": null,
+      "note": "",
+      "positive_rate": null,
+      "positive_values": null,
+      "categories": null,
+      "loinc": null,
+      "expect_resolvable": false
+    },
+    {
+      "key": "ivs",
+      "zh": "室间隔厚度",
+      "en": "Interventricular septum",
+      "abbr": "IVS",
+      "unit": "mm",
+      "decimals": 1,
+      "reference": [
+        "range",
+        6.0,
+        11.0
+      ],
+      "reference_source": "中国成年人超声心动图检查测量指南（2016）",
+      "cvi": 5.0,
+      "cvg": 10.0,
+      "panel": "echo",
+      "name_variants": [
+        "IVSd",
+        "室间隔"
+      ],
+      "value_kind": "quantitative",
+      "derived_from": null,
+      "sex_specific": null,
+      "note": "",
+      "positive_rate": null,
+      "positive_values": null,
+      "categories": null,
+      "loinc": null,
+      "expect_resolvable": false
+    },
+    {
+      "key": "la",
+      "zh": "左房内径",
+      "en": "Left atrium diameter",
+      "abbr": "LA",
+      "unit": "mm",
+      "decimals": 0,
+      "reference": [
+        "upper",
+        35
+      ],
+      "reference_source": "中国成年人超声心动图检查测量指南（2016）",
+      "cvi": 4.0,
+      "cvg": 8.0,
+      "panel": "echo",
+      "name_variants": [
+        "LAD",
+        "左房前后径"
+      ],
+      "value_kind": "quantitative",
+      "derived_from": null,
+      "sex_specific": null,
+      "note": "",
+      "positive_rate": null,
+      "positive_values": null,
+      "categories": null,
+      "loinc": null,
+      "expect_resolvable": false
+    },
+    {
+      "key": "ea",
+      "zh": "二尖瓣E/A比值",
+      "en": "Mitral E/A ratio",
+      "abbr": "E/A",
+      "unit": "",
+      "decimals": 2,
+      "reference": [
+        "lower",
+        1.0
+      ],
+      "reference_source": "中国成年人超声心动图检查测量指南（2016）",
+      "cvi": 8.0,
+      "cvg": 15.0,
+      "panel": "echo",
+      "name_variants": [
+        "E/A",
+        "二尖瓣血流E/A"
+      ],
+      "value_kind": "quantitative",
+      "derived_from": null,
+      "sex_specific": null,
+      "note": "",
+      "positive_rate": null,
+      "positive_values": null,
+      "categories": null,
+      "loinc": null,
+      "expect_resolvable": false
+    },
+    {
+      "key": "hpv16",
+      "zh": "HPV16型",
+      "en": "HPV type 16",
+      "abbr": "HPV16",
+      "unit": "",
+      "decimals": 0,
+      "reference": [
+        "qualitative",
+        "阴性"
+      ],
+      "reference_source": "厂商试剂说明书区间（随检测系统而变，生成时按此口径印出）",
+      "cvi": null,
+      "cvg": null,
+      "panel": "cervical",
+      "name_variants": [
+        "HPV 16",
+        "人乳头瘤病毒16型"
+      ],
+      "value_kind": "qualitative",
+      "derived_from": null,
+      "sex_specific": "female",
+      "note": "",
+      "positive_rate": 0.02,
+      "positive_values": [
+        [
+          "阳性",
+          1
+        ]
+      ],
+      "categories": null,
+      "loinc": null,
+      "expect_resolvable": false
+    },
+    {
+      "key": "hpv18",
+      "zh": "HPV18型",
+      "en": "HPV type 18",
+      "abbr": "HPV18",
+      "unit": "",
+      "decimals": 0,
+      "reference": [
+        "qualitative",
+        "阴性"
+      ],
+      "reference_source": "厂商试剂说明书区间（随检测系统而变，生成时按此口径印出）",
+      "cvi": null,
+      "cvg": null,
+      "panel": "cervical",
+      "name_variants": [
+        "HPV 18"
+      ],
+      "value_kind": "qualitative",
+      "derived_from": null,
+      "sex_specific": "female",
+      "note": "",
+      "positive_rate": 0.01,
+      "positive_values": [
+        [
+          "阳性",
+          1
+        ]
+      ],
+      "categories": null,
+      "loinc": null,
+      "expect_resolvable": false
+    },
+    {
+      "key": "hpv_other",
+      "zh": "其他12型高危HPV",
+      "en": "Other high-risk HPV (12 types)",
+      "abbr": "HPV-HR",
+      "unit": "",
+      "decimals": 0,
+      "reference": [
+        "qualitative",
+        "阴性"
+      ],
+      "reference_source": "厂商试剂说明书区间（随检测系统而变，生成时按此口径印出）",
+      "cvi": null,
+      "cvg": null,
+      "panel": "cervical",
+      "name_variants": [
+        "高危型HPV(其他)",
+        "HPV其他高危型"
+      ],
+      "value_kind": "qualitative",
+      "derived_from": null,
+      "sex_specific": "female",
+      "note": "",
+      "positive_rate": 0.08,
+      "positive_values": [
+        [
+          "阳性",
+          1
+        ]
+      ],
+      "categories": null,
+      "loinc": null,
+      "expect_resolvable": false
+    },
+    {
+      "key": "tct",
+      "zh": "液基薄层细胞学检查",
+      "en": "Liquid-based cytology (TCT)",
+      "abbr": "TCT",
+      "unit": "",
+      "decimals": 0,
+      "reference": [
+        "qualitative",
+        "NILM"
+      ],
+      "reference_source": "Bethesda（TBS）2014 宫颈细胞学报告系统；《中国子宫颈癌筛查指南（2023）》：NILM 为未见上皮内病变或恶性细胞",
+      "cvi": null,
+      "cvg": null,
+      "panel": "cervical",
+      "name_variants": [
+        "TCT",
+        "宫颈细胞学",
+        "宫颈液基细胞学"
+      ],
+      "value_kind": "qualitative",
+      "derived_from": null,
+      "sex_specific": "female",
+      "note": "",
+      "positive_rate": 0.06,
+      "positive_values": [
+        [
+          "ASC-US",
+          8
+        ],
+        [
+          "LSIL",
+          2
+        ],
+        [
+          "ASC-H",
+          1
+        ]
+      ],
+      "categories": null,
+      "loinc": null,
+      "expect_resolvable": false
+    }
+  ],
+  "panels": {
+    "vitals": 10,
+    "cbc": 22,
+    "chemistry": 31,
+    "glucose": 6,
+    "lipid": 8,
+    "thyroid": 8,
+    "inflammation": 3,
+    "vitamin": 1,
+    "anemia": 4,
+    "tumor": 15,
+    "urinalysis": 9,
+    "ecg": 4,
+    "hepatitis": 6,
+    "coagulation": 6,
+    "blood_type": 2,
+    "renal_early": 3,
+    "cardiac": 2,
+    "immune": 8,
+    "stool": 1,
+    "hp": 1,
+    "spirometry": 5,
+    "arterial": 4,
+    "body_composition": 4,
+    "echo": 5,
+    "cervical": 4
+  },
+  "typical_center": {
+    "chol": 4.6,
+    "tg": 1.1,
+    "ldl": 2.8,
+    "hdl": 1.35,
+    "lpa": 120,
+    "dbil": 3.5,
+    "tba": 4.0,
+    "crp": 1.5,
+    "hscrp": 0.9,
+    "hcy": 10.0,
+    "tpoab": 9.0,
+    "afp": 2.8,
+    "cea": 1.8,
+    "psa": 0.9,
+    "ca125": 12.0,
+    "ckmb": 10.0,
+    "egfr": 102.0,
+    "urine_rbc": 0.6,
+    "urine_wbc": 1.2,
+    "ca199": 8.0,
+    "ca153": 9.0,
+    "ca724": 1.5,
+    "cyfra211": 1.4,
+    "nse": 9.0,
+    "scc": 0.6,
+    "fpsa": 0.25,
+    "pg1": 95.0,
+    "pg2": 8.0,
+    "ddimer": 0.25,
+    "umalb": 6.0,
+    "uacr": 8.0,
+    "hstni": 3.0,
+    "ntprobnp": 45.0,
+    "ogtt2h": 6.0,
+    "tgab": 15.0,
+    "rf": 8.0,
+    "aso": 60.0,
+    "ccp": 5.0,
+    "nonhdl": 3.2,
+    "hp_ab": 0.0,
+    "fvc_pct": 98.0,
+    "fev1_fvc": 82.0,
+    "fev1_pct": 96.0,
+    "bapwv_l": 1250.0,
+    "bapwv_r": 1250.0,
+    "visceral_fat": 6.0,
+    "la": 30.0,
+    "ea": 1.3,
+    "spo2": 98.0
+  }
+}

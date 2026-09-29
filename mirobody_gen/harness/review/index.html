@@ -1,0 +1,464 @@
+<!doctype html>
+<html lang="zh-CN" data-palette="#b3261e,#1f5c8b,#2f6b5f,#a8630a">
+<head>
+<meta charset="utf-8">
+<title>合成档案校样台</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<!--
+  单文件、离线、纯前端。双击打开即可用，不联网、不上传、没有后端。
+  这一点对本工具是硬要求而不是偏好：审的是健康档案形态的数据，
+  哪怕全是合成的，也不该为了"方便"就把它发到某个服务器上。
+
+  字体刻意只用系统字体栈：file:// 下加载 Google Fonts 会失败，
+  而一个在离线环境里字体塌掉的审阅工具，比朴素的字体糟糕得多。
+  中文用宋体一系（报告就是这个气质），数字用等宽——检验单是竖着扫的，
+  数字不对齐就没法一眼看出哪一列不对劲。
+
+  用法：
+    python3 -m http.server 8000 -d harness/review   # 或者直接双击本文件
+    然后把 out/<build>/manifest.jsonl 拖进来（可选再拖 llm_panel.json、decisions.json）
+-->
+<style>
+:root{
+  --paper:#faf7f2; --paper-2:#f3eee5; --card:#fffdf9;
+  --ink:#1a1917; --ink-2:#4a463f; --ink-3:#8a8479;
+  --rule:#e3ddd2; --rule-2:#d2cabb;
+  /* 状态色。这是 status 用途（不是分类系列），所以固定语义、不复用：
+     高=暖红、低=冷蓝（高低是两种状态，用同一个红会丢掉方向），
+     通过=青绿、存疑=琥珀。每处都同时带文字或符号，不靠颜色单独表意。 */
+  --hi:#b3261e; --lo:#1f5c8b; --ok:#2f6b5f; --warn:#a8630a;
+  --hi-soft:#f7e4e1; --lo-soft:#e2ecf4; --ok-soft:#e2eeea; --warn-soft:#f6e9d8;
+  --band:#eceadf;
+  --focus:#1a1917;
+  --serif:"Songti SC","Noto Serif CJK SC","Source Han Serif SC",Georgia,"Times New Roman",serif;
+  --sans:"PingFang SC","Hiragino Sans GB","Microsoft YaHei",-apple-system,sans-serif;
+  --mono:"SF Mono",ui-monospace,Menlo,"Cascadia Mono","DejaVu Sans Mono",monospace;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --paper:#161513; --paper-2:#1d1c19; --card:#201e1b;
+    --ink:#f0ece4; --ink-2:#bdb7ab; --ink-3:#847d71;
+    --rule:#332f2a; --rule-2:#433e37;
+    --hi:#ef8a80; --lo:#8ab8db; --ok:#7fc0ae; --warn:#e0a663;
+    --hi-soft:#3a201d; --lo-soft:#1c2c38; --ok-soft:#1b2d28; --warn-soft:#352716;
+    --band:#2a2723; --focus:#f0ece4;
+  }
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);
+  font-size:14px;line-height:1.55;
+  /* 纸的颗粒感：极淡的两层斜线，避免大面积纯色带来的塑料感 */
+  background-image:repeating-linear-gradient(135deg,rgba(0,0,0,.012) 0 1px,transparent 1px 7px);
+}
+button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
+kbd{
+  font-family:var(--mono);font-size:11px;padding:1px 5px;border:1px solid var(--rule-2);
+  border-bottom-width:2px;border-radius:4px;background:var(--paper-2);color:var(--ink-2);
+}
+
+/* ── 骨架 ───────────────────────────────────────────── */
+.shell{display:grid;grid-template-columns:270px minmax(0,1fr) 320px;grid-template-rows:auto 1fr;
+  height:100vh;gap:0}
+header{
+  grid-column:1/-1;display:flex;align-items:baseline;gap:18px;flex-wrap:wrap;
+  padding:14px 22px;border-bottom:1px solid var(--rule);background:var(--card);
+}
+h1{margin:0;font-family:var(--serif);font-size:19px;font-weight:600;letter-spacing:.06em}
+h1 .mark{color:var(--ink-3);font-weight:400}
+.tagline{color:var(--ink-3);font-size:12px;letter-spacing:.04em}
+.spacer{flex:1}
+.filebtn{
+  border:1px solid var(--rule-2);border-radius:6px;padding:5px 12px;font-size:12.5px;
+  color:var(--ink-2);transition:border-color .15s,color .15s,background .15s;
+}
+.filebtn:hover{border-color:var(--ink);color:var(--ink);background:var(--paper-2)}
+.filebtn[data-loaded="1"]{border-color:var(--ok);color:var(--ok);background:var(--ok-soft)}
+
+aside,main,.verdicts{overflow-y:auto;height:100%}
+aside{border-right:1px solid var(--rule);background:var(--paper-2)}
+.verdicts{border-left:1px solid var(--rule);background:var(--paper-2)}
+main{padding:26px 34px 120px}
+
+/* ── 左栏：人 ───────────────────────────────────────── */
+.railhead{
+  position:sticky;top:0;background:var(--paper-2);padding:12px 16px 8px;
+  border-bottom:1px solid var(--rule);font-size:11.5px;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--ink-3);display:flex;justify-content:space-between
+}
+.person{
+  display:block;width:100%;text-align:left;padding:9px 16px;border-bottom:1px solid var(--rule);
+  position:relative;transition:background .12s
+}
+.person:hover{background:var(--card)}
+.person[aria-current="true"]{background:var(--card)}
+.person[aria-current="true"]::before{
+  content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--focus)
+}
+.person .pid{font-family:var(--mono);font-size:12.5px;letter-spacing:.02em}
+.person .meta{color:var(--ink-3);font-size:11.5px;margin-top:1px}
+.pips{display:flex;gap:3px;margin-top:5px}
+.pip{width:7px;height:7px;border-radius:2px;background:var(--rule-2)}
+.pip.ok{background:var(--ok)} .pip.warn{background:var(--warn)} .pip.bad{background:var(--hi)}
+
+/* ── 中栏：报告 ─────────────────────────────────────── */
+.person-head{margin:0 0 4px;font-family:var(--serif);font-size:26px;letter-spacing:.02em}
+.dxline{color:var(--ink-2);font-size:13px;margin-bottom:22px}
+.dx{
+  display:inline-block;border:1px solid var(--rule-2);border-radius:999px;
+  padding:1px 10px;margin-right:6px;font-size:12px;background:var(--card)
+}
+.dx.inferred{border-style:dashed;color:var(--ink-2)}
+
+.enc{
+  background:var(--card);border:1px solid var(--rule);border-radius:3px;margin-bottom:18px;
+  animation:rise .32s cubic-bezier(.2,.7,.3,1) backwards;position:relative
+}
+@keyframes rise{from{opacity:0;transform:translateY(7px)}}
+.enc[aria-current="true"]{border-color:var(--ink);box-shadow:0 1px 0 var(--ink)}
+.enc[aria-current="true"]::before{
+  content:"";position:absolute;left:-1px;top:-1px;bottom:-1px;width:3px;background:var(--focus)
+}
+.enc-head{
+  display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;
+  padding:11px 18px;border-bottom:1px solid var(--rule)
+}
+.enc-date{font-family:var(--mono);font-size:15px;letter-spacing:.02em}
+.enc-kind{font-size:12px;color:var(--ink-3);letter-spacing:.06em;text-transform:uppercase}
+.verdict-chip{
+  margin-left:auto;font-size:11.5px;padding:1px 9px;border-radius:999px;border:1px solid transparent
+}
+.verdict-chip.ok{background:var(--ok-soft);color:var(--ok);border-color:var(--ok)}
+.verdict-chip.warn{background:var(--warn-soft);color:var(--warn);border-color:var(--warn)}
+.verdict-chip.bad{background:var(--hi-soft);color:var(--hi);border-color:var(--hi)}
+.events{
+  padding:8px 18px;border-bottom:1px solid var(--rule);background:var(--paper-2);
+  font-size:12.5px;color:var(--ink-2)
+}
+.events b{font-weight:600;color:var(--ink)}
+
+table{width:100%;border-collapse:collapse}
+th{
+  text-align:left;font-weight:500;font-size:11px;letter-spacing:.09em;text-transform:uppercase;
+  color:var(--ink-3);padding:8px 10px;border-bottom:1px solid var(--rule)
+}
+td{padding:4px 10px;border-bottom:1px solid var(--paper-2);vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tbody tr:hover{background:var(--paper-2)}
+.name{font-size:13.5px}
+.num{font-family:var(--mono);font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap}
+.value{font-size:14px}
+.unit{color:var(--ink-3);font-size:12px}
+.ref{font-family:var(--mono);font-size:12px;color:var(--ink-3);white-space:nowrap}
+.flag{font-family:var(--mono);font-size:13px;width:26px;text-align:center}
+tr.hi .value,tr.hi .flag{color:var(--hi)}
+tr.lo .value,tr.lo .flag{color:var(--lo)}
+tr.hi{background:linear-gradient(90deg,var(--hi-soft),transparent 55%)}
+tr.lo{background:linear-gradient(90deg,var(--lo-soft),transparent 55%)}
+
+/* ── 右栏：判定 ─────────────────────────────────────── */
+.vbox{padding:16px}
+.vbox h2{font-family:var(--serif);font-size:15px;margin:0 0 3px;letter-spacing:.04em}
+.vsub{color:var(--ink-3);font-size:12px;margin-bottom:14px;font-family:var(--mono)}
+.choices{display:grid;gap:7px;margin-bottom:14px}
+.choice{
+  display:flex;align-items:center;gap:9px;border:1px solid var(--rule-2);border-radius:5px;
+  padding:9px 12px;font-size:13.5px;transition:all .13s;background:var(--card)
+}
+.choice:hover{border-color:var(--ink-2)}
+.choice[aria-pressed="true"]{border-width:2px;padding:8px 11px;font-weight:600}
+.choice[data-v="ok"][aria-pressed="true"]{border-color:var(--ok);background:var(--ok-soft);color:var(--ok)}
+.choice[data-v="warn"][aria-pressed="true"]{border-color:var(--warn);background:var(--warn-soft);color:var(--warn)}
+.choice[data-v="bad"][aria-pressed="true"]{border-color:var(--hi);background:var(--hi-soft);color:var(--hi)}
+.choice .dot{width:9px;height:9px;border-radius:50%;flex:none}
+.choice[data-v="ok"] .dot{background:var(--ok)}
+.choice[data-v="warn"] .dot{background:var(--warn)}
+.choice[data-v="bad"] .dot{background:var(--hi)}
+textarea{
+  width:100%;min-height:78px;resize:vertical;font:13px/1.5 var(--sans);padding:9px;
+  border:1px solid var(--rule-2);border-radius:5px;background:var(--card);color:var(--ink)
+}
+textarea:focus{outline:2px solid var(--focus);outline-offset:-1px}
+.panel{
+  margin-top:20px;padding-top:14px;border-top:1px solid var(--rule)
+}
+.panel h3{font-size:11.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);margin:0 0 9px}
+.rub{display:flex;gap:9px;align-items:baseline;padding:5px 0;border-bottom:1px dotted var(--rule)}
+.rub .code{font-family:var(--mono);font-size:11.5px;color:var(--ink-3);flex:none}
+.rub .sc{font-family:var(--mono);font-size:12.5px;flex:none}
+.rub .why{font-size:12px;color:var(--ink-2);line-height:1.4}
+.disagree{color:var(--warn)}
+.stats{display:flex;gap:14px;font-family:var(--mono);font-size:12px;color:var(--ink-2);margin-top:6px}
+.keys{margin-top:18px;font-size:12px;color:var(--ink-3);line-height:2}
+
+.empty{max-width:620px;margin:8vh auto;text-align:center}
+.empty h2{font-family:var(--serif);font-size:24px;font-weight:600;margin:0 0 10px}
+.empty p{color:var(--ink-2);margin:0 0 22px}
+.dropzone{
+  border:2px dashed var(--rule-2);border-radius:8px;padding:40px 24px;background:var(--card);
+  transition:border-color .15s,background .15s
+}
+.dropzone.over{border-color:var(--ok);background:var(--ok-soft)}
+.note{margin-top:24px;font-size:12.5px;color:var(--ink-3);line-height:1.7;text-align:left}
+</style>
+</head>
+<body>
+<div class="shell">
+  <header>
+    <h1>合成档案校样台 <span class="mark">/ proofing desk</span></h1>
+    <span class="tagline">全部在浏览器内完成 · 不上传 · 无后端</span>
+    <span class="spacer"></span>
+    <button class="filebtn" id="load-manifest">manifest.jsonl</button>
+    <button class="filebtn" id="load-panel">llm_panel.json</button>
+    <button class="filebtn" id="load-prev">继续上次</button>
+    <button class="filebtn" id="export">导出判定 <kbd>E</kbd></button>
+  </header>
+
+  <aside>
+    <div class="railhead"><span>虚拟人</span><span id="progress">0 / 0</span></div>
+    <div id="people"></div>
+  </aside>
+
+  <main id="main">
+    <div class="empty">
+      <div class="dropzone" id="drop">
+        <h2>把 manifest.jsonl 拖进来</h2>
+        <p>或点右上角选文件。可以再拖 <code>llm_panel.json</code>（多模型评分）
+           与上次导出的 <code>decisions.json</code>。</p>
+      </div>
+      <div class="note">
+        <b>这个台子解决什么。</b>确定性审计（<code>audit/clinical.py</code>）能拦住恒等式、
+        生理边界、人口学冲突这些有确定答案的问题；多模型面板（<code>audit/llm_panel.py</code>）
+        给出一个排序。但"这份档案读起来像不像真实病历"最终要人看。<br><br>
+        <b>怎么用。</b>左栏选人，中栏逐次就诊看，右栏判定。键盘更快：
+        <kbd>J</kbd>/<kbd>K</kbd> 换就诊，<kbd>1</kbd>/<kbd>2</kbd>/<kbd>3</kbd> 判定，
+        <kbd>N</kbd> 写备注，<kbd>[</kbd>/<kbd>]</kbd> 换人。<br><br>
+        <b>为什么每行都带纵向小图。</b>单次的值对不对，规则查得比人准；
+        人真正有优势的是看一条曲线像不像病程。小图里的浅带是参考区间。
+      </div>
+    </div>
+  </main>
+
+  <div class="verdicts" id="side"></div>
+</div>
+
+<script>
+const S = { people:[], byPerson:new Map(), panel:null, decisions:{},
+            person:null, enc:0 };
+
+/* ── 读文件 ─────────────────────────────────────────── */
+function pick(accept, cb){
+  const i=document.createElement('input'); i.type='file'; i.accept=accept;
+  i.onchange=()=>i.files[0]&&i.files[0].text().then(cb); i.click();
+}
+function loadManifest(text){
+  const recs=text.split('\n').filter(l=>l.trim()).map(l=>JSON.parse(l));
+  S.byPerson=new Map();
+  for(const r of recs){
+    if(!S.byPerson.has(r.person_id)) S.byPerson.set(r.person_id,[]);
+    S.byPerson.get(r.person_id).push(r);
+  }
+  for(const list of S.byPerson.values()) list.sort((a,b)=>a.collected<b.collected?-1:1);
+  S.people=[...S.byPerson.keys()].sort();
+  S.person=S.people[0]; S.enc=0;
+  document.getElementById('load-manifest').dataset.loaded='1';
+  render();
+}
+document.getElementById('load-manifest').onclick=()=>pick('.jsonl,.json',loadManifest);
+document.getElementById('load-panel').onclick=()=>pick('.json',t=>{
+  S.panel=JSON.parse(t); document.getElementById('load-panel').dataset.loaded='1'; render();});
+document.getElementById('load-prev').onclick=()=>pick('.json',t=>{
+  S.decisions=JSON.parse(t); document.getElementById('load-prev').dataset.loaded='1'; render();});
+document.getElementById('export').onclick=exportDecisions;
+
+const drop=document.getElementById('drop');
+['dragover','dragenter'].forEach(e=>document.addEventListener(e,ev=>{
+  ev.preventDefault(); drop&&drop.classList.add('over');}));
+['dragleave','drop'].forEach(e=>document.addEventListener(e,ev=>{
+  ev.preventDefault(); drop&&drop.classList.remove('over');}));
+document.addEventListener('drop',ev=>{
+  for(const f of ev.dataTransfer.files){
+    f.text().then(t=>{
+      if(f.name.endsWith('.jsonl')) loadManifest(t);
+      else if(f.name.includes('panel')){S.panel=JSON.parse(t);
+        document.getElementById('load-panel').dataset.loaded='1';render();}
+      else {S.decisions=JSON.parse(t);
+        document.getElementById('load-prev').dataset.loaded='1';render();}
+    });
+  }
+});
+
+/* ── 纵向小图 ───────────────────────────────────────────
+   单序列，所以不需要图例——行名就是它的名字。参考区间画成浅带，
+   这样"在不在范围内"不靠颜色也读得出来（颜色只是第二重编码）。
+   异常点加一个带描边的实心点，描边用卡片底色，保证它压在线上仍分得清。   */
+function sparkline(series, lo, hi){
+  const W=104,H=22,P=3;
+  const vals=series.map(p=>p.v);
+  let min=Math.min(...vals,lo??Infinity), max=Math.max(...vals,hi??-Infinity);
+  if(!isFinite(min)||!isFinite(max)||min===max){min=Math.min(...vals)-1;max=Math.max(...vals)+1;}
+  const pad=(max-min)*0.12; min-=pad; max+=pad;
+  const x=i=>P+i*(W-2*P)/Math.max(series.length-1,1);
+  const y=v=>H-P-((v-min)/(max-min))*(H-2*P);
+  const band = (lo!=null&&hi!=null)
+    ? `<rect x="0" y="${y(hi).toFixed(1)}" width="${W}" height="${Math.max(y(lo)-y(hi),1).toFixed(1)}"
+         fill="var(--band)"/>` : '';
+  const path = series.map((p,i)=>`${i?'L':'M'}${x(i).toFixed(1)} ${y(p.v).toFixed(1)}`).join(' ');
+  const dots = series.map((p,i)=>{
+    const st=p.s==='high'?'var(--hi)':p.s==='low'?'var(--lo)':null;
+    if(!st) return '';
+    return `<circle cx="${x(i).toFixed(1)}" cy="${y(p.v).toFixed(1)}" r="2.6"
+              fill="${st}" stroke="var(--card)" stroke-width="1.4"/>`;
+  }).join('');
+  const last=series[series.length-1];
+  return `<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" role="img"
+     aria-label="${series.length} 次测量，从 ${series[0].v} 到 ${last.v}">
+     ${band}<path d="${path}" fill="none" stroke="var(--ink-2)" stroke-width="1.4"
+       stroke-linejoin="round" stroke-linecap="round"/>${dots}
+     <title>${series.map(p=>`${p.d} ${p.v}`).join('\n')}</title></svg>`;
+}
+
+/* ── 渲染 ───────────────────────────────────────────── */
+function verdictOf(pid,i){ return (S.decisions[pid]||{})[i]; }
+function render(){
+  if(!S.people.length) return;
+  renderPeople(); renderReport(); renderSide();
+}
+function renderPeople(){
+  const el=document.getElementById('people');
+  el.innerHTML=S.people.map(pid=>{
+    const list=S.byPerson.get(pid), p=list[0].person;
+    const pips=list.map((_,i)=>{
+      const v=verdictOf(pid,i); return `<span class="pip ${v?v.verdict:''}"></span>`;}).join('');
+    return `<button class="person" data-pid="${pid}" aria-current="${pid===S.person}">
+      <div class="pid">${pid}</div>
+      <div class="meta">${p.sex==='male'?'男':'女'} ${p.age}岁 · ${p.archetype}</div>
+      <div class="pips">${pips}</div></button>`;
+  }).join('');
+  el.querySelectorAll('.person').forEach(b=>b.onclick=()=>{
+    S.person=b.dataset.pid; S.enc=0; render();});
+  const done=Object.values(S.decisions).reduce((n,m)=>n+Object.keys(m).length,0);
+  const total=[...S.byPerson.values()].reduce((n,l)=>n+l.length,0);
+  document.getElementById('progress').textContent=`${done} / ${total}`;
+}
+function renderReport(){
+  const list=S.byPerson.get(S.person), p=list[0].person;
+  const dx=(p.conditions||[]).map(c=>
+    `<span class="dx ${c.source?'inferred':''}" title="${c.source||'原型自带'}">${c.display}${c.source?' ·推':''}</span>`
+  ).join('')||'<span class="dx">无慢病诊断</span>';
+  // 每个指标在这个人全程的序列，供小图使用
+  const hist=new Map();
+  list.forEach(r=>r.rows.forEach(row=>{
+    if(row.canonical_value==null) return;
+    if(!hist.has(row.key)) hist.set(row.key,[]);
+    hist.get(row.key).push({d:r.collected,v:row.canonical_value,s:row.status});
+  }));
+  document.getElementById('main').innerHTML=`
+    <h2 class="person-head">${S.person}</h2>
+    <div class="dxline">${p.sex==='male'?'男':'女'} · ${p.age} 岁 · ${p.height_cm} cm ·
+      ${p.region} · 原型 ${p.archetype}<br>${dx}</div>
+    ${list.map((r,i)=>encCard(r,i,hist)).join('')}`;
+  document.getElementById('main').querySelectorAll('.enc').forEach(c=>c.onclick=()=>{
+    S.enc=+c.dataset.i; render();});
+  const cur=document.querySelector('.enc[aria-current="true"]');
+  if(cur) cur.scrollIntoView({block:'nearest',behavior:'smooth'});
+}
+function encCard(r,i,hist){
+  const v=verdictOf(S.person,i);
+  const chip=v?`<span class="verdict-chip ${v.verdict}">${
+    {ok:'通过',warn:'存疑',bad:'错误'}[v.verdict]}</span>`:'';
+  const ev=(r.events_since_previous||[]).length
+    ? `<div class="events"><b>这段时间开始的事件：</b>${r.events_since_previous.join(' · ')}</div>`:'';
+  const rows=r.rows.map(row=>{
+    const cls=row.status==='high'?'hi':row.status==='low'?'lo':'';
+    const mark=row.status==='high'?'↑':row.status==='low'?'↓':'';
+    const series=hist.get(row.key)||[];
+    const spark=series.length>1?sparkline(series,row.ref_low,row.ref_high):'';
+    return `<tr class="${cls}">
+      <td class="name">${row.original_indicator}</td>
+      <td class="num value">${row.value}</td>
+      <td class="unit">${row.unit||''}</td>
+      <td class="ref">${row.reference_range||'—'}</td>
+      <td class="flag">${mark}</td>
+      <td style="width:110px">${spark}</td></tr>`;}).join('');
+  return `<section class="enc" data-i="${i}" aria-current="${i===S.enc}"
+            style="animation-delay:${Math.min(i*40,320)}ms">
+    <div class="enc-head">
+      <span class="enc-date">${r.collected}</span>
+      <span class="enc-kind">${r.exam_type} · ${r.exam_location}</span>
+      <span class="enc-kind">${r.panels.join(' / ')}</span>${chip}</div>
+    ${ev}
+    <table><thead><tr><th>项目</th><th class="num">结果</th><th>单位</th>
+      <th>参考范围</th><th></th><th>纵向</th></tr></thead>
+    <tbody>${rows}</tbody></table></section>`;
+}
+function renderSide(){
+  const list=S.byPerson.get(S.person), r=list[S.enc];
+  const v=verdictOf(S.person,S.enc)||{};
+  const rows=(S.panel?.rows||[]).filter(x=>x.person_id===S.person);
+  const rubric=S.panel?.rubric||{};
+  const panelHtml=rows.length?`<div class="panel"><h3>多模型面板</h3>${rows.map(x=>`
+      <div class="rub"><span class="code">${x.item}</span>
+        <span class="sc ${x.stdev>0.25?'disagree':''}">${x.mean.toFixed(2)}${
+          x.stdev>0.25?` ±${x.stdev.toFixed(2)}`:''}</span>
+        <span class="why">${rubric[x.item]||''}</span></div>`).join('')}
+      <div class="stats"><span>分歧大 = 案例本身模糊，同样要人看</span></div></div>`
+    :`<div class="panel"><h3>多模型面板</h3>
+       <div class="why" style="font-size:12px;color:var(--ink-3)">未加载 llm_panel.json。
+       面板只排序、不拦截；能拦住东西的是确定性审计。</div></div>`;
+  const counts={ok:0,warn:0,bad:0};
+  Object.values(S.decisions).forEach(m=>Object.values(m).forEach(d=>counts[d.verdict]++));
+  document.getElementById('side').innerHTML=`<div class="vbox">
+    <h2>判定</h2><div class="vsub">${S.person} · ${r.collected}</div>
+    <div class="choices">
+      <button class="choice" data-v="ok"   aria-pressed="${v.verdict==='ok'}">
+        <span class="dot"></span>通过<span style="margin-left:auto"><kbd>1</kbd></span></button>
+      <button class="choice" data-v="warn" aria-pressed="${v.verdict==='warn'}">
+        <span class="dot"></span>存疑<span style="margin-left:auto"><kbd>2</kbd></span></button>
+      <button class="choice" data-v="bad"  aria-pressed="${v.verdict==='bad'}">
+        <span class="dot"></span>错误<span style="margin-left:auto"><kbd>3</kbd></span></button>
+    </div>
+    <textarea id="note" placeholder="哪里不对、为什么——这段话会进 decisions.json，
+是回头改生成器的依据">${v.note||''}</textarea>
+    <div class="stats"><span>通过 ${counts.ok}</span><span>存疑 ${counts.warn}</span>
+      <span>错误 ${counts.bad}</span></div>
+    ${panelHtml}
+    <div class="keys"><kbd>J</kbd><kbd>K</kbd> 换就诊 ·
+      <kbd>[</kbd><kbd>]</kbd> 换人 · <kbd>1</kbd><kbd>2</kbd><kbd>3</kbd> 判定 ·
+      <kbd>N</kbd> 备注 · <kbd>E</kbd> 导出</div></div>`;
+  document.querySelectorAll('.choice').forEach(b=>b.onclick=()=>mark(b.dataset.v));
+  document.getElementById('note').onchange=e=>mark(v.verdict||'warn',e.target.value);
+}
+function mark(verdict,note){
+  S.decisions[S.person]=S.decisions[S.person]||{};
+  const prev=S.decisions[S.person][S.enc]||{};
+  S.decisions[S.person][S.enc]={
+    verdict, note: note!==undefined?note:(prev.note||''),
+    file: S.byPerson.get(S.person)[S.enc].file, at:new Date().toISOString()};
+  render();
+}
+function exportDecisions(){
+  const blob=new Blob([JSON.stringify({
+    reviewed_at:new Date().toISOString(),
+    // 判定按 file 记，不按序号——序号会随生成器的排期改变，file 不会。
+    decisions:S.decisions},null,2)],{type:'application/json'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob); a.download='decisions.json'; a.click();
+}
+addEventListener('keydown',e=>{
+  if(e.target.tagName==='TEXTAREA'){ if(e.key==='Escape') e.target.blur(); return; }
+  const list=S.byPerson.get(S.person)||[];
+  const pi=S.people.indexOf(S.person);
+  const go={j:()=>S.enc=Math.min(S.enc+1,list.length-1), k:()=>S.enc=Math.max(S.enc-1,0),
+    ']':()=>{S.person=S.people[Math.min(pi+1,S.people.length-1)];S.enc=0;},
+    '[':()=>{S.person=S.people[Math.max(pi-1,0)];S.enc=0;}}[e.key];
+  if(go){ go(); render(); e.preventDefault(); return; }
+  if(e.key==='1') mark('ok'); else if(e.key==='2') mark('warn');
+  else if(e.key==='3') mark('bad');
+  else if(e.key==='n'){ e.preventDefault(); document.getElementById('note')?.focus(); }
+  else if(e.key==='e') exportDecisions();
+});
+</script>
+</body>
+</html>

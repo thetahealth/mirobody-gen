@@ -1,0 +1,1812 @@
+{
+  "_vocabulary_fields": [
+    "column_header_vocabulary",
+    "column_roles",
+    "reference_dialects",
+    "flag_markers",
+    "date_labels",
+    "date_formats",
+    "narrative_labels",
+    "signature_roles",
+    "column_sets_by_spelling",
+    "column_sets_by_role",
+    "furniture_kinds",
+    "doc_kinds",
+    "unit_location"
+  ],
+  "_source": "format-token",
+  "_note": "从 627 份真实文档的版式观察蒸馏。列头经角色白名单过滤，参考值只留方言模板，页面构件与文档类型只留种类，日期只留字面格式。任何仅出现在 1–2 份文档里的串一律丢弃。",
+  "_provenance": {
+    "documents": 627,
+    "min_documents": 3,
+    "script": "scripts/distill_layout.py",
+    "dropped_column_sets": 465,
+    "dropped_labels": 1130
+  },
+  "column_sets_by_spelling": [
+    {
+      "value": [
+        "项目",
+        "结果",
+        "参考值"
+      ],
+      "documents": 22
+    },
+    {
+      "value": [
+        "项目名称",
+        "{analyte}"
+      ],
+      "documents": 20
+    },
+    {
+      "value": [
+        "项目名称",
+        "结果",
+        "参考值",
+        "单位",
+        "标志"
+      ],
+      "documents": 14
+    },
+    {
+      "value": [
+        "一级目录（中文）",
+        "{analyte}",
+        "{analyte}",
+        "{analyte}",
+        "{analyte}",
+        "检查名称",
+        "影像表现",
+        "{analyte}"
+      ],
+      "documents": 10
+    },
+    {
+      "value": [
+        "一级目录（中文）",
+        "{analyte}",
+        "{analyte}",
+        "{analyte}",
+        "{analyte}",
+        "检查名称",
+        "{analyte}",
+        "影像表现",
+        "{analyte}"
+      ],
+      "documents": 7
+    },
+    {
+      "value": [
+        "检查项目",
+        "检查所见",
+        "单位"
+      ],
+      "documents": 6
+    },
+    {
+      "value": [
+        "检查项目",
+        "{analyte}",
+        "{analyte}",
+        "状态"
+      ],
+      "documents": 5
+    },
+    {
+      "value": [
+        "检查项目",
+        "{analyte}",
+        "状态"
+      ],
+      "documents": 5
+    },
+    {
+      "value": [
+        "项目",
+        "结果"
+      ],
+      "documents": 5
+    },
+    {
+      "value": [
+        "项目名称",
+        "结果",
+        "参考区间"
+      ],
+      "documents": 5
+    },
+    {
+      "value": [
+        "{analyte}",
+        "{analyte}",
+        "{analyte}",
+        "{analyte}",
+        "{analyte}",
+        "{analyte}",
+        "{analyte}",
+        "{analyte}",
+        "{analyte}",
+        "{analyte}",
+        "{analyte}",
+        "{analyte}",
+        "{analyte}",
+        "{analyte}",
+        "{analyte}",
+        "{analyte}",
+        "{analyte}",
+        "{analyte}",
+        "{analyte}",
+        "{analyte}",
+        "{analyte}",
+        "{analyte}",
+        "{analyte}",
+        "{analyte}",
+        "{analyte}",
+        "{analyte}",
+        "{analyte}",
+        "{analyte}",
+        "{analyte}",
+        "{analyte}",
+        "{analyte}",
+        "{analyte}",
+        "{analyte}",
+        "{analyte}",
+        "{analyte}",
+        "{analyte}",
+        "{analyte}"
+      ],
+      "documents": 4
+    },
+    {
+      "value": [
+        "检测项目",
+        "检测结果",
+        "单位",
+        "{analyte}"
+      ],
+      "documents": 4
+    },
+    {
+      "value": [
+        "检测项目",
+        "英文缩写",
+        "检测结果",
+        "单位",
+        "{analyte}"
+      ],
+      "documents": 4
+    },
+    {
+      "value": [
+        "检测项目",
+        "英文缩写",
+        "检测结果",
+        "单位",
+        "{analyte}",
+        "状态"
+      ],
+      "documents": 4
+    },
+    {
+      "value": [
+        "项目",
+        "简称",
+        "结果",
+        "提示",
+        "单位",
+        "参考区间"
+      ],
+      "documents": 4
+    },
+    {
+      "value": [
+        "项目名称",
+        "{analyte}",
+        "检查者"
+      ],
+      "documents": 4
+    },
+    {
+      "value": [
+        "Test",
+        "Result",
+        "Unit",
+        "Reference"
+      ],
+      "documents": 3
+    },
+    {
+      "value": [
+        "一级目录（中文）",
+        "{analyte}",
+        "{analyte}",
+        "{analyte}",
+        "{analyte}",
+        "{analyte}",
+        "{analyte}",
+        "{analyte}",
+        "{analyte}",
+        "{analyte}",
+        "{analyte}",
+        "{analyte}",
+        "{analyte}",
+        "{analyte}",
+        "{analyte}",
+        "{analyte}"
+      ],
+      "documents": 3
+    },
+    {
+      "value": [
+        "一级目录（中文）",
+        "{analyte}",
+        "{analyte}",
+        "{analyte}",
+        "{analyte}",
+        "{analyte}",
+        "{analyte}",
+        "{analyte}",
+        "{analyte}",
+        "{analyte}",
+        "{analyte}",
+        "{analyte}",
+        "{analyte}",
+        "{analyte}",
+        "{analyte}",
+        "{analyte}",
+        "{analyte}",
+        "{analyte}",
+        "{analyte}",
+        "{analyte}",
+        "{analyte}",
+        "{analyte}"
+      ],
+      "documents": 3
+    },
+    {
+      "value": [
+        "一级目录（中文）",
+        "{analyte}",
+        "{analyte}",
+        "{analyte}",
+        "{analyte}",
+        "{analyte}",
+        "{analyte}",
+        "{analyte}",
+        "{analyte}",
+        "{analyte}",
+        "{analyte}",
+        "{analyte}",
+        "{analyte}",
+        "{analyte}",
+        "{analyte}",
+        "{analyte}",
+        "{analyte}",
+        "{analyte}",
+        "{analyte}",
+        "{analyte}",
+        "{analyte}",
+        "{analyte}",
+        "{analyte}",
+        "{analyte}",
+        "{analyte}",
+        "{analyte}",
+        "{analyte}",
+        "{analyte}",
+        "{analyte}",
+        "{analyte}",
+        "{analyte}",
+        "{analyte}"
+      ],
+      "documents": 3
+    },
+    {
+      "value": [
+        "一级目录（中文）",
+        "{analyte}",
+        "{analyte}",
+        "{analyte}",
+        "{analyte}",
+        "检查名称",
+        "检查所见",
+        "{analyte}"
+      ],
+      "documents": 3
+    },
+    {
+      "value": [
+        "項目",
+        "結果",
+        "參考值"
+      ],
+      "documents": 3
+    },
+    {
+      "value": [
+        "项目",
+        "結果",
+        "参考值"
+      ],
+      "documents": 3
+    },
+    {
+      "value": [
+        "项目",
+        "结果",
+        "參考值"
+      ],
+      "documents": 3
+    },
+    {
+      "value": [
+        "项目名称",
+        "{analyte}",
+        "参考值",
+        "单位",
+        "项目名称",
+        "{analyte}",
+        "参考值",
+        "单位"
+      ],
+      "documents": 3
+    },
+    {
+      "value": [
+        "项目名称",
+        "结果"
+      ],
+      "documents": 3
+    },
+    {
+      "value": [
+        "项目名称",
+        "结果",
+        "单位",
+        "参考值",
+        "提示"
+      ],
+      "documents": 3
+    }
+  ],
+  "column_sets_by_role": [
+    {
+      "value": [
+        "name",
+        "result",
+        "reference"
+      ],
+      "documents": 46
+    },
+    {
+      "value": [
+        "name",
+        "result"
+      ],
+      "documents": 33
+    },
+    {
+      "value": [
+        "meta_checkup",
+        "meta_report_time",
+        "meta_facility",
+        "meta_filename",
+        "analyte+"
+      ],
+      "documents": 29
+    },
+    {
+      "value": [
+        "category",
+        "meta_checkup",
+        "meta_report_time",
+        "meta_facility",
+        "meta_filename",
+        "analyte+"
+      ],
+      "documents": 19
+    },
+    {
+      "value": [
+        "name",
+        "result",
+        "reference",
+        "unit",
+        "flag"
+      ],
+      "documents": 18
+    },
+    {
+      "value": [
+        "name",
+        "result",
+        "unit",
+        "reference"
+      ],
+      "documents": 15
+    },
+    {
+      "value": [
+        "category",
+        "meta_checkup",
+        "meta_report_time",
+        "meta_facility",
+        "meta_filename",
+        "name",
+        "finding",
+        "result"
+      ],
+      "documents": 13
+    },
+    {
+      "value": [
+        "category",
+        "meta_checkup",
+        "meta_report_time",
+        "meta_facility",
+        "meta_filename",
+        "name",
+        "analyte+",
+        "finding",
+        "result"
+      ],
+      "documents": 7
+    },
+    {
+      "value": [
+        "name",
+        "abbr",
+        "result",
+        "unit",
+        "reference",
+        "flag"
+      ],
+      "documents": 6
+    },
+    {
+      "value": [
+        "name",
+        "finding",
+        "unit"
+      ],
+      "documents": 6
+    },
+    {
+      "value": [
+        "name",
+        "result",
+        "flag"
+      ],
+      "documents": 5
+    },
+    {
+      "value": [
+        "name",
+        "result",
+        "reference",
+        "flag"
+      ],
+      "documents": 5
+    },
+    {
+      "value": [
+        "name",
+        "result",
+        "reference",
+        "unit"
+      ],
+      "documents": 5
+    },
+    {
+      "value": [
+        "name",
+        "abbr",
+        "result",
+        "flag",
+        "unit",
+        "reference"
+      ],
+      "documents": 4
+    },
+    {
+      "value": [
+        "name",
+        "abbr",
+        "result",
+        "unit",
+        "reference"
+      ],
+      "documents": 4
+    },
+    {
+      "value": [
+        "name",
+        "result",
+        "examiner"
+      ],
+      "documents": 4
+    },
+    {
+      "value": [
+        "name",
+        "result",
+        "unit",
+        "reference",
+        "flag"
+      ],
+      "documents": 4
+    },
+    {
+      "value": [
+        "category",
+        "category",
+        "meta_checkup",
+        "meta_report_time",
+        "meta_facility",
+        "meta_filename",
+        "name",
+        "finding",
+        "result"
+      ],
+      "documents": 3
+    },
+    {
+      "value": [
+        "name",
+        "result",
+        "flag",
+        "reference",
+        "unit"
+      ],
+      "documents": 3
+    },
+    {
+      "value": [
+        "name",
+        "result",
+        "reference",
+        "unit",
+        "name",
+        "result",
+        "reference",
+        "unit"
+      ],
+      "documents": 3
+    }
+  ],
+  "column_header_vocabulary": [
+    "Reference",
+    "Result",
+    "Test",
+    "Unit",
+    "一级目录（中文）",
+    "单位",
+    "参考值",
+    "参考区间",
+    "參考值",
+    "影像表现",
+    "提示",
+    "标志",
+    "检查名称",
+    "检查所见",
+    "检查者",
+    "检查项目",
+    "检测结果",
+    "检测项目",
+    "状态",
+    "简称",
+    "結果",
+    "结果",
+    "英文缩写",
+    "項目",
+    "项目",
+    "项目名称"
+  ],
+  "column_roles": {
+    "#": "seq",
+    "Abbr": "abbr",
+    "Abbreviation": "abbr",
+    "Abnormal": "flag",
+    "Analyte": "name",
+    "BMD": "bmd",
+    "Category": "category",
+    "Code": "abbr",
+    "Collected": "date",
+    "Comment": "note",
+    "Comments": "note",
+    "Conclusion": "conclusion",
+    "Date": "date",
+    "Department": "category",
+    "Description": "finding",
+    "Diagnosis": "conclusion",
+    "English Name": "abbr",
+    "Examination": "name",
+    "Examiner": "examiner",
+    "FLAG": "flag",
+    "Facility": "meta_facility",
+    "File": "meta_filename",
+    "File Name": "meta_filename",
+    "Filename": "meta_filename",
+    "Findings": "finding",
+    "Flag": "flag",
+    "Group": "category",
+    "H/L": "flag",
+    "ITEM": "name",
+    "Impression": "conclusion",
+    "Indicator": "flag",
+    "Institution": "meta_facility",
+    "Item": "name",
+    "Items": "name",
+    "Measured": "result",
+    "Measured Value": "result",
+    "Measurement": "result",
+    "Method": "method",
+    "Methodology": "method",
+    "NO": "seq",
+    "No": "seq",
+    "No.": "seq",
+    "Normal Range": "reference",
+    "Normal Value": "reference",
+    "Note": "note",
+    "Notes": "note",
+    "Observation": "finding",
+    "Operator": "examiner",
+    "Parameter": "name",
+    "Performed By": "examiner",
+    "REF RANGE": "reference",
+    "REF.RANGE": "reference",
+    "REFERENCE": "reference",
+    "RESULT": "result",
+    "Range": "reference",
+    "Reading": "result",
+    "Ref Range": "reference",
+    "Ref.": "reference",
+    "Reference": "reference",
+    "Reference Range": "reference",
+    "Remark": "note",
+    "Remarks": "note",
+    "Report Time": "meta_report_time",
+    "ReportTime": "meta_report_time",
+    "Reported": "date",
+    "Result": "result",
+    "Results": "result",
+    "Sample": "specimen",
+    "Short Name": "abbr",
+    "Specimen": "specimen",
+    "Status": "flag",
+    "T Score": "tscore",
+    "T-score": "tscore",
+    "TEST": "name",
+    "Test": "name",
+    "Test Item": "name",
+    "Test Name": "name",
+    "Tests": "name",
+    "T值": "tscore",
+    "T值(T-score)": "tscore",
+    "UNIT": "unit",
+    "Unit": "unit",
+    "Units": "unit",
+    "VALUE": "result",
+    "Value": "result",
+    "Verified By": "examiner",
+    "Z Score": "zscore",
+    "Z-score": "zscore",
+    "Z值": "zscore",
+    "一级目录": "category",
+    "一级目录（中文）": "category",
+    "一级目录（英文）": "category",
+    "三级目录": "category",
+    "二级目录": "category",
+    "二级目录（中文）": "category",
+    "二级目录（英文）": "category",
+    "代号": "abbr",
+    "体检": "meta_checkup",
+    "体检标记": "meta_checkup",
+    "備註": "note",
+    "分类": "category",
+    "判断": "flag",
+    "化验结果": "result",
+    "医生建议": "note",
+    "医院名称": "meta_facility",
+    "单 位": "unit",
+    "单位": "unit",
+    "单位(Unit)": "unit",
+    "印象": "conclusion",
+    "参考": "reference",
+    "参考值": "reference",
+    "参考值(范围)": "reference",
+    "参考值范围": "reference",
+    "参考值范围(Reference)": "reference",
+    "参考区间": "reference",
+    "参考范围": "reference",
+    "參考值": "reference",
+    "參考區間": "reference",
+    "參考範圍": "reference",
+    "單位": "unit",
+    "备注": "note",
+    "审核者": "examiner",
+    "序": "seq",
+    "序 号": "seq",
+    "序号": "seq",
+    "建议": "note",
+    "异常": "flag",
+    "异常提示": "flag",
+    "影像所见": "finding",
+    "影像表现": "finding",
+    "所见": "finding",
+    "报告日期": "date",
+    "报告时间": "meta_report_time",
+    "报告时间（Report Time）": "meta_report_time",
+    "报告结果": "result",
+    "指标简称": "abbr",
+    "描述": "finding",
+    "提示": "flag",
+    "提示信息": "flag",
+    "提示诊断": "conclusion",
+    "操作者": "examiner",
+    "数值": "result",
+    "文件名": "meta_filename",
+    "文件名称": "meta_filename",
+    "方法": "method",
+    "日期": "date",
+    "是否体检": "meta_checkup",
+    "是否异常": "flag",
+    "本次结果": "result",
+    "机构名称": "meta_facility",
+    "标志": "flag",
+    "标本": "specimen",
+    "标本类型": "specimen",
+    "标记": "flag",
+    "样本": "specimen",
+    "样本类型": "specimen",
+    "检查名称": "name",
+    "检查所见": "finding",
+    "检查日期": "date",
+    "检查结果": "result",
+    "检查者": "examiner",
+    "检查项目": "name",
+    "检查项目名称": "name",
+    "检测值": "result",
+    "检测方法": "method",
+    "检测结果": "result",
+    "检测项目": "name",
+    "检验人": "examiner",
+    "检验名称": "name",
+    "检验方法": "method",
+    "检验结果": "result",
+    "检验者": "examiner",
+    "检验项目": "name",
+    "检验项目名称": "name",
+    "標誌": "flag",
+    "檢查所見": "finding",
+    "檢查結果": "result",
+    "檢驗項目": "name",
+    "正常值": "reference",
+    "正常参考值": "reference",
+    "正常范围": "reference",
+    "正常范围值": "reference",
+    "注": "note",
+    "测定值": "result",
+    "测定项目": "name",
+    "测量值": "result",
+    "測定值": "result",
+    "状态": "flag",
+    "狀態": "flag",
+    "生物参考区间": "reference",
+    "異常": "flag",
+    "科别": "category",
+    "科室": "category",
+    "简称": "abbr",
+    "类别": "category",
+    "結果": "result",
+    "组别": "category",
+    "结果": "result",
+    "结果判断": "flag",
+    "结果提示": "flag",
+    "结论": "conclusion",
+    "编号": "seq",
+    "缩写": "abbr",
+    "英文名": "abbr",
+    "英文名称": "abbr",
+    "英文缩写": "abbr",
+    "计量单位": "unit",
+    "诊断": "conclusion",
+    "诊断意见": "conclusion",
+    "说明": "note",
+    "超声所见": "finding",
+    "送检机构": "meta_facility",
+    "采样日期": "date",
+    "項目": "name",
+    "項目名": "name",
+    "項目名稱": "name",
+    "项目": "name",
+    "项目名称": "name",
+    "骨密度": "bmd",
+    "骨密度值": "bmd"
+  },
+  "reference_dialects": [
+    {
+      "value": "{n}-{n}",
+      "documents": 148
+    },
+    {
+      "value": "{n}--{n}",
+      "documents": 44
+    },
+    {
+      "value": "<{n}",
+      "documents": 37
+    },
+    {
+      "value": "{n}",
+      "documents": 26
+    },
+    {
+      "value": "{n} - {n}",
+      "documents": 25
+    },
+    {
+      "value": "{n}—{n}",
+      "documents": 18
+    },
+    {
+      "value": "{n}~{n}",
+      "documents": 17
+    },
+    {
+      "value": ">{n}",
+      "documents": 16
+    },
+    {
+      "value": "{n} -- {n}",
+      "documents": 15
+    },
+    {
+      "value": "{n}–{n}",
+      "documents": 15
+    },
+    {
+      "value": "{n}. {n}-{n}. {n}",
+      "documents": 14
+    },
+    {
+      "value": "{n}-{n}%",
+      "documents": 13
+    },
+    {
+      "value": "({n}-{n})",
+      "documents": 12
+    },
+    {
+      "value": "{n}一{n}",
+      "documents": 12
+    },
+    {
+      "value": "(<{n})",
+      "documents": 9
+    },
+    {
+      "value": "< {n}",
+      "documents": 9
+    },
+    {
+      "value": "{n}-{n}&g/L",
+      "documents": 8
+    },
+    {
+      "value": "{n}. {n}-{n}",
+      "documents": 7
+    },
+    {
+      "value": "≤{n}",
+      "documents": 7
+    },
+    {
+      "value": "({n}~{n})",
+      "documents": 6
+    },
+    {
+      "value": "{n}-{n}*{n}^{n}&/L",
+      "documents": 6
+    },
+    {
+      "value": "{n}~{n} {n}^{n}/L",
+      "documents": 6
+    },
+    {
+      "value": "(< {n})",
+      "documents": 5
+    },
+    {
+      "value": "({n} - {n})",
+      "documents": 5
+    },
+    {
+      "value": "< {n}%",
+      "documents": 5
+    },
+    {
+      "value": "<{n}mg/L",
+      "documents": 5
+    },
+    {
+      "value": "{n} - {n} cells/uL",
+      "documents": 5
+    },
+    {
+      "value": "{n} ~ {n} RU/ml",
+      "documents": 5
+    },
+    {
+      "value": "{n}-{n}&ng/ml",
+      "documents": 5
+    },
+    {
+      "value": "{n}~{n}IU/mL",
+      "documents": 5
+    },
+    {
+      "value": "{n}~{n}RU/ml",
+      "documents": 5
+    },
+    {
+      "value": "{n}—{n}&mmol/L",
+      "documents": 5
+    },
+    {
+      "value": "<{n} mmol/L",
+      "documents": 4
+    },
+    {
+      "value": "{n} -- {n} %",
+      "documents": 4
+    },
+    {
+      "value": "{n} ~ {n}",
+      "documents": 4
+    },
+    {
+      "value": "{n} – {n}",
+      "documents": 4
+    },
+    {
+      "value": "{n}~{n}%",
+      "documents": 4
+    },
+    {
+      "value": "≤{n}ng/ml",
+      "documents": 4
+    },
+    {
+      "value": "({n} {n})",
+      "documents": 3
+    },
+    {
+      "value": "<{n} mg/L",
+      "documents": 3
+    },
+    {
+      "value": "> {n}",
+      "documents": 3
+    },
+    {
+      "value": "> {n} nmol/L",
+      "documents": 3
+    },
+    {
+      "value": ">{n}nmol/L",
+      "documents": 3
+    },
+    {
+      "value": "P < {n}%",
+      "documents": 3
+    },
+    {
+      "value": "{n} - {n}U/L",
+      "documents": 3
+    },
+    {
+      "value": "{n} ~ {n} IU/mL",
+      "documents": 3
+    },
+    {
+      "value": "{n} ~ {n} RU/mll",
+      "documents": 3
+    },
+    {
+      "value": "{n}-- {n} %",
+      "documents": 3
+    },
+    {
+      "value": "{n}-{n} g/L",
+      "documents": 3
+    },
+    {
+      "value": "{n}-{n} mmol/L",
+      "documents": 3
+    },
+    {
+      "value": "{n}-{n} ng/ml",
+      "documents": 3
+    },
+    {
+      "value": "{n}-{n}&Cell/HP",
+      "documents": 3
+    },
+    {
+      "value": "{n}-{n}&mmol/L",
+      "documents": 3
+    },
+    {
+      "value": "{n}-{n}&pg",
+      "documents": 3
+    },
+    {
+      "value": "{n}-{n}mg/L",
+      "documents": 3
+    },
+    {
+      "value": "{n}-{n}mmol/L",
+      "documents": 3
+    },
+    {
+      "value": "{n}-{n}ng/ml",
+      "documents": 3
+    },
+    {
+      "value": "{n}. {n}--{n}",
+      "documents": 3
+    },
+    {
+      "value": "{n}. {n}一{n}. {n}",
+      "documents": 3
+    },
+    {
+      "value": "{n}~ {n} RU/ml",
+      "documents": 3
+    },
+    {
+      "value": "{n}~{n} %",
+      "documents": 3
+    },
+    {
+      "value": "{n}—{n}%",
+      "documents": 3
+    },
+    {
+      "value": "{n}～{n}",
+      "documents": 3
+    },
+    {
+      "value": "充足>{n};不足{n}~{n};缺乏{n} ~ {n};严重缺乏<{n} nmol/L",
+      "documents": 3
+    }
+  ],
+  "flag_markers": [
+    {
+      "value": "↑",
+      "documents": 75
+    },
+    {
+      "value": "正常",
+      "documents": 74
+    },
+    {
+      "value": "↓",
+      "documents": 42
+    },
+    {
+      "value": "偏高",
+      "documents": 38
+    },
+    {
+      "value": "+",
+      "documents": 23
+    },
+    {
+      "value": "偏低",
+      "documents": 14
+    },
+    {
+      "value": "-",
+      "documents": 5
+    },
+    {
+      "value": "L",
+      "documents": 5
+    },
+    {
+      "value": "阴性",
+      "documents": 5
+    },
+    {
+      "value": "H",
+      "documents": 4
+    },
+    {
+      "value": "↑↑",
+      "documents": 4
+    },
+    {
+      "value": "异常",
+      "documents": 4
+    },
+    {
+      "value": "Normal",
+      "documents": 3
+    },
+    {
+      "value": "↓↓",
+      "documents": 3
+    },
+    {
+      "value": "++",
+      "documents": 2
+    },
+    {
+      "value": "High",
+      "documents": 2
+    },
+    {
+      "value": "阳性",
+      "documents": 2
+    },
+    {
+      "value": "A",
+      "documents": 1
+    },
+    {
+      "value": "Low",
+      "documents": 1
+    },
+    {
+      "value": "N",
+      "documents": 1
+    },
+    {
+      "value": "低",
+      "documents": 1
+    },
+    {
+      "value": "升高",
+      "documents": 1
+    },
+    {
+      "value": "降低",
+      "documents": 1
+    },
+    {
+      "value": "高",
+      "documents": 1
+    }
+  ],
+  "date_labels": [
+    {
+      "value": "报告时间",
+      "documents": 194
+    },
+    {
+      "value": "报告日期",
+      "documents": 75
+    },
+    {
+      "value": "检查日期",
+      "documents": 44
+    },
+    {
+      "value": "收样日期",
+      "documents": 39
+    },
+    {
+      "value": "采样日期",
+      "documents": 39
+    },
+    {
+      "value": "采样时间",
+      "documents": 38
+    },
+    {
+      "value": "接收时间",
+      "documents": 32
+    },
+    {
+      "value": "检验时间",
+      "documents": 22
+    },
+    {
+      "value": "体检日期",
+      "documents": 21
+    },
+    {
+      "value": "打印",
+      "documents": 20
+    },
+    {
+      "value": "检验日期",
+      "documents": 20
+    },
+    {
+      "value": "打印时间",
+      "documents": 19
+    },
+    {
+      "value": "报告",
+      "documents": 18
+    },
+    {
+      "value": "文件名称",
+      "documents": 18
+    },
+    {
+      "value": "采样",
+      "documents": 18
+    },
+    {
+      "value": "检查时间",
+      "documents": 16
+    },
+    {
+      "value": "检测日期",
+      "documents": 16
+    },
+    {
+      "value": "報告日期",
+      "documents": 12
+    },
+    {
+      "value": "ReportTime",
+      "documents": 11
+    },
+    {
+      "value": "收樣",
+      "documents": 11
+    },
+    {
+      "value": "采集时间",
+      "documents": 11
+    },
+    {
+      "value": "Collected",
+      "documents": 10
+    },
+    {
+      "value": "Printed",
+      "documents": 10
+    },
+    {
+      "value": "Reported",
+      "documents": 9
+    },
+    {
+      "value": "收样",
+      "documents": 9
+    },
+    {
+      "value": "审核时间",
+      "documents": 8
+    },
+    {
+      "value": "报告打印时间",
+      "documents": 8
+    },
+    {
+      "value": "出生日期",
+      "documents": 6
+    },
+    {
+      "value": "检测时间",
+      "documents": 6
+    },
+    {
+      "value": "DOB",
+      "documents": 5
+    },
+    {
+      "value": "Printed:",
+      "documents": 5
+    },
+    {
+      "value": "初审日期",
+      "documents": 5
+    },
+    {
+      "value": "檢查日期",
+      "documents": 5
+    },
+    {
+      "value": "终审日期",
+      "documents": 5
+    },
+    {
+      "value": "出院日期",
+      "documents": 4
+    },
+    {
+      "value": "報告時間",
+      "documents": 4
+    },
+    {
+      "value": "报告书写时间",
+      "documents": 4
+    },
+    {
+      "value": "报告审核时间",
+      "documents": 4
+    },
+    {
+      "value": "收樣日期",
+      "documents": 4
+    },
+    {
+      "value": "日期",
+      "documents": 4
+    },
+    {
+      "value": "时间",
+      "documents": 4
+    },
+    {
+      "value": "檢查時間",
+      "documents": 4
+    },
+    {
+      "value": "Collected:",
+      "documents": 3
+    },
+    {
+      "value": "CollectionDate",
+      "documents": 3
+    },
+    {
+      "value": "Date",
+      "documents": 3
+    },
+    {
+      "value": "DateofBirth",
+      "documents": 3
+    },
+    {
+      "value": "Reported:",
+      "documents": 3
+    },
+    {
+      "value": "T:##:##",
+      "documents": 3
+    },
+    {
+      "value": "Time",
+      "documents": 3
+    },
+    {
+      "value": "体检时间",
+      "documents": 3
+    },
+    {
+      "value": "入院日期",
+      "documents": 3
+    },
+    {
+      "value": "历史检查结果",
+      "documents": 3
+    },
+    {
+      "value": "发布时间",
+      "documents": 3
+    },
+    {
+      "value": "审审报报",
+      "documents": 3
+    },
+    {
+      "value": "就诊日期",
+      "documents": 3
+    },
+    {
+      "value": "报告时间:",
+      "documents": 3
+    },
+    {
+      "value": "接收时间(ReceivingTime)",
+      "documents": 3
+    },
+    {
+      "value": "申请时间",
+      "documents": 3
+    },
+    {
+      "value": "登记日期",
+      "documents": 3
+    },
+    {
+      "value": "签发时间(DateofIssuance)",
+      "documents": 3
+    }
+  ],
+  "date_formats": [
+    {
+      "value": "YYYY-MM-DD HH:mm:ss",
+      "documents": 290
+    },
+    {
+      "value": "YYYY-MM-DD HH:mm",
+      "documents": 117
+    },
+    {
+      "value": "YYYY-MM-DD",
+      "documents": 109
+    },
+    {
+      "value": "YYYYMMDD",
+      "documents": 27
+    },
+    {
+      "value": "YYYY年MM月DD日",
+      "documents": 25
+    },
+    {
+      "value": "YYYY-MM-DD HH:MM",
+      "documents": 18
+    },
+    {
+      "value": "YYYY/MM/DD HH:mm:ss",
+      "documents": 16
+    },
+    {
+      "value": "YYYY.MM.DD",
+      "documents": 15
+    },
+    {
+      "value": "DD/MM/YY",
+      "documents": 12
+    },
+    {
+      "value": "YYYY/MM/DD HH:mm",
+      "documents": 11
+    },
+    {
+      "value": "HH:MM",
+      "documents": 10
+    },
+    {
+      "value": "MM/DD/YYYY",
+      "documents": 10
+    },
+    {
+      "value": "DD/MM/YY HH:MM",
+      "documents": 9
+    },
+    {
+      "value": "DD/MM/YY HH:mm",
+      "documents": 8
+    },
+    {
+      "value": "YYYY年MM月",
+      "documents": 5
+    },
+    {
+      "value": "YYYY年M月D日",
+      "documents": 5
+    },
+    {
+      "value": "HH:mm",
+      "documents": 4
+    },
+    {
+      "value": "MM/DD HH:MM",
+      "documents": 3
+    },
+    {
+      "value": "YYYY/M/D HH:mm:ss",
+      "documents": 3
+    }
+  ],
+  "furniture_kinds": [
+    {
+      "value": "page_number",
+      "occurrences": 328
+    },
+    {
+      "value": "disclaimer",
+      "occurrences": 92
+    },
+    {
+      "value": "sheet_marker",
+      "occurrences": 46
+    },
+    {
+      "value": "qr_code",
+      "occurrences": 40
+    },
+    {
+      "value": "end_marker",
+      "occurrences": 39
+    },
+    {
+      "value": "logo",
+      "occurrences": 32
+    },
+    {
+      "value": "barcode",
+      "occurrences": 26
+    },
+    {
+      "value": "department_stamp",
+      "occurrences": 26
+    },
+    {
+      "value": "print_info",
+      "occurrences": 25
+    },
+    {
+      "value": "url_or_contact",
+      "occurrences": 14
+    },
+    {
+      "value": "instrument",
+      "occurrences": 9
+    },
+    {
+      "value": "photo_slot",
+      "occurrences": 6
+    }
+  ],
+  "doc_kinds": [
+    {
+      "value": "checkup_book",
+      "documents": 157
+    },
+    {
+      "value": "ct_mri_xray",
+      "documents": 64
+    },
+    {
+      "value": "cbc",
+      "documents": 34
+    },
+    {
+      "value": "discharge_or_visit",
+      "documents": 31
+    },
+    {
+      "value": "serology_immune",
+      "documents": 27
+    },
+    {
+      "value": "ultrasound",
+      "documents": 24
+    },
+    {
+      "value": "chemistry",
+      "documents": 23
+    },
+    {
+      "value": "urinalysis",
+      "documents": 19
+    },
+    {
+      "value": "endoscopy_pathology",
+      "documents": 18
+    },
+    {
+      "value": "ecg",
+      "documents": 12
+    },
+    {
+      "value": "vitamin_hormone",
+      "documents": 12
+    },
+    {
+      "value": "glucose_diabetes",
+      "documents": 10
+    },
+    {
+      "value": "lipid",
+      "documents": 8
+    },
+    {
+      "value": "coagulation",
+      "documents": 7
+    },
+    {
+      "value": "thyroid",
+      "documents": 6
+    },
+    {
+      "value": "tumor_marker",
+      "documents": 6
+    },
+    {
+      "value": "esr",
+      "documents": 5
+    },
+    {
+      "value": "blood_gas",
+      "documents": 3
+    },
+    {
+      "value": "bone_density",
+      "documents": 3
+    },
+    {
+      "value": "device_export",
+      "documents": 1
+    },
+    {
+      "value": "pulmonary_function",
+      "documents": 1
+    }
+  ],
+  "narrative_labels": [
+    {
+      "value": "影像表现",
+      "documents": 28
+    },
+    {
+      "value": "主诉",
+      "documents": 21
+    },
+    {
+      "value": "现病史",
+      "documents": 18
+    },
+    {
+      "value": "备注",
+      "documents": 12
+    },
+    {
+      "value": "诊断意见",
+      "documents": 12
+    },
+    {
+      "value": "建议",
+      "documents": 11
+    },
+    {
+      "value": "既往史",
+      "documents": 9
+    },
+    {
+      "value": "检查所见",
+      "documents": 9
+    },
+    {
+      "value": "体格检查",
+      "documents": 8
+    },
+    {
+      "value": "提醒",
+      "documents": 8
+    },
+    {
+      "value": "注",
+      "documents": 8
+    },
+    {
+      "value": "诊断",
+      "documents": 7
+    },
+    {
+      "value": "温馨提示",
+      "documents": 6
+    },
+    {
+      "value": "印象",
+      "documents": 5
+    },
+    {
+      "value": "辅助检查",
+      "documents": 5
+    },
+    {
+      "value": "影像所见",
+      "documents": 3
+    },
+    {
+      "value": "超声所见",
+      "documents": 3
+    }
+  ],
+  "signature_roles": [
+    {
+      "value": "检验者",
+      "documents": 51
+    },
+    {
+      "value": "审核者",
+      "documents": 43
+    },
+    {
+      "value": "检查者",
+      "documents": 24
+    },
+    {
+      "value": "操作者",
+      "documents": 5
+    }
+  ],
+  "unit_location": [
+    {
+      "value": "separate_column",
+      "occurrences": 243
+    },
+    {
+      "value": "none",
+      "occurrences": 135
+    },
+    {
+      "value": "in_reference",
+      "occurrences": 86
+    },
+    {
+      "value": "in_value_cell",
+      "occurrences": 64
+    },
+    {
+      "value": "in_header",
+      "occurrences": 7
+    }
+  ],
+  "distributions": {
+    "page_count": {
+      "1": 509,
+      "2": 17,
+      "3": 33,
+      "4": 9,
+      "5": 1,
+      "6": 4,
+      "7": 7,
+      "8": 5,
+      "9": 5,
+      "10": 2,
+      "11": 1,
+      "12": 2,
+      "13": 2,
+      "14": 1,
+      "15": 1,
+      "16": 3,
+      "17": 1,
+      "18": 2,
+      "19": 1,
+      "20": 1,
+      "21": 2,
+      "27": 1,
+      "73": 1
+    },
+    "tables_per_document": {
+      "0": 142,
+      "1": 364,
+      "2": 27,
+      "3": 18,
+      "4": 17,
+      "5": 12,
+      "6": 5,
+      "7": 4,
+      "8": 3,
+      "9": 4,
+      "10": 12,
+      "11": 5,
+      "12": 5,
+      "13": 2,
+      "14": 1,
+      "15": 2,
+      "17": 1,
+      "18": 1,
+      "20": 2
+    },
+    "languages": {
+      "zh-Hans": 568,
+      "en": 386,
+      "zh-Hant": 28,
+      "ja": 2
+    },
+    "rows_per_document": {
+      "p05": 0,
+      "p25": 1,
+      "p50": 6,
+      "p75": 15,
+      "p95": 36,
+      "max": 86,
+      "zero_share": 0.2249
+    }
+  }
+}

@@ -1,0 +1,66 @@
+{
+ "_source": "format-token",
+ "_note": "参考集图像文件的聚合形态：只含分位数与计数，由 scripts/measure_images.py 生成",
+ "_provenance": {
+  "script": "scripts/measure_images.py"
+ },
+ "_vocabulary_fields": [],
+ "images": 315,
+ "extensions": {
+  ".jpeg": 49,
+  ".jpg": 160,
+  ".png": 106
+ },
+ "landscape_fraction": 0.451,
+ "long_edge": {
+  "p10": 779,
+  "p50": 1262,
+  "p90": 3072,
+  "histogram": {
+   "1001–1279": 85,
+   "1280": 1,
+   "1281–1600": 31,
+   "1601–2500": 41,
+   "2501–3500": 63,
+   ">3500": 20,
+   "≤1000": 74
+  }
+ },
+ "long_edge_exactly_1280_fraction": 0.003,
+ "aspect_ratio": {
+  "p10": 1.19,
+  "p50": 1.37,
+  "p90": 2.18
+ },
+ "jpeg_quality_estimate": {
+  "n": 201,
+  "p10": 75,
+  "p50": 93,
+  "p90": 96,
+  "histogram": {
+   "60–74": 6,
+   "75–84": 48,
+   "85–94": 106,
+   "<60": 2,
+   "≥95": 39
+  }
+ },
+ "grayscale_fraction": 0.422,
+ "exif_camera_fraction": 0.044,
+ "corner_brightness": {
+  "p10": 61.5,
+  "p50": 242.0,
+  "p90": 255.0,
+  "white_background_fraction(>235)": 0.508
+ },
+ "sharpness_laplacian_var": {
+  "p10": 245.9,
+  "p50": 1301.3,
+  "p90": 10248.5
+ },
+ "abs_skew_deg": {
+  "p50": 0.0,
+  "p90": 0.0,
+  "over_1deg_fraction": 0.035
+ }
+}

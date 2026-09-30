@@ -31,6 +31,16 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); ver
   vocabulary exemptions. Design note `docs/zh-CN/llm-integration-2026-09-29.md`; close reading of
   PureDocBench, OmniDocBench and Synthetic Hospital with pipeline v2 in
   `docs/zh-CN/research-2026-09-29-puredocbench.md`.
+- The paraphrase resource is wired into the generator: one wording per template per institution (sticky,
+  drawn from a stream of its own, so switching it off with `mirobody-gen build --no-paraphrase` reproduces
+  the pre-paraphrase corpus byte for byte); diary entries vary entry by entry. `mirobody-gen compare A B`
+  reports wording diversity per narrative layer and checks that the truth layer is identical. The client
+  reads `.env` (`LLM_API_KEY` may name `OPENROUTER_API_KEY`) and uses certifi or the system CA bundle.
+- The paraphrase writer screens every accepted candidate against the reference-set replay index when
+  the index is on the machine (`replay_windows`, factored out of the privacy gate) and records
+  `replay_screened` in the provenance; `--workers N` runs model calls concurrently.
+- First paraphrase resource shipped: `resources/paraphrases.json`, 591 wordings for 228 of 237 templates
+  from `openai/gpt-6-luna` (68 candidates dropped by the replay screen, 397 by the contract).
 - `mirobody-gen paraphrase --refine N`: rejected candidates go back to the model with their reasons
   (progressive refinement after Kramer et al. 2026); design note §7 records the revised plan (L0: knowledge
   profile → cohort spec) and nine newly surveyed references in `docs/paper/refs.bib`.

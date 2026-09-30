@@ -137,6 +137,12 @@ def check(req: Request, candidate: str, accepted: list[str] = ()) -> list[str]:
     return reasons
 
 
+def reason_key(reason: str) -> str:
+    """The rule a reason belongs to, without its particulars (numbers, lists)."""
+    head = reason.split(":")[0]
+    return re.sub(r"\s*\d+(?:\.\d+)?\s*", " ", head).replace("outside [ , ]", "").strip()
+
+
 def accept(req: Request, candidates: list[str]) -> tuple[list[str], dict[str, int]]:
     """Filter candidates in order; return (accepted, reject counts by first reason)."""
     accepted: list[str] = []
@@ -144,7 +150,7 @@ def accept(req: Request, candidates: list[str]) -> tuple[list[str], dict[str, in
     for c in candidates:
         reasons = check(req, c, accepted)
         if reasons:
-            rejects[reasons[0].split(":")[0]] += 1
+            rejects[reason_key(reasons[0])] += 1
         else:
             accepted.append(c.strip())
         if len(accepted) >= req.n:

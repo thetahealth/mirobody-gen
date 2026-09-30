@@ -90,12 +90,32 @@ def llm_prompts() -> dict:
     return _load("llm_prompts.json")
 
 
+_PARAPHRASES_ENABLED = True
+
+
+def set_paraphrases(enabled: bool) -> None:
+    """Switch the optional paraphrase resource off (``mirobody-gen build --no-paraphrase``)."""
+    global _PARAPHRASES_ENABLED
+    _PARAPHRASES_ENABLED = enabled
+
+
+@functools.lru_cache(maxsize=None)
 def paraphrases() -> dict[str, list[str]]:
     """Template path → accepted paraphrases; empty when the optional resource is absent."""
     path = RESOURCES / "paraphrases.json"
     if not path.is_file():
         return {}
     return json.loads(path.read_text(encoding="utf-8")).get("paraphrases", {})
+
+
+def phrasings(path: str, original: str) -> list[str]:
+    """The wordings available for one template: the original first, then its accepted paraphrases.
+
+    With the resource absent or switched off this is ``[original]``, so callers that pick from it with
+    their own seeded stream produce exactly the pre-paraphrase output."""
+    if not _PARAPHRASES_ENABLED:
+        return [original]
+    return [original] + [p for p in paraphrases().get(path, []) if p != original]
 
 
 def vocab() -> dict:

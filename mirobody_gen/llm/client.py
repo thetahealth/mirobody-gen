@@ -11,11 +11,47 @@ import hashlib
 import json
 import os
 import pathlib
+import ssl
 from datetime import datetime, timezone
 
 PACKAGE = pathlib.Path(__file__).resolve().parents[1]
 REPO = PACKAGE.parent
 CACHE = REPO / ".cache" / "llm"
+
+
+def _dotenv() -> dict[str, str]:
+    """KEY=VALUE lines of the repository's .env (never committed); shell variables take precedence."""
+    path = REPO / ".env"
+    out: dict[str, str] = {}
+    if path.is_file():
+        for line in path.read_text(encoding="utf-8").splitlines():
+            line = line.strip()
+            if line and not line.startswith("#") and "=" in line:
+                k, v = line.split("=", 1)
+                out[k.strip()] = v.strip().strip("'\"")
+    # a value may name another variable: KEY=$OTHER, KEY=${OTHER} or KEY=OTHER
+    for k, v in list(out.items()):
+        ref = v[2:-1] if v.startswith("${") and v.endswith("}") else v[1:] if v.startswith("$") else v
+        if ref != v or (ref in out and ref != k):
+            out[k] = out.get(ref, os.environ.get(ref, v))
+    return out
+
+
+def endpoint() -> tuple[str | None, str | None]:
+    """(base url, api key) from the environment, then .env; LLM_API_KEY falls back to OPENROUTER_API_KEY."""
+    env = {**_dotenv(), **{k: v for k, v in os.environ.items() if k in ("LLM_BASE_URL", "LLM_API_KEY", "OPENROUTER_API_KEY")}}
+    return env.get("LLM_BASE_URL"), env.get("LLM_API_KEY") or env.get("OPENROUTER_API_KEY")
+
+
+def _ssl_context() -> ssl.SSLContext:
+    """python.org builds on macOS ship without a CA bundle; prefer certifi, then the system bundle."""
+    try:
+        import certifi
+
+        return ssl.create_default_context(cafile=certifi.where())
+    except ImportError:
+        system = pathlib.Path("/etc/ssl/cert.pem")
+        return ssl.create_default_context(cafile=str(system) if system.is_file() else None)
 
 
 def cache_key(model: str, system: str, user: str) -> str:
@@ -32,8 +68,7 @@ def complete(model: str, system: str, user: str, temperature: float = 0.7, timeo
     hit = cached(model, system, user)
     if hit is not None:
         return {**hit, "cached": True}
-    base = os.environ.get("LLM_BASE_URL")
-    token = os.environ.get("LLM_API_KEY")
+    base, token = endpoint()
     if not (base and token):
         raise SystemExit("LLM_BASE_URL and LLM_API_KEY are required to call a model; "
                          "use --dry-run to write the request bundle without sending anything.")
@@ -43,7 +78,7 @@ def complete(model: str, system: str, user: str, temperature: float = 0.7, timeo
                        "messages": [{"role": "system", "content": system}, {"role": "user", "content": user}]}).encode()
     request = urllib.request.Request(f"{base.rstrip('/')}/chat/completions", data=body,
                                      headers={"Authorization": f"Bearer {token}", "Content-Type": "application/json"})
-    with urllib.request.urlopen(request, timeout=timeout) as response:
+    with urllib.request.urlopen(request, timeout=timeout, context=_ssl_context()) as response:
         payload = json.loads(response.read())
     text = payload["choices"][0]["message"]["content"]
     result = {"model": model, "text": text, "cached": False,

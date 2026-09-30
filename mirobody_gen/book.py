@@ -59,6 +59,19 @@ def _sticky(f: Family, what: str) -> random.Random:
     return random.Random(f"book:{f.family_id}:{what}")
 
 
+def _wording(f: Family, path: str, original: str) -> str:
+    """One institution prints one wording per template (its LIS has one dictionary): the choice among
+    the original and its paraphrases is sticky per family and draws nothing from the document stream."""
+    pool = spec.phrasings(path, original)
+    return pool[0] if len(pool) == 1 else _sticky(f, "phr:" + path).choice(pool)
+
+
+def _pick(rng: random.Random, f: Family, path_prefix: str, pool: list[str]) -> str:
+    """rng.choice over a template list, then the sticky wording of the chosen item."""
+    i = rng.randrange(len(pool))
+    return _wording(f, f"{path_prefix}.{i}", pool[i])
+
+
 def _fill(template: str, params: dict) -> str:
     try:
         return template.format(**params)
@@ -134,7 +147,8 @@ def section_blocks(rng: random.Random, doc: Doc, person: Person, enc: Encounter,
                 value = f"{rng.randint(11, 20)}/{rng.randint(11, 20)} mmHg"
             elif finding is not None:
                 fdef = n["findings"][finding.id]
-                value = _fill(fdef["text"][lang], finding.params) if "text" in fdef else fdef["summary"][lang]
+                value = _fill(_wording(f, f"narratives.findings.{finding.id}.text.{lang}", fdef["text"][lang]), finding.params) \
+                    if "text" in fdef else fdef["summary"][lang]
                 abnormal, fid = True, finding.id
             else:
                 pool = item.get("normal", {}).get(lang)
@@ -255,20 +269,21 @@ def aux_blocks(rng: random.Random, doc: Doc, person: Person, enc: Encounter, f: 
                     if hits:
                         x = hits[0]
                         fdef = n["findings"][x.id]
-                        text = fdef["finding"][x.severity][lang] if x.severity else fdef["finding"][lang]
+                        text = _wording(f, f"narratives.findings.{x.id}.finding.{x.severity}.{lang}", fdef["finding"][x.severity][lang]) \
+                            if x.severity else _wording(f, f"narratives.findings.{x.id}.finding.{lang}", fdef["finding"][lang])
                         paras.append(f"{organ[lang]}：{_fill(text, x.params)}" if lang == "zh" else f"{organ[lang]}: {_fill(text, x.params)}")
                     else:
-                        paras.append(f"{organ[lang]}：{rng.choice(organ['normal'][lang])}" if lang == "zh"
-                                     else f"{organ[lang]}: {rng.choice(organ['normal'][lang])}")
+                        normal = _pick(rng, f, f"narratives.aux.{aid}.organs.{organ['id']}.normal.{lang}", organ["normal"][lang])
+                        paras.append(f"{organ[lang]}：{normal}" if lang == "zh" else f"{organ[lang]}: {normal}")
                 if rng.random() < 0.5:
                     image, size = _us_image(rng, rng.randint(0, 2 ** 31 - 1))
             else:
                 if found:
                     x = found[0]
                     fdef = n["findings"][x.id]
-                    paras.append(_fill(fdef["finding"][lang], x.params))
+                    paras.append(_fill(_wording(f, f"narratives.findings.{x.id}.finding.{lang}", fdef["finding"][lang]), x.params))
                 else:
-                    paras.append(rng.choice(aux["finding_normal"][lang]))
+                    paras.append(_pick(rng, f, f"narratives.aux.{aid}.finding_normal.{lang}", aux["finding_normal"][lang]))
             impressions = []
             for x in found:
                 fdef = n["findings"][x.id]
@@ -309,7 +324,7 @@ def aux_blocks(rng: random.Random, doc: Doc, person: Person, enc: Encounter, f: 
                                                observed=enc.exam_date.isoformat(), expect_resolvable=r.expect_resolvable,
                                                printed_row=p_index))
             if aux.get("finding_normal"):
-                rows.append((labels["finding"], rng.choice(aux["finding_normal"][lang])))
+                rows.append((labels["finding"], _pick(rng, f, f"narratives.aux.{aid}.finding_normal.{lang}", aux["finding_normal"][lang])))
             impressions = [_fill(n["findings"][x.id]["impression"][lang], x.params) for x in found] \
                 or [rng.choice(aux["impression_normal"][lang])]
             numbered = [f"{i + 1}. {t}" for i, t in enumerate(impressions)] if len(impressions) > 1 else impressions
@@ -371,14 +386,16 @@ def summary_block(rng: random.Random, doc: Doc, person: Person, enc: Encounter, 
         aid = n["findings"][x.id].get("advice")
         if aid and aid not in used_advice:
             used_advice.add(aid)
-            advice.append((n["advice"][aid][lang], {"source": f"finding:{x.id}", "template": aid}))
+            advice.append((_wording(f, f"narratives.advice.{aid}.{lang}", n["advice"][aid][lang]),
+                           {"source": f"finding:{x.id}", "template": aid}))
     for group, items in groups.items():
         text = "、".join(items) if lang == "zh" else ", ".join(items)
         conclusions.append((text, {"source": "lab:" + group, "keys": [i.split(" ")[0] for i in items]}))
-        tmpl = n["advice"].get(group) or n["advice"]["lab_other"]
-        advice.append((_fill(tmpl[lang], {"items": text}), {"source": "lab:" + group, "template": group}))
+        akey = group if group in n["advice"] else "lab_other"
+        tmpl = _wording(f, f"narratives.advice.{akey}.{lang}", n["advice"][akey][lang])
+        advice.append((_fill(tmpl, {"items": text}), {"source": "lab:" + group, "template": group}))
     if not conclusions:
-        conclusions.append((n["advice"]["normal"][lang], {"source": "normal"}))
+        conclusions.append((_wording(f, f"narratives.advice.normal.{lang}", n["advice"]["normal"][lang]), {"source": "normal"}))
     rows: list[tuple[str, str]] = []
     truth: list[dict] = []
     lead = s["abnormal_lead"] if len(conclusions) > 1 or conclusions[0][1]["source"] != "normal" else ""
@@ -545,6 +562,7 @@ def build_outpatient(rng: random.Random, doc_id: str, person: Person, enc: Encou
         c2 = enc.complaints[1] if len(enc.complaints) > 1 else None
         ph = spec.complaints()["phrasing"][lang]
         template = rng.choice([x for x in ph["cc"] if ("{s2}" in x) == (c2 is not None)])
+        template = _wording(family, f"complaints.phrasing.{lang}.cc.{ph['cc'].index(template)}", template)
         cc = template.format(s=c1.text, s2=c2.text if c2 else "", dur=c1.duration or rng.choice(ph["durations"]))
         s2_clause = o["s2_clause"].format(s2=c2.text) if c2 else ""
         history_clause = o["history_clause"]["medication" if on_med else "none"].format(drug=o["drugs"].get(person.archetype, ""))

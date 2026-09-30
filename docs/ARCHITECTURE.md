@@ -60,8 +60,10 @@ before the gates: `mirobody-gen paraphrase` collects the narrative templates, as
 rewordings, keeps only candidates that pass the contract in `llm/contract.py` (same slots, no new
 numbers, locked terms intact, same language, bounded length, no names or identifiers, novel), and
 writes them as a resource with `_source: llm-paraphrase` that the privacy gate scans without any
-exemption. The build stays a deterministic function of resources, code and seed; without the resource
-the generator behaves exactly as before. Institution templates and candidate proposals follow the same
+exemption. The generator picks one wording per template per institution from a stream of its own
+(`book._wording`), so the build stays a deterministic function of resources, code and seed, and
+`mirobody-gen build --no-paraphrase` (or removing the resource) reproduces the pre-paraphrase corpus
+exactly; `mirobody-gen compare` verifies that invariant and reports wording diversity. Institution templates and candidate proposals follow the same
 pattern; see `docs/zh-CN/llm-integration-2026-09-29.md`.
 
 ## Invariants

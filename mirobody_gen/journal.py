@@ -31,6 +31,9 @@ def _sentence(rng: random.Random, lang: str, s1: str, s2: str | None, person: Pe
     ph = spec.complaints()["phrasing"][lang]
     templates = [t for t in ph["journal"] if ("{s2}" in t) == (s2 is not None)]
     t = rng.choice(templates)
+    # a diary has no institution: the wording varies entry by entry, from a stream of its own
+    pool = spec.phrasings(f"complaints.phrasing.{lang}.journal.{ph['journal'].index(t)}", t)
+    t = pool[0] if len(pool) == 1 else random.Random(f"jphr:{person.person_id}:{when}").choice(pool)
     text = t.format(s=s1, s_cap=s1[:1].upper() + s1[1:], s2=s2 or "", dur=rng.choice(ph["durations"]),
                     cause=rng.choice(ph["causes"]))
     measurements: list[dict] = []

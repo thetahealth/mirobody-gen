@@ -1,0 +1,1073 @@
+{
+ "_source": "llm-paraphrase",
+ "_note": "Paraphrases of narrative templates produced by a language model and filtered by mirobody_gen/llm/contract.py. Untrusted text: not vocabulary, scanned by the privacy gate as is.",
+ "_provenance": {
+  "script": "mirobody_gen/llm/paraphrase.py",
+  "models": [
+   "openai/gpt-6-luna"
+  ],
+  "date": "2026-09-30",
+  "prompt_version": "2026-09-29.2",
+  "replay_screened": true,
+  "requests": 237,
+  "accepted_ids": 228,
+  "accepted": 591,
+  "rejected": {
+   "too close to the template": 295,
+   "duplicate of an accepted candidate": 17,
+   "length ratio": 82,
+   "zh candidate without CJK": 3,
+   "replay hit": 68
+  }
+ },
+ "_vocabulary_fields": [],
+ "paraphrases": {
+  "complaints.phrasing.en.cc.0": [
+   "{s} over {dur}",
+   "{s}, {dur} long",
+   "{s} past {dur}"
+  ],
+  "complaints.phrasing.en.cc.1": [
+   "Recurring {s}, present for {dur}",
+   "Repeated {s} for {dur}",
+   "Recurring {s} over {dur}"
+  ],
+  "complaints.phrasing.en.cc.2": [
+   "{s} and {s2} for {dur}",
+   "{s} plus {s2} for {dur}"
+  ],
+  "complaints.phrasing.en.cc.3": [
+   "Intermittent {s} lasting {dur}, with worsening for 3 days",
+   "On-and-off {s} for {dur}; increased severity in the past 3 days",
+   "Episodic {s} spanning {dur}, with 3 days of increased severity"
+  ],
+  "complaints.phrasing.en.journal.0": [
+   "Today, {s_cap}—{s2}.",
+   "Today, {s_cap}; {s2}.",
+   "{s_cap} today — {s2}."
+  ],
+  "complaints.phrasing.en.journal.1": [
+   "I've felt {s} for {dur}.",
+   "Feeling {s} for {dur}."
+  ],
+  "complaints.phrasing.en.journal.2": [
+   "{s_cap}, maybe {cause}.",
+   "{s_cap}, likely {cause}.",
+   "{s_cap}, I guess {cause}."
+  ],
+  "complaints.phrasing.en.journal.3": [
+   "I woke up {s} and {s2}.",
+   "Awoke {s}, {s2}.",
+   "Came to {s}, {s2}."
+  ],
+  "complaints.phrasing.en.journal.4": [
+   "{s_cap} over the past few days, {s2}.",
+   "Lately, {s_cap}, and honestly, {s2}.",
+   "Man, {s_cap}; these days, {s2}."
+  ],
+  "complaints.phrasing.en.journal.5": [
+   "{s_cap}, in better shape than yesterday."
+  ],
+  "complaints.phrasing.en.journal.6": [
+   "{s_cap} tonight; I slept terribly.",
+   "Slept badly, so I’m {s_cap} tonight.",
+   "{s_cap} tonight, slept rough."
+  ],
+  "complaints.phrasing.en.journal.7": [
+   "{s_cap} for {dur} now, so I’m going to see the doctor tomorrow.",
+   "I’ve been {s_cap} for {dur} now; I’ll see the doctor tomorrow.",
+   "Still {s_cap} after {dur}, and I’ll see the doctor tomorrow."
+  ],
+  "complaints.phrasing.en.journal.8": [
+   "A tad {s}.",
+   "A little {s}.",
+   "Bit {s}."
+  ],
+  "complaints.phrasing.zh.cc.1": [
+   "屡有{s}{dur}",
+   "多发{s}{dur}",
+   "频现{s}{dur}"
+  ],
+  "complaints.phrasing.zh.cc.2": [
+   "{s}并{s2}{dur}",
+   "{s}及{s2}{dur}",
+   "{s}兼{s2}{dur}"
+  ],
+  "complaints.phrasing.zh.cc.3": [
+   "间歇性{s}{dur}，近3天加重",
+   "反复{s}{dur}，加重3天"
+  ],
+  "complaints.phrasing.zh.cc.4": [
+   "{s}{dur}；{s2}已1周",
+   "{s}{dur}伴{s2}1周",
+   "{s}{dur}兼{s2}1周"
+  ],
+  "complaints.phrasing.zh.journal.0": [
+   "今儿{s}，{s2}。"
+  ],
+  "complaints.phrasing.zh.journal.1": [
+   "近来{dur}常常{s}。",
+   "这阵子{dur}老是{s}。",
+   "最近{dur}一直{s}。"
+  ],
+  "complaints.phrasing.zh.journal.2": [
+   "看来{s}了，兴许是{cause}。",
+   "我觉得{s}了，多半是{cause}。",
+   "{s}了，像是{cause}。"
+  ],
+  "complaints.phrasing.zh.journal.3": [
+   "早上醒来后{s}，还{s2}。",
+   "今早起来时{s}，另外{s2}。",
+   "早晨醒来{s}，{s2}。"
+  ],
+  "complaints.phrasing.zh.journal.4": [
+   "最近这几天{s}，{s2}，有点拿不准要不要去看看。",
+   "这几天一直{s}，{s2}，我也不知道该不该去看看。",
+   "这几天{s}，还{s2}，不知道是不是该去看看。"
+  ],
+  "complaints.phrasing.zh.journal.5": [
+   "{s}，感觉比昨天舒服些了。",
+   "{s}，今天比昨天好受一点。",
+   "{s}，比起昨天感觉好一些了。"
+  ],
+  "complaints.phrasing.zh.journal.6": [
+   "晚上{s}，没怎么睡好。",
+   "晚上{s}，睡得不太踏实。",
+   "晚上{s}，这一觉睡得不咋样。"
+  ],
+  "complaints.phrasing.zh.journal.7": [
+   "我{s}{dur}了，明天去找医生看看。",
+   "这阵子{s}{dur}了，明天去看下医生。"
+  ],
+  "complaints.phrasing.zh.journal.8": [
+   "略有{s}。",
+   "稍有{s}。"
+  ],
+  "complaints.phrasing.zh.journal.9": [
+   "这回又{s}。",
+   "还是{s}了。",
+   "再次{s}了。"
+  ],
+  "narratives.advice.benign_cyst.en": [
+   "Cyst: typically benign; an annual ultrasound check is adequate.",
+   "Cyst: most often benign; annual ultrasound surveillance is sufficient."
+  ],
+  "narratives.advice.benign_cyst.zh": [
+   "囊肿：通常为良性，通常不需要特殊处理，建议每年复查超声以观察变化。",
+   "囊肿：大多属于良性，一般无需特别处理，建议每年通过超声复查观察其变化。",
+   "囊肿：多数情况下为良性，通常不必特殊处理，建议每年复查超声，留意变化。"
+  ],
+  "narratives.advice.body_fat.en": [
+   "Raised body fat / visceral fat: create a calorie deficit, include cardio and strength training, and aim for a smaller waist."
+  ],
+  "narratives.advice.body_fat.zh": [
+   "体脂率/内脏脂肪偏高：建议合理控制热量摄入，结合有氧运动和抗阻训练，改善腰围，定期复查。",
+   "体脂率/内脏脂肪偏高：建议减少总热量摄入，增加有氧及抗阻锻炼，控制腰围，并定期复查。",
+   "体脂率/内脏脂肪偏高：可调整膳食结构以减少能量摄入，结合耐力活动与肌力锻炼，改善腹部脂肪堆积，并安排后续复评。"
+  ],
+  "narratives.advice.bone.en": [
+   "Low bone density: Support skeletal health with calcium and vitamin D, regular weight-loading activity, and follow-up DXA."
+  ],
+  "narratives.advice.bone.zh": [
+   "骨量减少/骨质疏松：建议摄入钙剂及维生素 D，配合适当负重活动，定期进行骨密度复查。",
+   "骨量减少/骨质疏松：日常保证钙和维生素 D 摄入，结合自身情况进行承重活动，并定期监测骨密度变化。",
+   "骨量减少/骨质疏松：可通过饮食或补剂增加钙与维生素 D 的摄取，规律开展适宜的承重锻炼，后续随访评估骨密度。"
+  ],
+  "narratives.advice.brady.en": [
+   "Sinus bradycardia: frequently found in active individuals; consider cardiology review if dizziness or fatigue develops; mm.",
+   "Sinus bradycardia: may reflect athletic conditioning; consider cardiology assessment if dizziness or fatigue develops; mm.",
+   "Sinus bradycardia: can occur with regular vigorous activity; seek a cardiologist’s advice if dizziness or fatigue is present; mm."
+  ],
+  "narratives.advice.brady.zh": [
+   "窦性心动过缓：没有不适时通常无需处理，运动人群中较常见；若出现头晕、乏力，建议到心内科就诊。",
+   "窦性心动过缓：如未感不适一般不必特殊处理，常见于经常运动者；出现头晕或乏力时请就诊心内科。",
+   "窦性心动过缓：无明显不适通常不需要处理，运动者中较为常见；若有头晕、乏力等情况，请至心内科就诊。"
+  ],
+  "narratives.advice.breast.en": [
+   "Fibrocystic change: Continue annual breast ultrasound; no specific therapy is required."
+  ],
+  "narratives.advice.breast.zh": [
+   "乳腺增生：建议调节情绪，规律生活，每年复查乳腺超声。",
+   "乳腺增生：日常注意调适情绪、避免熬夜，并按年进行乳腺超声检查。",
+   "乳腺增生：保持良好心态，养成稳定的生活节奏，每年接受乳腺超声检查。"
+  ],
+  "narratives.advice.breast_nodule.en": [
+   "Breast nodule: schedule follow-up sonography at 6 months; seek breast clinic assessment if warranted.",
+   "Breast nodule: return for ultrasound in 6 months; referral to the breast clinic may be made if clinically indicated."
+  ],
+  "narratives.advice.breast_nodule.zh": [
+   "乳腺结节：可在 6 个月后复查乳腺超声，如有需要请就诊乳腺外科。",
+   "乳腺结节：可在 6 个月后安排乳腺超声复诊，如有需要请咨询乳腺外科。",
+   "乳腺结节：建议间隔 6 个月进行乳腺超声随访；必要时到乳腺外科进一步评估。"
+  ],
+  "narratives.advice.dental.zh": [
+   "口腔：建议到口腔科处理龋齿、牙结石，保持早晚刷牙的习惯，定期洁牙。",
+   "口腔：如有龋齿或牙结石，建议请口腔科评估并处理；养成晨起、睡前刷牙的习惯，按期接受洁牙。",
+   "口腔：可到口腔科检查龋病及牙结石并作相应处置，日常坚持早晚清洁牙齿，适时进行专业洁治。"
+  ],
+  "narratives.advice.ecg_minor.zh": [
+   "心电图轻度异常：建议根据临床情况评估，必要时到心内科就诊并复查心电图。",
+   "心电图轻度异常：请结合整体健康状况评估，视情况安排心内科进一步检查及心电图复测。",
+   "心电图轻度异常：综合症状与临床资料判断后，如有需要可接受心内科诊察并再次检查心电图。"
+  ],
+  "narratives.advice.echo_minor.en": [
+   "Minor echocardiographic finding: may be physiological or age-related; assess in clinical context and monitor blood pressure.",
+   "Minor echocardiographic finding: frequently reflects physiological or age-related change; interpret clinically and maintain blood pressure control.",
+   "Minor echocardiographic finding: often represents a physiological or age-related change; correlate with clinical status and ensure blood pressure is controlled."
+  ],
+  "narratives.advice.echo_minor.zh": [
+   "心脏超声轻度异常：可能与生理因素或年龄相关变化有关，建议结合临床情况控制血压，必要时到心内科随诊。",
+   "心脏超声轻度异常：此类表现常与生理状态或年龄因素有关，可请临床医生综合判断；平时留意血压管理，按需到心内科复查。",
+   "心脏超声轻度异常：所见改变可能与生理差异及年龄有关，请结合整体健康状况管理血压，并在需要时接受心内科评估。"
+  ],
+  "narratives.advice.ent.en": [
+   "ENT: limit exposure to irritants and stop smoking; seek ENT review if symptoms develop.",
+   "ENT: avoid exposure to irritants and quit smoking; arrange ENT review if symptomatic.",
+   "ENT: steer clear of irritants and cease smoking; obtain ENT review if symptoms occur."
+  ],
+  "narratives.advice.ent.zh": [
+   "耳鼻喉科：建议清淡饮食、戒烟，如有需要请至耳鼻喉科就诊。",
+   "耳鼻喉科：建议减少刺激性饮食，戒烟，必要时可就诊耳鼻喉科。",
+   "耳鼻喉科：日常饮食宜清淡，远离烟草；如有需要，可到耳鼻喉科进一步咨询。"
+  ],
+  "narratives.advice.eye.en": [
+   "Eyes: maintain eye hygiene; check refraction and wear spectacles if needed.",
+   "Eyes: practise eye hygiene; assess refraction and use spectacles if required.",
+   "Eyes: keep up eye hygiene; have refraction checked and use spectacles if needed."
+  ],
+  "narratives.advice.eye.zh": [
+   "眼科：建议保持良好用眼习惯，必要时进行验光配镜。",
+   "眼科：请注意用眼卫生，如有需要可验光配镜。",
+   "眼科：建议合理用眼，必要时到眼科验光配镜。"
+  ],
+  "narratives.advice.fatty_liver.en": [
+   "Fatty liver: follow a controlled diet, exercise regularly and manage weight; limit alcohol; repeat liver function tests and ultrasound at regular intervals.",
+   "Fatty liver: maintain dietary control, engage in regular exercise and manage weight; restrict alcohol; periodically repeat liver function tests and ultrasound."
+  ],
+  "narratives.advice.fatty_liver.zh": [
+   "脂肪肝：建议调整饮食结构，增加运动，控制体重并限制饮酒，定期检查肝功能和肝脏超声。",
+   "脂肪肝：宜合理饮食、加强锻炼以控制体重，减少饮酒，并定期复查肝功能及肝脏超声。",
+   "脂肪肝：建议注意饮食管理，积极运动、维持适宜体重，限制饮酒，定期进行肝功能及肝脏超声检查。"
+  ],
+  "narratives.advice.fibroid.en": [
+   "Uterine fibroid: pelvic ultrasound annually; arrange gynaecology review should menorrhagia develop.",
+   "Uterine fibroid: continue annual pelvic ultrasound; consult gynaecology if menorrhagia arises.",
+   "Uterine fibroid: arrange a pelvic scan each year, and seek specialist gynaecology input if menorrhagia appears."
+  ],
+  "narratives.advice.fibroid.zh": [
+   "子宫肌瘤：建议每年进行妇科超声检查，若月经量增多，请前往妇科就诊。",
+   "子宫肌瘤：建议每年定期复查妇科超声，出现月经量增多时请就诊妇科。",
+   "子宫肌瘤：每年进行妇科超声随访；若经血量增加，应前往妇科评估。"
+  ],
+  "narratives.advice.gb_polyp.en": [
+   "Gallbladder polyp: Follow up with ultrasound every 6–12 months; seek hepatobiliary surgery consultation if it grows or exceeds 10 mm.",
+   "Gallbladder polyp: Continue ultrasound surveillance every 6–12 months; consult hepatobiliary surgery if growth is noted or it exceeds 10 mm.",
+   "Gallbladder polyp: Follow with sonography every 6–12 months; seek hepatobiliary surgery consultation for growth or a size greater than 10 mm."
+  ],
+  "narratives.advice.gb_polyp.zh": [
+   "胆囊息肉样病变：请以 6–12 个月为间隔进行超声随访；如发现病灶长大或直径超出 10mm，需到肝胆外科进一步诊治。",
+   "胆囊息肉样病变：可定期安排超声观察，复查间隔为 6–12 个月；若息肉持续增长或直径达到超过 10mm 的情况，请前往肝胆外科就诊。",
+   "胆囊息肉样病变：建议纳入超声随访，间隔 6–12 个月；病变一旦增大，或直径大于 10mm，应转至肝胆外科评估。"
+  ],
+  "narratives.advice.gb_stone.en": [
+   "Gallstones: follow a low-fat diet, eat regular meals, and attend periodic review; seek care if right upper quadrant pain develops.",
+   "Gallstones: Favor low-fat eating and consistent meal timing, with routine follow-up; obtain care if right upper quadrant pain occurs."
+  ],
+  "narratives.advice.gb_stone.zh": [
+   "胆囊结石：建议选择低脂饮食，按时进食早餐，定期复查；若出现右上腹疼痛，请及时就医。",
+   "胆囊结石：日常宜清淡低脂，规律吃早餐并定期复查；如有右上腹痛，请及时就诊。",
+   "胆囊结石：建议控制脂肪摄入，保持早餐规律，定期复查；出现右上腹疼痛时应及时就医。"
+  ],
+  "narratives.advice.gyn.en": [
+   "Gynaecology: Attend periodic reproductive-health reviews and take part in cervical screening.",
+   "Gynaecology: Arrange ongoing specialist assessments alongside cervical screening.",
+   "Gynaecology: Keep up with scheduled pelvic health reviews and cervical screening."
+  ],
+  "narratives.advice.gyn.zh": [
+   "妇科：建议定期开展妇科检查，并进行宫颈细胞学筛查。",
+   "妇科：建议将妇科检查及宫颈细胞学筛查纳入常规健康管理。",
+   "妇科：定期关注妇科健康，及时开展宫颈细胞学筛查和相关检查。"
+  ],
+  "narratives.advice.hp.en": [
+   "H. pylori positive: refer to gastroenterology for eradication treatment.",
+   "H. pylori positive: please see a gastroenterologist to discuss eradication treatment.",
+   "H. pylori positive: referral to gastroenterology is advised to plan eradication."
+  ],
+  "narratives.advice.hp.zh": [
+   "幽门螺杆菌阳性：可至消化内科咨询，由医生结合情况判断是否开展根除治疗；用餐时尽量实行分餐。",
+   "幽门螺杆菌阳性：建议由消化内科医生评估后决定是否接受根除治疗，日常饮食尽量采取分餐方式。",
+   "幽门螺杆菌阳性：请咨询消化内科，了解是否适合进行根除治疗，并与他人分开用餐。"
+  ],
+  "narratives.advice.kidney_stone.en": [
+   "Kidney stone: drink more fluids, remain active, and have periodic ultrasound; seek care for flank pain or haematuria.",
+   "Kidney stone: maintain good hydration, keep active, and undergo ultrasound periodically; seek care if flank pain or haematuria develops.",
+   "Kidney stone: increase your fluid intake, stay physically active, and arrange regular ultrasound; seek care if you experience flank pain or haematuria."
+  ],
+  "narratives.advice.kidney_stone.zh": [
+   "肾结石：建议增加饮水量，适度活动，定期复查泌尿系超声；若有腰痛或血尿，请及时就诊。",
+   "肾结石：平时宜多喝水、适当锻炼，并定期进行泌尿系超声复查；出现腰痛、血尿时应及时就医。",
+   "肾结石：建议保证充足饮水，适度运动，定期复查泌尿系超声；如有腰痛或血尿，请尽快就诊。"
+  ],
+  "narratives.advice.lab_anemia.en": [
+   "Anaemia ({items}): determine the cause; advise an iron-rich diet; consider review by haematology."
+  ],
+  "narratives.advice.lab_anemia.zh": [
+   "贫血（{items}）：建议明确贫血原因，适当增加含铁食物，至血液科或消化科就诊。",
+   "贫血（{items}）：建议进一步查明病因，多摄入含铁食物，并到血液科或消化科咨询。",
+   "贫血（{items}）：建议排查相关病因，补充富含铁的食物，必要时就诊血液科或消化科。"
+  ],
+  "narratives.advice.lab_bmi.en": [
+   "Overweight/obesity: limit energy intake while increasing activity."
+  ],
+  "narratives.advice.lab_bmi.zh": [
+   "超重/肥胖：建议减少饮食摄入，增加身体活动，帮助减轻体重。",
+   "超重/肥胖：建议调整饮食结构，加强运动锻炼，控制体重。",
+   "超重/肥胖：宜优化膳食结构，坚持规律锻炼，逐步降低体重。"
+  ],
+  "narratives.advice.lab_bp.en": [
+   "Raised blood pressure: reduce salt intake, monitor blood pressure at home, and seek cardiology assessment if it persists.",
+   "Raised blood pressure: limit dietary salt and track blood pressure at home; cardiology review is advised if the elevation continues."
+  ],
+  "narratives.advice.lab_bp.zh": [
+   "血压偏高：建议减少盐分摄入，保持规律作息，在家测量并记录血压；如血压持续升高，请至心内科就诊。",
+   "血压偏高：建议清淡饮食、规律作息，定期在家自测血压并做好记录；若持续升高，请就诊心内科。",
+   "血压偏高：建议低盐饮食并保持作息规律，居家监测血压、及时记录；如血压一直偏高，建议心内科就诊。"
+  ],
+  "narratives.advice.lab_cardiac.en": [
+   "Abnormal cardiac markers ({items}): please have cardiology evaluate, obtain an ECG, recheck markers and perform echocardiography.",
+   "Abnormal cardiac markers ({items}): recommend specialist cardiac assessment, with ECG, another marker check and cardiac ultrasound."
+  ],
+  "narratives.advice.lab_cardiac.zh": [
+   "心肌标志物异常（{items}）：建议由心内科医生评估，并复测心电图、心肌标志物，完成心脏超声检查。",
+   "心肌标志物异常（{items}）：请至心内科进一步评估，完善心电图、心肌标志物及心脏超声检查。"
+  ],
+  "narratives.advice.lab_cbc.en": [
+   "Abnormal blood count ({items}): repeat CBC; refer for haematology review if abnormalities persist.",
+   "Abnormal blood count ({items}): Please have a CBC repeated and consult haematology if the result remains abnormal.",
+   "Abnormal blood count ({items}): Follow-up CBC is advised; ongoing abnormalities warrant a haematology assessment."
+  ],
+  "narratives.advice.lab_cbc.zh": [
+   "血常规异常（{items}）：建议再次检查血常规，如有需要可就诊血液科。",
+   "血常规异常（{items}）：建议择期复核血常规结果，必要时请血液科评估。",
+   "血常规异常（{items}）：可再次检测血常规，如有需要可挂血液科就诊。"
+  ],
+  "narratives.advice.lab_cervical.en": [
+   "Abnormal cervical screening ({items}): Seek gynaecology input, with cervical examination by colposcopy guided by the findings; plan another HPV test 12 months later."
+  ],
+  "narratives.advice.lab_cervical.zh": [
+   "宫颈癌筛查异常（{items}）：请至妇科进一步评估，医生认为有必要时可完善阴道镜检查；高危型 HPV 阳性者建议间隔 12 个月复查。",
+   "宫颈癌筛查异常（{items}）：建议前往妇科接受进一步诊治，并根据情况安排阴道镜检查；如高危型 HPV 检测为阳性，请于 12 个月后复查。",
+   "宫颈癌筛查异常（{items}）：请结合检查结果至妇科评估，必要时进一步做阴道镜检查；高危型 HPV 阳性者可在 12 个月后再次检查。"
+  ],
+  "narratives.advice.lab_coag.en": [
+   "Abnormal coagulation ({items}): exclude sampling artefact, then repeat; seek haematology review if the abnormality persists.",
+   "Abnormal coagulation ({items}): repeat once sampling artefact has been excluded; refer for haematology review if persistent.",
+   "Abnormal coagulation ({items}): After ruling out sampling artefact, repeat the assessment; persistent abnormalities warrant haematology input."
+  ],
+  "narratives.advice.lab_coag.zh": [
+   "凝血功能异常（{items}）：排除采血因素影响后，建议复查凝血功能，必要时咨询血液科。",
+   "凝血功能异常（{items}）：建议先排除采血因素，再行凝血功能复查；必要时前往血液科就诊。",
+   "凝血功能异常（{items}）：可先核实采血过程是否规范，再复测凝血指标；如结果仍有异常，建议咨询血液科。"
+  ],
+  "narratives.advice.lab_glucose.en": [
+   "Abnormal glucose ({items}): Encourage nutrition and activity measures; reassess with fasting glucose and HbA1c, and seek endocrinology input when clinically appropriate."
+  ],
+  "narratives.advice.lab_glucose.zh": [
+   "血糖异常（{items}）：建议注意饮食管理并坚持运动，复查空腹血糖与糖化血红蛋白，必要时前往内分泌科就诊。",
+   "血糖异常（{items}）：日常注意膳食管理并保持规律活动，后续检测空腹血糖与糖化血红蛋白；如有需要，咨询内分泌科。",
+   "血糖异常（{items}）：建议改善饮食习惯，增加身体活动，并安排空腹血糖和糖化血红蛋白复测；必要时接受内分泌科评估。"
+  ],
+  "narratives.advice.lab_hepatitis.en": [
+   "Positive hepatitis serology ({items}): arrange hepatology assessment, liver function tests, HBV DNA and ultrasound; screen household contacts and offer vaccination.",
+   "Positive hepatitis serology ({items}): refer for hepatology review and liver function tests, HBV DNA and ultrasound; assess household contacts for screening and vaccination."
+  ],
+  "narratives.advice.lab_hepatitis.zh": [
+   "肝炎病毒标志物阳性（{items}）：建议咨询感染科或肝病科，复查肝功能、HBV-DNA和肝脏超声，并建议家人接受筛查及疫苗接种。",
+   "肝炎病毒标志物阳性（{items}）：宜由感染科或肝病科医生评估，并复核肝功能、HBV-DNA及肝脏超声；建议家人接受筛查和疫苗接种。",
+   "肝炎病毒标志物阳性（{items}）：可咨询肝病科或感染科，进一步检查肝功能、HBV-DNA及肝脏超声；家人也应进行筛查并接种疫苗。"
+  ],
+  "narratives.advice.lab_hp.en": [
+   "H. pylori antibody positive: serology cannot tell whether infection is current or past; confirm using a urea breath test."
+  ],
+  "narratives.advice.lab_hp.zh": [
+   "幽门螺杆菌抗体阳性：仅凭抗体阳性不能判断当前感染或既往感染，建议完善碳13/碳14呼气试验，确认后再决定是否根除。",
+   "幽门螺杆菌抗体阳性：血清抗体结果无法判断感染是否仍在持续，可先做碳13/碳14呼气试验，再评估是否需要根除治疗。",
+   "幽门螺杆菌抗体阳性：仅凭抗体检测不能确认当前是否存在感染，建议补充碳13/碳14呼气试验，并据此讨论根除治疗。"
+  ],
+  "narratives.advice.lab_immune.en": [
+   "Abnormal immunology ({items}): recommend rheumatology assessment, with correlation to joint symptoms; mm.",
+   "Abnormal immunology ({items}): seek rheumatology review and assess alongside joint symptoms; mm.",
+   "Abnormal immunology ({items}): seek rheumatology input, guided by joint symptoms; mm."
+  ],
+  "narratives.advice.lab_immune.zh": [
+   "免疫/风湿指标异常（{items}）：如有关节不适，宜请风湿免疫科医师评估，并酌情安排后续检查。",
+   "免疫/风湿指标异常（{items}）：建议咨询风湿免疫科，结合关节表现判断是否需要进一步筛查。",
+   "免疫/风湿指标异常（{items}）：可挂风湿免疫科，向医生说明关节相关情况，以便制定后续检查方案。"
+  ],
+  "narratives.advice.lab_lipid.en": [
+   "Dyslipidaemia ({items}): adopt a low-fat diet, manage weight, and stay active; repeat lipid testing in 3–6 months.",
+   "Dyslipidaemia ({items}): reduce dietary fat, manage weight, and exercise; reassess lipids in 3–6 months."
+  ],
+  "narratives.advice.lab_lipid.zh": [
+   "血脂异常（{items}）：建议减少脂肪摄入，保持体重适宜，加强体育锻炼，3–6 个月复查血脂；如有需要，可至心内科或内分泌科就诊。",
+   "血脂异常（{items}）：建议以低脂饮食为主，注意体重管理并积极运动，3–6 个月后复查血脂；必要时请心内科或内分泌科评估。",
+   "血脂异常（{items}）：饮食宜清淡并减少脂肪摄入，维持适宜体重，规律进行身体活动，3–6 个月后复测血脂；如有需要，可至心内科或内分泌科进一步诊治。"
+  ],
+  "narratives.advice.lab_liver.en": [
+   "Abnormal liver function ({items}): refrain from alcohol and hepatotoxic medication; recheck in 2–4 weeks.",
+   "Abnormal liver function ({items}): abstain from alcohol and avoid medicines that may harm the liver; repeat testing in 2–4 weeks.",
+   "Abnormal liver function ({items}): abstain from alcohol and medicines that can affect the liver; arrange a follow-up test in 2–4 weeks."
+  ],
+  "narratives.advice.lab_liver.zh": [
+   "肝功能异常（{items}）：建议停止饮酒，避免使用损害肝脏的药物，注意休息，2–4 周后复查肝功能。",
+   "肝功能异常（{items}）：近期应停止饮酒，用药前确认不会加重肝损害；注意休养，2–4 周后复测肝功能。"
+  ],
+  "narratives.advice.lab_other.en": [
+   "Other abnormal results ({items}): interpret in clinical context and repeat.",
+   "Other abnormal results ({items}): assess in clinical context and arrange a recheck."
+  ],
+  "narratives.advice.lab_other.zh": [
+   "其他检验异常（{items}）：请结合临床表现-定期复查。",
+   "其他检验异常（{items}）：建议依据临床情况-定期复查。",
+   "其他检验异常（{items}）：可依据临床情况进一步评估-并安排后续复核。"
+  ],
+  "narratives.advice.lab_pancreas.zh": [
+   "胰酶异常（{items}）：建议复查；若出现上腹痛，请至消化内科就诊。",
+   "胰酶异常（{items}）：可复查；若有上腹痛，建议就诊消化内科。",
+   "胰酶异常（{items}）：可安排复查；若感到上腹部不适，建议到消化内科进一步评估。"
+  ],
+  "narratives.advice.lab_renal.en": [
+   "Abnormal renal function ({items}): ensure adequate hydration, avoid nephrotoxic drugs, and arrange nephrology review.",
+   "Abnormal renal function ({items}): maintain hydration, avoid nephrotoxic agents, and seek nephrology assessment.",
+   "Abnormal renal function ({items}): stay well hydrated, avoid kidney-harming drugs, and consult nephrology."
+  ],
+  "narratives.advice.lab_renal.zh": [
+   "肾功能异常（{items}）：建议适当增加饮水，避免使用肾毒性药物，并至肾内科复查。",
+   "肾功能异常（{items}）：平时注意保证水分摄入，勿自行使用可能损伤肾脏的药物，可至肾内科进一步诊治。",
+   "肾功能异常（{items}）：关注日常水分补充，尽量不使用对肾脏有害的药品，并请肾内科医生评估后续复查安排。"
+  ],
+  "narratives.advice.lab_renal_early.en": [
+   "Raised urine albumin ({items}): consider this a potential early marker of kidney damage; optimize blood pressure and glucose, with UACR reassessment within 3 months.",
+   "Raised urine albumin ({items}): could reflect incipient kidney injury; review blood pressure and glucose control, and arrange another UACR within 3 months.",
+   "Raised urine albumin ({items}): an early renal change is possible; prioritize blood pressure and glucose management, then check UACR again within 3 months."
+  ],
+  "narratives.advice.lab_renal_early.zh": [
+   "尿微量白蛋白异常（{items}）：该结果可能与肾脏早期受累有关，日常应加强血压和血糖管理，并于 3 个月内检测尿白蛋白/肌酐比值，视情况前往肾内科评估。",
+   "尿微量白蛋白异常（{items}）：存在肾脏早期受影响的可能，建议持续关注血压、血糖，并在 3 个月内完成尿白蛋白/肌酐比值检查，如结果仍异常可咨询肾内科。",
+   "尿微量白蛋白异常（{items}）：建议结合此项结果留意肾脏健康，保持血压与血糖平稳，3 个月内安排尿白蛋白/肌酐比值检测，必要时接受肾内科进一步评估。"
+  ],
+  "narratives.advice.lab_stool.en": [
+   "Positive faecal occult blood: gastroenterology consultation advised; consider endoscopy where indicated."
+  ],
+  "narratives.advice.lab_stool.zh": [
+   "便潜血阳性：建议至消化内科进一步评估，必要时进行胃肠镜检查。",
+   "便潜血阳性：建议前往消化内科进一步评估，并视情况接受胃肠镜检查。",
+   "便潜血阳性：可至消化内科进一步诊察，医生将结合情况判断是否需要胃肠镜检查。"
+  ],
+  "narratives.advice.lab_thyroid.en": [
+   "Abnormal thyroid function ({items}): Please arrange an endocrinology consultation.",
+   "Abnormal thyroid function ({items}): Please seek review by endocrinology."
+  ],
+  "narratives.advice.lab_thyroid.zh": [
+   "甲状腺功能异常（{items}）：可预约内分泌科评估，并按医嘱再次检测甲状腺功能。",
+   "甲状腺功能异常（{items}）：建议由内分泌科医生进一步诊察，同时安排甲状腺功能复测。",
+   "甲状腺功能异常（{items}）：请到内分泌专科咨询，后续进行甲状腺功能检测以复核结果。"
+  ],
+  "narratives.advice.lab_tumor.en": [
+   "Raised tumour marker ({items}): A slight increase on its own may not indicate a specific cause; consider follow-up testing after 1–3 months.",
+   "Raised tumour marker ({items}): When the finding is modest and isolated, it is commonly non-specific; reassessment is advised within 1–3 months."
+  ],
+  "narratives.advice.lab_tumor.zh": [
+   "肿瘤标志物偏高（{items}）：单项指标轻度升高通常不提示明确临床问题，建议 1–3 个月后复查，必要时咨询专科。",
+   "肿瘤标志物偏高（{items}）：如仅有一项指标轻微超出范围，通常不提示明确临床问题，可于 1–3 个月后复查；如有需要，再咨询相关专科。",
+   "肿瘤标志物偏高（{items}）：孤立的轻度异常多不代表明确临床问题，建议间隔 1–3 个月再次检测，并根据情况考虑专科评估。"
+  ],
+  "narratives.advice.lab_ua.en": [
+   "Raised uric acid: choose a low-purine diet, restrict alcohol, stay well hydrated, and attend periodic review."
+  ],
+  "narratives.advice.lab_ua.zh": [
+   "尿酸偏高：建议选择低嘌呤饮食，减少饮酒，适当多饮水，并定期复查。",
+   "尿酸偏高：宜减少高嘌呤食物摄入，限制饮酒，多喝水，按期复查。",
+   "尿酸偏高：建议饮食以低嘌呤为主，少饮酒、多饮水，并定期检查。"
+  ],
+  "narratives.advice.lab_urine.en": [
+   "Abnormal urinalysis ({items}): obtain a repeat sample using clean-catch technique.",
+   "Abnormal urinalysis ({items}): A fresh clean-catch urine specimen is advised for reassessment."
+  ],
+  "narratives.advice.lab_urine.zh": [
+   "尿常规异常（{items}）：建议规范留取清洁中段尿后复查，如有需要可到肾内科或泌尿科就诊。",
+   "尿常规异常（{items}）：建议规范留取清洁中段尿，再进行尿液检查；如需进一步评估，可咨询肾内科或泌尿科。",
+   "尿常规异常（{items}）：可重新采集清洁中段尿送检，若需进一步诊治，建议到肾内科或泌尿科就诊。"
+  ],
+  "narratives.advice.lung_function.en": [
+   "Abnormal spirometry: smoking cessation and avoidance of dust and irritants are advised; arrange respiratory review with post-bronchodilator spirometry."
+  ],
+  "narratives.advice.lung_function.zh": [
+   "肺通气功能异常：为保护呼吸道健康，请戒烟并尽量减少粉尘、刺激性气体吸入，至呼吸科复评肺功能（支气管舒张试验）。",
+   "肺通气功能异常：日常避免烟草、粉尘及刺激性气体暴露，尽早戒烟，并赴呼吸科进行肺功能复查（支气管舒张试验）。",
+   "肺通气功能异常：建议停止吸烟，做好防护以避开粉尘和刺激性气体，并由呼吸科复核肺功能（支气管舒张试验）。"
+  ],
+  "narratives.advice.lung_markings.zh": [
+   "两肺纹理增粗：这种表现与吸烟及慢性支气管炎相关，宜尽早停止吸烟，必要时请呼吸科医生评估。",
+   "两肺纹理增粗：可能和长期吸烟、慢性支气管炎有关，建议远离烟草，若情况需要可咨询呼吸科。",
+   "两肺纹理增粗：此类影像改变在吸烟者或慢性支气管炎患者中较常见，建议戒除吸烟习惯，并视情况接受呼吸科诊治。"
+  ],
+  "narratives.advice.lung_nodule.en": [
+   "Small pulmonary nodule: schedule repeat chest CT in 12 months and discontinue smoking.",
+   "Small pulmonary nodule: schedule follow-up chest CT at the 12-month mark; discontinue smoking.",
+   "Small pulmonary nodule: obtain surveillance chest CT in 12 months; refrain from tobacco use."
+  ],
+  "narratives.advice.lung_nodule.zh": [
+   "肺微小结节：可于 12 个月后安排胸部 CT 随访，并保持不吸烟。",
+   "肺微小结节：宜在 12 个月后进行胸部 CT 复查，远离烟草。",
+   "肺微小结节：请坚持戒烟，12 个月后再接受胸部 CT 检查。"
+  ],
+  "narratives.advice.prostate.en": [
+   "Prostatic hyperplasia: follow up with urology; obtain PSA periodically.",
+   "Prostatic hyperplasia: periodic urology follow-up and PSA monitoring.",
+   "Prostatic hyperplasia: continue surveillance with urology and serial PSA monitoring."
+  ],
+  "narratives.advice.prostate.zh": [
+   "前列腺增生：建议少坐、勿憋尿，定期到泌尿外科随诊并复查前列腺特异性抗原。",
+   "前列腺增生：平时宜增加起身活动，及时排尿，并到泌尿外科复诊，按期检测前列腺特异性抗原。",
+   "前列腺增生：注意减少连续静坐，切勿长时间忍尿；请泌尿外科评估，并持续监测前列腺特异性抗原。"
+  ],
+  "narratives.advice.surgical_minor.en": [
+   "Surgical: Keep proper posture and stay active; avoid sitting or standing for long stretches; consult a specialist if needed.",
+   "Surgical: Focus on posture and regular exercise; minimize prolonged sitting or standing; consider specialist review if needed."
+  ],
+  "narratives.advice.surgical_minor.zh": [
+   "外科：建议保持良好姿势，适度锻炼，避免长时间久坐或久站，必要时前往相关科室就诊。",
+   "外科：注意调整姿势，适当进行锻炼，尽量避免久坐久站，如有需要可到相关科室就诊。",
+   "外科：建议注意日常姿势并适度锻炼，避免长时间坐着或站立，必要时至相关科室就诊。"
+  ],
+  "narratives.advice.tcm.en": [
+   "TCM constitutional imbalance: follow dietary and daily routine adjustments suited to constitution type; seek TCM consultation if desired.",
+   "TCM constitutional imbalance: align diet and daily routine with constitution type; consult TCM if desired.",
+   "TCM constitutional imbalance: align meals and everyday habits with constitution type; a TCM consultation is optional."
+  ],
+  "narratives.advice.tcm.zh": [
+   "中医体质偏颇：建议结合体质特点调节饮食与日常起居，保持作息规律，必要时至中医科就诊调理。",
+   "中医体质偏颇：可依据体质类型合理安排饮食起居，养成规律作息习惯，必要时前往中医科调理。",
+   "中医体质偏颇：建议按体质情况调整饮食和生活作息，注意规律休息，必要时就诊中医科进行调理。"
+  ],
+  "narratives.advice.thyroid_diffuse.en": [
+   "Diffuse thyroid change: Recommend endocrinology assessment, including thyroid function and antibody tests."
+  ],
+  "narratives.advice.thyroid_diffuse.zh": [
+   "甲状腺弥漫性病变：建议安排内分泌科评估，并进一步检测甲状腺功能及相关抗体。",
+   "甲状腺弥漫性病变：可到内分泌科就诊，由专科医生评估甲状腺功能与相关抗体情况。",
+   "甲状腺弥漫性病变：建议结合内分泌科诊疗意见，完善甲状腺功能和相关抗体检查。"
+  ],
+  "narratives.advice.thyroid_nodule.en": [
+   "Thyroid nodule: obtain follow-up thyroid imaging and function testing every 6–12 months; refer to endocrinology when warranted.",
+   "Thyroid nodule: arrange thyroid sonographic surveillance and function testing every 6–12 months; involve endocrinology if clinically indicated."
+  ],
+  "narratives.advice.thyroid_nodule.zh": [
+   "甲状腺结节：请按每 6–12 个月一次的间隔检查甲状腺超声与甲状腺功能；如有必要，咨询内分泌科。",
+   "甲状腺结节：可每 6–12 个月安排甲状腺超声和甲状腺功能评估，视情况进一步至内分泌科诊治。",
+   "甲状腺结节：后续随访可定于每 6–12 个月，复查甲状腺超声和功能指标，必要时接受内分泌科评估。"
+  ],
+  "narratives.advice.vascular.en": [
+   "Vascular finding: keep blood pressure, lipids and glucose controlled; quit smoking; follow a low-salt, low-fat diet; have periodic carotid ultrasound.",
+   "Vascular finding: manage blood pressure, lipids and glucose; avoid smoking; maintain a low-salt, low-fat diet; undergo carotid ultrasound periodically.",
+   "Vascular finding: control blood pressure, lipids and glucose; stop tobacco use; choose a low-salt, low-fat diet; repeat carotid ultrasound at intervals."
+  ],
+  "narratives.advice.vascular.zh": [
+   "血管相关异常：建议将血压、血脂、血糖控制在适宜范围，戒烟并坚持低盐低脂饮食，定期进行颈动脉超声复查。",
+   "血管相关异常：请关注血压、血脂及血糖的日常管理，远离烟草，饮食以清淡为宜并减少盐分和脂肪，后续安排颈动脉超声随访。",
+   "血管相关异常：保持血压、血脂和血糖平稳，停止吸烟，平时少吃高盐、高脂食物，并按时接受颈动脉超声检查。"
+  ],
+  "narratives.aux.abd_us.organs.gallbladder.normal.en.0": [
+   "Gallbladder is normal in size, with no wall thickening or stones.",
+   "Normal-sized gallbladder with a non-thickened wall and no stones.",
+   "Gallbladder size is within normal limits; no wall thickening or stones are seen."
+  ],
+  "narratives.aux.abd_us.organs.gallbladder.normal.zh.0": [
+   "胆囊形态及大小正常，囊壁不增厚，腔内未探及明显异常回声。",
+   "胆囊大小形态正常，囊壁厚度未见异常，腔内未发现明显异常回声。",
+   "胆囊形态与大小未见异常，囊壁光滑，腔内未探及异常回声。"
+  ],
+  "narratives.aux.abd_us.organs.kidneys.normal.zh.0": [
+   "双肾形态、大小未见异常，皮髓质界限清楚，集合系统无分离，未探及明显异常回声。",
+   "双肾轮廓规整，体积未见增大或缩小，肾实质层次清晰，肾盂肾盏无扩张，未探及显著异常回声。",
+   "双侧肾脏外观正常，实质与髓质界限分明，集合部未见扩张，内部回声未发现明显异常。"
+  ],
+  "narratives.aux.abd_us.organs.liver.normal.en.0": [
+   "Liver is normal in size and contour, with homogeneous echotexture and no dilatation of the intrahepatic ducts.",
+   "The liver demonstrates normal size and contour, homogeneous echotexture, and nondilated intrahepatic ducts.",
+   "The liver demonstrates normal dimensions, a regular contour, and uniform echotexture; the intrahepatic ducts are of normal caliber."
+  ],
+  "narratives.aux.abd_us.organs.liver.normal.zh.0": [
+   "肝脏大小及形态正常，表面光整，实质回声分布均匀，肝内管道显示清楚，门静脉内径未见异常。",
+   "肝脏形态大小正常，轮廓光滑，实质回声均匀，肝内管道显示良好，门静脉内径无明显异常。",
+   "肝脏轮廓规整、体积适中，表面平整；内部回声细腻均一，肝内管状结构辨认清楚，门静脉口径未见异常。"
+  ],
+  "narratives.aux.abd_us.organs.pancreas.normal.en.0": [
+   "Pancreas is unremarkable, with no ductal dilatation.",
+   "Pancreas appears normal, and its duct is nondilated."
+  ],
+  "narratives.aux.abd_us.organs.pancreas.normal.zh.0": [
+   "胰腺大小及形态正常，实质回声均匀，胰管未见扩张。",
+   "胰腺形态、大小未见异常，回声分布均匀，胰管不扩张。",
+   "胰腺轮廓及体积未见异常，实质回声分布均匀，胰管口径正常。"
+  ],
+  "narratives.aux.abd_us.organs.spleen.normal.en.0": [
+   "Normal splenic size and echotexture."
+  ],
+  "narratives.aux.abd_us.organs.spleen.normal.zh.0": [
+   "脾脏形态及大小未见异常，实质回声均匀。"
+  ],
+  "narratives.aux.breast_us.organs.breast.normal.en.0": [
+   "Normal fibroglandular tissue without focal abnormality. No axillary lymphadenopathy.",
+   "No focal abnormality is identified in the fibroglandular tissue; the axillae show no enlarged nodes.",
+   "The fibroglandular parenchyma is within normal limits, without a discrete lesion or abnormal axillary nodes."
+  ],
+  "narratives.aux.breast_us.organs.breast.normal.zh.0": [
+   "乳腺腺体回声分布均一，组织分层显示清楚，未探及可疑占位；两侧腋窝区未发现异常增大的淋巴结。",
+   "双侧乳房腺体结构层次可辨，实质回声均质，未检出局灶性肿块；腋窝区域未显示肿大淋巴结。",
+   "两侧乳腺组织分层清晰，内部回声一致，未见局部异常占位影。双侧腋窝未见增大的淋巴结。"
+  ],
+  "narratives.aux.carotid_us.organs.carotid.normal.en.0": [
+   "Common and internal carotid arteries are normal in calibre, with smooth intima-media and no plaque; measurements in mm.",
+   "The common and internal carotid arteries show normal calibre and smooth intima-media, without plaque; measurements in mm.",
+   "Normal calibre of the common and internal carotid arteries, with smooth intima-media and absence of plaque; measurements in mm."
+  ],
+  "narratives.aux.carotid_us.organs.carotid.normal.zh.0": [
+   "颈部双侧总动脉及内动脉走行通畅，管腔口径处于正常范围，内中膜连续平整，未探及显著粥样斑块。",
+   "双侧颈动脉主干及内支管腔无明显狭窄，内中膜界面规则，未显示明确斑块，彩色血流充盈良好。",
+   "所见双侧颈总及颈内动脉管腔宽度正常，管壁内中膜均匀规整，未发现确切斑块回声，血流信号连续。"
+  ],
+  "narratives.aux.chest_ct.finding_normal.en.0": [
+   "No pulmonary nodules or consolidation are seen. The lungs are clear, the airways are patent, and there is no mediastinal lymphadenopathy or pleural effusion.",
+   "Clear lungs without nodules or consolidation. Patent airways. No mediastinal lymphadenopathy or pleural effusion."
+  ],
+  "narratives.aux.chest_ct.finding_normal.zh.0": [
+   "双侧肺部透亮度均匀，肺血管纹理分布规整，未显示明确实质性异常。中央气道开放通畅，纵隔区域未发现增大的淋巴结。心脏轮廓大小无异常，胸膜腔内未见液体积聚。",
+   "肺内含气状态良好，肺纹理形态及分布未见异常，未观察到实质性病灶。气管及支气管未见阻塞，纵隔淋巴结无增大表现。心脏大小处于正常范围，双侧胸腔未见积液。",
+   "双肺未见异常密度影，肺纹理清晰且排列自然。气道通畅，纵隔内无肿大淋巴结影。心影无增大，胸腔内未发现液体聚集。"
+  ],
+  "narratives.aux.chest_xray.finding_normal.en.0": [
+   "The lungs are clear, and the cardiomediastinal silhouette is normal. Costophrenic angles remain sharp.",
+   "Clear lungs. Normal cardiomediastinal silhouette. Sharp costophrenic angles."
+  ],
+  "narratives.aux.chest_xray.finding_normal.zh.0": [
+   "肺内血管支气管影分布自然，未显示明确异常实质密度。心脏轮廓及体积处于正常范围，两侧膈肌边缘平顺，肋膈隐窝清楚。",
+   "双肺野未见可辨认的实质性异常影，肺纹理走行及分布无明显异常。心脏外形、大小正常，膈肌线条连续规整，双侧肋膈沟呈尖角。",
+   "胸部影像未发现肺实质异常征象，肺内纹理表现自然；心脏影无形态或体积异常。两侧膈肌弧线光滑，肋膈窦清晰开放。"
+  ],
+  "narratives.aux.chest_xray.finding_normal.zh.1": [
+   "两侧肺野清晰，肺纹理分布自然。心影大小正常。膈面光整，肋膈角锐利。",
+   "双肺野透亮清晰，肺纹理走行及分布自然。心影未见增大，膈面光滑，肋膈角锐利。",
+   "肺野清晰，肺纹理无异常走行。心影不大，膈面平滑，肋膈角锐利。"
+  ],
+  "narratives.aux.echo.finding_normal.en.0": [
+   "Normal dimensions of the chambers and thickness of the walls; normal valve structure and function; no significant regurgitation or fluid around the heart.",
+   "Chambers are normal in size and walls in thickness; the valves show unremarkable structure and function, with no appreciable backflow or fluid surrounding the heart."
+  ],
+  "narratives.aux.echo.finding_normal.zh.0": [
+   "各心腔内径均在正常范围，室壁厚度与运动未见异常，瓣膜形态及开闭正常，未发现明显异常血流信号。心包腔无积液。",
+   "心脏各腔室大小无增大，心肌壁厚度及收缩活动协调，各瓣膜结构及活动未见异常，未探及异常血流；心包腔内未见液性暗区。",
+   "各心腔形态及内径均在正常范围，心室壁厚薄适中、运动良好，瓣膜开合正常，血流显像未显示异常；心包未见积液。"
+  ],
+  "narratives.aux.fundus_photo.finding_normal.en.0": [
+   "The discs are sharp bilaterally, C/D ratio about 0.3; retinal vessel calibre is normal (A:V about 2:3); foveal reflex is present; no haemorrhage or exudate.",
+   "The optic nerve heads are distinct bilaterally (C/D ratio about 0.3); retinal vessels have normal calibre (A:V about 2:3). Foveal reflexes are present, without haemorrhage or exudate.",
+   "Disc margins are clearly delineated on both sides, with a C/D ratio near 0.3. Retinal vessel calibre is within normal limits (A:V about 2:3); foveal reflex is seen, and neither haemorrhage nor exudate is identified."
+  ],
+  "narratives.aux.fundus_photo.finding_normal.zh.0": [
+   "双眼视盘界限清晰、色泽正常，C/D约0.3；视网膜血管走行自然，动静脉比例约2:3，黄斑中心凹反光可见，未发现出血或渗出。",
+   "眼底所见：两侧视盘轮廓分明、色泽如常，C/D约0.3；视网膜血管分布及行径自然，动脉与静脉比例约2:3；黄斑区中心凹光反射可见，未发现出血或渗出灶。",
+   "双眼眼底未见出血、渗出；黄斑中心凹反光存在，视网膜血管走行自然，动静脉比例约2:3。视盘边缘清晰，色泽无异常，C/D约0.3。"
+  ],
+  "narratives.aux.gyn_us.organs.uterus_us.normal.en.0": [
+   "Uterus is anteverted and normal in size, with homogeneous myometrium. Adnexa are unremarkable."
+  ],
+  "narratives.aux.gyn_us.organs.uterus_us.normal.zh.0": [
+   "子宫呈前倾位置，轮廓及体积均无异常，肌壁内部回声一致，内膜线位于中央；左右附件区域未探及明确异常回声。",
+   "宫体位于前方，形态大小在正常范围，肌层显示均质回声，内膜居中可见。两侧附件区未发现显著异常回声。",
+   "子宫前倾，外形与体积正常，肌壁回声分布均匀，内膜线居中；双侧附件区域未见明确异常回声表现。"
+  ],
+  "narratives.aux.mammography.finding_normal.en.0": [
+   "Symmetric scattered fibroglandular density (type b); no mass, suspicious calcification, or architectural distortion is seen; normal skin and nipples; no axillary lymphadenopathy or abnormality measured in mm.",
+   "Scattered fibroglandular density (type b) is symmetric; no mass, suspicious calcification, or architectural distortion; skin and nipples appear normal; no axillary lymphadenopathy and no focal lesion for measurement in mm."
+  ],
+  "narratives.aux.mammography.finding_normal.zh.0": [
+   "乳腺实质呈散在纤维腺体型（b类），两侧腺体分布相称；未发现明确占位、钙化灶或组织结构牵拉。乳房皮肤及乳头外观正常，腋窝区未探及增大的淋巴结。",
+   "双乳腺体为散在纤维腺体型（b类），左右分布均衡，未检出明确肿块、钙化或结构紊乱；乳头与皮肤未显示异常，双侧腋窝未见淋巴结增大。",
+   "两侧乳腺均见散在纤维腺体（b类），分布呈对称状态，未发现明确结节性病灶、钙化及结构变形。皮肤和乳头表现正常，腋窝内未见肿大的淋巴结。"
+  ],
+  "narratives.aux.prostate_us.organs.prostate.normal.en.0": [
+   "Prostate size and echotexture are within normal limits.",
+   "The prostate demonstrates normal size and echotexture."
+  ],
+  "narratives.aux.prostate_us.organs.prostate.normal.zh.0": [
+   "前列腺形态大小未见异常，包膜完整，腺体内回声均匀。",
+   "前列腺体积与形态正常，包膜光整完整，内部回声分布均匀。",
+   "前列腺轮廓清晰，体积适中，腺体实质回声分布均匀，外缘包膜光整。"
+  ],
+  "narratives.aux.thyroid_us.organs.thyroid.normal.en.0": [
+   "Both lobes are normal in size with homogeneous echotexture and no focal lesions. Vascularity is normal.",
+   "Normal size and homogeneous echotexture of both lobes, without focal lesions. Vascularity is normal.",
+   "Each lobe is normal in size, with uniform echotexture and no focal abnormality. Vascularity is normal."
+  ],
+  "narratives.aux.thyroid_us.organs.thyroid.normal.zh.0": [
+   "甲状腺两叶形态及大小正常，包膜连续完整，腺实质回声均匀，未见明确占位性病变。CDFI示血流信号无异常。",
+   "甲状腺两叶未见明显形态及大小异常，包膜完整，实质回声均匀，未见明显占位性改变。CDFI检查未见血流异常。"
+  ],
+  "narratives.findings.breast_calcification.finding.zh": [
+   "双乳腺体呈散在纤维腺体分布（b类）；{side}乳外上象限散见数枚形态规则的粗大钙化，未发现成簇细小钙化、肿块或结构扭曲。",
+   "乳腺实质双侧均属散在纤维腺体型（b类）。{side}侧乳房外上象限见数枚粗大钙化灶，分布散在且形态规则；未见细小钙化成簇，也无肿块及结构扭曲。",
+   "双侧乳腺为散在纤维腺体构成（b类），{side}乳外上象限有散在分布的数枚粗大钙化，形态规整；未发现成簇细小钙化，未见肿块征象或结构扭曲。"
+  ],
+  "narratives.findings.breast_hyperplasia.finding.en": [
+   "Bilateral coarse, heterogeneous fibroglandular tissue; no focal mass.",
+   "Fibroglandular tissue with bilateral coarsening and heterogeneity; no focal mass."
+  ],
+  "narratives.findings.breast_hyperplasia.finding.zh": [
+   "双乳腺体层次欠清晰，内部回声增粗且分布不均，未发现明显占位性病变。",
+   "双侧乳腺腺体结构分层辨识欠佳，实质回声粗糙且不均质，未发现明确局灶性占位。",
+   "两侧乳腺腺体界面欠分明，内部回声增粗、分布不匀，未探及显著占位征象。"
+  ],
+  "narratives.findings.breast_nodule.finding.en": [
+   "A hypoechoic, well-circumscribed nodule in the {side_en} breast at {clock} o'clock, measuring {mm} mm.",
+   "A {mm} mm hypoechoic nodule with well-circumscribed margins in the {side_en} breast at {clock} o'clock.",
+   "At {clock} o'clock in the {side_en} breast, a hypoechoic nodule with sharply defined margins, {mm} mm."
+  ],
+  "narratives.findings.breast_nodule.finding.zh": [
+   "{side}侧乳腺{clock}点位探及低回声结节，约{mm}mm，边界清，形态规则。",
+   "{side}侧乳腺于{clock}点探及低回声结节，测值约为{mm}mm，轮廓清晰，外形规整。",
+   "{side}侧乳腺{clock}点方位呈低回声结节影，大小约{mm}mm，界限分明，形态规则。"
+  ],
+  "narratives.findings.calculus.text.en": [
+   "Mild gingival inflammation with calculus deposits"
+  ],
+  "narratives.findings.calculus.text.zh": [
+   "可见牙结石，牙龈轻微红肿",
+   "牙面有牙结石，牙龈轻度充血肿胀",
+   "存在牙结石，牙龈轻度发红肿胀"
+  ],
+  "narratives.findings.caries.text.en": [
+   "Caries of tooth {tooth}",
+   "Tooth decay ({tooth})",
+   "Dental decay affecting {tooth}"
+  ],
+  "narratives.findings.caries.text.zh": [
+   "发现龋齿（{tooth}）",
+   "（{tooth}）见龋坏",
+   "牙体龋坏（{tooth}）"
+  ],
+  "narratives.findings.carotid_imt.finding.en": [
+   "Bilateral thickening of the common carotid intima-media (1.1–1.3 mm), with no discrete plaque.",
+   "Common carotid intima-media thickening bilaterally, measuring 1.1–1.3 mm, without discrete plaque."
+  ],
+  "narratives.findings.carotid_imt.finding.zh": [
+   "双侧颈总动脉内中膜较厚，约1.1–1.3mm，呈增强回声，未发现明显斑块。"
+  ],
+  "narratives.findings.carotid_plaque.finding.en": [
+   "Echogenic plaque measuring {mm} × 2.1 mm at the {side_en} carotid bifurcation, without significant stenosis.",
+   "At the {side_en} carotid bifurcation, echogenic plaque measuring {mm} × 2.1 mm, with no significant stenosis.",
+   "Echogenic plaque at the {side_en} carotid bifurcation, measuring {mm} × 2.1 mm and causing no significant stenosis."
+  ],
+  "narratives.findings.carotid_plaque.finding.zh": [
+   "{side}侧颈总动脉分叉区域有强回声斑块形成，斑块大小约{mm}×2.1mm，动脉管腔通畅，未见显著狭窄。",
+   "强回声斑块位于{side}侧颈总动脉分叉部，测得约{mm}×2.1mm，管腔狭窄不明显。",
+   "{side}侧颈总动脉分叉部可探及强回声斑块，范围约{mm}×2.1mm，未见管腔明显变窄。"
+  ],
+  "narratives.findings.cerumen.text.en": [
+   "{side_en} ear cerumen"
+  ],
+  "narratives.findings.cerumen.text.zh": [
+   "{side}耳道内可见耳垢附着",
+   "检查见{side}耳耵聍堆积",
+   "{side}耳道存在耵聍"
+  ],
+  "narratives.findings.cervical_erosion.text.en": [
+   "Mild ectropion of the cervix",
+   "Cervix shows mild ectropion"
+  ],
+  "narratives.findings.cervical_erosion.text.zh": [
+   "宫颈呈轻微糜烂样改变",
+   "宫颈见轻度糜烂样表现",
+   "宫颈表面呈轻微糜烂样外观"
+  ],
+  "narratives.findings.cervical_spondylosis.text.en": [
+   "Straightening of the cervical lordosis with mildly limited neck motion",
+   "Cervical lordosis is straightened, with mild restriction of neck movement",
+   "Mildly restricted neck movement with straightening of the cervical lordosis"
+  ],
+  "narratives.findings.cervical_spondylosis.text.zh": [
+   "颈椎生理弯曲变直，颈部活动稍受限",
+   "颈椎生理曲度消失，颈部活动略受限",
+   "颈部活动范围稍受限制，颈椎自然弯曲度减弱并趋于平直"
+  ],
+  "narratives.findings.chronic_pharyngitis.text.en": [
+   "Chronic congestion of the pharynx with lymphoid follicles",
+   "Persistent pharyngeal mucosal engorgement with prominent lymphoid follicles",
+   "Chronic inflammatory changes in the throat with conspicuous lymphoid tissue"
+  ],
+  "narratives.findings.chronic_pharyngitis.text.zh": [
+   "咽部检查提示黏膜慢性充血，后壁淋巴组织滤泡性增生。",
+   "咽腔黏膜可见慢性充血改变，咽后壁淋巴滤泡呈增生表现。",
+   "检查见咽黏膜持续充血，后壁存在滤泡样淋巴组织增生。"
+  ],
+  "narratives.findings.conjunctivitis.text.en": [
+   "Mild redness of the conjunctiva",
+   "Slight conjunctival hyperemia"
+  ],
+  "narratives.findings.conjunctivitis.text.zh": [
+   "结膜稍显充血",
+   "结膜有轻微充血",
+   "结膜呈轻度充血状态"
+  ],
+  "narratives.findings.damp_heat.text.en": [
+   "Tendency toward damp-heat",
+   "Predisposition to damp-heat"
+  ],
+  "narratives.findings.damp_heat.text.zh": [
+   "体质偏向湿热质",
+   "湿热体质倾向",
+   "呈湿热质倾向"
+  ],
+  "narratives.findings.fatty_liver.finding.mild.en": [
+   "Hepatic size normal; diffuse parenchymal echogenicity increase with mild attenuation posteriorly.",
+   "Normal hepatic dimensions; diffuse parenchymal hyperechogenicity with slight attenuation of the posterior acoustic beam.",
+   "Expected liver volume; generalized elevation of parenchymal ultrasound reflectivity with mild deep acoustic signal loss."
+  ],
+  "narratives.findings.fatty_liver.finding.mild.zh": [
+   "肝脏轮廓及体积处于正常范围，肝实质呈细密增强回声，深部声束轻度减弱，肝内管道走行仍可辨认。",
+   "肝脏外形与大小无异常，实质回声颗粒细密、整体偏强，远端声衰减轻微，肝内管系辨认尚清。",
+   "肝脏形态及容积正常，内部回声细腻明亮，声场深部略有减弱，肝内管状结构显示较清楚。"
+  ],
+  "narratives.findings.fatty_liver.finding.moderate.en": [
+   "Hepatomegaly with diffuse echogenicity increase and marked posterior attenuation; poor visualization of vessels.",
+   "Diffuse hepatic echogenicity increase with marked posterior attenuation and limited vessel visualization; liver enlarged."
+  ],
+  "narratives.findings.fatty_liver.finding.moderate.zh": [
+   "肝脏体积增大，肝实质回声弥漫增强，深部回声衰减明显，肝内管道结构显示欠清。",
+   "肝脏呈增大表现，实质回声弥漫性增高，深部声束衰减明显，肝内管道结构辨认欠佳。",
+   "肝脏体积偏大，肝实质呈广泛高回声，随探测深度增加回声减弱，肝内管道轮廓不易分辨。"
+  ],
+  "narratives.findings.fundus_arteriosclerosis.text.en": [
+   "Retinal arteriosclerosis, grade I",
+   "Grade I arteriosclerotic changes of the retina",
+   "Mild retinal arteriosclerotic changes"
+  ],
+  "narratives.findings.fundus_arteriosclerosis.text.zh": [
+   "Ⅰ级视网膜动脉硬化",
+   "检查提示视网膜动脉硬化Ⅰ级"
+  ],
+  "narratives.findings.fundus_hypertensive.finding.en": [
+   "Narrow calibre of retinal arterioles, brightened arteriolar reflex, and arteriovenous nicking, with an A:V near 1:2; no haemorrhagic or exudative changes."
+  ],
+  "narratives.findings.fundus_hypertensive.finding.zh": [
+   "双侧眼底视网膜动脉口径偏窄，反射较强；动静脉口径比约1:2，交叉部位呈受压改变，未见出血、渗出灶。",
+   "眼底双侧视网膜动脉管径缩小且反射增强，动静脉比例约1:2；血管交叉处有压迫表现，未发现出血或渗出。",
+   "双眼视网膜动脉呈狭细、反射增亮，动静脉比值约1:2，可见交叉部压迹，未检出出血及渗出改变。"
+  ],
+  "narratives.findings.gb_polyp.finding.en": [
+   "Echogenic, non-mobile focus of {mm} mm on the gallbladder wall, with no acoustic shadow.",
+   "Gallbladder wall echogenic focus, non-mobile and measuring {mm} mm, without acoustic shadow.",
+   "Gallbladder mural echogenicity with a stationary focus of {mm} mm and no posterior acoustic shadowing."
+  ],
+  "narratives.findings.gb_polyp.finding.zh": [
+   "胆囊壁附着强回声，约{mm}mm大小，体位变动时位置不变，后方无声影。",
+   "胆囊壁处见强回声灶，大小约{mm}mm，随体位变化未见移动，后方未见声影。",
+   "胆囊壁见一强回声影，约{mm}mm，改变体位后仍固定，后方无声影。"
+  ],
+  "narratives.findings.gb_stone.finding.en": [
+   "A {mm} mm echogenic mobile focus demonstrating posterior acoustic shadowing within the gallbladder.",
+   "Mobile echogenic gallbladder focus measuring {mm} mm, with posterior acoustic shadowing."
+  ],
+  "narratives.findings.gb_stone.finding.zh": [
+   "胆囊内见团状强回声，径约{mm}mm，后伴声影，体位变换时位置改变。",
+   "胆囊腔中探及强回声团块，大小约{mm}mm，可见其后声影，随体位调整发生移位。",
+   "胆囊内强回声团影，约{mm}mm，后方形成声影，并随体位转变而移位。"
+  ],
+  "narratives.findings.hearing_loss.text.en": [
+   "High-frequency hearing loss in both ears",
+   "Bilateral loss of hearing at high frequencies",
+   "Hearing loss affecting high frequencies bilaterally"
+  ],
+  "narratives.findings.hearing_loss.text.zh": [
+   "双耳高频听力减退",
+   "双侧高频听力降低",
+   "双耳高频听阈升高"
+  ],
+  "narratives.findings.hemorrhoids.text.en": [
+   "Haemorrhoids, mixed type",
+   "Haemorrhoidal disease, mixed"
+  ],
+  "narratives.findings.hemorrhoids.text.zh": [
+   "复合痔",
+   "内外痔"
+  ],
+  "narratives.findings.kidney_cyst.finding.en": [
+   "Simple cyst measuring {mm} mm in the {side_en} kidney.",
+   "Simple cyst, {mm} mm, within the {side_en} kidney."
+  ],
+  "narratives.findings.kidney_cyst.finding.zh": [
+   "{side}肾内见薄壁无回声灶，轮廓清晰，径约{mm}mm，后方伴回声增强。",
+   "后方回声增强的无回声区位于{side}肾内，壁薄且边缘清楚，大小约{mm}mm。",
+   "{side}肾内探及边界清楚的无回声性病灶，薄壁，测得约{mm}mm，后方回声增亮。"
+  ],
+  "narratives.findings.kidney_stone.finding.en": [
+   "An acoustic-shadowing echogenic focus in the {side_en} renal collecting system, measuring {mm} mm."
+  ],
+  "narratives.findings.kidney_stone.finding.zh": [
+   "于{side}肾集合系统区见强回声灶，直径约{mm}mm，后方形成声影。",
+   "{side}肾集合系统内显示一枚强回声，径线约{mm}mm，其后可见声影。",
+   "{side}肾集合系统区探及强回声团，大小约{mm}mm，伴随后方声影。"
+  ],
+  "narratives.findings.liver_cyst.finding.en": [
+   "In the {lobe_en} lobe, thin-walled anechoic lesion of {mm} mm with posterior enhancement.",
+   "Posterior acoustic enhancement from a thin-walled, anechoic {mm} mm lesion within the {lobe_en} lobe."
+  ],
+  "narratives.findings.liver_cyst.finding.zh": [
+   "肝{lobe}叶内无回声灶，测量值约为{mm}mm，囊壁菲薄，轮廓清晰，后方回声增益。",
+   "肝{lobe}叶检出无回声区，径约{mm}mm，壁面薄，边缘清楚，深部回声增强。",
+   "肝{lobe}叶显示无回声影，大小约{mm}mm，周缘界限明确，壁薄，后方透声增强。"
+  ],
+  "narratives.findings.lung_markings.finding.en": [
+   "Mild prominence of bronchovascular markings; no consolidation. Normal heart size.",
+   "Mild bronchovascular prominence; no parenchymal consolidation, with cardiac dimensions within normal limits."
+  ],
+  "narratives.findings.lung_markings.finding.zh": [
+   "两肺纹理较粗、增多，未见明确实质性病变。心影形态、大小无异常。双侧膈面整齐，肋膈角锐利。",
+   "肺野内纹理较粗且增多，未发现明确肺实质异常；心脏轮廓及大小正常。两侧膈肌面平整，肋膈隐窝清晰锐利。"
+  ],
+  "narratives.findings.lung_nodule.finding.en": [
+   "A {density_en} nodule measuring {mm} mm in the {side_en} {lobe_lung_en} lobe; otherwise clear lungs and no lymphadenopathy.",
+   "{side_en} {lobe_lung_en} lobe nodule, {density_en}, measuring {mm} mm; lungs otherwise clear, without lymphadenopathy."
+  ],
+  "narratives.findings.lung_nodule.finding.zh": [
+   "{side}肺{lobe_lung}叶检出{density}结节一枚，测径约{mm}mm，轮廓清楚；双肺其余肺实质未见明显异常，纵隔淋巴结未见肿大。",
+   "{side}肺{lobe_lung}叶内见单发{density}结节，大小约{mm}mm，边缘清晰。其余肺野实质未见显著病灶，纵隔未见增大的淋巴结。",
+   "{side}肺{lobe_lung}叶见孤立性{density}结节，约{mm}mm，界面尚清；其余双肺实质无明显异常，纵隔区未见肿大淋巴结。"
+  ],
+  "narratives.findings.missing_teeth.text.en": [
+   "Tooth absent ({tooth})",
+   "Absence of tooth ({tooth})",
+   "Missing dental element ({tooth})"
+  ],
+  "narratives.findings.missing_teeth.text.zh": [
+   "牙齿缺失（{tooth}）",
+   "可见缺牙（{tooth}）",
+   "（{tooth}）牙齿缺失"
+  ],
+  "narratives.findings.phlegm_damp.text.en": [
+   "Tendency toward phlegm-dampness",
+   "Phlegm-dampness predisposition",
+   "Predisposition to phlegm-dampness"
+  ],
+  "narratives.findings.phlegm_damp.text.zh": [
+   "呈痰湿质倾向",
+   "体质偏向痰湿质",
+   "倾向于痰湿体质"
+  ],
+  "narratives.findings.presbyopia_note.text.en": [
+   "Poor near vision",
+   "Reading blur",
+   "Near-focus loss"
+  ],
+  "narratives.findings.presbyopia_note.text.zh": [
+   "老花眼",
+   "老花",
+   "老视眼"
+  ],
+  "narratives.findings.prostate_hyperplasia.finding.en": [
+   "Enlarged prostate measuring 4.6 × 3.8 × 3.2 cm, with transition zone heterogeneity and calcifications.",
+   "Heterogeneous transition zone with calcifications; prostate dimensions 4.6 × 3.8 × 3.2 cm, consistent with enlargement.",
+   "Transition-zone heterogeneity and calcifications in an enlarged prostate measuring 4.6 × 3.8 × 3.2 cm."
+  ],
+  "narratives.findings.prostate_hyperplasia.finding.zh": [
+   "前列腺测量约4.6×3.8×3.2cm，整体增大；内腺增厚，实质回声分布不均，局部见钙化灶。",
+   "前列腺约4.6×3.8×3.2cm，腺体较大，内腺肥厚，回声欠均，伴钙化灶。",
+   "前列腺大小约4.6×3.8×3.2cm，体积偏大；内腺体积增加，内部回声不匀，可见钙化灶。"
+  ],
+  "narratives.findings.qi_deficiency.text.en": [
+   "Tendency toward Qi deficiency",
+   "Predisposition to Qi deficiency"
+  ],
+  "narratives.findings.qi_deficiency.text.zh": [
+   "气虚体质倾向",
+   "体质倾向于气虚",
+   "体质偏向气虚质"
+  ],
+  "narratives.findings.scoliosis.text.en": [
+   "Slight scoliosis",
+   "Minimal scoliosis",
+   "Minor scoliosis"
+  ],
+  "narratives.findings.scoliosis.text.zh": [
+   "脊柱轻微侧弯",
+   "脊柱轴线有轻微偏斜"
+  ],
+  "narratives.findings.septal_deviation.text.en": [
+   "Nasal septal deviation",
+   "The nasal septum is deviated"
+  ],
+  "narratives.findings.septal_deviation.text.zh": [
+   "鼻中隔弯曲",
+   "鼻中隔存在偏斜",
+   "鼻中隔形态偏曲"
+  ],
+  "narratives.findings.thyroid_diffuse.finding.en": [
+   "Diffuse heterogeneity and hypoechogenicity of the parenchyma in both lobes, with increased vascularity.",
+   "Diffuse parenchymal heterogeneity and hypoechogenicity in both lobes, with increased vascularity."
+  ],
+  "narratives.findings.thyroid_diffuse.finding.zh": [
+   "甲状腺体积未见明显增大，部分病例可稍增；腺体实质呈弥漫性低回声，内部回声粗细不一，见网状结构，CDFI示腺内血流较丰富。",
+   "甲状腺两侧腺叶形态及大小大致正常，或轻微增大；实质回声整体偏低且分布欠均，呈网格样纹理，彩色多普勒可见血流增强。",
+   "甲状腺双侧叶体积正常范围内或稍有增加，腺实质弥漫性回声减弱、欠均质，网状改变可见；CDFI提示腺体内血流信号偏多。"
+  ],
+  "narratives.findings.thyroid_enlarged.text.en": [
+   "Grade I enlargement of the thyroid",
+   "The thyroid is enlarged to Grade I",
+   "Thyroid enlargement, Grade I"
+  ],
+  "narratives.findings.thyroid_enlarged.text.zh": [
+   "甲状腺肿大程度为Ⅰ度",
+   "检查示甲状腺Ⅰ度增大"
+  ],
+  "narratives.findings.thyroid_nodule.finding.en": [
+   "A {mm} mm {echo_en} nodule with smooth, regular margins and peripheral vascularity in the {side_en} lobe.",
+   "In the {side_en} lobe, a {echo_en} nodule of {mm} mm with well-defined regular margins and peripheral vascularity."
+  ],
+  "narratives.findings.thyroid_nodule.finding.zh": [
+   "甲状腺{side}叶内见{echo}回声结节，轮廓清楚、形态规整，内部回声分布均匀，约{mm}mm；CDFI示结节周缘少量血流信号。",
+   "甲状腺{side}叶结节样回声灶呈{echo}回声，大小约{mm}mm，边缘清晰，形态规则，内部回声均一；CDFI显示周边可见少许血流信号。",
+   "于甲状腺{side}叶探及{echo}回声结节，测值约{mm}mm，结节形态规整、边界清楚，内部回声均匀，CDFI提示周围少量血流信号。"
+  ],
+  "narratives.findings.uterine_fibroid.finding.en": [
+   "A well-circumscribed hypoechoic myometrial nodule measuring {mm} mm in the {wall_en} wall, with peripheral flow.",
+   "A hypoechoic myometrial nodule, well defined, in the {wall_en} wall, measuring {mm} mm with peripheral flow.",
+   "A {mm} mm hypoechoic nodule of the myometrium in the {wall_en} wall, with well-defined margins and peripheral flow."
+  ],
+  "narratives.findings.uterine_fibroid.finding.zh": [
+   "子宫{wall}壁肌层内见低回声结节影，约{mm}mm，界限清晰，周围可见环状血流信号。",
+   "于子宫{wall}壁肌层探及结节状低回声影，径约{mm}mm，界面清楚，周边血流呈环绕分布。",
+   "子宫{wall}壁肌层中见结节样低回声灶，边缘清楚，测量约{mm}mm，周围血流信号呈环绕状。"
+  ],
+  "narratives.findings.varicose.text.en": [
+   "{side_en} lower-extremity varicosities",
+   "Varicose veins of the {side_en} lower limb",
+   "{side_en} lower-limb venous varicosities"
+  ],
+  "narratives.findings.varicose.text.zh": [
+   "{side}下肢可见曲张静脉",
+   "{side}下肢浅静脉迂曲扩张",
+   "{side}下肢静脉呈曲张表现"
+  ],
+  "narratives.findings.yang_deficiency.text.en": [
+   "A Yang-deficiency tendency is noted.",
+   "Yang-deficiency predisposition",
+   "Tendency toward Yang deficiency"
+  ],
+  "narratives.findings.yang_deficiency.text.zh": [
+   "阳虚体质倾向",
+   "体质偏向阳虚质",
+   "体质有阳虚倾向"
+  ]
+ }
+}

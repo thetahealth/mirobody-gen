@@ -76,6 +76,16 @@ class Documents(unittest.TestCase):
                 keys = {row["key"] for row in r["rows"]}
                 self.assertFalse({"resp", "ga"} & keys, r["file"])
 
+    def test_compare_finds_a_build_identical_to_itself(self):
+        from mirobody_gen.harness import compare
+
+        sig = compare.truth_signature(self.tmp)
+        self.assertEqual(sig, compare.truth_signature(self.tmp))
+        layers = compare.narrative_layers(self.tmp)
+        self.assertTrue(layers["advice"] and layers["narrative_text"] and layers["diary"])
+        d = compare._diversity(layers["advice"])
+        self.assertTrue(0 < d["distinct_ratio"] <= 1 and 0 < d["ttr"] <= 1)
+
     def test_schema_document_names_every_output_field(self):
         """docs/SCHEMA.md must mention every top-level field of every output file (drift guard)."""
         doc = (REPO / "docs" / "SCHEMA.md").read_text(encoding="utf-8")

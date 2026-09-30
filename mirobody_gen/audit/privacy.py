@@ -432,15 +432,50 @@ INSTITUTION = re.compile(r"([\u4e00-\u9fff]{2,14}(?:医院|保健院|体检中�
                          r"Clinical Laboratories|Pathology Services|Health Screening Centre|Family Clinic))")
 
 
+def replay_windows(unit: str, index: np.ndarray, vocabulary: list[str], digitless: list[str],
+                   seen: set[str] | None = None) -> tuple[list[str], int]:
+    """(unexcused windows of one text unit that occur in the reference set, excused count).
+
+    The same rules the gate applies: a window covered by public terms is excused, and so is one whose
+    digit-stripped residue is. Used by the gate and, on the generator side, by the paraphrase writer to
+    drop model output before it becomes a resource."""
+    hits: list[str] = []
+    excused = 0
+    norm = normalize(unit)
+    hashes = ngram_hashes(norm)
+    if not hashes.size or not index.size:
+        return hits, excused
+    positions = np.clip(np.searchsorted(index, hashes), 0, index.size - 1)
+    for i in np.nonzero(index[positions] == hashes)[0]:
+        fragment = norm[int(i):int(i) + NGRAM]
+        if seen is not None:
+            if fragment in seen:
+                continue
+            seen.add(fragment)
+        if is_public_term_window(fragment, vocabulary):
+            excused += 1
+            continue
+        rest = residual_text(fragment)
+        if len(rest) <= 2 or is_public_term_window(rest, vocabulary) or is_public_term_window(rest, digitless):
+            excused += 1
+            continue
+        hits.append(fragment)
+    return hits, excused
+
+
+def digitless_terms(vocabulary: list[str]) -> list[str]:
+    return sorted({residual_text(t) for t in vocabulary if residual_text(t)}, key=len, reverse=True)
+
+
 def scan(paths: list[pathlib.Path], index: np.ndarray | None,
          vocabulary: list[str], report_only: bool) -> int:
     findings = 0
     excused = 0
     excused_samples: list[str] = []
     synthetic_ids = 0
-    excused_numeric = 0
+    excused_numeric = 0  # folded into `excused` since the screen was factored out
     # 词条本身也去掉数字，才能和"去数字后的残余"比：`×10^9/L` 去数字是 `×^l`。
-    digitless = sorted({residual_text(t) for t in vocabulary if residual_text(t)}, key=len, reverse=True)
+    digitless = digitless_terms(vocabulary)
     fiction_names, fiction_institutions, institution_types = load_fiction()
     seen: set[str] = set()
     unreadable: list[pathlib.Path] = []
@@ -459,28 +494,11 @@ def scan(paths: list[pathlib.Path], index: np.ndarray | None,
         for unit in units:
             if index is None or not index.size:
                 break
-            norm = normalize(unit)
-            hashes = ngram_hashes(norm)
-            if hashes.size:
-                positions = np.clip(np.searchsorted(index, hashes), 0, index.size - 1)
-                hit_at = np.nonzero(index[positions] == hashes)[0]
-                for i in hit_at:
-                    fragment = norm[int(i):int(i) + NGRAM]
-                    if fragment in seen:
-                        continue
-                    seen.add(fragment)
-                    if is_public_term_window(fragment, vocabulary):
-                        excused += 1
-                        excused_samples.append(fragment)
-                        continue
-                    rest = residual_text(fragment)
-                    if len(rest) <= 2 or is_public_term_window(rest, vocabulary) or \
-                            is_public_term_window(rest, digitless):
-                        excused_numeric += 1
-                        excused_samples.append(f"{fragment}（去数字后：{rest or '空'}）")
-                        continue
-                    findings += 1
-                    print(f"回放命中  {rel}: …{fragment}…")
+            hits, ok = replay_windows(unit, index, vocabulary, digitless, seen)
+            excused += ok
+            for fragment in hits:
+                findings += 1
+                print(f"回放命中  {rel}: …{fragment}…")
 
         # ② PII
         for label, pattern in PII_PATTERNS:

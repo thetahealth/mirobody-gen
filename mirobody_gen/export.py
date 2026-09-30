@@ -18,7 +18,7 @@ import random
 from datetime import datetime
 
 from . import spec
-from .document import Cells, Doc, DocReading, PrintedRow, Table, format_date, print_unit
+from .document import Cells, Doc, DocReading, PrintedRow, Table, format_date, print_unit, print_value
 from .layout import Family, spellings
 from .model import Encounter, Person
 
@@ -76,14 +76,14 @@ def build_export(rng: random.Random, doc_id: str, person: Person, all_encounters
         values = {r.key: r for r in e.readings}
         for key in keys:
             reading = values.get(key)
-            raw[f"analyte:{key}"] = reading.value if reading else ""
+            raw[f"analyte:{key}"] = print_value(reading.value, f) if reading else ""
             if not reading:
                 continue
             item = catalogue[key]
             flag = ("1" if reading.status != "normal" else "0") if reading.value_kind != "quantitative" else ""
             p_index = len(doc.printed)
             doc.printed.append(PrintedRow(
-                item_name=item["en"] if en else item["zh"], item_value=reading.value,
+                item_name=item["en"] if en else item["zh"], item_value=print_value(reading.value, f),
                 item_unit=print_unit(item["unit"], f) if unit_in_header else "", item_range="",
                 is_abnormal=flag, readings=[len(doc.readings)]))
             doc.readings.append(DocReading(

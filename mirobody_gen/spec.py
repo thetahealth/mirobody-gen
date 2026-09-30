@@ -90,11 +90,11 @@ def llm_prompts() -> dict:
     return _load("llm_prompts.json")
 
 
-_PARAPHRASES_ENABLED = True
+_PARAPHRASES_ENABLED = False
 
 
 def set_paraphrases(enabled: bool) -> None:
-    """Switch the optional paraphrase resource off (``mirobody-gen build --no-paraphrase``)."""
+    """Switch the optional paraphrase resource on (``mirobody-gen build --paraphrase``); off by default."""
     global _PARAPHRASES_ENABLED
     _PARAPHRASES_ENABLED = enabled
 

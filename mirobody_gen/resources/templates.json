@@ -35,6 +35,7 @@
   "subject_labels",
   "summary",
   "unit_localization",
+  "value_localization",
   "watermarks",
   "yes_no"
  ],
@@ -529,5 +530,13 @@
   "01",
   "02",
   "BN"
- ]
+ ],
+ "value_localization": {
+  "en": {
+   "阴性": "Negative",
+   "阳性": "Positive",
+   "弱阳性": "Weakly positive",
+   "未查": "Not tested"
+  }
+ }
 }

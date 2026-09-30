@@ -32,8 +32,9 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); ver
   PureDocBench, OmniDocBench and Synthetic Hospital with pipeline v2 in
   `docs/zh-CN/research-2026-09-29-puredocbench.md`.
 - The paraphrase resource is wired into the generator: one wording per template per institution (sticky,
-  drawn from a stream of its own, so switching it off with `mirobody-gen build --no-paraphrase` reproduces
-  the pre-paraphrase corpus byte for byte); diary entries vary entry by entry. `mirobody-gen compare A B`
+  drawn from a stream of its own); diary entries vary entry by entry. The resource is opt-in
+  (`mirobody-gen build --paraphrase`): two independent judge models did not prefer the rewordings over the
+  hand-written templates, so the default corpus keeps the canonical wording. `mirobody-gen compare A B`
   reports wording diversity per narrative layer and checks that the truth layer is identical. The client
   reads `.env` (`LLM_API_KEY` may name `OPENROUTER_API_KEY`) and uses certifi or the system CA bundle.
 - The paraphrase writer screens every accepted candidate against the reference-set replay index when
@@ -41,6 +42,12 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); ver
   `replay_screened` in the provenance; `--workers N` runs model calls concurrently.
 - First paraphrase resource shipped: `resources/paraphrases.json`, 591 wordings for 228 of 237 templates
   from `openai/gpt-6-luna` (68 candidates dropped by the replay screen, 397 by the contract).
+- `mirobody-gen paraphrase --meaning-check MODEL`: a second model drops accepted candidates whose
+  meaning drifted (frequency, degree, causality, referral); the contract additionally locks units on
+  word boundaries, rejects ASCII punctuation between Chinese characters, keeps English sentence-initial
+  slots in place, and never paraphrases chief complaints. Three-round blind comparison in the design
+  note §8.4: more diverse, not judged more realistic; zero meaning changes flagged after the check.
+- English documents print qualitative results in English (`value_localization`), including exports.
 - `mirobody-gen paraphrase --refine N`: rejected candidates go back to the model with their reasons
   (progressive refinement after Kramer et al. 2026); design note §7 records the revised plan (L0: knowledge
   profile → cohort spec) and nine newly surveyed references in `docs/paper/refs.bib`.

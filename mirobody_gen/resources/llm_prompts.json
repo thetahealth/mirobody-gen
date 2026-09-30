@@ -3,22 +3,23 @@
  "_note": "Prompts for the optional language-model layer (mirobody_gen/llm). Versioned here so that every paraphrase resource can name the prompt it came from. The prompts describe the contract in llm/contract.py; the contract, not the prompt, is what decides acceptance.",
  "_provenance": {
   "author": "hand-authored in this repository",
-  "version": "2026-09-29.2",
+  "version": "2026-09-30.3",
   "script": null
  },
  "_vocabulary_fields": [
   "system",
   "user",
   "registers",
-  "refine"
+  "refine",
+  "meaning_check"
  ],
  "system": {
   "zh": "你是一名中文医学报告编辑。任务是把一条报告模板改写成意思相同、措辞不同的版本。规则：保留每一个花括号槽位（名字和次数都不能变）；不新增、不修改任何数字；给出的锁定词必须原样出现；不写机构名、人名、编号、日期；不加解释、不加免责声明；长度与原句相近。只输出一个 JSON 字符串数组。",
   "en": "You edit medical report wording. Rewrite one report template into versions that mean the same and read differently. Rules: keep every curly-brace slot exactly (same names, same counts); never add or change a number; the locked terms must appear verbatim; no institution names, person names, identifiers or dates; no explanations or disclaimers; similar length. Output only a JSON array of strings."
  },
  "user": {
-  "zh": "体裁：{register}\n原模板：{template}\n槽位及其可能取值：\n{slots}\n锁定词：{locked}\n请给出 {n} 条不同说法。",
-  "en": "Register: {register}\nTemplate: {template}\nSlots and their possible values:\n{slots}\nLocked terms: {locked}\nGive {n} different wordings."
+  "zh": "体裁：{register}\n原模板：{template}\n槽位及其可能取值（改写必须与每一个取值都搭配得上）：\n{slots}\n锁定词：{locked}\n请给出 {n} 条不同说法，句式要变，不要只换个别词。",
+  "en": "Register: {register}\nTemplate: {template}\nSlots and their possible values (the wording must read well with every listed value):\n{slots}\nLocked terms: {locked}\nGive {n} different wordings; change the sentence structure, not just single words."
  },
  "registers": {
   "narrative_finding": {
@@ -38,8 +39,8 @@
    "en": "one recommendation line in a check-up summary; the name before the colon stays"
   },
   "diary": {
-   "zh": "一个人用自己的话记的一句健康日记，口语",
-   "en": "one diary sentence about how someone feels, colloquial"
+   "zh": "一个人用自己的话记的一句健康日记，口语。{s}、{s2} 是症状名词或短语（如“头痛”“膝盖疼”“入睡困难”），改写后它们必须仍能作为名词直接填入；不要改变频率词（总是/又/有点）和程度词的含义。",
+   "en": "one diary sentence about how someone feels, colloquial. {s}, {s2} and {s_cap} are symptom noun phrases (e.g. 'knee pain', 'headache', 'dry eye'); the wording must stay grammatical with a noun phrase in the slot (never 'I'm {s}' or 'I've been {s}'); keep frequency and degree words (always / again / a bit) with the same meaning."
   },
   "chief_complaint": {
    "zh": "门诊病历的主诉，简短、名词化",
@@ -49,5 +50,15 @@
  "refine": {
   "zh": "上一轮的这些候选被程序校验拒绝，原因附在每条后面：\n{rejected}\n请针对原因修正，再给出 {n} 条新的说法。仍然只输出 JSON 字符串数组。",
   "en": "These candidates from the previous round were rejected by the validator, with the reason after each:\n{rejected}\nFix the reasons and give {n} new wordings. Output only a JSON array of strings."
+ },
+ "meaning_check": {
+  "system": {
+   "zh": "你是医学文书审校。给你一条报告/日记模板（原句）和它的一条改写。判断改写是否改变了原句的含义：频率词（总是/又/有点）、程度、因果关系、确定性、医学术语的指向、建议的动作或去向是否与原句一致；措辞是否通顺自然、符合该体裁。槽位 {…} 原样保留即可，不必评判槽位内容。只输出 JSON：{\"changed\": true|false, \"reason\": \"一句话\"}。改变含义或明显不通顺时 changed 为 true。",
+   "en": "You review medical documentation. Given a report/diary template (original) and one rewording, decide whether the rewording changes the meaning: frequency words (always / again / a bit), degree, causality, certainty, what the medical terms refer to, the recommended action or referral; and whether it reads naturally for that kind of text. Slots {…} stay as they are and need no judgement. Output JSON only: {\"changed\": true|false, \"reason\": \"one line\"}. Set changed to true for a meaning change or clearly unnatural wording."
+  },
+  "user": {
+   "zh": "体裁：{register}\n原句：{template}\n改写：{candidate}",
+   "en": "Kind: {register}\nOriginal: {template}\nRewording: {candidate}"
+  }
  }
 }

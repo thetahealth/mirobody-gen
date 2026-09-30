@@ -238,6 +238,9 @@ def print_flag(status: str, f: Family) -> str:
 
 
 def print_value(value: str, f: Family) -> str:
+    """The value as this institution prints it: decimal comma where the family uses it, and qualitative
+    results in the document's language (an English report does not print 阳性)."""
+    value = _t().get("value_localization", {}).get(f.lang_group, {}).get(value, value)
     return value.replace(".", ",") if f.decimal_comma and re.fullmatch(r"-?\d+\.\d+", value) else value
 
 

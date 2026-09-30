@@ -30,7 +30,7 @@ import numpy as np
 from PIL import Image, ImageDraw
 
 from . import spec, synthid
-from .document import Cells, Doc, DocReading, PrintedRow, Table, build_doc, format_date, print_dates, subject_fields
+from .document import Cells, Doc, DocReading, PrintedRow, Table, build_doc, format_date, print_dates, print_value, subject_fields
 from .layout import Family
 from .model import Encounter, Finding, Person
 
@@ -311,12 +311,12 @@ def aux_blocks(rng: random.Random, doc: Doc, person: Person, enc: Encounter, f: 
                 name = item["en"] if lang == "en" else item["zh"]
                 ref = spec.reference_text(key, person.sex)
                 flag = "" if r.status == "normal" else ("↑" if r.status == "high" else "↓")
-                text = f"{r.value}{(' ' + r.unit) if r.unit else ''}{flag}"
+                text = f"{print_value(r.value, f)}{(' ' + r.unit) if r.unit else ''}{flag}"
                 if ref:
                     text += f"（{b['reference']} {ref}）" if lang == "zh" else f" ({b['reference']} {ref})"
                 rows.append((name, text))
                 p_index = len(doc.printed)
-                doc.printed.append(PrintedRow(item_name=name, item_value=r.value, item_unit=r.unit, item_range=ref,
+                doc.printed.append(PrintedRow(item_name=name, item_value=print_value(r.value, f), item_unit=r.unit, item_range=ref,
                                               is_abnormal="1" if r.status != "normal" else "0"))
                 doc.printed[p_index].readings.append(len(doc.readings))
                 doc.readings.append(DocReading(key=key, loinc=r.loinc, canonical_value=r.canonical_value, value_text=r.value,
@@ -372,7 +372,7 @@ def summary_block(rng: random.Random, doc: Doc, person: Person, enc: Encounter, 
         item = catalogue[r.key]
         name = item["en"] if lang == "en" else item["zh"]
         arrow = ("↑" if r.status == "high" else "↓") if r.value_kind == "quantitative" else ""
-        groups.setdefault(group, []).append(f"{name} {r.value}{(' ' + r.unit) if r.unit else ''}{arrow}")
+        groups.setdefault(group, []).append(f"{name} {print_value(r.value, f)}{(' ' + r.unit) if r.unit else ''}{arrow}")
     conclusions: list[tuple[str, dict]] = []
     advice: list[tuple[str, dict]] = []
     for x in enc.findings:

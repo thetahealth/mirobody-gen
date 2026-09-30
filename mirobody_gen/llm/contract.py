@@ -24,8 +24,11 @@ CJK = re.compile(r"[一-鿿]")
 LATIN_RUN = re.compile(r"(?:[A-Za-z]{2,}\s+){3,}[A-Za-z]{2,}")      # four or more Latin words in a row
 STRAY_BRACE = re.compile(r"[{}]")
 UNITS = ("mmHg", "mmol/L", "μmol/L", "umol/L", "g/L", "U/L", "ng/mL", "mm", "cm", "kg", "‰", "%")
-#: Registers whose text is a coded surface or a diagnosis line: never paraphrased.
-LOCKED_REGISTERS = ("impression", "summary", "surface", "diagnosis")
+#: Registers whose text is a coded surface, a diagnosis line, or a chief complaint whose every non-slot
+#: word carries meaning (反复 / 间断 / 伴 / 加重): never paraphrased.
+LOCKED_REGISTERS = ("impression", "summary", "surface", "diagnosis", "chief_complaint")
+#: ASCII punctuation between two CJK characters is an artefact ("评估-并安排"), never wording.
+CJK_ASCII_PUNCT = re.compile(r"[\u4e00-\u9fff][-_*#|^\\<>=+][\u4e00-\u9fff]")   # "/" and "~" are legitimate (龋齿/牙结石, 3~5)
 MIN_LENGTH_RATIO, MAX_LENGTH_RATIO = 0.6, 1.6
 MIN_NOVELTY = 0.15
 
@@ -58,6 +61,14 @@ def numbers(text: str) -> set[str]:
     return set(NUMBER.findall(text))
 
 
+def _has_unit(unit: str, text: str) -> bool:
+    """A unit counts only as a token: "mm" inside "Common" or "{mm}" is not the unit."""
+    stripped = SLOT.sub("", text)
+    if unit.isalpha():
+        return re.search(rf"(?<![A-Za-z]){re.escape(unit)}(?![A-Za-z])", stripped) is not None
+    return unit in stripped
+
+
 def locked_terms(register: str, template: str) -> tuple[str, ...]:
     """Terms that must survive verbatim: the finding name before a colon in advice, and any unit."""
     out: list[str] = []
@@ -65,7 +76,7 @@ def locked_terms(register: str, template: str) -> tuple[str, ...]:
         head = re.split(r"[：:]", template, maxsplit=1)[0].strip()
         if head and "{" not in head:
             out.append(head)
-    out += [u for u in UNITS if u in template]
+    out += [u for u in UNITS if _has_unit(u, template)]
     return tuple(dict.fromkeys(out))
 
 
@@ -98,9 +109,20 @@ def check(req: Request, candidate: str, accepted: list[str] = ()) -> list[str]:
 
     # 3. locked terms (checked on the slot-stripped text: "{mm}" must not count as the unit "mm")
     stripped = SLOT.sub("", text)
-    missing = [t for t in req.locked if t not in stripped]
+    missing = [t for t in req.locked if not (_has_unit(t, text) if t in UNITS else t in stripped)]
     if missing:
         reasons.append(f"locked terms missing: {missing}")
+    # 3b. in English a sentence-initial slot stays sentence-initial (its value is capitalised, "{s_cap}");
+    #     Chinese has no capitalisation, so "{side}肾…" may move freely
+    first = SLOT.match(req.template.strip())
+    if first and (req.lang == "en" or first.group(1).endswith("_cap")) and not text.startswith("{" + first.group(1) + "}"):
+        reasons.append(f"sentence-initial slot {{{first.group(1)}}} moved")
+    # 3c. artefacts: ASCII punctuation glued between Chinese characters; a lowercase start where the
+    #     template starts with a capital
+    if CJK_ASCII_PUNCT.search(text):
+        reasons.append("stray punctuation between Chinese characters")
+    if req.template[:1].isupper() and text[:1].islower():
+        reasons.append("lowercase sentence start")
 
     # 4. language and script
     has_cjk = bool(CJK.search(text))

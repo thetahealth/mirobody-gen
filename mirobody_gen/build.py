@@ -33,12 +33,11 @@ def main() -> None:
     ap.add_argument("--stats", action="store_true", help="print distribution statistics for comparison with the reference aggregates")
     ap.add_argument("--render", action="store_true", help="render files (text-layer PDF, XLSX/CSV, scans, photos, screenshots) and write files.jsonl")
     ap.add_argument("--pairs", type=int, default=0, help="also emit N minimal-contrast pair groups (pairs.jsonl)")
-    ap.add_argument("--no-paraphrase", action="store_true", help="ignore resources/paraphrases.json (pre-paraphrase wording)")
+    ap.add_argument("--paraphrase", action="store_true", help="use resources/paraphrases.json for narrative wording (off by default)")
     ap.add_argument("--no-banner", action="store_true",
                     help="omit the SYNTHETIC banner (realism stress test; the synthetic metadata mark is always kept)")
     args = ap.parse_args()
-    if args.no_paraphrase:
-        spec.set_paraphrases(False)
+    spec.set_paraphrases(bool(args.paraphrase))
 
     people = person_mod.build_cohort(args.seed, args.people)
     encounters = {p.person_id: person_mod.encounters_for(p, args.seed) for p in people}

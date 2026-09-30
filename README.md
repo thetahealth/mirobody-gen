@@ -123,8 +123,8 @@ No model runs in the data path: values, findings, complaints, layouts and images
 code and a seed. An optional offline layer (`mirobody-gen paraphrase`) can ask a model for rewordings
 of the narrative templates; only candidates that keep every slot, number and locked term, stay in the
 same language and carry no name or identifier are kept, and the result is a resource that the privacy
-gate scans as untrusted text. `mirobody-gen build --no-paraphrase` reproduces the corpus without it and
-`mirobody-gen compare` shows what changed. Design, contracts and the planned robustness experiment:
+gate scans as untrusted text. It is off by default: `mirobody-gen build --paraphrase` switches it on and `mirobody-gen compare`
+shows what changed. Design, contracts and the planned robustness experiment:
 [docs/zh-CN/llm-integration-2026-09-29.md](docs/zh-CN/llm-integration-2026-09-29.md).
 
 ## Status

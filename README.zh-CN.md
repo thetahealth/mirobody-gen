@@ -99,7 +99,7 @@ T6 截图与拍屏。24 个场景是按 PureDocBench 的劣化谱与真实采集
 
 数据产出链路上没有模型调用：数值、所见、主诉、版式、图像都来自资源、代码与 seed。可选的离线层
 （`mirobody-gen paraphrase`）可以让模型给叙述模板出同义说法；只保留槽位、数字、锁定词原样、语言不变、
-不含人名机构名编号的候选，结果作为一份资源以"不可信文本"身份过隐私闸门；`mirobody-gen build --no-paraphrase` 可以复现不带它的语料，
+不含人名机构名编号的候选，结果作为一份资源以"不可信文本"身份过隐私闸门；默认关闭：`mirobody-gen build --paraphrase` 打开，
 `mirobody-gen compare` 报告两者的差别。设计、契约与鲁棒性实验见
 [docs/zh-CN/llm-integration-2026-09-29.md](docs/zh-CN/llm-integration-2026-09-29.md)。
 

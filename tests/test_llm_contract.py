@@ -114,13 +114,13 @@ def test_refine_prompt_carries_the_rejects_and_their_reasons():
 def test_phrasings_fall_back_to_the_original_when_switched_off():
     from mirobody_gen import spec
 
+    assert spec.phrasings("narratives.advice.normal.zh", "原句") == ["原句"]        # off by default
     try:
-        spec.set_paraphrases(False)
-        assert spec.phrasings("narratives.advice.normal.zh", "原句") == ["原句"]
-    finally:
         spec.set_paraphrases(True)
-    pool = spec.phrasings("narratives.advice.normal.zh", "原句")
-    assert pool[0] == "原句" and "原句" not in pool[1:]
+        pool = spec.phrasings("narratives.advice.normal.zh", "原句")
+        assert pool[0] == "原句" and "原句" not in pool[1:]
+    finally:
+        spec.set_paraphrases(False)
 
 
 def test_parse_list_accepts_json_and_lines():

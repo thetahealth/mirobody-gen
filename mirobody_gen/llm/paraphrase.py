@@ -30,7 +30,15 @@ DEFAULT_BUNDLE = REPO / ".cache" / "llm" / "paraphrase_requests.jsonl"
 
 
 def _placeholders() -> dict[str, list[str]]:
-    return {k: list(v) for k, v in (spec.narratives().get("_placeholders") or {}).items()}
+    pools = {k: list(v) for k, v in (spec.narratives().get("_placeholders") or {}).items()}
+    # diary and complaint slots: give the model the whole value list, so a wording must fit every value
+    # ("这阵子…1年了" is what happens when it only sees "3天")
+    phr = spec.complaints()["phrasing"]
+    pools["dur"] = phr["zh"]["durations"] + phr["en"]["durations"]
+    pools["cause"] = phr["zh"]["causes"] + phr["en"]["causes"]
+    pools["s"] = pools["s2"] = ["<symptom noun phrase: 头痛 / 膝盖疼 / knee pain / headache>"]
+    pools["s_cap"] = ["<symptom noun phrase, capitalised, sentence-initial: Knee pain / Headache>"]
+    return pools
 
 
 def _slots_of(template: str, pools: dict[str, list[str]]) -> dict[str, list[str]]:
@@ -167,15 +175,56 @@ def screen_replay(accepted: dict[str, list[str]], rejects: Counter) -> bool:
     return True
 
 
+def meaning_check(reqs: list[Request], accepted: dict[str, list[str]], rejects: Counter, judge: str, workers: int) -> int:
+    """Ask a second model, one candidate at a time, whether the wording changes the meaning of the
+    template (frequency, degree, causality, certainty, terminology) or reads unnaturally; drop it if so.
+
+    This screens model output, it does not gate the corpus: the deterministic contract stays the first
+    filter, and the judge's variance is reported, not trusted (Kramer et al. 2026, table 1)."""
+    from concurrent.futures import ThreadPoolExecutor
+
+    prompts = spec.llm_prompts()["meaning_check"]
+    by_id = {r.id: r for r in reqs}
+    items = [(rid, c) for rid, cands in accepted.items() for c in cands]
+
+    def ask(item: tuple[str, str]) -> tuple[str, str, bool, str]:
+        rid, cand = item
+        req = by_id[rid]
+        user = prompts["user"][req.lang].format(register=req.register, template=req.template, candidate=cand)
+        try:
+            text = client.complete(judge, prompts["system"][req.lang], user, temperature=0)["text"]
+            body = text[text.find("{"):text.rfind("}") + 1]
+            verdict = json.loads(body)
+            return rid, cand, bool(verdict.get("changed")), str(verdict.get("reason", ""))[:120]
+        except Exception as exc:                      # a failed judgement keeps the candidate and is counted
+            return rid, cand, False, f"judge error: {exc}"[:120]
+
+    with ThreadPoolExecutor(max_workers=workers) as pool:
+        results = list(pool.map(ask, items))
+    dropped = 0
+    for rid, cand, changed, _ in results:
+        if changed:
+            accepted[rid].remove(cand)
+            dropped += 1
+    for rid in [k for k, v in accepted.items() if not v]:
+        del accepted[rid]
+    rejects["meaning changed (judge)"] += dropped
+    rejects["judge errors"] += sum(1 for r in results if r[3].startswith("judge error"))
+    if not rejects["judge errors"]:
+        del rejects["judge errors"]
+    return dropped
+
+
 def write_resource(accepted: dict[str, list[str]], rejects: Counter, models: list[str], n_requests: int,
-                   path: pathlib.Path, screened: bool = False) -> None:
+                   path: pathlib.Path, screened: bool = False, judge: str = "") -> None:
     payload = {
         "_source": "llm-paraphrase",
         "_note": ("Paraphrases of narrative templates produced by a language model and filtered by "
                   "mirobody_gen/llm/contract.py. Untrusted text: not vocabulary, scanned by the privacy gate as is."),
         "_provenance": {"script": "mirobody_gen/llm/paraphrase.py", "models": models, "date": date.today().isoformat(),
                         "prompt_version": spec.llm_prompts()["_provenance"].get("version"),
-                        "replay_screened": screened, "requests": n_requests, "accepted_ids": len(accepted),
+                        "replay_screened": screened, "meaning_check": judge or None,
+                        "requests": n_requests, "accepted_ids": len(accepted),
                         "accepted": sum(len(v) for v in accepted.values()), "rejected": dict(rejects)},
         "_vocabulary_fields": [],
         "paraphrases": {k: accepted[k] for k in sorted(accepted)},
@@ -196,6 +245,7 @@ def main() -> None:
     ap.add_argument("--resource", default=str(RESOURCES / "paraphrases.json"), help="output resource path")
     ap.add_argument("--write", action="store_true", help="write the resource (otherwise only report)")
     ap.add_argument("--no-screen-replay", action="store_true", help="skip the replay screen even when the index is available")
+    ap.add_argument("--meaning-check", default="", metavar="MODEL", help="second model that drops candidates whose meaning drifted")
     args = ap.parse_args()
 
     reqs = _fix_severity_lang(collect(args.n))
@@ -248,12 +298,15 @@ def main() -> None:
     accepted, rejects = apply_responses(reqs, responses)
     screened = False if args.no_screen_replay else screen_replay(accepted, rejects)
     print("replay screen:", "applied" if screened else "not available on this machine (run the privacy gate before release)")
+    if args.meaning_check:
+        dropped = meaning_check(reqs, accepted, rejects, args.meaning_check, args.workers)
+        print(f"meaning check by {args.meaning_check}: dropped {dropped}")
     n_acc = sum(len(v) for v in accepted.values())
     print(f"accepted {n_acc} paraphrases for {len(accepted)} templates · rejected {sum(rejects.values())} "
           f"{dict(rejects)}")
     if args.write:
         out = pathlib.Path(args.resource)
-        write_resource(accepted, rejects, models, len(reqs), out, screened)
+        write_resource(accepted, rejects, models, len(reqs), out, screened, args.meaning_check)
         print(f"written {out}; run `mirobody-gen audit-privacy` before using it")
 
 

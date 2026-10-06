@@ -266,12 +266,44 @@ def home_stream(seed: int, person_id: str) -> random.Random:
     return random.Random(f"home:{seed}:{person_id}")
 
 
+#: 语言组配比，可由 `build.py --lang-mix` 在运行时覆盖。默认 50/50 与历史一致；
+#: 同 seed 同 mix 必然同结果——这是构建参数的一部分，不是 RNG 的新来源。
+#: 新增语言组（如 ja）在字典层落回英文模板：它改变的是**人群构成**（这个队列里
+#: 有多少人的文件走哪个语言通道），不是文档词汇本身。词汇扩展是资源层的事。
+_LANG_MIX: dict[str, float] = {"zh": 0.5, "en": 0.5}
+
+
+def set_lang_mix(spec_text: str) -> None:
+    """解析 `zh:0.45,en:0.4,ja:0.15` 这样的配比串。权重会归一化，所以
+    `zh:9,en:1` 与 `zh:0.9,en:0.1` 等价。未知语言组也接受——它们在文档层
+    落入英文模板，但姓名/设备时区等人群属性可以单独按组分配。"""
+    global _LANG_MIX
+    mix: dict[str, float] = {}
+    for part in spec_text.split(","):
+        name, _, w = part.partition(":")
+        name = name.strip()
+        if not name:
+            raise ValueError(f"空语言组名: {spec_text!r}")
+        mix[name] = float(w) if w else 1.0
+    total = sum(mix.values())
+    if total <= 0:
+        raise ValueError(f"语言配比全为零: {spec_text!r}")
+    _LANG_MIX = {k: v / total for k, v in mix.items()}
+
+
 def draw_lang(rng: random.Random) -> str:
-    return "en" if rng.random() < 0.5 else "zh"
+    roll = rng.random()
+    acc = 0.0
+    for name, weight in _LANG_MIX.items():
+        acc += weight
+        if roll < acc:
+            return name
+    return next(reversed(_LANG_MIX))  # 浮点尾差
 
 
 def person_lang(seed: int, person_id: str) -> str:
-    """这个人的语言组（zh / en）。`corpus.home_institutions` 从同一个流的同一次抽样取语言，
+    """这个人的语言组（zh / en / 由 --lang-mix 引入的其他组）。
+    `corpus.home_institutions` 从同一个流的同一次抽样取语言，
     所以体检机构、主诉、日记、设备与基因文件的语言一致——一个人不会中文体检、英文写日记。"""
     return draw_lang(home_stream(seed, person_id))
 

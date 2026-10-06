@@ -78,15 +78,21 @@ class Institutions:
 
 
 def home_institutions(seed: int, person: Person, process: Institutions) -> tuple[str, dict[str, int]]:
-    """这个人的语言组、体检中心与常去医院。大客户只在中文机构里。"""
+    """这个人的语言组、体检中心与常去医院。大客户只在中文机构里。
+
+    返回值第一个元素是**人口学语言组**（person_lang 的原样，可能是 ja）——
+    设备时区、基因频率列靠它区分人群。机构池按文档措辞组（zh/en）二分：
+    一个讲日语的人的体检单当前由英文机构出具（文档措辞层见 `spec.doc_lang`），
+    但设备时区是 +09:00、基因按东亚频率抽——三层各归各。"""
     rng = person_mod.home_stream(seed, person.person_id)
     group = person_mod.draw_lang(rng)
+    doc_group = spec.doc_lang(group)
     home = {}
     for kind in ("checkup_center", "hospital"):
-        if group == "zh" and rng.random() < BIG_CLIENT_SHARE[kind]:
+        if doc_group == "zh" and rng.random() < BIG_CLIENT_SHARE[kind]:
             home[kind] = process.registry.big[kind]
         else:
-            home[kind] = process.draw(rng, kind, group)
+            home[kind] = process.draw(rng, kind, doc_group)
     return group, home
 
 

@@ -65,6 +65,16 @@ def templates() -> dict:
     return _load("templates.json")
 
 
+def doc_lang(lang: str) -> str:
+    """文档措辞层的语言键：zh 用 zh，其余一切组都落回 en。
+
+    `--lang-mix` 引入的组（如 ja）改变的是**人群构成**——队列里有多少人的
+    文件走哪个语言通道、设备时区怎么配——不是文档词汇本身。词汇表只有
+    zh/en 两套是刻意的：一种新语言的医学文书模板是资源层的独立工程
+    （`resources/*.json` 的第三个键），不是运行参数能解决的事。"""
+    return lang if lang == "zh" else "en"
+
+
 def fiction() -> dict:
     """虚构池：人名、地名、机构名。见 `scripts/build_fiction.py`。"""
     return _load("fiction.json")

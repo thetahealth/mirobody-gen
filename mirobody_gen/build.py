@@ -36,8 +36,14 @@ def main() -> None:
     ap.add_argument("--paraphrase", action="store_true", help="use resources/paraphrases.json for narrative wording (off by default)")
     ap.add_argument("--no-banner", action="store_true",
                     help="omit the SYNTHETIC banner (realism stress test; the synthetic metadata mark is always kept)")
+    ap.add_argument("--lang-mix", default=None,
+                    help="language-group ratio, e.g. 'zh:0.45,en:0.4,ja:0.15' (default zh:0.5,en:0.5). "
+                         "Unknown groups fall back to English document templates; the mix changes "
+                         "cohort composition, not dictionary structure.")
     args = ap.parse_args()
     spec.set_paraphrases(bool(args.paraphrase))
+    if args.lang_mix:
+        person_mod.set_lang_mix(args.lang_mix)
 
     people = person_mod.build_cohort(args.seed, args.people)
     encounters = {p.person_id: person_mod.encounters_for(p, args.seed) for p in people}
@@ -54,6 +60,13 @@ def main() -> None:
     n_journal = journal.write_all(out_dir, people, args.seed, langs)
     n_gen = genomics.write_all(out_dir, people, args.seed, langs)
     print(f"设备记录 {n_dev} 条（devices.jsonl）· 日记 {n_journal} 条（journal.jsonl）· 基因文件 {n_gen} 份（genomics.jsonl）")
+
+    # 第四条通道：厂商云端 push（Garmin/Oura/Whoop/Apple HealthKit 原生 JSON）。
+    # 这些人身上的手机健康库批次继续存在——同一个人可以既同步手机又挂表。
+    from . import vendor_signals
+
+    n_vsig = vendor_signals.write_all(out_dir, people, args.seed, langs, {})
+    print(f"厂商 push {n_vsig} 份（vendor_signals.jsonl）")
 
     if args.stats:
         _stats(people, encounters)

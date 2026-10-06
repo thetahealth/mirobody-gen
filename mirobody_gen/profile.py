@@ -24,6 +24,8 @@ from datetime import date, timedelta
 from . import spec
 from .model import Complaint, Finding, Person
 
+_dl = spec.doc_lang
+
 
 def _narr() -> dict:
     return spec.narratives()
@@ -244,7 +246,9 @@ def complaints_for(person: Person, when: date, exam_type: str, lang: str, seed: 
         return []
     n = 1 if rng.random() < 0.6 else 2
     picked = rng.sample(candidates, min(n, len(set(candidates))))
-    durations = comp["phrasing"][lang]["durations"]
+    # 主诉措辞是文档措辞层（spec.doc_lang）；症状词表的 zh/en 选择在
+    # complaint_surface 里按 lang 直判，ja 走 en 池——两层一致。
+    durations = comp["phrasing"][_dl(lang)]["durations"]
     out = []
     for i, sid in enumerate(dict.fromkeys(picked)):
         c = complaint_surface(sid, lang, rng)

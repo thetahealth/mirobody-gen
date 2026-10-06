@@ -62,27 +62,42 @@ VENDORS = {
 }
 LOINC = {"weight": "29463-7", "rhr": "40443-4", "hr": "8867-4", "steps": "55423-8", "sbp": "8480-6",
          "dbp": "8462-4", "sleep": "93832-4"}
-VENDOR_WEIGHTS = {"zh": {"huawei": 45, "apple": 30, "xiaomi": 20, "health_connect": 5},
-                  "en": {"apple": 60, "health_connect": 30, "huawei": 5, "xiaomi": 5}}
+#: 每个语言组的**人口学画像**：设备时区偏移与品牌份额。这是人群学属性，
+#: 不是文档措辞——`--lang-mix` 引入的组必须在这里有一行，否则队列里
+#: 那部分人的设备会凭空消失（KeyError）或被安上别国的时区。
+#: 论文里引用：日本 Apple Watch 份额约六成（MMRI 2024 穿戴调查）；
+#: zh 组对应中国信通院 2023 穿戴出货量结构。
+POPULATION = {
+    "zh": {"tz": "+08:00", "vendors": {"huawei": 45, "apple": 30, "xiaomi": 20, "health_connect": 5}},
+    "en": {"tz": "+00:00", "vendors": {"apple": 60, "health_connect": 30, "huawei": 5, "xiaomi": 5}},
+    "ja": {"tz": "+09:00", "vendors": {"apple": 62, "health_connect": 28, "huawei": 4, "xiaomi": 6}},
+}
+#: 未知组默认讲英文世界的样子——保守且可复现。
+_DEFAULT_POPULATION = POPULATION["en"]
 BATCH = 500
 
 
 def _tz(lang: str) -> str:
-    return "+08:00" if lang == "zh" else "+00:00"
+    return POPULATION.get(lang, _DEFAULT_POPULATION)["tz"]
 
 
-def series_for(person: Person, seed: int, lang: str) -> dict:
-    """一个人的全部设备记录（按类型分组的日序列）。确定性：`RandomState`/`Random` 都按 seed+person。"""
+def series_for(person: Person, seed: int, lang: str, *,
+               force_wearable: bool = False, force_vendor: str | None = None) -> dict:
+    """一个人的全部设备记录（按类型分组的日序列）。确定性：`RandomState`/`Random` 都按 seed+person。
+
+    `force_wearable` / `force_vendor` 给 vendor_signals 用：一块 Garmin/Oura/Whoop 挂在手上，
+    智能库的"有没有戴表"与"是哪家的表"就不能再按权重抽——真实的因果方向是反的：
+    因为有了这块表，健康库里才有完整的 steps/sleep/rhr 序列。"""
     rng = random.Random(f"device:{seed}:{person.person_id}")
-    vw = VENDOR_WEIGHTS[lang]
-    vendor = rng.choices(list(vw), weights=list(vw.values()))[0]
+    vw = POPULATION.get(lang, _DEFAULT_POPULATION)["vendors"]
+    vendor = force_vendor or rng.choices(list(vw), weights=list(vw.values()))[0]
     fields = VENDORS[vendor]["fields"]
     start = person.weight_anchors[0][0]
     end = min(person.weight_anchors[-1][0], CORPUS_END)
     tz = _tz(lang)
     # 习惯：称重频率、是否戴表、有没有血压计
     weigh_rate = rng.choice([0.15, 0.3, 0.5, 0.9])
-    wearable = rng.random() < 0.6
+    wearable = force_wearable or rng.random() < 0.6
     cuff = person.archetype == "hypertension" and rng.random() < 0.85 or rng.random() < 0.15
     base_rhr = rng.gauss(64, 6) * (0.93 if person.archetype == "healthy" and rng.random() < 0.3 else 1.0)
     base_steps = rng.gauss(6500, 1800)

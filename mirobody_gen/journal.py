@@ -28,6 +28,7 @@ LOINC = {"sbp": "8480-6", "dbp": "8462-4", "pulse": "8867-4", "weight": "29463-7
 
 
 def _sentence(rng: random.Random, lang: str, s1: str, s2: str | None, person: Person, when: date) -> tuple[str, list[dict]]:
+    lang = spec.doc_lang(lang)   # 日记是文档措辞层：ja 组写英文日记（见 spec.doc_lang）
     ph = spec.complaints()["phrasing"][lang]
     templates = [t for t in ph["journal"] if ("{s2}" in t) == (s2 is not None)]
     t = rng.choice(templates)

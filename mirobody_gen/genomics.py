@@ -28,8 +28,14 @@ from . import spec
 from .model import Person
 
 VENDOR_WEIGHTS = {"zh": {"wegene": 55, "23andme": 25, "vcf": 12, "myheritage": 8},
-                  "en": {"23andme": 50, "ancestry": 28, "myheritage": 12, "vcf": 10}}
+                  "en": {"23andme": 50, "ancestry": 28, "myheritage": 12, "vcf": 10},
+                  "ja": {"23andme": 45, "vcf": 25, "ancestry": 15, "myheritage": 15}}
 NO_CALL_RATE = 0.015
+#: 祖源 → 等位基因频率列。`resources/genomics.json` 的每个位点带 eas/eur 两列；
+#: 用错列是沉默的物理错误：东亚人的 CYP2C19*2 频率 0.3、欧洲人 0.15，
+#: 一组按欧洲频率抽基因的日本人会让 PGx 表型分布直接失真。
+ANCESTRY_FREQ_COL = {"zh": 7, "ja": 7, "en": 8}   # eas / eas / eur
+_DEFAULT_FREQ_COL = 8
 #: 多少人有基因文件。
 COVERAGE = 0.4
 
@@ -49,9 +55,9 @@ def profile_for(person: Person, seed: int, lang: str) -> dict | None:
     if rng.random() >= COVERAGE:
         return None
     g = spec.genomics()
-    vw = VENDOR_WEIGHTS[lang]
+    vw = VENDOR_WEIGHTS.get(lang, VENDOR_WEIGHTS["en"])
     vendor = rng.choices(list(vw), weights=list(vw.values()))[0]
-    freq_col = 7 if lang == "zh" else 8               # alt_freq_eas / alt_freq_eur
+    freq_col = ANCESTRY_FREQ_COL.get(lang, _DEFAULT_FREQ_COL)
     sites = []
     for row in g["pgx_sites"]:
         sites.append((row, True))

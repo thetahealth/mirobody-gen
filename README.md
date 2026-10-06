@@ -1,9 +1,12 @@
 # mirobody-gen
 
-Synthetic health records, rendered as the documents people actually upload: lab slips, multi-page
-check-up books, clinic notes, ECG and ultrasound reports, home blood-pressure logs — as text-layer PDFs,
-spreadsheets, scans, phone photos, photocopies and app screenshots — plus the same people's wearable
-batches, symptom diaries and consumer-genomics exports. Every file ships with row-level ground truth.
+A regenerable corpus of longitudinal synthetic health records, rendered as the documents people
+actually upload: lab slips, multi-page check-up books, clinic notes, ECG and ultrasound reports, home
+blood-pressure logs — as text-layer PDFs, spreadsheets, scans, phone photos, photocopies and app
+screenshots — plus the same people's wearable batches, symptom diaries and consumer-genomics exports.
+Every file ships with row-level ground truth, and the sixty virtual people behind the files carry
+multi-year event timelines, so the same corpus supports both per-document extraction scoring and
+long-horizon agent evaluation.
 
 [中文说明](README.zh-CN.md) · [Architecture](docs/ARCHITECTURE.md) · [Privacy model](docs/PRIVACY.md) ·
 [Output schema](docs/SCHEMA.md) · [Changelog](CHANGELOG.md)
@@ -127,10 +130,22 @@ gate scans as untrusted text. It is off by default: `mirobody-gen build --paraph
 shows what changed. Design, contracts and the planned robustness experiment:
 [docs/zh-CN/llm-integration-2026-09-29.md](docs/zh-CN/llm-integration-2026-09-29.md).
 
+## Companion article
+
+A standalone article on the approach — why benchmarks that start from parsed data miss the hardest
+step, how the corpus is built, and how it composes with
+[ESL-Bench](https://arxiv.org/abs/2604.02834) (a longitudinal-agent benchmark whose records arrive
+structured) to measure what is lost at the document boundary — is being prepared as a working draft
+in [docs/zh-CN/paper.md](docs/zh-CN/paper.md). The benchmark tentatively named **ESL-Doc** there is this
+repository with a fixed seed; the name is provisional and the generator keeps this repository's name
+regardless of what the benchmark ends up called.
+
 ## Status
 
-- Integration with mirobody's test suites (an environment variable pointing at a build directory) is
-  designed but not yet wired; see the roadmap in [docs/zh-CN/plan.md](docs/zh-CN/plan.md) §6.
+- Integration with mirobody's test suites is designed as an environment variable pointing at a build
+  directory. It is not yet wired: mirobody's `feat/1.5.4` branch does not yet read a mirobody-gen
+  build, so the corpus is consumed here through the `score`/`baselines` CLIs until that lands. See
+  the roadmap in [docs/zh-CN/plan.md](docs/zh-CN/plan.md) §6.
 - The catalogue covers 172 indicators (153 quantitative, 17 qualitative, 2 categorical), 52 order
   groups, 5 package tiers, 7 departments, 17 auxiliary examinations and 55 named findings. Every
   reference interval cites a public standard, guideline or expert consensus; see

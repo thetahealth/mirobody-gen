@@ -1,6 +1,6 @@
 # mirobody-gen
 
-**The adversarial input source for [mirobody](https://github.com/thetahealth/mirobody): regenerable synthetic people whose files, wearable pushes, journal entries and genotype exports carry row-level ground truth.**
+**Regenerable, high-quality personal health data at scale — every report, wearable push, journal entry and genotype export traceable to the rule that produced it, with row-level ground truth.**
 
 [中文说明](README.zh-CN.md) · [Architecture](docs/ARCHITECTURE.md) · [Privacy model](docs/PRIVACY.md) · [Output schema](docs/SCHEMA.md) · [Changelog](CHANGELOG.md) · [Companion article (working draft, 中文)](docs/zh-CN/paper.md)
 
@@ -9,30 +9,39 @@
 
 ---
 
-A person hands over a creased phone photo of a lab slip, an XLSX their employer's check-up chain
-exports, a Garmin account, a WeGene file and a paper notebook of morning blood pressures. Mirobody
-is built to turn exactly that into one coded record. Testing it needs inputs with three properties
-no real patient file can give you at scale:
+This is a standalone generator. Its job is to produce **broad, realistic, fully-attributable
+personal health data** — the lab slips, check-up books, clinic notes, wearable streams, phone
+health-store batches, diary sentences and consumer-genomics exports that make up a real person's
+record — fast (60 people in tens of seconds), accurately (values from mechanistic physiology and
+public standards, derived quantities by their defining identities) and traceably (every number,
+every layout convention, every hazard class declares its source, and the whole corpus regenerates
+byte-identically from generator + seed).
 
-- **ground truth behind every printed cell** — what the page says (name, value, unit, reference
-  range, flag, MedRepBench's five fields) *and* what it means (indicator key, LOINC code, UCUM
-  unit, observation date), so extraction and standardisation are scored, not eyeballed;
+What makes the output *checkable* rather than merely plausible:
+
+- **two truth layers behind every printed cell** — what the page says (name, value, unit,
+  reference range, flag, MedRepBench's five fields) *and* what it means (indicator key, LOINC
+  code, UCUM unit, observation date);
 - **named difficulty** — every file declares which hazard classes it carries, from a taxonomy of
-  62 classes distilled from a real-corpus study (61 generatable in the text layer; `unit.glued_to_value`
-  appears on 22% of real documents, `unit.in_header_or_reference_only` on 9%); minimal pairs isolate
-  each hazard's causal cost;
-- **no privacy exposure** — nothing in the corpus is derived from a real person. Values are
-  computed from mechanistic physiology and public standards, never sampled from a distribution
-  fitted to patient data.
+  62 classes distilled from a real-corpus study (61 generatable in the text layer;
+  `unit.glued_to_value` appears on 22% of real documents); minimal pairs isolate each hazard's
+  causal cost;
+- **no privacy exposure** — nothing is derived from a real person. Document *shape* statistics
+  came from a private de-identified reference set as format tokens and aggregate counts only,
+  each tagged with its `_source`, behind an allow-list `.gitignore`, a pre-commit privacy hook
+  and an n-gram replay gate.
 
-This repository is mirobody's **official source of such inputs**, and an organic part of the
-project family: the people it generates present to **every** ingestion path mirobody has —
-documents to the file pipeline, HealthKit/Garmin/Oura/WHOOP payloads to the provider decoders,
-phone health-store batches to `/api/data`, and genotype exports to the genetics handler — so one
-synthetic person exercises the whole engine end to end. Benchmark-facing uses compose it with
-[ESL-Bench](https://arxiv.org/abs/2604.02834), whose records arrive already structured: the
-difference between the two arrival modes on the same person is what the working article calls the
-*document-boundary cost*.
+The corpus is longitudinal at the person level: 60 synthetic people across 8 archetypes, each
+with multi-year event timelines, appear coherently across **four delivery channels** — documents,
+phone health-store batches, vendor-cloud payloads and genomics — so "*did you merge this person's
+lab slip with this person's wearable stream?*" is a checkable question.
+
+[mirobody](https://github.com/thetahealth/mirobody) is the first consumer and proving ground: its
+file pipeline, provider decoders, `/api/data` endpoint and genetics handler are exactly the four
+channels above, and its decoder test-suite shapes pin our vendor payloads byte-for-byte. The
+benchmark-facing article composes this corpus with [ESL-Bench](https://arxiv.org/abs/2604.02834)
+to measure what is lost between the artefact a person holds and an already-structured record —
+but the generator is useful anywhere realistic, truth-carrying health data is needed.
 
 ## The four delivery channels
 

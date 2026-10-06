@@ -2,7 +2,7 @@
 
 **可重放的高质量个人健康数据规模化生成器——每份报告、每条可穿戴推送、每句日记、每个基因位点都可追溯到产出它的规则，全部带逐行真值。**
 
-[English](README.md) · [架构](docs/ARCHITECTURE.md) · [隐私模型](docs/PRIVACY.md) · [输出 schema](docs/SCHEMA.md) · [设计记录（中文）](docs/zh-CN/) · [变更日志](CHANGELOG.md)
+[English](README.md) · [架构](docs/ARCHITECTURE.md) · [隐私模型](docs/PRIVACY.md) · [输出 schema](docs/SCHEMA.md) · [参考文献库](docs/paper/refs.bib) · [变更日志](CHANGELOG.md)
 
 [![License: Apache-2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 [![Python 3.11+](https://img.shields.io/badge/python-3.11%2B-3775A9)](pyproject.toml)
@@ -124,7 +124,7 @@ mirobody-gen score     out/p3/pairs.jsonl out/p3/pred_rules_pairs.jsonl --pairs
 （`mirobody-gen build --paraphrase`）只让模型对**叙事模板换措辞**；候选必须保住每个槽位、数字与锁定词、
 留在同一种语言、不含任何人名或标识符，被接受的改写会成为一份*资源*，被隐私门当作不可信文本扫描。
 默认关闭；`mirobody-gen compare` 展示它改了什么。设计与契约见
-[docs/zh-CN/llm-integration-2026-09-29.md](docs/zh-CN/llm-integration-2026-09-29.md)。
+[docs/zh-CN/llm-integration-2026-09-29.md](docs/zh-CN/llm-integration-2026-09-29.md)（设计记录不进公开树）。
 
 ## 现状与 mirobody 的关系
 
@@ -133,9 +133,9 @@ mirobody-gen score     out/p3/pairs.jsonl out/p3/pred_rules_pairs.jsonl --pairs
   mirobody 解码器测试套件的形状。
 - 目录覆盖 172 个指标（153 定量、17 定性、2 分类）、52 个医嘱组、5 档套餐、7 个科室、17 项辅助检查与
   55 个具名发现；每条参考区间都注明了公开标准或指南出处。
-- 工作论文（中文工作稿 [docs/zh-CN/paper.md](docs/zh-CN/paper.md)）记录了基准定位——暂定名
-  **ESL-Doc**，与 ESL-Bench 组合——附 47 条全部核实过的参考文献
-  [docs/paper/refs.bib](docs/paper/refs.bib)。无论基准最终叫什么，生成器都保留本仓库名。
+- 基准定位——暂定名 **ESL-Doc**，与 ESL-Bench 组合——在中文工作稿（`docs/zh-CN/paper.md`，不进公开树）中展开，
+  其 47 条全部核实过的参考文献库公开于 [docs/paper/refs.bib](docs/paper/refs.bib)。无论基准最终叫什么，
+  生成器都保留本仓库名。
 
 ## 贡献、安全、引用
 

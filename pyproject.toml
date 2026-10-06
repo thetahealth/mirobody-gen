@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "mirobody-gen"
 version = "0.3.0"
-description = "Knowledge-driven synthetic longitudinal health records rendered as documents, for testing health-data extraction and agent pipelines. No real record is on the value path. Companion article in preparation (docs/zh-CN/paper.md)."
+description = "Knowledge-driven synthetic longitudinal health records rendered as documents, for testing health-data extraction and agent pipelines. No real record is on the value path. Companion article in preparation."
 readme = "README.md"
 license = {file = "LICENSE"}
 authors = [{name = "Theta AI Team", email = "developer@thetahealth.ai"}]

@@ -2,7 +2,7 @@
 
 **Regenerable, high-quality personal health data at scale — every report, wearable push, journal entry and genotype export traceable to the rule that produced it, with row-level ground truth.**
 
-[中文说明](README.zh-CN.md) · [Architecture](docs/ARCHITECTURE.md) · [Privacy model](docs/PRIVACY.md) · [Output schema](docs/SCHEMA.md) · [Changelog](CHANGELOG.md) · [Companion article (working draft, 中文)](docs/zh-CN/paper.md)
+[中文说明](README.zh-CN.md) · [Architecture](docs/ARCHITECTURE.md) · [Privacy model](docs/PRIVACY.md) · [Output schema](docs/SCHEMA.md) · [Changelog](CHANGELOG.md) · [Bibliography](docs/paper/refs.bib)
 
 [![License: Apache-2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 [![Python 3.11+](https://img.shields.io/badge/python-3.11%2B-3775A9)](pyproject.toml)
@@ -150,7 +150,8 @@ and a seed. An optional layer (`mirobody-gen build --paraphrase`) asks a model f
 of narrative templates only**; candidates must keep every slot, number and locked term, stay in
 the same language and carry no identifier, and the accepted paraphrases become a *resource* the
 privacy gate scans as untrusted text. It is off by default; `mirobody-gen compare` shows what it
-changed. Design and contract: [docs/zh-CN/llm-integration-2026-09-29.md](docs/zh-CN/llm-integration-2026-09-29.md).
+changed; the design note and contract live in the Chinese design folder (`docs/zh-CN/`, kept out of
+the public tree — ask if you need it).
 
 ## Status and the mirobody relationship
 
@@ -161,10 +162,10 @@ changed. Design and contract: [docs/zh-CN/llm-integration-2026-09-29.md](docs/zh
 - The catalogue covers 172 indicators (153 quantitative, 17 qualitative, 2 categorical), 52 order
   groups, 5 package tiers, 7 departments, 17 auxiliary examinations and 55 named findings; every
   reference interval cites a public standard or guideline.
-- The working article (中文工作稿, [docs/zh-CN/paper.md](docs/zh-CN/paper.md)) records the
-  benchmark positioning — provisionally **ESL-Doc**, composed with ESL-Bench — with a verified
-  47-entry bibliography at [docs/paper/refs.bib](docs/paper/refs.bib). The generator keeps this
-  repository's name whatever the benchmark ends up called.
+- The benchmark positioning — provisionally **ESL-Doc**, composed with ESL-Bench — is worked out in
+  a Chinese working article (`docs/zh-CN/paper.md`, kept out of the public tree) whose 47-entry
+  verified bibliography is public at [docs/paper/refs.bib](docs/paper/refs.bib). The generator
+  keeps this repository's name whatever the benchmark ends up called.
 
 ## Contributing, security, citation
 

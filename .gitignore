@@ -24,7 +24,9 @@
 !/mirobody_gen/
 !/scripts/
 !/tests/
-!/docs/
+#!/docs/
+!/docs/paper/
+!/docs/*.md
 
 # ── Never tracked, even if the allow-list above is widened ────────
 # Local reference material, its derivatives, caches and generated corpora.

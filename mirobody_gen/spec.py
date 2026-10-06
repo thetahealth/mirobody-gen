@@ -100,6 +100,11 @@ def llm_prompts() -> dict:
     return _load("llm_prompts.json")
 
 
+def handwriting() -> dict:
+    """What a hand may write, the writing tiers, inks and paper. See `scripts/build_handwriting.py`."""
+    return _load("handwriting.json")
+
+
 _PARAPHRASES_ENABLED = False
 
 

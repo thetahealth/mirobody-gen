@@ -47,7 +47,7 @@ but the generator is useful anywhere realistic, truth-carrying health data is ne
 
 | Channel | artefact | mirobody entry point |
 | --- | --- | --- |
-| **Documents** | lab slips, check-up books, clinic notes, ECG / ultrasound / imaging reports, home logs, app exports — as text-layer PDF, XLSX, CSV, and 24 scan / photo / copy / screenshot scenes (tiers T0–T6) | file upload pipeline |
+| **Documents** | lab slips, check-up books, clinic notes, ECG / ultrasound / imaging reports, home logs, app exports — as text-layer PDF, XLSX, CSV, and 24 scan / photo / copy / screenshot scenes (tiers T0–T6); optionally handwritten notebook logs, doctor's notes and hand-filled forms (H1–H3) | file upload pipeline |
 | **Phone health store** | `devices/` batches of ≤500 records in Apple / Huawei / Xiaomi / Health Connect field names, ready to POST | `POST /api/data` |
 | **Vendor cloud** | `vendor_signals/` byte-level HealthKit JSON, Garmin Health API (dailies / sleeps / bodyComps / activities / pulseOx), Oura v2 (activity / sleep / heartrate / spo2 / stress), WHOOP v2 (cycle / workouts / recovery) | `kernel/decoders/{apple,garmin,oura,whoop}.py` — output shape pinned against the acceptance records in [`mirobody/kernel/decoders/samples/`](https://github.com/thetahealth/mirobody/tree/feat/1.5.4/mirobody/kernel/decoders/samples) |
 | **Genomics** | WeGene, 23andMe, AncestryDNA, MyHeritage and VCF exports; 41 PGx sites + catalog subset + off-catalog sites at ancestry-correct allele frequencies, 1.5% no-call | genetics handler |
@@ -88,7 +88,9 @@ pip install -e ".[dev]"       # + pytest, ruff
 ```
 
 Rendering uses the font bundled with PyMuPDF, so output is byte-identical across machines for the
-same seed. A badly-named third-party `fitz` package shadows PyMuPDF's import; if `import fitz`
+same seed. Handwritten pages (below) use the handwriting fonts bundled in `mirobody_gen/render/fonts/`
+and Pillow's FreeType; they are byte-identical across machines with the same Pillow build, and their
+truth is identical everywhere. A badly-named third-party `fitz` package shadows PyMuPDF's import; if `import fitz`
 resolves to anything but PyMuPDF, uninstall the impostor (`pip uninstall fitz`) — the real one is
 `pymupdf`.
 
@@ -119,13 +121,40 @@ medical templating is a resource-layer project of its own).
 Smoke builds: `--people 8`. `python -m mirobody_gen <command>` is equivalent to
 `mirobody-gen <command>`.
 
+## Handwriting
+
+```bash
+mirobody-gen build --seed 7 --out out/p3 --render --handwriting
+```
+
+`--handwriting` adds handwritten files to a rendered build, in Chinese and English, following each
+person's and each institution's language: a notebook page of home blood pressure (`128/82` in one cell,
+two readings), glucose (fasting and after meals) or morning weight, copied from the person's own device
+series or physiology; a doctor's note in a clinic booklet with the vitals inline (`T 36.8°C P 72次/分
+BP 130/85mmHg`, `Temp 36.8°C HR 72 RR 16 BP 124/80`); and the institution's printed form with its result
+column filled in by hand. Each file records its writing tier — **H1** neat (regular-script Chinese,
+print-like English), **H2** running hand, **H3** hard cursive, always a phone photo — and the hazards it
+carries: a value struck through with the correction beside it (`hand.correction`), a ditto mark under a
+date (`hand.ditto`), the unit written once in the header, vitals inline in prose. Pages go through the same
+scan and phone-photo scenes as printed files, and a capture is kept only if every written value still
+clears a legibility floor (digit height, ink contrast) measured on the delivered image; a page
+that no capture keeps legible is not delivered.
+
+The option is off by default: a build without it is byte-identical to the generator without this
+feature, so published corpora keep their hashes; with it, every printed file and record is unchanged and
+the handwritten records follow them in `files.jsonl`. The fonts are subsets of open-licensed Google Fonts
+handwriting families (Ma Shan Zheng, Zhi Mang Xing, Liu Jian Mao Cao, Long Cang; Caveat, Homemade Apple,
+Nanum Pen Script, Indie Flower), pinned by sha256, licences alongside: see
+[mirobody_gen/render/fonts/README.md](mirobody_gen/render/fonts/README.md). A font is more regular than a
+hand, even with per-glyph jitter: these pages approximate handwriting, they do not stand in for it.
+
 ## What a build produces
 
 | Path | Content | Truth |
 | --- | --- | --- |
 | `manifest.jsonl` | one record per visit: readings in mirobody's extraction field names, diagnoses, events since the previous visit, package, complaints, findings | root of all truth |
 | `people.jsonl` | one record per person: archetype, conditions, event timeline with magnitude / onset / half-life | attribution |
-| `files/` + `files.jsonl` | one record per file: `printed_rows[]` (MedRepBench five fields), `readings[]` (LOINC, UCUM, observation date), layout summary, `hazards[]` with row attribution, tier / scene / operator parameters, `distractors[]` | extraction + standardisation |
+| `files/` + `files.jsonl` | one record per file: `printed_rows[]` (MedRepBench five fields), `readings[]` (LOINC, UCUM, observation date), layout summary, `hazards[]` with row attribution, tier / scene / operator parameters, `distractors[]`; handwritten files add `handwriting` (tier, hand, corrections, ditto marks, transcript, legibility) | extraction + standardisation |
 | `pairs/` + `pairs.jsonl` | one clean base per visit, one variant per hazard class, aligned scan / photo / copy / screenshot views sharing the base truth | causal effect of one hazard |
 | `devices/` + `devices.jsonl` | phone health-store batches | LOINC per record |
 | `vendor_signals/` + `vendor_signals.jsonl` | vendor cloud payloads (see above) | expected catalogue metrics per record |
@@ -136,7 +165,7 @@ Field-by-field definitions: [docs/SCHEMA.md](docs/SCHEMA.md).
 
 ## Determinism and audits
 
-The corpus is a function of generator + seed (+ `--lang-mix`, + `--paraphrase`): two builds with
+The corpus is a function of generator + seed (+ `--lang-mix`, + `--paraphrase`, + `--handwriting`): two builds with
 the same parameters are byte-identical, so `out/` is disposable and the generator plus the seed
 **is** the artefact. Three audits gate a build (clinical, readability, privacy); fidelity reports
 against reference aggregates; the test suite runs clinical + readability on a small build, and CI

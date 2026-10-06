@@ -14,7 +14,8 @@ templates.json   │   journal.py    diary sentences             delivery.py tie
 fiction.json     │   genomics.py   raw genotype exports        render/     pdf, sheet, grid, degrade
 vocab.json       │   synthid.py    checksummed synthetic ids   pairs.py    minimal-contrast pairs          harness/ scoring
 delivery.json    │   manifest.py   manifest.jsonl, people.jsonl
-numbers*.json    │
+handwriting.json │                                             handwriting.py handwritten files (opt-in)
+numbers*.json    │                                             render/hand.py pen, paper, legibility
 llm_prompts.json ┘   llm/          optional: offline paraphrase enrichment (contract, cache, CLI)
 ```
 
@@ -49,6 +50,19 @@ and scene per file and renders it through `render/pdf.py` (HTML → PyMuPDF Stor
 with verify-and-retry), `render/sheet.py` or `render/degrade.py` (operator chains over the
 rasterised page). `pairs.py` renders minimal-contrast pairs and aligned views.
 
+**Handwriting** (opt-in, `build --handwriting`). `handwriting.py` decides which handwritten files a person
+has (a notebook page of home blood pressure, glucose or weight; a doctor's note for a clinic visit; the
+check-up institution's printed form with its results filled in by hand) and writes their truth: values come
+from the same device series, physiology model and visits as the printed files. `render/hand.py` is the pen:
+it writes strings glyph by glyph from a font subset (`render/fonts/`) with per-glyph wander in baseline, size,
+rotation, spacing, slant, an elastic warp, pressure and ink colour, logs every string with the box it landed
+in, draws ditto marks, strike-throughs, ruled columns and signature scribbles, and lays out ruled paper. A
+printed form is rendered by `render/pdf.py` with placeholders in its result cells, which are found, redacted
+and handwritten over. Capture reuses `render/degrade.py`; the page is also rendered without its values, both
+go through the same scene from the same seed, and the difference measures every value's digit height and
+ink contrast on the delivered image, replaying the scene's logged geometry to find it. A capture below the
+floor falls back to a milder one.
+
 **Gates** (`mirobody_gen/audit/`) do not import the generator. They re-derive identities from
 laboratory definitions, re-extract text from the produced files, and re-implement the PII predicates,
 so they cannot share the generator's blind spots. `harness/` scores predictions in the MedRepBench
@@ -78,6 +92,9 @@ pattern; see `docs/zh-CN/llm-integration-2026-09-29.md`.
   same `printed_rows`, `readings` and `blocks`; severe degradations go to the `stress` split.
 - **Readable or abstain.** A row that a hazard made unreadable leaves the recall denominator and joins
   the must-abstain set; a value extracted for it counts as a hallucination.
+- **Options do not disturb what they do not touch.** Handwriting draws only from streams of its own and
+  appends its records after the printed ones: with it off a build is byte-identical to one made without
+  the feature; with it on, every printed file and record is unchanged (`tests/test_handwriting.py`).
 
 ## Extending
 
@@ -94,3 +111,7 @@ pattern; see `docs/zh-CN/llm-integration-2026-09-29.md`.
   the result before using it.
 - A new degradation scene: `render/degrade.py` (`_scene(...)`) plus a weight in
   `scripts/build_profile.py::DELIVERY`; the scene name becomes vocabulary automatically.
+- New handwritten wording, a writing tier or a face: `scripts/build_handwriting.py`. A string with a
+  character outside the font subsets fails the coverage test until the subsets are rebuilt from the pinned
+  upstream files (`--fonts DIR --write`, see `render/fonts/README.md`). A scene a tier may use must move
+  pixels only by rotation and perspective and resize last, or legibility cannot follow it.

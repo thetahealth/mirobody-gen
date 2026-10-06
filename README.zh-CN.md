@@ -36,7 +36,7 @@
 
 | 通道 | 产物 | mirobody 入口 |
 | --- | --- | --- |
-| **文档** | 化验单、体检报告书、门诊病历、心电/超声/影像报告、家庭记录、App 导出表——以文本层 PDF、XLSX、CSV，以及 24 种扫描/拍照/复印/截屏场景（T0–T6 档）交付 | 文件上传管线 |
+| **文档** | 化验单、体检报告书、门诊病历、心电/超声/影像报告、家庭记录、App 导出表——以文本层 PDF、XLSX、CSV，以及 24 种扫描/拍照/复印/截屏场景（T0–T6 档）交付；可选手写的记录本、医生手写病历与手填表格（H1–H3 档） | 文件上传管线 |
 | **手机健康库** | `devices/` 批次，每批 ≤500 条，字段名照抄 Apple / 华为 / 小米 / Health Connect 的 crosswalk 表，可直接 POST | `POST /api/data` |
 | **厂商云** | `vendor_signals/`：字节级对标的 HealthKit JSON、Garmin Health API（dailies/sleeps/bodyComps/activities/pulseOx）、Oura v2（活动/睡眠/心率/血氧/压力）、WHOOP v2（周期/训练/恢复） | `kernel/decoders/{apple,garmin,oura,whoop}.py`——输出形状以 [`mirobody/kernel/decoders/samples/`](https://github.com/thetahealth/mirobody/tree/feat/1.5.4/mirobody/kernel/decoders/samples) 的验收记录为锚 |
 | **基因** | WeGene、23andMe、AncestryDNA、MyHeritage 与 VCF 导出；41 个 PGx 位点 + catalog 子集 + 表外位点，等位基因按祖源频率抽取，1.5% no-call | 遗传学处理器 |
@@ -69,7 +69,7 @@ pip install -e ".[render]"    # PDF、表格、图像档
 pip install -e ".[dev]"       # + pytest, ruff
 ```
 
-渲染使用 PyMuPDF 自带字体，同种子输出跨机器字节一致。第三方有个同名占位包 `fitz` 会抢占 PyMuPDF 的导入名：
+渲染使用 PyMuPDF 自带字体，同种子输出跨机器字节一致。手写页（见下）使用 `mirobody_gen/render/fonts/` 里随包的手写字体与 Pillow 的 FreeType：同一 Pillow 构建下跨机器字节一致，真值在任何机器上都一致。第三方有个同名占位包 `fitz` 会抢占 PyMuPDF 的导入名：
 如果 `import fitz` 解析到的不是 PyMuPDF，先 `pip uninstall fitz`——真包叫 `pymupdf`。
 
 ## 快速开始
@@ -96,13 +96,34 @@ mirobody-gen score     out/p3/pairs.jsonl out/p3/pred_rules_pairs.jsonl --pairs
 
 冒烟构建：`--people 8`。`python -m mirobody_gen <command>` 与 `mirobody-gen <command>` 等价。
 
+## 手写
+
+```bash
+mirobody-gen build --seed 7 --out out/p3 --render --handwriting
+```
+
+`--handwriting` 在渲染构建里加入手写文件，中英文都有，语言跟随这个人与这家机构已有的语言：一页记录本上的
+家庭血压（一格 `128/82`，两个读数）、血糖（空腹与餐后）或晨起体重，数值取自本人的设备序列或生理模型；
+门诊病历本上医生的手写记录，生命体征写在行文里（`T 36.8°C P 72次/分 BP 130/85mmHg`、
+`Temp 36.8°C HR 72 RR 16 BP 124/80`）；以及机构自己的打印表格、结果栏由手填写。每份文件记下书写档位——
+**H1** 工整（楷书、印刷体式英文）、**H2** 行书/连笔、**H3** 难认的草书，且一律是手机照片——以及它带的陷阱：
+划掉的数值旁边写了更正（`hand.correction`）、日期栏的同上符号（`hand.ditto`）、单位只在表头写一次、
+生命体征写在行文里。手写页走与印刷件相同的扫描与手机拍照场景；只有每个手写数值在交付图像上仍过得了
+可读性下限（数字高度、墨迹对比度）的那次拍摄才被保留；没有一种拍摄能保住可读性的页面不交付。
+
+这个选项默认关闭：不加它的构建与没有这项功能的生成器逐字节一致，已发布语料的哈希不变；加上它，
+每份印刷文件与记录都不变，手写记录排在 `files.jsonl` 的后面。字体是 Google Fonts 开放许可手写字体的子集
+（马善政、志莽行书、刘建毛草、龙藏；Caveat、Homemade Apple、Nanum Pen Script、Indie Flower），
+按 sha256 固定、许可文本随附，见 [mirobody_gen/render/fonts/README.md](mirobody_gen/render/fonts/README.md)。
+即使逐字抖动，字体也比人手规整：这些页面是手写的近似，不能替代真实手写。
+
 ## 一次构建产出什么
 
 | 路径 | 内容 | 真值 |
 | --- | --- | --- |
 | `manifest.jsonl` | 每次就诊一条：按 mirobody 提取字段名的读数、诊断、自上次就诊以来的事件、套餐、主诉、发现 | 一切真值的根 |
 | `people.jsonl` | 每人一条：原型、疾病、带幅度/起效/半衰期的事件时间线 | 归因答案 |
-| `files/` + `files.jsonl` | 每份文件一条：`printed_rows[]`（MedRepBench 五字段）、`readings[]`（LOINC、UCUM、观测日期）、版式摘要、带行归因的 `hazards[]`、档位/场景/算子参数、`distractors[]` | 提取 + 标准化 |
+| `files/` + `files.jsonl` | 每份文件一条：`printed_rows[]`（MedRepBench 五字段）、`readings[]`（LOINC、UCUM、观测日期）、版式摘要、带行归因的 `hazards[]`、档位/场景/算子参数、`distractors[]`；手写文件另有 `handwriting`（档位、笔迹、更正、同上符号、转写、可读性） | 提取 + 标准化 |
 | `pairs/` + `pairs.jsonl` | 每次就诊一份干净基线 + 每类陷阱一个变体，共享基线真值的扫描/拍照/复印/截屏对齐视图 | 单个陷阱的因果效应 |
 | `devices/` + `devices.jsonl` | 手机健康库批次 | 每条记录的 LOINC |
 | `vendor_signals/` + `vendor_signals.jsonl` | 厂商云推送（见上） | 每条记录预期落到的 catalog 指标 |
@@ -113,7 +134,7 @@ mirobody-gen score     out/p3/pairs.jsonl out/p3/pred_rules_pairs.jsonl --pairs
 
 ## 确定性与审计
 
-语料是 生成器 + 种子（+ `--lang-mix`、+ `--paraphrase`）的函数：同参数两次构建字节一致，`out/` 可丢弃，
+语料是 生成器 + 种子（+ `--lang-mix`、+ `--paraphrase`、+ `--handwriting`）的函数：同参数两次构建字节一致，`out/` 可丢弃，
 生成器加种子**就是**交付物。三道审计门（临床、可读性、隐私）卡每次构建，保真度对参考集聚合值出报告；测试套件
 在小构建上跑临床+可读性审计，CI 以 `--skip-replay` 跑隐私门（回放索引需要参考集，按
 [docs/PRIVACY.md](docs/PRIVACY.md) 在发布机器上跑）。

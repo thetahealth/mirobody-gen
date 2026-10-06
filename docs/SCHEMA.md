@@ -14,6 +14,8 @@ extraction contract (`original_indicator`, `value`, `unit`, `reference_range`, `
 | `package` | `entry` (pre-employment) · `senior` (older-adult public-health examination) · `basic` · `standard` · `premium` · `null` |
 | `kind` (document) | `lab_slip` · `checkup_book` · `outpatient_record` · `ecg_report` · `ultrasound_report` · `imaging_report` · `home_log` · `export` |
 | `tier` | `T0` text-layer PDF · `T1` XLSX/CSV · `T2` scan · `T3` phone photo · `T4` degraded copy · `T6` screen |
+| `handwriting.tier` | `H1` neat (regular-script Chinese, print-like English) · `H2` running hand · `H3` hard cursive, always a `T3` phone photo |
+| `handwriting.scope` | `page` (everything on the page was written by hand) · `values` (a printed form whose results were filled in by hand) |
 | `severity` | `mild` · `moderate` · `severe` · `null` |
 | `split` | `main` · `stress` (hazard count above the reference p95, or `severe`) |
 | `status` | `normal` · `high` · `low` (`""` on a `previous` reading and on home-log rows) |
@@ -22,6 +24,7 @@ extraction contract (`original_indicator`, `value`, `unit`, `reference_range`, `
 | `role` (reading) | `current` · `previous` (an "last result" column) · `export` (a row of a multi-date table) |
 | `is_abnormal` | `"1"` · `"0"` · `""` (not determinable: numeric, no range and no flag printed) |
 | hazard `source` | `layout` · `content` · `incident` |
+| hazard `name` | the distilled taxonomy in `resources/hazards.json`, plus the handwriting classes in `resources/handwriting.json` (`hand.written`, `hand.correction`, `hand.ditto`) |
 | `expect` (coding) | `coded` · `no-match` · `refused` · `needs-input` — what mirobody's ICPC-3 resolver should return for the surface |
 | `call_status` | `called` · `no_call` · `unresolved` (site not in the catalogue) |
 
@@ -51,8 +54,8 @@ the computable answer to attribution questions.
 | Field | Meaning |
 | --- | --- |
 | `file`, `doc_id`, `person_id`, `kind`, `encounter_dates[]`, `exam_type`, `package` | identity |
-| `family`, `institution`, `issuer_kind`, `language` | layout family and fictional issuer; `language` ∈ `zh-Hans` · `zh-Hant` · `en` |
-| `format`, `source_format` | file extension as delivered (`pdf`, `xlsx`, `csv`, `jpg`, `png`) and the family's native format |
+| `family`, `institution`, `issuer_kind`, `language` | layout family and fictional issuer; `language` ∈ `zh-Hans` · `zh-Hant` · `en`. A handwritten notebook page has family `hand:<person_id>`, no institution and `issuer_kind` `home` |
+| `format`, `source_format` | file extension as delivered (`pdf`, `xlsx`, `csv`, `jpg`, `png`) and the family's native format (`handwriting` for a page written by hand) |
 | `tier`, `scene`, `severity`, `ops[]`, `annotations[]`, `dpi`, `image_size` | delivery: scene name, sampled operator parameters in order, values circled by pen, rasterisation dpi |
 | `page_count`, `layout` | pages; `layout` = `columns[]` (roles: `name`, `abbr`, `result`, `result_in`/`result_out` for the two-column US dialect, `reference`, `unit`, `flag`, `previous`, `category`, `note`, `method`, `lab`, `seq`), `reference_templates[]`, `flag_markers[]`, `page_count`, `languages[]` (the fingerprint input) |
 | `jitter[]`, `dates[]`, `subject{}`, `cover{}` | family drift applied to this file; printed dates (`label`, `role` ∈ `collected`·`received`·`tested`·`verified`·`reported`·`printed`, `printed`, `iso`); subject fields; cover fields of a book |
@@ -67,6 +70,26 @@ the computable answer to attribution questions.
 
 `pairs.jsonl` has the same fields plus `pair` (`pair_id`, `variant`); `variant` is `base`, a hazard
 class name, or `view:<scene>` for an aligned view.
+
+### `handwriting` (handwritten files only, `build --handwriting`)
+
+| Field | Meaning |
+| --- | --- |
+| `tier`, `scope`, `paper` | writing tier, `page` or `values`, and the stock: `ruled_notebook` · `clinic_booklet` · `printed_form` |
+| `hand` | `face` (font id, see `mirobody_gen/render/fonts/fonts.json`), `latin_face` (a Chinese hand's face for Latin characters its own face lacks), `ink` (`blue` · `blue_black` · `black`), `slant_deg`, `digit_px` (digit height on the page) |
+| `corrections[]` | `row` (index into `printed_rows`), `struck` (the value written and crossed out), `written` (the correction beside it, which is the truth) |
+| `dittos[]` | `row`, `column` (`date`), `stands_for` (the ISO date the ditto mark repeats; the row's readings carry it as `observed`) |
+| `value_boxes[]` | `row`, `text`, `box` (x0, y0, x1, y1 on the page before capture, pixels at 200 dpi) — where each truth value was written |
+| `page_size` | page width and height before capture, pixels |
+| `legibility` | measured on the delivered image over every written value: `min_digit_px` (digit height, delivered pixels), `min_contrast` and `median_contrast` (luminance the ink removes, 0–255), and `rejected` (capture scenes tried first and refused for falling below the floor). A page that no capture keeps above the floor is not delivered |
+| `transcript[]` | the page as a careful reader would type it, line by line: printed furniture, handwriting, ditto marks as `〃`; struck values are left out (they are in `corrections`) |
+
+A handwritten file's `printed_rows` follow the conventions above with one reading of "printed": what the
+hand wrote. `item_name` is the label as written (a log's column heading with the unit if the unit was
+written there), `item_unit` is the unit that applies to the row wherever it was written (header, after the
+value, or nowhere: `""`), `item_range` and `is_abnormal` are empty unless a printed form prints a range.
+Home-log readings have `role` `export` and `status` `""` like the printed home logs; a note's or a form's
+readings are the visit's own (`current`).
 
 ## `devices.jsonl` and `devices/<person>/<vendor>_batchNN.json`
 

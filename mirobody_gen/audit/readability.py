@@ -20,6 +20,10 @@
 把图像认一遍，按场景报告"印刷真值的值有多大比例被认出来"——**只报告不判定**：
 OCR 认不出不等于人读不出，PureDocBench 也是同一份真值贯穿三个视图。
 
+Handwritten pages (`--handwriting`) are checked against the transcript their record carries
+(`handwriting.transcript`): every truth row must be in what the hand wrote. Whether the transcript is
+what the ink says is the generator's own test (`tests/test_handwriting.py`), not this audit's.
+
 表格之外还有键值对、叙述与总检（`blocks`）、主诉与诊断（门诊病历）：它们的每一段印出来的文字
 也必须在纸上找得到，与印刷行同一口径。
 """
@@ -169,6 +173,11 @@ def audit(manifest: pathlib.Path, ocr: bool = False) -> int:
             print(f"缺 synthetic 标记  {rec['file']}")
             problems += 1
         text = file_text(base / rec["file"])
+        if text is None and rec.get("handwriting"):
+            # A handwritten page cannot be re-read without a handwriting recogniser. What can be checked
+            # here is that the record is consistent with its own transcript (every truth row was written);
+            # the generator's tests check the transcript against the ink on the page.
+            text = "\n".join(rec["handwriting"].get("transcript") or [])
         if text is None:
             skipped += 1
             if ocr and rec.get("scene"):

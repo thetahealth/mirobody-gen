@@ -216,17 +216,24 @@ def record(doc: Doc, path: pathlib.Path, out_root: pathlib.Path, pages: int | No
 
 
 def render_corpus(seed: int, people: list[Person], encounters: dict[str, list[Encounter]],
-                  out_dir: pathlib.Path, banner: bool = True) -> list[dict]:
+                  out_dir: pathlib.Path, banner: bool = True, handwriting: bool = False) -> list[dict]:
+    """Render every file and write files.jsonl.
+
+    `handwriting` adds the handwritten files (`handwriting.py`). They draw only from streams of their own and
+    their records are written after all printed ones, so the printed files and the first lines of
+    files.jsonl are byte-identical with the option on or off."""
     registry = layout.build_registry(seed)
     process = Institutions(registry, seed)
     files_root = out_dir / "files"
     records: list[dict] = []
+    hand_records: list[dict] = []
     for person in people:
         rng = random.Random(f"docs:{seed}:{person.person_id}")
         group, home = home_institutions(seed, person, process)
         habit = upload_habit(seed, person)
         previous: dict[str, tuple[str, str]] = {}
         facilities, filenames = [], []
+        visits: list[tuple[int, Encounter, layout.Family]] = []
         for idx, enc in enumerate(encounters[person.person_id], start=1):
             kind = KIND_OF_LOCATION.get(enc.exam_location, "hospital")
             visit_group = group if rng.random() >= 0.08 else ("zh" if group == "en" else "en")
@@ -240,6 +247,7 @@ def render_corpus(seed: int, people: list[Person], encounters: dict[str, list[En
             family, rev = layout.revised(registry.family(index), enc.exam_date.year)
             family, jit = layout.jitter(rng, family)
             jit = rev + jit
+            visits.append((idx, enc, family))
             first_file = ""
             for doc in documents_for(rng, person, enc, idx, family, previous, banner):
                 doc.jitter = jit
@@ -290,6 +298,14 @@ def render_corpus(seed: int, people: list[Person], encounters: dict[str, list[En
             path, pages, delivery = render_doc(doc, files_root, f"{person.person_id}/{doc_id}")
             records.append(record(doc, path, out_dir, pages,
                                   [e for e in encs if e.exam_type == "routine"], delivery=delivery))
+        if handwriting:
+            from . import handwriting as hand_docs
+
+            base = registry.family(home["checkup_center"])
+            for doc, path, delivery, enc, extra in hand_docs.render_person(seed, person, group, base, visits,
+                                                                           files_root, banner):
+                hand_records.append(record(doc, path, out_dir, 1, [enc], extra=extra, delivery=delivery))
+    records += hand_records
     with (out_dir / "files.jsonl").open("w", encoding="utf-8") as fh:
         for r in records:
             fh.write(json.dumps(r, ensure_ascii=False) + "\n")

@@ -1,160 +1,163 @@
 # mirobody-gen
 
-A regenerable corpus of longitudinal synthetic health records, rendered as the documents people
-actually upload: lab slips, multi-page check-up books, clinic notes, ECG and ultrasound reports, home
-blood-pressure logs — as text-layer PDFs, spreadsheets, scans, phone photos, photocopies and app
-screenshots — plus the same people's wearable batches, symptom diaries and consumer-genomics exports.
-Every file ships with row-level ground truth, and the sixty virtual people behind the files carry
-multi-year event timelines, so the same corpus supports both per-document extraction scoring and
-long-horizon agent evaluation.
+**The adversarial input source for [mirobody](https://github.com/thetahealth/mirobody): regenerable synthetic people whose files, wearable pushes, journal entries and genotype exports carry row-level ground truth.**
 
-[中文说明](README.zh-CN.md) · [Architecture](docs/ARCHITECTURE.md) · [Privacy model](docs/PRIVACY.md) ·
-[Output schema](docs/SCHEMA.md) · [Changelog](CHANGELOG.md)
+[中文说明](README.zh-CN.md) · [Architecture](docs/ARCHITECTURE.md) · [Privacy model](docs/PRIVACY.md) · [Output schema](docs/SCHEMA.md) · [Changelog](CHANGELOG.md) · [Companion article (working draft, 中文)](docs/zh-CN/paper.md)
 
-## What it is for
+[![License: Apache-2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
+[![Python 3.11+](https://img.shields.io/badge/python-3.11%2B-3775A9)](pyproject.toml)
 
-Health-data engines such as [mirobody](https://github.com/thetahealth/mirobody) have to read a lab report
-off a creased phone photo, decide that `血紅素` is haemoglobin and not HbA1c, notice that a printed
-`120/80` is two readings, and merge seven mornings of weight from one spreadsheet into seven days.
-Testing that pipeline needs a corpus with three properties that real patient files cannot give you:
+---
 
-- **ground truth for every printed cell** (name, value, unit, reference range, flag) and for every
-  semantic reading behind it (indicator key, LOINC, UCUM unit, observation date), so extraction and
-  standardisation can be scored rather than eyeballed;
-- **named difficulty**: each file records which layout and content hazards it carries (units glued to
-  values, sex-split ranges in one cell, bilingual headers, a page break that loses the table header, …)
-  and which capture path it went through (flatbed scan, WeChat-forwarded photo, fax), so a drop in
-  recall can be attributed;
-- **no privacy exposure**: nothing in the corpus is derived from a real person.
+A person hands over a creased phone photo of a lab slip, an XLSX their employer's check-up chain
+exports, a Garmin account, a WeGene file and a paper notebook of morning blood pressures. Mirobody
+is built to turn exactly that into one coded record. Testing it needs inputs with three properties
+no real patient file can give you at scale:
+
+- **ground truth behind every printed cell** — what the page says (name, value, unit, reference
+  range, flag, MedRepBench's five fields) *and* what it means (indicator key, LOINC code, UCUM
+  unit, observation date), so extraction and standardisation are scored, not eyeballed;
+- **named difficulty** — every file declares which hazard classes it carries, from a taxonomy of
+  62 classes distilled from a real-corpus study (61 generatable in the text layer; `unit.glued_to_value`
+  appears on 22% of real documents, `unit.in_header_or_reference_only` on 9%); minimal pairs isolate
+  each hazard's causal cost;
+- **no privacy exposure** — nothing in the corpus is derived from a real person. Values are
+  computed from mechanistic physiology and public standards, never sampled from a distribution
+  fitted to patient data.
+
+This repository is mirobody's **official source of such inputs**, and an organic part of the
+project family: the people it generates present to **every** ingestion path mirobody has —
+documents to the file pipeline, HealthKit/Garmin/Oura/WHOOP payloads to the provider decoders,
+phone health-store batches to `/api/data`, and genotype exports to the genetics handler — so one
+synthetic person exercises the whole engine end to end. Benchmark-facing uses compose it with
+[ESL-Bench](https://arxiv.org/abs/2604.02834), whose records arrive already structured: the
+difference between the two arrival modes on the same person is what the working article calls the
+*document-boundary cost*.
+
+## The four delivery channels
+
+| Channel | artefact | mirobody entry point |
+| --- | --- | --- |
+| **Documents** | lab slips, check-up books, clinic notes, ECG / ultrasound / imaging reports, home logs, app exports — as text-layer PDF, XLSX, CSV, and 24 scan / photo / copy / screenshot scenes (tiers T0–T6) | file upload pipeline |
+| **Phone health store** | `devices/` batches of ≤500 records in Apple / Huawei / Xiaomi / Health Connect field names, ready to POST | `POST /api/data` |
+| **Vendor cloud** | `vendor_signals/` byte-level HealthKit JSON, Garmin Health API (dailies / sleeps / bodyComps / activities / pulseOx), Oura v2 (activity / sleep / heartrate / spo2 / stress), WHOOP v2 (cycle / workouts / recovery) | `kernel/decoders/{apple,garmin,oura,whoop}.py` — output shape pinned against the acceptance records in [`mirobody/kernel/decoders/samples/`](https://github.com/thetahealth/mirobody/tree/feat/1.5.4/mirobody/kernel/decoders/samples) |
+| **Genomics** | WeGene, 23andMe, AncestryDNA, MyHeritage and VCF exports; 41 PGx sites + catalog subset + off-catalog sites at ancestry-correct allele frequencies, 1.5% no-call | genetics handler |
+
+A person exists **longitudinally across all four channels**: the haemoglobin on the 2024 check-up
+book, the resting heart rate in that week's Garmin dailies and the CYP2C19 diplotype in the
+consumer-genomics file belong to one person with one event timeline. That identity is what makes
+"*did you merge this person's lab slip with this person's wearable stream?*" a checkable question.
 
 ## How the values are made
 
-The generator is knowledge-driven, not fitted to data:
+Knowledge-driven, not fitted to data:
 
-- reference intervals come from published standards (China's WS/T 404 and WS/T 405 series,
-  clinical guidelines, the national laboratory procedures manual);
-- within- and between-subject biological variation comes from the public Westgard / EFLM database;
-- each of the 60 virtual people has a disease archetype, an event timeline (a statin started, an
-  upper-respiratory infection, a month of overtime) with onset delays and magnitudes, and values that
-  follow from a mechanistic model; derived quantities (BMI, LDL, MCH/MCHC, eGFR, globulin, differential
-  absolute counts) are computed by their defining identities, never sampled;
-- document *shape* — column sets, reference-range dialects, unit spellings, flag markers, hazard
-  classes, page furniture — was distilled from a private reference set of de-identified documents that
-  is not distributed. Only aggregate statistics and format tokens entered the repository, each tagged
-  with its `source`. See [docs/PRIVACY.md](docs/PRIVACY.md) for the threat model and the gates that
-  enforce it.
+- reference intervals from China's **WS/T 404 (biochemistry)** and **WS/T 405 (haematology)**
+  series, clinical guidelines, and the national laboratory procedures manual;
+- within- and between-subject biological variation from the public EFLM / Westgard database;
+- 60 people across 8 archetypes (healthy, prediabetes→T2DM, dyslipidaemia on statin,
+  iron-deficiency anaemia, thyroid disorder, CKD progression, fatty liver, hypertension), each
+  with an event timeline (a statin started, an infection, a month of overtime) whose effects
+  carry onset delays, magnitudes and half-lives; derived quantities (BMI, LDL, MCH/MCHC, eGFR,
+  differential absolutes) computed by their defining identities — the public CV<sub>G</sub> values
+  4.85%/2.8%/5.2% for MCV/MCHC/MCH are mutually consistent only under MCH = MCHC × MCV, so we
+  enforce it;
+- document *shape* (column sets, reference-range dialects, unit spellings, flag markers, page
+  furniture) distilled from a private de-identified reference set that is not distributed; only
+  format tokens and aggregate statistics entered the repo, each tagged with its `_source`, under
+  an allow-list `.gitignore`, a pre-commit privacy hook, and an n-gram replay gate run on release
+  candidates. Threat model: [docs/PRIVACY.md](docs/PRIVACY.md).
 
 ## Install
 
+Python 3.11+, in a virtualenv (PyMuPDF and Pillow are only needed for rendering):
+
 ```bash
-pip install -e ".[render]"          # numpy + PyMuPDF, openpyxl, Pillow
-pip install -e ".[dev]"             # + pytest, ruff
+python -m venv .venv && source .venv/bin/activate
+pip install -e ".[render]"    # PDFs, spreadsheets, image tiers
+pip install -e ".[dev]"       # + pytest, ruff
 ```
 
-Python 3.11+. Rendering uses the font bundled with PyMuPDF, so output is byte-identical across
-machines for the same seed. Image tiers use Pillow and numpy only; OCR-based checks use a local
-`tesseract` binary if present and are report-only.
+Rendering uses the font bundled with PyMuPDF, so output is byte-identical across machines for the
+same seed. A badly-named third-party `fitz` package shadows PyMuPDF's import; if `import fitz`
+resolves to anything but PyMuPDF, uninstall the impostor (`pip uninstall fitz`) — the real one is
+`pymupdf`.
 
 ## Quickstart
 
 ```bash
-# 60 people, ~700 files, 12 minimal-contrast pairs. About 10 minutes with image tiers.
+# 60 people, ~720 files, 12 minimal pairs (~38 s without image tiers; slower with them)
 mirobody-gen build --seed 7 --out out/p3 --render --pairs 12
 
-# The four audits are the acceptance criteria, not optional post-processing.
-mirobody-gen audit-clinical    out/p3/manifest.jsonl                 # identities, bounds, flags, RCV, diagnoses
-mirobody-gen audit-readability out/p3/files.jsonl out/p3/pairs.jsonl   # every printed truth is on the page
-mirobody-gen audit-readability out/p3/files.jsonl --ocr              # image tiers: OCR recovery per scene (report)
-mirobody-gen audit-privacy     --targets mirobody_gen/resources out/p3 # PII predicates, allow-lists, replay index
-mirobody-gen audit-fidelity    out/p3/files.jsonl                     # shape statistics vs. the reference aggregates
+# Audits are acceptance gates, not optional post-processing
+mirobody-gen audit-clinical     out/p3/manifest.jsonl                  # identities, bounds, flags, RCV, diagnoses
+mirobody-gen audit-readability  out/p3/files.jsonl out/p3/pairs.jsonl  # every printed truth is on the page
+mirobody-gen audit-privacy      --targets mirobody_gen/resources out/p3 # PII predicates, allow-lists, replay
+mirobody-gen audit-fidelity     out/p3/files.jsonl                     # shape vs the reference aggregates
 
-# Scoring an extractor (predictions in the MedRepBench format)
+# Score an extractor against the two truth layers (predictions in MedRepBench format)
 mirobody-gen baselines rules out/p3/files.jsonl --out out/p3/pred_rules.jsonl
-mirobody-gen score out/p3/files.jsonl out/p3/pred_rules.jsonl
-mirobody-gen score out/p3/pairs.jsonl out/p3/pred_rules_pairs.jsonl --pairs
+mirobody-gen score     out/p3/files.jsonl out/p3/pred_rules.jsonl
+mirobody-gen score     out/p3/pairs.jsonl out/p3/pred_rules_pairs.jsonl --pairs
 ```
 
-`python -m mirobody_gen <command>` is equivalent to `mirobody-gen <command>`; every command also runs
-as its module (`python -m mirobody_gen.audit.clinical …`). A smaller build for smoke tests:
-`--people 8`.
+Cohort language composition is a build parameter, not a resource change:
+`--lang-mix 'zh:0.45,en:0.4,ja:0.15'` reweights who writes in which language channel (device
+timezones, brand shares and, for genomics, ancestry-appropriate allele frequencies follow the
+group; narrative wording falls back to the English dictionary for non-zh groups — Japanese
+medical templating is a resource-layer project of its own).
+
+Smoke builds: `--people 8`. `python -m mirobody_gen <command>` is equivalent to
+`mirobody-gen <command>`.
 
 ## What a build produces
 
 | Path | Content | Truth |
 | --- | --- | --- |
-| `manifest.jsonl` | one record per visit: readings with the mirobody extraction field names, diagnoses, events since the previous visit, package, complaints, named findings | the truth root |
-| `people.jsonl` | one record per person: archetype, conditions, event timeline with magnitude / onset / half-life | attribution answers |
-| `files/` + `files.jsonl` | one record per file: printed rows (MedRepBench fields), semantic readings, layout summary, hazards with row attribution, delivery tier / scene / operator parameters, blocks (department key-values, narratives, summary), findings, complaints, diagnoses | extraction + standardisation |
-| `pairs/` + `pairs.jsonl` | minimal-contrast pairs: one clean base per visit, one variant per hazard class, and aligned scan / photo / copy / screenshot views sharing the base truth | causal effect of one hazard |
-| `devices/` + `devices.jsonl` | phone health-store batches (Apple / Huawei / Xiaomi / Health Connect field names, ≤500 records each, ready to POST) | LOINC per record |
-| `journal.jsonl` | one-sentence diary entries in the person's words | the entries a sentence should split into, with ICPC-3 codes |
-| `genomics/` + `genomics.jsonl` | consumer-genomics exports (WeGene, 23andMe, AncestryDNA, MyHeritage, VCF) | per-site genotype, call status, catalogue membership |
+| `manifest.jsonl` | one record per visit: readings in mirobody's extraction field names, diagnoses, events since the previous visit, package, complaints, findings | root of all truth |
+| `people.jsonl` | one record per person: archetype, conditions, event timeline with magnitude / onset / half-life | attribution |
+| `files/` + `files.jsonl` | one record per file: `printed_rows[]` (MedRepBench five fields), `readings[]` (LOINC, UCUM, observation date), layout summary, `hazards[]` with row attribution, tier / scene / operator parameters, `distractors[]` | extraction + standardisation |
+| `pairs/` + `pairs.jsonl` | one clean base per visit, one variant per hazard class, aligned scan / photo / copy / screenshot views sharing the base truth | causal effect of one hazard |
+| `devices/` + `devices.jsonl` | phone health-store batches | LOINC per record |
+| `vendor_signals/` + `vendor_signals.jsonl` | vendor cloud payloads (see above) | expected catalogue metrics per record |
+| `journal.jsonl` | one-sentence diaries in the person's words | entries a sentence should split into, with ICPC-3 codes |
+| `genomics/` + `genomics.jsonl` | consumer-genomics exports | per-site genotype, call status, catalogue membership |
 
 Field-by-field definitions: [docs/SCHEMA.md](docs/SCHEMA.md).
 
-## Document kinds and delivery tiers
-
-Kinds: lab slip, check-up book (cover, summary and advice, general examination, department key-value
-sections, ECG strip, ultrasound / radiography narratives, laboratory tables), outpatient record (chief
-complaint, history, examination line, diagnosis, plan), ECG report, ultrasound report, imaging report,
-home BP / weight log, app export table.
-
-Tiers: T0 text-layer PDF · T1 XLSX / CSV · T2 scans and app-enhanced captures · T3 phone photos ·
-T4 photocopies, faxes, aged archives, re-forwarded compressions · T6 screenshots and screen photos.
-The 24 scenes are operator chains modelled on PureDocBench's degradation profiles and real-capture
-pipelines; all views of a document share one truth. Details and calibration numbers:
-[docs/zh-CN/degradation.md](docs/zh-CN/degradation.md).
-
 ## Determinism and audits
 
-The corpus is a function of the generator and a seed: two builds with the same seed are byte-identical
-(files, images, spreadsheets, metadata), so `out/` is disposable and the generator plus the seed is the
-artefact. Three audits gate a build and one reports (the test suite runs the clinical and readability audits on a small build; CI adds the privacy gate):
-
-- **clinical** — algebraic identities within a panel, physiological hard limits, sex-specific items,
-  flag/range agreement, reference-change-value screening across visits, diagnosis/value coherence;
-- **readability** — every printed truth string is present on the page (text tiers), with page furniture
-  stripped; image tiers are reported through OCR;
-- **privacy** — PII predicates, name and institution allow-lists, spec provenance, and an n-gram replay
-  index over the reference set on machines that hold it;
-- **fidelity** — layout fingerprint diversity, hazard density, row-count and dialect distributions
-  against the reference aggregates (report only).
+The corpus is a function of generator + seed (+ `--lang-mix`, + `--paraphrase`): two builds with
+the same parameters are byte-identical, so `out/` is disposable and the generator plus the seed
+**is** the artefact. Three audits gate a build (clinical, readability, privacy); fidelity reports
+against reference aggregates; the test suite runs clinical + readability on a small build, and CI
+runs the privacy gate with `--skip-replay` (the replay index needs the reference set and runs on
+release machines, per [docs/PRIVACY.md](docs/PRIVACY.md)).
 
 ## Language models
 
-No model runs in the data path: values, findings, complaints, layouts and images come from resources,
-code and a seed. An optional offline layer (`mirobody-gen paraphrase`) can ask a model for rewordings
-of the narrative templates; only candidates that keep every slot, number and locked term, stay in the
-same language and carry no name or identifier are kept, and the result is a resource that the privacy
-gate scans as untrusted text. It is off by default: `mirobody-gen build --paraphrase` switches it on and `mirobody-gen compare`
-shows what changed. Design, contracts and the planned robustness experiment:
-[docs/zh-CN/llm-integration-2026-09-29.md](docs/zh-CN/llm-integration-2026-09-29.md).
+No model runs in the data path: values, findings, layouts and images come from resources, code
+and a seed. An optional layer (`mirobody-gen build --paraphrase`) asks a model for **rewordings
+of narrative templates only**; candidates must keep every slot, number and locked term, stay in
+the same language and carry no identifier, and the accepted paraphrases become a *resource* the
+privacy gate scans as untrusted text. It is off by default; `mirobody-gen compare` shows what it
+changed. Design and contract: [docs/zh-CN/llm-integration-2026-09-29.md](docs/zh-CN/llm-integration-2026-09-29.md).
 
-## Companion article
+## Status and the mirobody relationship
 
-A standalone article on the approach — why benchmarks that start from parsed data miss the hardest
-step, how the corpus is built, and how it composes with
-[ESL-Bench](https://arxiv.org/abs/2604.02834) (a longitudinal-agent benchmark whose records arrive
-structured) to measure what is lost at the document boundary — is being prepared as a working draft
-in [docs/zh-CN/paper.md](docs/zh-CN/paper.md). The benchmark tentatively named **ESL-Doc** there is this
-repository with a fixed seed; the name is provisional and the generator keeps this repository's name
-regardless of what the benchmark ends up called.
-
-## Status
-
-- Integration with mirobody's test suites is designed as an environment variable pointing at a build
-  directory. It is not yet wired: mirobody's `feat/1.5.4` branch does not yet read a mirobody-gen
-  build, so the corpus is consumed here through the `score`/`baselines` CLIs until that lands. See
-  the roadmap in [docs/zh-CN/plan.md](docs/zh-CN/plan.md) §6.
+- This repository ships the generator, its audits and the scoring harness. mirobody ingests the
+  builds through an environment variable pointing at a build directory; **`feat/1.5.4` does not
+  yet read one**, so today the corpus is consumed through the `score` / `baselines` CLIs here and
+  by feeding `vendor_signals/` payloads to mirobody's decoder test-suite shapes by hand.
 - The catalogue covers 172 indicators (153 quantitative, 17 qualitative, 2 categorical), 52 order
-  groups, 5 package tiers, 7 departments, 17 auxiliary examinations and 55 named findings. Every
-  reference interval cites a public standard, guideline or expert consensus; see
-  [docs/zh-CN/research-2026-09-29.md §8](docs/zh-CN/research-2026-09-29.md) for the sources behind
-  the enlarged schema.
-  Extending it is a spec change (`scripts/build_*.py`), not a code change.
+  groups, 5 package tiers, 7 departments, 17 auxiliary examinations and 55 named findings; every
+  reference interval cites a public standard or guideline.
+- The working article (中文工作稿, [docs/zh-CN/paper.md](docs/zh-CN/paper.md)) records the
+  benchmark positioning — provisionally **ESL-Doc**, composed with ESL-Bench — with a verified
+  47-entry bibliography at [docs/paper/refs.bib](docs/paper/refs.bib). The generator keeps this
+  repository's name whatever the benchmark ends up called.
 
 ## Contributing, security, citation
 
-See [CONTRIBUTING.md](CONTRIBUTING.md), [SECURITY.md](SECURITY.md) (including what to do if you
-believe a file in this repository or a build is not synthetic) and [CITATION.cff](CITATION.cff).
-Licensed under the Apache License 2.0.
+See [CONTRIBUTING.md](CONTRIBUTING.md), [SECURITY.md](SECURITY.md) — including what to do if you
+believe a file in this repository is not synthetic — and [CITATION.cff](CITATION.cff). Apache 2.0.

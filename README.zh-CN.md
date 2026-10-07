@@ -149,9 +149,12 @@ mirobody-gen build --seed 7 --out out/p3 --render --handwriting
 
 ## 现状与 mirobody 的关系
 
-- 本仓库交付生成器、审计与评分 harness。mirobody 通过一个指向构建目录的环境变量接入构建；**`feat/1.5.4`
-  尚未接入**，目前语料通过这里的 `score` / `baselines` CLI 消费，以及把 `vendor_signals/` 的推送手工喂给
-  mirobody 解码器测试套件的形状。
+- 本仓库交付生成器、审计与评分 harness。mirobody 1.5.4 的两套评测用它生成语料，并通过产品自己的接口做端到端打分：
+  [`benchmarks/local_models`](https://github.com/thetahealth/mirobody/tree/main/benchmarks/local_models)
+  （选哪个回答模型：种子 7、6 个人，问答、文档抽取和日记句子）和
+  [`benchmarks/local_ocr`](https://github.com/thetahealth/mirobody/tree/main/benchmarks/local_ocr)
+  （选哪个文档 OCR 模型：种子 7 的印刷页，以及种子 42 的 `--handwriting` 构建）。除此之外 mirobody 不直接读取构建目录，
+  `vendor_signals/` 的推送仍是手工喂给它的解码器测试套件。
 - 目录覆盖 172 个指标（153 定量、17 定性、2 分类）、52 个医嘱组、5 档套餐、7 个科室、17 项辅助检查与
   55 个具名发现；每条参考区间都注明了公开标准或指南出处。
 - 基准定位——暂定名 **ESL-Doc**，与 ESL-Bench 组合——在中文工作稿（`docs/zh-CN/paper.md`，不进公开树）中展开，

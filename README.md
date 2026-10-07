@@ -184,10 +184,14 @@ the public tree — ask if you need it).
 
 ## Status and the mirobody relationship
 
-- This repository ships the generator, its audits and the scoring harness. mirobody ingests the
-  builds through an environment variable pointing at a build directory; **`feat/1.5.4` does not
-  yet read one**, so today the corpus is consumed through the `score` / `baselines` CLIs here and
-  by feeding `vendor_signals/` payloads to mirobody's decoder test-suite shapes by hand.
+- This repository ships the generator, its audits and the scoring harness. mirobody 1.5.4's two
+  evaluations build their corpora with it and score the product end to end through its own API:
+  [`benchmarks/local_models`](https://github.com/thetahealth/mirobody/tree/main/benchmarks/local_models)
+  (which answering model, seed 7, 6 people: questions, document extraction and journal sentences)
+  and [`benchmarks/local_ocr`](https://github.com/thetahealth/mirobody/tree/main/benchmarks/local_ocr)
+  (which document-OCR model, printed pages at seed 7 and a `--handwriting` build at seed 42). The
+  corpus is not otherwise loaded by mirobody: there is no import of a build directory, and
+  `vendor_signals/` payloads are fed to its decoder test-suite shapes by hand.
 - The catalogue covers 172 indicators (153 quantitative, 17 qualitative, 2 categorical), 52 order
   groups, 5 package tiers, 7 departments, 17 auxiliary examinations and 55 named findings; every
   reference interval cites a public standard or guideline.

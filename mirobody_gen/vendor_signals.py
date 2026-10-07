@@ -29,8 +29,7 @@ import pathlib
 import random
 from datetime import date, datetime, timedelta, timezone
 
-from . import model, physiology
-from .person import CORPUS_END
+from . import model
 
 #: 一人至多挂几块厂商云设备。智表+戒指的组合在真实世界常见（一块 Garmin 运动、
 #: 一枚 Oura 睡眠）,三块以上罕见。
@@ -110,7 +109,7 @@ def _apple_records(person: model.Person, days: dict[date, dict[str, list[dict]]]
                    tz: str, rng: random.Random) -> list[dict]:
     out: list[dict] = []
     apple_off = f"+{tz[1:]}" if tz.startswith("+") else tz
-    src_watch, src_phone = "Watch", "iPhone"
+    src_watch = "Watch"
     for day, bucket in days.items():
         if "steps" in bucket:
             r = bucket["steps"][0]

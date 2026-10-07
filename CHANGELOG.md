@@ -51,6 +51,24 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); ver
 - `mirobody-gen paraphrase --refine N`: rejected candidates go back to the model with their reasons
   (progressive refinement after Kramer et al. 2026); design note §7 records the revised plan (L0: knowledge
   profile → cohort spec) and nine newly surveyed references in `docs/paper/refs.bib`.
+- Handwritten files, opt-in (`mirobody-gen build --render --handwriting`): notebook logs of home blood
+  pressure (`128/82` in one cell, two readings), glucose (fasting and after meals) and morning weight; a
+  doctor's note in a clinic booklet with the vitals inline; and the institution's own printed form with its
+  result column filled in by hand. Chinese and English, following the person's and the institution's
+  language; three writing tiers (H1 neat, H2 running hand, H3 hard cursive, always a phone photo). Values come
+  from the same device series, physiology model and visits as the printed files; home glucose is fasting from
+  `physiology.measure` and post-meal from the ADAG relation between HbA1c and mean glucose. Records gain a
+  `handwriting` field (tier, hand, corrections, ditto marks, value boxes, transcript, legibility) and three
+  hazard classes in `resources/handwriting.json` (`hand.written`, `hand.correction`, `hand.ditto`), next to the
+  distilled classes they also carry (`value.pair_in_one_cell`, `unit.in_header_or_reference_only`,
+  `unit.missing`, `value.multiple_per_row`, …). Pages are scanned or photographed through the existing scenes and
+  a capture is kept only if every written value still clears a legibility floor (digit height, ink contrast)
+  measured on the delivered image. With the option off a build is byte-identical to before; with it on,
+  printed files and records are unchanged and the handwritten records follow them in `files.jsonl`.
+  Fonts: subsets of eight Google Fonts handwriting families (OFL 1.1; Homemade Apple Apache 2.0) in
+  `mirobody_gen/render/fonts/`, pinned by upstream commit and sha256, renamed, licences alongside, rebuilt by
+  `scripts/build_handwriting.py --fonts`. `audit-readability` checks handwritten records against their
+  transcripts. Tests: `tests/test_handwriting.py`.
 
 ### Changed
 - Readings are routed to tables by the most complete order group, so basic and premium liver panels

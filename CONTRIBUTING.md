@@ -22,6 +22,8 @@ allow-list based: a new top-level path must be listed there before it can be tra
 | generation logic | `mirobody_gen/` |
 | a check on the output | `mirobody_gen/audit/` — must not import the generator |
 | a scoring or export tool | `mirobody_gen/harness/` |
+| handwritten wording, writing tiers, inks, paper | `scripts/build_handwriting.py` → `--write` regenerates `resources/handwriting.json` |
+| a handwriting font, or a character a hand must be able to write | `scripts/build_handwriting.py --fonts DIR --write` rebuilds the subsets in `mirobody_gen/render/fonts/` from the pinned upstream files (see that folder's README); fontTools is needed only for this |
 
 Every string that can be printed on a page must belong to a resource field listed in that file's
 `_vocabulary_fields`; otherwise the privacy gate reports it as a string of unknown origin. That is the

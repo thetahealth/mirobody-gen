@@ -45,7 +45,8 @@ mirobody-gen = "mirobody_gen.cli:main"
 include = ["mirobody_gen*"]
 
 [tool.setuptools.package-data]
-mirobody_gen = ["resources/*.json", "harness/review/*.html"]
+mirobody_gen = ["resources/*.json", "harness/review/*.html", "render/fonts/*.ttf", "render/fonts/*.txt",
+                "render/fonts/*.json"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

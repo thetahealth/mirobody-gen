@@ -1,0 +1,188 @@
+{
+ "_note": "Handwriting faces: subsets of open-licensed upstream fonts. Regenerate with scripts/build_handwriting.py --fonts DIR. Each subset is a Modified Version: renamed, copyright and licence records kept, licence text alongside.",
+ "source": "https://github.com/google/fonts",
+ "fonts": {
+  "zh-kai": {
+   "family": "Ma Shan Zheng",
+   "script": "zh",
+   "style": "regular script (kaishu)",
+   "license": "OFL-1.1",
+   "path": "ofl/mashanzheng/MaShanZheng-Regular.ttf",
+   "license_path": "ofl/mashanzheng/OFL.txt",
+   "git_blob": "11bbfb9867d70612158229d037e7a5f622bd0e38",
+   "upstream_sha256": "6d2546bb189c732a8ca29af9e22457b152387d158aa459e4ac2ce1e51788b7fb",
+   "upstream_bytes": 5857936,
+   "file": "hand-zh-kai.ttf",
+   "sha256": "5633c6dc03868acd4873a6c45886338b079548eb26160df7203a9dd6d6fdc295",
+   "bytes": 159380,
+   "license_file": "LICENSE-zh-kai.txt",
+   "renamed_to": "MG Hand ZH KAI",
+   "instance": null,
+   "stroke": [
+    -1,
+    -1,
+    0
+   ],
+   "coverage": " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~°、一上下不中了二休低体便偏健偶充全内冒况减出分初别制前功加动午卡印历压原双口可右吃后听吸呼咖咳咽啡喝嗽型塞处备复多天头好定家小少尚尿左差常干年床庭康建异张当录律得心忘性息情意感慢打按控搏收断方无日早时明显晕晚月有服期未条果染查案次正殊每水没治泌注流测涕清点特状率理甲疗病痛痰盐监眠睡科称空穿糖继续缩缺聚肝肢肪肺肾肿能脂脉脏腹腺臂自舒般药血衣见觉议记诉诊象贫起软运近还退适道部重量铁门间随面音食餐饭饮高鼻齐（），："
+  },
+  "zh-xing": {
+   "family": "Zhi Mang Xing",
+   "script": "zh",
+   "style": "running script (xingshu), brush",
+   "license": "OFL-1.1",
+   "path": "ofl/zhimangxing/ZhiMangXing-Regular.ttf",
+   "license_path": "ofl/zhimangxing/OFL.txt",
+   "git_blob": "d037d1f00395175de01de33e62957c30a008a1b1",
+   "upstream_sha256": "644e0cae9b40f0b10ab729a01bd32032e3973bac22be3dccae01bf6ae7fde969",
+   "upstream_bytes": 4063532,
+   "file": "hand-zh-xing.ttf",
+   "sha256": "9cd36a7257e054dbf87d9f5747efc8ea7f38eba75b0a5f22ef92ea2700327250",
+   "bytes": 116760,
+   "license_file": "LICENSE-zh-xing.txt",
+   "renamed_to": "MG Hand ZH XING",
+   "instance": null,
+   "stroke": [
+    -1,
+    0
+   ],
+   "coverage": " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~°、一上下不中了二休低体便偏健偶充全内冒况减出分初别制前功加动午卡印历压原双口可右吃后听吸呼咖咳咽啡喝嗽型塞处备复多天头好定家小少尚尿左差常干年床庭康建异张当录律得心忘性息情意感慢打按控搏收断方无日早时明显晕晚月有服期未条果染查案次正殊每水没治泌注流测涕清点特状率理甲疗病痛痰盐监眠睡科称空穿糖继续缩缺聚肝肢肪肺肾肿能脂脉脏腹腺臂自舒般药血衣见觉议记诉诊象贫起软运近还退适道部重量铁门间随面音食餐饭饮高鼻齐（），："
+  },
+  "zh-cao": {
+   "family": "Liu Jian Mao Cao",
+   "script": "zh",
+   "style": "cursive script (caoshu)",
+   "license": "OFL-1.1",
+   "path": "ofl/liujianmaocao/LiuJianMaoCao-Regular.ttf",
+   "license_path": "ofl/liujianmaocao/OFL.txt",
+   "git_blob": "f380deef04a5ee6d5af2c6fba60d1613d831c1aa",
+   "upstream_sha256": "cab396b91a5b7c0b4005a35891180d06e6751f5ac261fe680aec65c1ae209033",
+   "upstream_bytes": 4951804,
+   "file": "hand-zh-cao.ttf",
+   "sha256": "7729046604180798990f2d1de3c5f99f02040b618edeeb6564aac184fef49bb1",
+   "bytes": 141128,
+   "license_file": "LICENSE-zh-cao.txt",
+   "renamed_to": "MG Hand ZH CAO",
+   "instance": null,
+   "stroke": [
+    0,
+    1
+   ],
+   "coverage": " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~°、一上下不中了二休低体便偏健偶充全内冒况减出分初别制前功加动午卡印历压原双口可右吃后听吸呼咖咳咽啡喝嗽型塞处备复多天头好定家小少尚尿左差常干年床庭康建异张当录律得心忘性息情意感慢打按控搏收断方无日早时明显晕晚月有服期未条果染查案次正殊每水没治泌注流测涕清点特状率理甲疗病痛痰盐监眠睡科称空穿糖继续缩缺聚肝肢肪肺肾肿能脂脉脏腹腺臂自舒般药血衣见觉议记诉诊象贫起软运近还退适道部重量铁门间随面音食餐饭饮高鼻齐（），："
+  },
+  "zh-pen": {
+   "family": "Long Cang",
+   "script": "zh",
+   "style": "running hand, hard pen",
+   "license": "OFL-1.1",
+   "path": "ofl/longcang/LongCang-Regular.ttf",
+   "license_path": "ofl/longcang/OFL.txt",
+   "git_blob": "363bb08696fe4d3827bd36d3d2fbc028d1205161",
+   "upstream_sha256": "e5bf2c3f24ef2327c6f136d8f73e2f9dfdf44896fdbeb35a9515f44777bb91bc",
+   "upstream_bytes": 5162508,
+   "file": "hand-zh-pen.ttf",
+   "sha256": "8cc2e9de1150f7a16a9385696676fb1d971019f708884d89cdea63a40d92c4b8",
+   "bytes": 140640,
+   "license_file": "LICENSE-zh-pen.txt",
+   "renamed_to": "MG Hand ZH PEN",
+   "instance": null,
+   "stroke": [
+    0,
+    1,
+    1
+   ],
+   "coverage": " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~°、一上下不中了二休低体便偏健偶充全内冒况减出分初别制前功加动午卡印历压原双口可右吃后听吸呼咖咳咽啡喝嗽型塞处备复多天头好定家小少尚尿左差常干年床庭康建异张当录律得心忘性息情意感慢打按控搏收断方无日早时明显晕晚月有服期未条果染查案次正殊每水没治泌注流测涕清点特状率理甲疗病痛痰盐监眠睡科称空穿糖继续缩缺聚肝肢肪肺肾肿能脂脉脏腹腺臂自舒般药血衣见觉议记诉诊象贫起软运近还退适道部重量铁门间随面音食餐饭饮高鼻齐（），："
+  },
+  "en-casual": {
+   "family": "Caveat",
+   "script": "en",
+   "style": "casual joined hand",
+   "license": "OFL-1.1",
+   "path": "ofl/caveat/Caveat[wght].ttf",
+   "license_path": "ofl/caveat/OFL.txt",
+   "git_blob": "f84acf2ce2d1b3329b194749530dbaec047e6df6",
+   "upstream_sha256": "0bdb6b660482d31531b3945849fba5916b3ef8695da7024a9e6b9ee3c4157988",
+   "upstream_bytes": 403648,
+   "file": "hand-en-casual.ttf",
+   "sha256": "c59f8ca4d4877d6cea92770ffa1573a83e254b3fab65a7e147a651a8ff40876a",
+   "bytes": 27996,
+   "license_file": "LICENSE-en-casual.txt",
+   "renamed_to": "MG Hand EN CASUAL",
+   "instance": {
+    "wght": 450
+   },
+   "stroke": [
+    0,
+    0,
+    1
+   ],
+   "coverage": " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~°"
+  },
+  "en-cursive": {
+   "family": "Homemade Apple",
+   "script": "en",
+   "style": "looped cursive",
+   "license": "Apache-2.0",
+   "path": "apache/homemadeapple/HomemadeApple-Regular.ttf",
+   "license_path": "apache/homemadeapple/LICENSE.txt",
+   "git_blob": "bea3c3094de8340f5287e40ef84fe7f670e06f2e",
+   "upstream_sha256": "dd1baaca3cde1b1f8415aed3b0aea6808655c9d9ca5a99c7282d9accc16c1a58",
+   "upstream_bytes": 110004,
+   "file": "hand-en-cursive.ttf",
+   "sha256": "324cb3ca85893c9e7a36b839c1425216b3cd9b3efd4fe8b466b5d7dae7e79385",
+   "bytes": 62256,
+   "license_file": "LICENSE-en-cursive.txt",
+   "renamed_to": "MG Hand EN CURSIVE",
+   "instance": null,
+   "stroke": [
+    0,
+    1
+   ],
+   "coverage": " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~°"
+  },
+  "en-pen": {
+   "family": "Nanum Pen Script",
+   "script": "en",
+   "style": "narrow felt-pen print",
+   "license": "OFL-1.1",
+   "path": "ofl/nanumpenscript/NanumPenScript-Regular.ttf",
+   "license_path": "ofl/nanumpenscript/OFL.txt",
+   "git_blob": "565747d0573126bb057d0675151c894bf019d7a5",
+   "upstream_sha256": "6f0d1ab29c7894010dc88831fb7a0a51edb79136e450344183de5b1a8b52bd43",
+   "upstream_bytes": 3201664,
+   "file": "hand-en-pen.ttf",
+   "sha256": "1a2c520ceb798c8cc69d26a9f2c3dc522d640e98056c6352ab170b3337b00c70",
+   "bytes": 17612,
+   "license_file": "LICENSE-en-pen.txt",
+   "renamed_to": "MG Hand EN PEN",
+   "instance": null,
+   "stroke": [
+    0,
+    1,
+    1
+   ],
+   "coverage": " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~°"
+  },
+  "en-print": {
+   "family": "Indie Flower",
+   "script": "en",
+   "style": "rounded print hand",
+   "license": "OFL-1.1",
+   "path": "ofl/indieflower/IndieFlower-Regular.ttf",
+   "license_path": "ofl/indieflower/OFL.txt",
+   "git_blob": "547ca58030e8a7de5aca859a11fc00f14511a7ea",
+   "upstream_sha256": "ccc94b22b156e9c5dfe50fd051f01b097600b252c24473e624bb43a143140a94",
+   "upstream_bytes": 108196,
+   "file": "hand-en-print.ttf",
+   "sha256": "1826954077200e20b90a031fe53e348a8b6654ae0ee065ee5077bfd17135ed44",
+   "bytes": 14972,
+   "license_file": "LICENSE-en-print.txt",
+   "renamed_to": "MG Hand EN PRINT",
+   "instance": null,
+   "stroke": [
+    0,
+    1
+   ],
+   "coverage": " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~°"
+  }
+ }
+}

@@ -34,6 +34,9 @@ def main() -> None:
     ap.add_argument("--render", action="store_true", help="render files (text-layer PDF, XLSX/CSV, scans, photos, screenshots) and write files.jsonl")
     ap.add_argument("--pairs", type=int, default=0, help="also emit N minimal-contrast pair groups (pairs.jsonl)")
     ap.add_argument("--paraphrase", action="store_true", help="use resources/paraphrases.json for narrative wording (off by default)")
+    ap.add_argument("--handwriting", action="store_true",
+                    help="with --render: also write handwritten files (notebook logs, doctor's notes, forms filled "
+                         "in by hand), after the printed ones; off by default so existing seeds keep their bytes")
     ap.add_argument("--no-banner", action="store_true",
                     help="omit the SYNTHETIC banner (realism stress test; the synthetic metadata mark is always kept)")
     ap.add_argument("--lang-mix", default=None,
@@ -41,6 +44,8 @@ def main() -> None:
                          "Unknown groups fall back to English document templates; the mix changes "
                          "cohort composition, not dictionary structure.")
     args = ap.parse_args()
+    if args.handwriting and not args.render:
+        ap.error("--handwriting renders files: use it with --render")
     spec.set_paraphrases(bool(args.paraphrase))
     if args.lang_mix:
         person_mod.set_lang_mix(args.lang_mix)
@@ -75,9 +80,14 @@ def main() -> None:
         from . import corpus, pairs
 
         if args.render:
-            records = corpus.render_corpus(args.seed, people, encounters, out_dir, banner=not args.no_banner)
+            records = corpus.render_corpus(args.seed, people, encounters, out_dir, banner=not args.no_banner,
+                                           handwriting=args.handwriting)
             by_fmt = collections.Counter(r["format"] for r in records)
             print(f"渲染 {len(records)} 份文件 {dict(by_fmt)} → {out_dir / 'files'}")
+            if args.handwriting:
+                tiers = collections.Counter((r["handwriting"]["tier"], r["language"]) for r in records
+                                            if "handwriting" in r)
+                print(f"手写 {sum(tiers.values())} 份 {dict(sorted(tiers.items()))}")
         if args.pairs:
             records = pairs.render_pairs(args.seed, people, encounters, out_dir, args.pairs,
                                          banner=not args.no_banner)

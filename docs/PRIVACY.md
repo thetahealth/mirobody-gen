@@ -39,7 +39,7 @@ identifiers, dates, institution names, instrument or batch identifiers, narrativ
 | Verbatim leak: a fragment of a real document appears in a generated file | The generator does not read the reference set. An n-gram replay index over the reference set's text is scanned over every generated text unit and every resource file; a hit fails the gate unless the window is covered by declared public vocabulary (at most three consecutive terms). |
 | Statistical leak: real value distributions can be inferred | Values do not come from the reference set. Intervals come from WS/T 404 / WS/T 405 and guidelines, variation from the Westgard database, individual values from the mechanistic model. Reference-set quantiles are used only to compare distributions after generation, never to sample from. |
 | Spec leak: a rare real string survives distillation | The three-document floor, the format allow-list, template rewriting, and human review of every resource file. Free-text fields of the distillation input (`value_examples`, `snippets`, `wrong_results`) are excluded wholesale. |
-| Misidentification: a generated file is later mistaken for a real record | A visible banner on every page, PDF `/Subject SYNTHETIC`, XLSX document properties, JPEG EXIF `ImageDescription` and `Software`, PNG text chunks, and `synthetic: true` on every record. |
+| Misidentification: a generated file is later mistaken for a real record | A visible banner on every page, PDF `/Subject SYNTHETIC`, XLSX document properties, JPEG EXIF `ImageDescription` and `Software`, PNG text chunks, and `synthetic: true` on every record. Handwritten pages carry the same banner and image metadata; a hand never writes a name, and a signature is a scribble with no letters. |
 
 ## Repository controls
 

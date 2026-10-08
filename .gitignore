@@ -24,9 +24,13 @@
 !/mirobody_gen/
 !/scripts/
 !/tests/
-#!/docs/
-!/docs/paper/
+# docs/: only the top-level documents and the bibliography. git cannot re-include a file whose
+# parent directory is excluded, so docs/ itself is re-included and its contents excluded again;
+# docs/zh-CN/ (Chinese working notes) stays local.
+!/docs/
+/docs/*
 !/docs/*.md
+!/docs/paper/
 
 # ── Never tracked, even if the allow-list above is widened ────────
 # Local reference material, its derivatives, caches and generated corpora.

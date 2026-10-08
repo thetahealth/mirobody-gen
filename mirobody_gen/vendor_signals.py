@@ -15,8 +15,9 @@ Apple 的 `HKCategoryTypeIdentifierSleepAnalysis` 根本没有数字只有分期
   - 批量同步手机健康库（`/api/data`，`devices.py`）
   - 直接挂一块 Garmin / Oura / Whoop（本模块）
 
-三个通道对同一人生理曲线独立观测，才能问出"不同厂商对同一天的 deep sleep 是否
-落到同一行"这种解码一致性问题。
+The payloads re-shape the series devices.jsonl is written from (`devices.series_for`), so a day's
+steps, resting heart rate and sleep are the same number on both channels; `adopted_vendors` decides
+who has which payloads.
 
 与 `devices.py` 的分工：那边是对公开 crosswalk 表照抄，这边是对
 `decoders/samples/*` 的验收 input 照抄——两条链路的字段名来自不同的上游文档。
@@ -31,9 +32,11 @@ from datetime import date, datetime, timedelta, timezone
 
 from . import model
 
-#: 一人至多挂几块厂商云设备。智表+戒指的组合在真实世界常见（一块 Garmin 运动、
-#: 一枚 Oura 睡眠）,三块以上罕见。
+#: Adoption of each cloud wearable among people who can have one (see `adopted_vendors`); a watch plus
+#: a ring is common, three devices are rare.
 VENDOR_ADOPTION = {"garmin": 0.30, "oura": 0.08, "whoop": 0.05}
+#: The phone stores Garmin, Oura and WHOOP write into (not Huawei Health or Xiaomi).
+CLOUD_STORES = ("apple", "health_connect")
 
 #: 厂商 → 期望落到的 catalogue metric 前缀。真值文件里按这个对账:
 #: 输入谁的字段、预期 mirobody 落到哪个 catalog 指标。
@@ -375,40 +378,39 @@ def _whoop_records(person: model.Person, days: dict[date, dict[str, list[dict]]]
 BUILDERS = {"apple": _apple_records, "garmin": _garmin_records,
             "oura": _oura_records, "whoop": _whoop_records}
 
-#: 一个人的厂商采用集合(确定性:同人同 seed 同集合)。高血压 + 高血压倾向的人更可能挂设备。
-def adopted_vendors(person: model.Person, seed: int) -> list[str]:
+def adopted_vendors(person: model.Person, seed: int, series: dict) -> list[str]:
+    """The payload vendors of a person whose device series is `series`, deterministic in seed and person.
+
+    An Apple Health store is also given in HealthKit JSON (`apple`). Garmin, Oura and WHOOP go only to
+    someone who wears a device and whose store is one those devices write into, so the series already
+    holds that device's steps, resting heart rate and sleep. The hypertension archetype adopts more."""
+    out = ["apple"] if series["vendor"] == "apple" else []
+    if not (series["habits"]["wearable"] and series["vendor"] in CLOUD_STORES):
+        return out
     rng = random.Random(f"vendors:{seed}:{person.person_id}")
     base = {v: p for v, p in VENDOR_ADOPTION.items()}
     if person.archetype == "hypertension":
         base["garmin"] += 0.25; base["oura"] += 0.08; base["whoop"] += 0.10
     # 队列里没有"运动人群"原型;hypertension 是唯一明确会主动挂设备的,其余按渗透率走。
-    return [v for v, p in base.items() if rng.random() < p]
+    return out + [v for v, p in base.items() if rng.random() < p]
 
 
 def write_all(out_dir: pathlib.Path, people: list[model.Person], seed: int,
-              langs: dict[str, str], series: dict[str, dict]) -> int:
-    """为每个采用厂商设备的虚拟人输出原始 push payload。
-
-    每人每厂商一个 JSON 文件(payload + input 的数组,可直接喂对应 decoder),
-    真值写在 `vendor_signals.jsonl`。
-    返回生成的文件数。"""
+              langs: dict[str, str]) -> int:
+    """Write one JSON file per person and vendor, ready for that vendor's decoder, and the truth in
+    `vendor_signals.jsonl`. Returns the number of files."""
     from . import devices
 
     root = out_dir / "vendor_signals"
     total_files = 0
     with (out_dir / "vendor_signals.jsonl").open("w", encoding="utf-8") as fh:
         for person in people:
-            adopted = adopted_vendors(person, seed)
+            lang = langs.get(person.person_id, "zh")
+            s = devices.series_for(person, seed, lang)
+            adopted = adopted_vendors(person, seed, s)
             if not adopted:
                 continue
-            lang = langs.get(person.person_id, "zh")
             tz = devices.POPULATION.get(lang, devices._DEFAULT_POPULATION)["tz"]
-            s = series.get(person.person_id)
-            if s is None:
-                # 挂云厂商的人必然戴表/戴戒指,而且这块专用设备(iPhone 同步的健康库)
-                # 才能提供 steps/sleep/rhr——小米/华为路由的字段集没有 sleep。
-                s = devices.series_for(person, seed, lang,
-                                       force_wearable=True, force_vendor="apple")
             days = _by_day(s)
             for vendor in adopted:
                 builder = BUILDERS[vendor]

@@ -19,6 +19,7 @@ ESL-Bench 的每次 exam 带 193 个指标（它不关心文件形态，这没�
 
 from __future__ import annotations
 
+import math
 import random
 from datetime import date, timedelta
 
@@ -266,29 +267,28 @@ def home_stream(seed: int, person_id: str) -> random.Random:
     return random.Random(f"home:{seed}:{person_id}")
 
 
-#: 语言组配比，可由 `build.py --lang-mix` 在运行时覆盖。默认 50/50 与历史一致；
-#: 同 seed 同 mix 必然同结果——这是构建参数的一部分，不是 RNG 的新来源。
-#: 新增语言组（如 ja）在字典层落回英文模板：它改变的是**人群构成**（这个队列里
-#: 有多少人的文件走哪个语言通道），不是文档词汇本身。词汇扩展是资源层的事。
-_LANG_MIX: dict[str, float] = {"zh": 0.5, "en": 0.5}
+#: Share of each language group, overridable with `build --lang-mix`. Groups are sorted by name and
+#: split [0, 1) in that order, so the default draws "en" below 0.5 exactly as 0.3.0 did, and a mix
+#: gives the same cohort however it is written. A group other than zh/en changes who is in the cohort
+#: (device time zone, brands, allele frequencies); its documents use the English templates.
+_LANG_MIX: dict[str, float] = {"en": 0.5, "zh": 0.5}
 
 
-def set_lang_mix(spec_text: str) -> None:
-    """解析 `zh:0.45,en:0.4,ja:0.15` 这样的配比串。权重会归一化，所以
-    `zh:9,en:1` 与 `zh:0.9,en:0.1` 等价。未知语言组也接受——它们在文档层
-    落入英文模板，但姓名/设备时区等人群属性可以单独按组分配。"""
+def set_lang_mix(text: str) -> None:
+    """Set the language mix from `zh:0.45,en:0.4,ja:0.15`; weights are normalised, a bare name weighs 1."""
     global _LANG_MIX
     mix: dict[str, float] = {}
-    for part in spec_text.split(","):
-        name, _, w = part.partition(":")
-        name = name.strip()
-        if not name:
-            raise ValueError(f"空语言组名: {spec_text!r}")
-        mix[name] = float(w) if w else 1.0
+    for part in text.split(","):
+        name, _, weight = (s.strip() for s in part.partition(":"))
+        if not name or name in mix:
+            raise ValueError(f"empty or repeated language group in {text!r}")
+        mix[name] = float(weight) if weight else 1.0
+        if not math.isfinite(mix[name]) or mix[name] < 0:
+            raise ValueError(f"weight must be a finite non-negative number: {part!r}")
     total = sum(mix.values())
     if total <= 0:
-        raise ValueError(f"语言配比全为零: {spec_text!r}")
-    _LANG_MIX = {k: v / total for k, v in mix.items()}
+        raise ValueError(f"all weights are zero: {text!r}")
+    _LANG_MIX = {name: mix[name] / total for name in sorted(mix)}
 
 
 def draw_lang(rng: random.Random) -> str:
@@ -298,7 +298,7 @@ def draw_lang(rng: random.Random) -> str:
         acc += weight
         if roll < acc:
             return name
-    return next(reversed(_LANG_MIX))  # 浮点尾差
+    return next(reversed(_LANG_MIX))  # floating-point remainder
 
 
 def person_lang(seed: int, person_id: str) -> str:

@@ -48,7 +48,10 @@ def main() -> None:
         ap.error("--handwriting renders files: use it with --render")
     spec.set_paraphrases(bool(args.paraphrase))
     if args.lang_mix:
-        person_mod.set_lang_mix(args.lang_mix)
+        try:
+            person_mod.set_lang_mix(args.lang_mix)
+        except ValueError as e:
+            ap.error(f"--lang-mix: {e}")
 
     people = person_mod.build_cohort(args.seed, args.people)
     encounters = {p.person_id: person_mod.encounters_for(p, args.seed) for p in people}
@@ -66,11 +69,10 @@ def main() -> None:
     n_gen = genomics.write_all(out_dir, people, args.seed, langs)
     print(f"设备记录 {n_dev} 条（devices.jsonl）· 日记 {n_journal} 条（journal.jsonl）· 基因文件 {n_gen} 份（genomics.jsonl）")
 
-    # 第四条通道：厂商云端 push（Garmin/Oura/Whoop/Apple HealthKit 原生 JSON）。
-    # 这些人身上的手机健康库批次继续存在——同一个人可以既同步手机又挂表。
+    # Vendor-cloud payloads: the device series above in Garmin, Oura, WHOOP and HealthKit shapes.
     from . import vendor_signals
 
-    n_vsig = vendor_signals.write_all(out_dir, people, args.seed, langs, {})
+    n_vsig = vendor_signals.write_all(out_dir, people, args.seed, langs)
     print(f"厂商 push {n_vsig} 份（vendor_signals.jsonl）")
 
     if args.stats:

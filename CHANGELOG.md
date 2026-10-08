@@ -69,6 +69,27 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); ver
   `mirobody_gen/render/fonts/`, pinned by upstream commit and sha256, renamed, licences alongside, rebuilt by
   `scripts/build_handwriting.py --fonts`. `audit-readability` checks handwritten records against their
   transcripts. Tests: `tests/test_handwriting.py`.
+- Vendor-cloud payloads (`vendor_signals/`, `vendor_signals.jsonl`): the person's device series as HealthKit
+  JSON for every Apple Health store, and as Garmin Health API, Oura v2 and WHOOP v2 objects for someone who
+  wears a device and whose store is Apple Health or Health Connect, each with the catalogue metrics its
+  mirobody decoder should produce.
+- `mirobody-gen build --lang-mix 'zh:0.45,en:0.4,ja:0.15'`: the cohort's language groups as a build parameter.
+  A group other than zh/en has its own device time zone, brand shares and allele-frequency column; its
+  documents use the English templates.
+
+### Fixed
+- The default language draw is 0.3.0's again (`--lang-mix` had reversed it, so every person of a seed
+  changed language group). `build --seed 7 --people 6 --render` again reproduces the `files.jsonl`
+  (sha256 `5bad865b…`) mirobody's OCR evaluation pins at 248df0f; builds made from 2026-10-06 to this fix
+  differ from both. A mix now draws the same cohort however its groups are ordered, and a bad mix is a
+  usage error.
+- Vendor-cloud payloads now carry the same series as `devices.jsonl`: before, they were drawn from a second,
+  forced series, so a person could have a Garmin with no wearable in the phone store and different values
+  for the same day. HealthKit payloads, documented but never written, are written.
+- `.gitignore` re-includes `docs/` so that new top-level documents and `docs/paper/` can be tracked;
+  `docs/zh-CN/` stays local.
+- Links into the untracked `docs/zh-CN/` from `docs/README.md` and `README.zh-CN.md`; links to mirobody's
+  decoder samples point at `main` instead of a feature branch.
 
 ### Changed
 - Readings are routed to tables by the most complete order group, so basic and premium liver panels

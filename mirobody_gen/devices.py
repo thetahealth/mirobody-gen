@@ -81,23 +81,21 @@ def _tz(lang: str) -> str:
     return POPULATION.get(lang, _DEFAULT_POPULATION)["tz"]
 
 
-def series_for(person: Person, seed: int, lang: str, *,
-               force_wearable: bool = False, force_vendor: str | None = None) -> dict:
-    """一个人的全部设备记录（按类型分组的日序列）。确定性：`RandomState`/`Random` 都按 seed+person。
+def series_for(person: Person, seed: int, lang: str) -> dict:
+    """A person's device records, deterministic in seed and person.
 
-    `force_wearable` / `force_vendor` 给 vendor_signals 用：一块 Garmin/Oura/Whoop 挂在手上，
-    智能库的"有没有戴表"与"是哪家的表"就不能再按权重抽——真实的因果方向是反的：
-    因为有了这块表，健康库里才有完整的 steps/sleep/rhr 序列。"""
+    This is the person's only device series: devices.jsonl, the home logs, the handwritten logs and the
+    vendor-cloud payloads all read it, so a day's reading is the same number on every channel."""
     rng = random.Random(f"device:{seed}:{person.person_id}")
     vw = POPULATION.get(lang, _DEFAULT_POPULATION)["vendors"]
-    vendor = force_vendor or rng.choices(list(vw), weights=list(vw.values()))[0]
+    vendor = rng.choices(list(vw), weights=list(vw.values()))[0]
     fields = VENDORS[vendor]["fields"]
     start = person.weight_anchors[0][0]
     end = min(person.weight_anchors[-1][0], CORPUS_END)
     tz = _tz(lang)
     # 习惯：称重频率、是否戴表、有没有血压计
     weigh_rate = rng.choice([0.15, 0.3, 0.5, 0.9])
-    wearable = force_wearable or rng.random() < 0.6
+    wearable = rng.random() < 0.6
     cuff = person.archetype == "hypertension" and rng.random() < 0.85 or rng.random() < 0.15
     base_rhr = rng.gauss(64, 6) * (0.93 if person.archetype == "healthy" and rng.random() < 0.3 else 1.0)
     base_steps = rng.gauss(6500, 1800)

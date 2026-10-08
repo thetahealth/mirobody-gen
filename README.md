@@ -49,13 +49,17 @@ but the generator is useful anywhere realistic, truth-carrying health data is ne
 | --- | --- | --- |
 | **Documents** | lab slips, check-up books, clinic notes, ECG / ultrasound / imaging reports, home logs, app exports — as text-layer PDF, XLSX, CSV, and 24 scan / photo / copy / screenshot scenes (tiers T0–T6); optionally handwritten notebook logs, doctor's notes and hand-filled forms (H1–H3) | file upload pipeline |
 | **Phone health store** | `devices/` batches of ≤500 records in Apple / Huawei / Xiaomi / Health Connect field names, ready to POST | `POST /api/data` |
-| **Vendor cloud** | `vendor_signals/` byte-level HealthKit JSON, Garmin Health API (dailies / sleeps / bodyComps / activities / pulseOx), Oura v2 (activity / sleep / heartrate / spo2 / stress), WHOOP v2 (cycle / workouts / recovery) | `kernel/decoders/{apple,garmin,oura,whoop}.py` — output shape pinned against the acceptance records in [`mirobody/kernel/decoders/samples/`](https://github.com/thetahealth/mirobody/tree/feat/1.5.4/mirobody/kernel/decoders/samples) |
+| **Vendor cloud** | `vendor_signals/` byte-level HealthKit JSON, Garmin Health API (dailies / sleeps / bodyComps / activities / pulseOx), Oura v2 (activity / sleep / heartrate / spo2 / stress), WHOOP v2 (cycle / workouts / recovery) | `kernel/decoders/{apple,garmin,oura,whoop}.py` — output shape pinned against the acceptance records in [`mirobody/kernel/decoders/samples/`](https://github.com/thetahealth/mirobody/tree/main/mirobody/kernel/decoders/samples) |
 | **Genomics** | WeGene, 23andMe, AncestryDNA, MyHeritage and VCF exports; 41 PGx sites + catalog subset + off-catalog sites at ancestry-correct allele frequencies, 1.5% no-call | genetics handler |
 
 A person exists **longitudinally across all four channels**: the haemoglobin on the 2024 check-up
 book, the resting heart rate in that week's Garmin dailies and the CYP2C19 diplotype in the
 consumer-genomics file belong to one person with one event timeline. That identity is what makes
 "*did you merge this person's lab slip with this person's wearable stream?*" a checkable question.
+The vendor-cloud payloads are the phone store's own series in each vendor's API shape: HealthKit JSON
+for every Apple Health store, and Garmin / Oura / WHOOP only for someone who wears a device and whose
+store (Apple Health or Health Connect) is where that device writes, so a day's steps or resting heart
+rate is the same number in `devices/` and in that day's Garmin daily.
 
 ## How the values are made
 

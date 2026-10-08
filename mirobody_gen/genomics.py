@@ -1,20 +1,23 @@
 """Consumer-genomics raw exports (WeGene, 23andMe, AncestryDNA, MyHeritage, VCF) with per-site truth.
 
-少量基因数据：消费级基因检测的原始导出文件（WeGene / 23andMe / AncestryDNA / MyHeritage / VCF）。
+mirobody has accepted these formats since 1.5.2 (`collect/files/services/genotype_format.py`:
+identified by vendor banner and column names; a file with no header is rejected outright). Each
+site is matched against its own 489-site table (dbSNP b155 common intersect CPIC, including 41
+gene-annotated pharmacogenomic sites); sites outside that table resolve to `unresolved`, and
+no-calls resolve to `no_call`.
 
-mirobody 1.5.2 起接收这些格式（`collect/files/services/genotype_format.py`：按厂商横幅与列名识别，
-无表头的直接拒收），把每个位点对到它自带的 489 个位点表（dbSNP b155 common ∩ CPIC，含 41 个带基因
-标注的药物基因组位点），表外的落成 `unresolved`，无调用落成 `no_call`。
+Generated files cover only: the 41 PGx sites, a subset of the rest of the site table, 8 common
+consumer sites outside that table (ALDH2, MTHFR, APOE, ...), and a 1-2% no-call rate. Genotypes are
+drawn by Hardy-Weinberg sampling against hand-curated allele frequencies, picking the East Asian or
+European frequency column by the person's language group — this aims for plausibility, not an
+estimate of any real population.
 
-这里生成的文件只覆盖：41 个 PGx 位点 + 位点表里其余位点的一个子集 + 8 个表外的常见消费级位点
-（ALDH2、MTHFR、APOE……）+ 1–2% 的无调用。基因型按手写的等位基因频率做 Hardy–Weinberg 抽样，
-按人的语言组选东亚/欧洲频率列——只求像人，不是任何人群的估计。
+Truth (`genomics.jsonl`) follows the fields of mirobody's `testing/genomics/canonical.json`:
+`rsid / chrom / pos37 / pos38 / ref / alt / gene / array_gt / vcf_gt / call_status / zygosity`, plus
+`genotype_raw` (the literal text printed in the file) and `in_catalog` (whether it should resolve).
 
-真值（`genomics.jsonl`）按 mirobody `testing/genomics/canonical.json` 的字段：
-`rsid / chrom / pos37 / pos38 / ref / alt / gene / array_gt / vcf_gt / call_status / zygosity`，
-另加 `genotype_raw`（文件里印的字面）与 `in_catalog`（该不该解析得出）。
-
-**结构上不可能泄露任何真人基因组**：没有真实基因型进入生成路径，位点坐标是公开的 dbSNP 记录。
+**No real genome can leak through this by construction**: no real genotype enters the generation
+path, and the site coordinates are public dbSNP records.
 """
 
 from __future__ import annotations
@@ -31,17 +34,18 @@ VENDOR_WEIGHTS = {"zh": {"wegene": 55, "23andme": 25, "vcf": 12, "myheritage": 8
                   "en": {"23andme": 50, "ancestry": 28, "myheritage": 12, "vcf": 10},
                   "ja": {"23andme": 45, "vcf": 25, "ancestry": 15, "myheritage": 15}}
 NO_CALL_RATE = 0.015
-#: 祖源 → 等位基因频率列。`resources/genomics.json` 的每个位点带 eas/eur 两列；
-#: 用错列是沉默的物理错误：东亚人的 CYP2C19*2 频率 0.3、欧洲人 0.15，
-#: 一组按欧洲频率抽基因的日本人会让 PGx 表型分布直接失真。
+#: Ancestry -> allele-frequency column. Each site in `resources/genomics.json` carries an eas and an
+#: eur column; picking the wrong one is a silent error with real consequences: CYP2C19*2 frequency
+#: is 0.3 in East Asians vs. 0.15 in Europeans, so Japanese people sampled against the European
+#: column would skew the whole PGx phenotype distribution.
 ANCESTRY_FREQ_COL = {"zh": 7, "ja": 7, "en": 8}   # eas / eas / eur
 _DEFAULT_FREQ_COL = 8
-#: 多少人有基因文件。
+#: Fraction of people who have a genomics file.
 COVERAGE = 0.4
 
 
 def _genotype(rng: random.Random, ref: str, alt: str, freq: float) -> tuple[str, str, str]:
-    """(等位基因 1, 等位基因 2, gt)。HWE：alt 纯合 p²，杂合 2pq，ref 纯合 q²。"""
+    """(allele 1, allele 2, gt). HWE: alt homozygous p^2, heterozygous 2pq, ref homozygous q^2."""
     u = rng.random()
     if u < freq * freq:
         return alt, alt, "1/1"
@@ -88,7 +92,7 @@ def profile_for(person: Person, seed: int, lang: str) -> dict | None:
 
 
 def render(profile: dict, when: date) -> tuple[str, str]:
-    """(文件内容, 扩展名)。各厂商的表头与列格式照 resources/genomics.json 的 vendors。"""
+    """(file contents, extension). Header and column format per vendor, from resources/genomics.json."""
     v = spec.genomics()["vendors"][profile["vendor"]]
     lines = [h.format(date=when.strftime("%a %b %d %H:%M:%S %Y")) for h in v["header"]]
     lines.append(v["columns"])

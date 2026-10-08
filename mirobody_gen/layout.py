@@ -1,20 +1,25 @@
 """Layout families: an institution is a sticky set of layout parameters sampled from the measured distributions.
 
-版式家族：机构 = 一套粘性的版式。docs/zh-CN/plan.md §3.6.3。
+An institution is a sticky layout; see docs/zh-CN/plan.md §3.6.3.
 
-真实语料里约四分之三的文档版式只出现一次，但也有两个几十份的大家族。要复现的是
-**产生这种形状的机制**，不是一个"多样性系数"：
+About three-quarters of document layouts in the real corpus occur only once, but there are also two
+families with dozens of files each. What's reproduced is **the mechanism that produces this shape**,
+not a "diversity coefficient":
 
-* 若干虚构机构，每个机构一套固定的版式参数（列组、列头写法、参考值写法、标记写法、
-  单位放哪、日期格式、页面构件……），这些参数都从 `resources/layout.json` 的实测分布里抽；
-* 两个"大客户"机构占的文档多，其余是长尾；
-* 同一机构的每份文档还有小抖动（换了打印批次、多一列少一列）。
+* a number of fictional institutions, each with a fixed set of layout parameters (column group, header
+  wording, reference-value wording, flag wording, where the unit goes, date format, page furniture...),
+  all drawn from the measured distributions in `resources/layout.json`;
+* two "big client" institutions account for a disproportionate share of documents; the rest is a long tail;
+* each document from the same institution also gets a small jitter (a different print batch, one more
+  or fewer columns).
 
-指纹比例是这个机制的**产物**。对不上真实值时，要改的是机构数与抖动率，不是在这里加系数
-（docs/zh-CN/plan.md 旧教训第 5 条）。
+Fingerprint proportions are a **product** of this mechanism. When they don't match the real values,
+what to adjust is the institution count and jitter rate, not a coefficient added here (docs/zh-CN/plan.md,
+lesson 5 from an earlier pass).
 
-**这里的每个参数都对应一个或几个具名陷阱**（认定在 `hazards.detect`）。一份文档带哪些陷阱，
-一部分就是由它的版式决定的——陷阱不是贴上去的标签，是版式选择的后果。
+**Every parameter here maps to one or more named hazards** (detected in `hazards.detect`). Which
+hazards a document carries is, in part, decided by its layout — a hazard isn't a label stuck on
+afterward, it's the consequence of a layout choice.
 """
 
 from __future__ import annotations
@@ -26,7 +31,7 @@ from dataclasses import dataclass
 
 from . import spec
 
-#: 繁体专用字。用来把列头词表分成简/繁两堆。
+#: Characters exclusive to Traditional Chinese, used to split the header-word pool into simplified and traditional.
 _TRAD = set("項結參單檢驗標誌異範區狀態備註測樣報醫衛價與類統計數據")
 _CJK = re.compile(r"[一-鿿]")
 
@@ -44,25 +49,25 @@ class Family:
     kind: str                       # hospital / checkup_center / lab / clinic / app_export
     language: str                   # zh-Hans / zh-Hant / en
     fmt: str                        # pdf / xlsx / csv
-    columns: tuple[str, ...]        # 列角色，顺序即印刷顺序
-    headers: dict[str, str]         # 角色 → 列头写法
-    bilingual_header: bool          # 中英双表头
-    header_en: dict[str, str]       # 双表头时的英文行
-    reference_dialect: str          # 区间模板，如 "{lo}-{hi}"
-    upper_dialect: str              # 单侧上限模板，如 "<{hi}"
-    lower_dialect: str              # 单侧下限模板，如 ">{lo}"
+    columns: tuple[str, ...]        # column roles, in printed order
+    headers: dict[str, str]         # role -> header wording
+    bilingual_header: bool          # bilingual Chinese/English header
+    header_en: dict[str, str]       # the English row when bilingual
+    reference_dialect: str          # range template, e.g. "{lo}-{hi}"
+    upper_dialect: str              # one-sided upper-bound template, e.g. "<{hi}"
+    lower_dialect: str              # one-sided lower-bound template, e.g. ">{lo}"
     flag_high: str
     flag_low: str
-    flag_normal: str                # 正常行印什么（"" 表示不印）
+    flag_normal: str                # what a normal row prints ("" means nothing)
     flag_at: str                    # column / glued / spaced / paren / none
     unit_at: str                    # column / none / reference / reference_amp / value / header
     unit_case: str                  # as_is / lower
-    power_style: str                # 10^9/L 的写法
+    power_style: str                # how 10^9/L is written
     name_style: str                 # native / native(abbr) / abbr / variant
     paren_style: str                # ascii / fullwidth
-    sex_partitioned: bool           # 性别分层参考范围印在一格里
-    subject_in_table: bool          # 受检者字段印成表格行
-    previous_column: bool           # 带"上次结果"列
+    sex_partitioned: bool           # sex-partitioned reference range printed in one cell
+    subject_in_table: bool          # subject fields printed as table rows
+    previous_column: bool           # has a "previous result" column
     date_labels: tuple[str, ...]
     date_format: str
     furniture: tuple[str, ...]
@@ -71,9 +76,9 @@ class Family:
     decimal_comma: bool
     page: str                       # a4 / a5l / letter
     font_size: float
-    rules: str = "grid"             # 表格线：grid / horizontal / none
-    weight: float = 1.0             # 抽中这个机构的相对权重（大客户权重大）
-    lab_code: str = ""              # 美式化验单的实验室代码列印什么（有 lab 列时才用）
+    rules: str = "grid"             # table rules: grid / horizontal / none
+    weight: float = 1.0             # relative weight of drawing this institution (big clients weigh more)
+    lab_code: str = ""              # what a US-style lab slip's lab-code column prints (only used when there's a lab column)
 
     @property
     def lang_group(self) -> str:
@@ -81,7 +86,7 @@ class Family:
         return "en" if self.language == "en" else "zh"
 
 
-# ── 从 spec 抽参数 ────────────────────────────────────────────────
+# ── Drawing parameters from spec ──
 def _weighted(rng: random.Random, items: list[dict], key: str = "documents"):
     return rng.choices([x["value"] for x in items], weights=[x[key] for x in items])[0]
 
@@ -94,8 +99,9 @@ def spellings(role: str, language: str) -> list[str]:
     return sorted(same)
 
 
-#: 区间写法：只取"干净"的模板。带 `. {n}` 空格的是 OCR 痕迹（`reference.space_inside_number`，
-#: 属于图像层），带单位的由 `unit_at` 另行组合，不在这里重复。
+#: Range wordings: take only "clean" templates. One with a `. {n}` space is an OCR artifact
+#: (`reference.space_inside_number`, which belongs to the image layer); one with a unit is composed
+#: separately via `unit_at` and not duplicated here.
 def _range_dialects() -> list[dict]:
     out = []
     for x in spec.layout()["reference_dialects"]:
@@ -147,8 +153,9 @@ def date_role(label: str) -> str:
 
 
 def date_label_pool(language: str) -> list[dict]:
-    """spec 里的日期标签过闸时只按"至少三份文档出现"筛过，混着 OCR 乱码（叠字）、
-    时间占位（`T:##:##`）、自带冒号的写法与"出生日期"这类不是报告日期的标签。这里再筛一道。"""
+    """spec's date labels were gated only by "appears in at least three documents", so they're mixed in
+    with OCR garbage (doubled characters), time placeholders (`T:##:##`), labels that already carry a
+    colon, and labels like "date of birth" that aren't report dates at all. This filters once more."""
     out: dict[str, int] = {}
     for x in spec.layout()["date_labels"]:
         label = x["value"].rstrip(":：").strip()
@@ -161,10 +168,13 @@ def date_label_pool(language: str) -> list[dict]:
 
 
 def _unit_at_weights() -> dict[str, float]:
-    """没有单位列时，单位印在哪里。权重就是四类单位陷阱在参考集里的**文档率**（resources/hazards.json）：
-    unit.missing → none；unit.glued_to_value → value；unit.glued_to_reference → reference_amp（`&` 相连）；
-    unit.in_header_or_reference_only → reference（空格相连）与 header 按 8.4 : 1 分（表头单位只在整张表
-    同一单位时才成立，实际很少）。四者合计约六成，余下该有单位列——与实测列组里带单位列的份额（约 41%）两相印证。"""
+    """Where the unit prints when there's no unit column. The weights are the four unit-hazard classes'
+    **document rates** in the reference corpus (resources/hazards.json): unit.missing -> none;
+    unit.glued_to_value -> value; unit.glued_to_reference -> reference_amp (joined by `&`);
+    unit.in_header_or_reference_only -> split 8.4:1 between reference (joined by a space) and header
+    (a header-only unit only works when the whole table shares one unit, which is rare in practice).
+    The four together total about 60%; the rest should have a unit column — which checks out against
+    the measured share of column groups that have one (about 41%)."""
     rate = {c["name"]: c["document_rate"] * 100 for c in spec.hazards()["classes"]}
     only = rate.get("unit.in_header_or_reference_only", 9.4)
     return {"none": rate.get("unit.missing", 9.6), "value": rate.get("unit.glued_to_value", 22.0),
@@ -173,8 +183,9 @@ def _unit_at_weights() -> dict[str, float]:
 
 
 def _reference_fill_rate() -> float:
-    """实测列组里没有参考范围列的份额偏高（含一般检查、叙述型报告的列组）。
-    按这个比例给检验单补上参考范围列，使整体缺失率落在真实文档率上。"""
+    """The measured column groups have an inflated share with no reference-range column (it includes
+    column groups for general exams and narrative reports). Top up lab slips with a reference-range
+    column at this rate so the overall absence rate lands on the real document rate."""
     orders = _role_orders()
     total = sum(x["documents"] for x in orders)
     absent = sum(x["documents"] for x in orders if "reference" not in x["value"]) / total
@@ -183,7 +194,8 @@ def _reference_fill_rate() -> float:
 
 
 def _role_orders() -> list[dict]:
-    """实测列组（按角色），只留检验单能用的：有名称有结果，不含导出元数据列与影像所见列。"""
+    """Measured column groups (by role), kept only if usable for a lab slip: has a name and a result,
+    and excludes export-metadata columns and imaging-findings columns."""
     out = []
     for x in spec.layout()["column_sets_by_role"]:
         roles = x["value"]
@@ -200,7 +212,8 @@ def sample_family(rng: random.Random, family_id: str, institution: dict,
         "zh-Hant" if rng.random() < 0.06 else "zh-Hans")
     lang_group = "en" if language == "en" else "zh"
 
-    # 实测列组 + 美式化验单的列组（只给英文机构；两列结果、实验室代码列在中文报告里没有）
+    # Measured column groups, plus US-style lab-slip column groups (English institutions only; two
+    # result columns and a lab-code column don't occur on Chinese reports)
     pool = _role_orders() + [x for x in spec.templates().get("column_sets_extra", []) if x.get("language") == language]
     columns = list(_weighted(rng, pool))
     two_up = columns.count("name") > 1
@@ -209,7 +222,7 @@ def sample_family(rng: random.Random, family_id: str, institution: dict,
     if not two_up and "result_out" not in columns:
         if "seq" not in columns and rng.random() < 0.3:
             columns.insert(0, "seq")
-        if rng.random() < 0.108:                     # value.blank_column 的实测文档率
+        if rng.random() < 0.108:                     # value.blank_column's measured document rate
             columns.insert(rng.randrange(2, len(columns) + 1), rng.choice(["note", "method"]))
         if rng.random() < 0.075:                     # value.multiple_per_row
             columns.insert(columns.index("result") + 1, "previous")
@@ -234,7 +247,7 @@ def sample_family(rng: random.Random, family_id: str, institution: dict,
     flag_at = "column" if "flag" in columns else rng.choices(
         ["none", "glued", "spaced", "paren"], weights=[40, 30, 20, 10])[0]
     if "result_out" in columns:
-        flag_at = "none"                             # 两列结果本身就是标记
+        flag_at = "none"                             # two result columns are themselves the flag
     (hi, lo) = rng.choices([p for p, _ in _FLAG_PAIRS[lang_group]],
                            weights=[w for _, w in _FLAG_PAIRS[lang_group]])[0]
     flag_normal = ""
@@ -296,7 +309,8 @@ def sample_family(rng: random.Random, family_id: str, institution: dict,
 
 
 def jitter(rng: random.Random, f: Family) -> tuple[Family, list[str]]:
-    """同一机构的单份抖动：换了打印批次、改了日期格式、单位大小写漂了。返回改了什么。"""
+    """One file's jitter within the same institution: a different print batch, a changed date format, a
+    drifted unit case. Returns what changed."""
     changes: dict = {}
     if rng.random() < 0.10:
         formats = [x for x in spec.layout()["date_formats"] if _DATE_OK[f.language](x["value"])
@@ -313,8 +327,9 @@ def jitter(rng: random.Random, f: Family) -> tuple[Family, list[str]]:
 
 
 def revised(f: Family, year: int, rate: float = 0.25) -> tuple[Family, list[str]]:
-    """机构的模板会改版（LIS 升级、换了打印模板）。每年以 `rate` 的概率改一版，
-    同一版本内的所有单子长得一样。改版号只由（机构, 年份）决定，与谁去看病无关。"""
+    """An institution's template gets revised (LIS upgrade, a new print template). Each year has a
+    `rate` chance of a new revision; every slip within the same revision looks alike. The revision
+    number depends only on (institution, year), never on who the visit belongs to."""
     version = sum(1 for y in range(2018, year + 1)
                   if random.Random(f"rev:{f.family_id}:{y}").random() < rate)
     if version == 0:
@@ -347,8 +362,9 @@ def revised(f: Family, year: int, rate: float = 0.25) -> tuple[Family, list[str]
 
 
 class Registry:
-    """机构 → 版式家族。家族按需生成（池子有上千家机构，一批语料只用到其中一部分），
-    同一机构无论何时被抽到，版式都一样。"""
+    """Institution -> layout family. Families are generated lazily (the pool has thousands of
+    institutions; a given corpus only uses some of them); whenever the same institution is drawn, its
+    layout is always the same."""
 
     def __init__(self, seed: int):
         self.seed = seed
@@ -358,7 +374,8 @@ class Registry:
         for i, inst in enumerate(self.institutions):
             group = "en" if inst["language"] == "en" else "zh"
             self.pools.setdefault((group, inst["kind"]), []).append(i)
-        # 大客户：中文体检中心、中文医院各一家（对应真实语料里 60 份与 37 份的两个大家族）
+        # Big clients: one Chinese checkup center, one Chinese hospital (matching the real corpus's
+        # two big families of 60 and 37 documents)
         self.big = {"checkup_center": self.pools[("zh", "checkup_center")][0],
                     "hospital": self.pools[("zh", "hospital")][0]}
 

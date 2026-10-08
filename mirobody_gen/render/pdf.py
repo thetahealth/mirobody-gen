@@ -1,14 +1,18 @@
-"""T0：带文本层的 PDF。HTML → PyMuPDF Story 排版，再在页面上补横幅、水印、印章、页码。
+"""T0: PDF with a text layer. HTML laid out by PyMuPDF's Story, with a banner, watermark, stamp and page
+numbers then added directly on the page.
 
-为什么用 PyMuPDF 而不是 reportlab/weasyprint：它已经是 mirobody 读 PDF 的依赖之一，
-自带的 Droid Sans Fallback 字体让输出**不依赖本机字体**（同 seed 逐字节一致的前提），
-而且图像层的栅格化（PDF → 图像 → 劣化）直接接在同一个库上。
+Why PyMuPDF rather than reportlab/weasyprint: it's already one of mirobody's own PDF-reading dependencies,
+its bundled Droid Sans Fallback font makes output independent of local fonts (a precondition for
+byte-identical output at a given seed), and the image tier's rasterization (PDF -> image -> degradation)
+plugs directly into the same library.
 
-一份文件不只是表格：`doc.blocks` 里的键值对、叙述、参数表、图像块、总检按顺序排进 HTML，
-两个标记块（`general_table`、`tables`）决定检验表格插在哪里；`doc.cover` 单独排成封面页，
-合并到最前面。图像块（心电图条图、超声图）通过 Story 的 Archive 以 PNG 字节喂进去。
+A document is more than tables: `doc.blocks`' key-value pairs, narratives, parameter tables, image blocks
+and the summary are laid into the HTML in order; two marker blocks (`general_table`, `tables`) decide where
+the lab tables go; `doc.cover`, when present, is laid out as a separate cover page and merged to the front.
+Image blocks (ECG strips, ultrasound images) are fed in as PNG bytes through the Story's Archive.
 
-确定性：元数据日期取报告日期，不取"现在"；保存时 `no_new_id=True`，否则每次生成一个随机 /ID。
+Deterministic: metadata dates use the report date, never "now"; saving with `no_new_id=True`, or a random
+/ID would be generated every time.
 """
 
 from __future__ import annotations
@@ -28,7 +32,7 @@ BANNER = spec.templates()["banner"]
 
 
 class LayoutError(RuntimeError):
-    """内容排不进页面。不静默出片：宁可报错，也不产出一份被截掉的文件。"""
+    """Content doesn't fit on the page. Never fails silently: better to raise than ship a truncated file."""
 PAGES = {"a4": "a4", "a5l": "a5-l", "letter": "letter"}
 
 
@@ -63,10 +67,11 @@ def _css(doc: Doc) -> str:
     .foot td {{ padding: 6px 18px 0 0; }}
     .disc {{ font-size: {f.font_size - 1}pt; color: #555; padding-top: 4px; }}
     """
-# 只用 padding，不用 margin：MuPDF 的 Story 在带 margin-top 的块恰好落在分页处时会无限重排
-# （2026-09-23 实测：64 行的体检报告排到第 81 页还报告"有剩余"）。render() 里另有页数上限兜底。
+# padding only, never margin: MuPDF's Story reflows forever when a margin-top block lands exactly at a
+# page break (observed 2026-09-23: a 64-row check-up report still reported "more to place" at page 81).
+# render() also carries a page-count ceiling as a backstop.
 
-#: 字体里没有的字符 → 可印的替代（`_check_glyphs` 之前做）。
+#: Characters missing from the font -> a printable substitute (applied before `_check_glyphs`).
 _SUBSTITUTE = {"Ⅰ": "I", "Ⅱ": "II", "Ⅲ": "III", "Ⅳ": "IV", "‰": "‰"}
 
 
@@ -82,8 +87,8 @@ def _table_html(doc: Doc, table) -> str:
 
 def _kv_html(block, colon: str) -> str:
     per = block.columns // 2
-    # 列宽只认 width 属性（Story 不认 CSS 的 td width / min-width，2026-09-29 实测），不给的话
-    # 标签列会被挤成一字一行。
+    # Column width only works through the `width` attribute (Story ignores CSS td width/min-width,
+    # observed 2026-09-29); without it the label column gets squeezed to one character per line.
     kw, vw = ("18%", "32%") if per == 2 else ("22%", "78%")
     cells = [f"<td class='k' width='{kw}'>{_esc(k)}</td><td width='{vw}'>{_esc(v)}</td>" for k, v in block.rows]
     rows = ["<tr>" + "".join(cells[i:i + per]) + "</tr>" for i in range(0, len(cells), per)]
@@ -108,13 +113,16 @@ def _narrative_html(block, colon: str, images: list[tuple[str, bytes]], width_pt
 
 
 def to_html(doc: Doc) -> tuple[str, list[tuple[str, bytes]], list[str]]:
-    """返回 (整页 HTML, [(图像名, PNG 字节)], 顶层片段列表)。
+    """Returns (the whole page as HTML, [(image name, PNG bytes)], the list of top-level fragments).
 
-    片段是排版的单位：`render` 把每个顶层元素当成一个独立的 Story 依次放到页面上（见 `_flow`），
-    而不是把整页交给一个 Story。2026-09-29 实测：一个 Story 跨页时会**静默丢掉**若干块
-    （60 人的语料里 14 本报告书各丢一到两页内容，可读性审计抓到；触发条件与分页位置有关，
-    去掉 padding-top 或换页幅能改变结果但没有一种改法对所有文件都管用）。
-    小块自己很少跨页，跨页的只剩长表格——那条路径一直是稳的。"""
+    A fragment is the unit of layout: `render` places each top-level element as its own Story, one after
+    another (see `_flow`), rather than handing the whole page to a single Story. Observed 2026-09-29: a
+    Story spanning a page break silently drops some of its blocks (in a 60-person corpus, 14 check-up
+    books each lost one or two pages of content, caught by the readability audit; the trigger depends on
+    where the break falls, and removing padding-top or changing the page size shifts the symptom without
+    a fix that works for every file). A small block rarely spans a page on its own; only long tables do,
+    and that path has stayed reliable.
+    """
     f = doc.family
     colon = ": " if f.language == "en" else "："
     width_pt = fitz.paper_rect(PAGES[f.page]).width - 2 * (34 if f.page != "a5l" else 26)
@@ -126,7 +134,7 @@ def to_html(doc: Doc) -> tuple[str, list[tuple[str, bytes]], list[str]]:
         rows = ["<tr>" + "".join(cells[i:i + per_row]) + "</tr>" for i in range(0, len(cells), per_row)]
         parts.append("<table class='subject'>" + "".join(rows) + "</table>")
     elif doc.subject:
-        # 受检者字段已经作为表格行印进了结果表，这里只留姓名一行
+        # subject fields are already printed as table rows in the results table; keep just the name line here
         k, v = doc.subject[0]
         parts.append(f"<div class='dates'>{_esc(k)}{colon}{_esc(v)}</div>")
     if doc.dates:
@@ -208,18 +216,20 @@ _FONT = fitz.Font("cjk")
 
 
 def _check_glyphs(doc: Doc, html_text: str) -> None:
-    """字体里没有的字符会被印成空字符（2026-09-23 实测：`×10⁹/L` 的上标 9 印成了 `\x00`），
-    纸上的东西就和印刷真值对不上了。宁可报错，不静默出片。"""
+    """A character missing from the font prints as a null byte (observed 2026-09-23: the superscript 9 in
+    `×10⁹/L` printed as `\x00`), so what's on the page would no longer match the printed truth. Better to
+    raise than to ship silently."""
     import re as _re
 
     text = _re.sub(r"<[^>]+>", "", html_text)
     missing = sorted({ch for ch in text if not ch.isspace() and ch not in "&;#" and not _FONT.has_glyph(ord(ch))})
     if missing:
-        raise LayoutError(f"{doc.doc_id}: 字体缺字形 {missing!r}")
+        raise LayoutError(f"{doc.doc_id}: font is missing glyphs for {missing!r}")
 
 
 def _qr(page: fitz.Page, rect: fitz.Rect, seed: str) -> None:
-    """一块像二维码的黑白方阵。只是视觉构件（`qr_code` 家具），不编码任何东西。"""
+    """A black-and-white grid that looks like a QR code. A visual prop only (the `qr_code` furniture item),
+    encoding nothing."""
     rng = random.Random(seed)
     n = 17
     cell = rect.width / n
@@ -261,17 +271,19 @@ def _place(html_text: str, css: str, images: list[tuple[str, bytes]], mediabox: 
         story.draw(device)
         writer.end_page()
         pages += 1
-        # Story 遇到放不进一页的元素时会一直报告"还有剩余"却不前进——不设上限就是死循环。
+        # Story reports "more to place" forever without progress when an element can't fit on any page;
+        # without a cap this loops forever.
         if more and (fitz.Rect(filled).is_empty or pages > 80):
-            raise LayoutError(f"{doc_id}: 第 {pages} 页排不下任何内容（filled={filled}）")
+            raise LayoutError(f"{doc_id}: nothing fit on page {pages} (filled={filled})")
     writer.close()
     return buf.getvalue(), pages
 
 
 def _flow(fragments: list[str], css: str, images: list[tuple[str, bytes]], mediabox: fitz.Rect,
           margin: int, doc_id: str, breaks: set[int] = frozenset()) -> tuple[bytes, int]:
-    """逐块排版：每个顶层片段一个 Story，放不下就翻页；同一块跨页时由它自己的 Story 续排。
-    `breaks` 里的片段强制从新页开始（`_flow_verified` 在发现丢内容后加进来的）。"""
+    """Lay out fragment by fragment: one Story per top-level fragment, a new page when it doesn't fit; a
+    fragment spanning a page break continues in its own Story. Fragments in `breaks` are forced onto a
+    fresh page (added by `_flow_verified` once it finds lost content)."""
     archive = fitz.Archive()
     for name, data in images:
         archive.add(data, name)
@@ -291,7 +303,8 @@ def _flow(fragments: list[str], css: str, images: list[tuple[str, bytes]], media
 
     for index, frag in enumerate(fragments):
         fresh = y == top
-        # 剩不到三行就翻页：Story 在极小的剩余矩形里放东西时会把放不下的部分吃掉（2026-09-29 实测）
+        # break to a new page once less than three lines remain: Story drops content that doesn't fit when
+        # placing into a very small remaining rectangle (observed 2026-09-29)
         if (index in breaks or bottom - y < 3.2 * 12) and not fresh:
             new_page()
             fresh = True
@@ -302,7 +315,7 @@ def _flow(fragments: list[str], css: str, images: list[tuple[str, bytes]], media
             filled = fitz.Rect(filled)
             if filled.is_empty or filled.height <= 0:
                 if fresh:
-                    raise LayoutError(f"{doc_id}: 一个块在空白页上排不下任何内容")
+                    raise LayoutError(f"{doc_id}: a block doesn't fit even on a blank page")
                 new_page()
                 fresh = True
                 continue
@@ -314,7 +327,7 @@ def _flow(fragments: list[str], css: str, images: list[tuple[str, bytes]], media
             else:
                 fresh = False
             if pages > 80:
-                raise LayoutError(f"{doc_id}: 超过 80 页")
+                raise LayoutError(f"{doc_id}: over 80 pages")
     writer.end_page()
     writer.close()
     return buf.getvalue(), pages
@@ -334,7 +347,8 @@ def _norm(text: str) -> str:
 
 
 def _lost_fragments(fragments: list[str], pdf_bytes: bytes) -> list[int]:
-    """哪些片段的文字没有全部出现在纸上（按 16 字块查，跨页的页脚插在中间也不影响）。"""
+    """Which fragments' text didn't fully make it onto the page (checked in 16-character chunks, so a
+    page footer inserted in the middle doesn't matter)."""
     with fitz.open("pdf", pdf_bytes) as doc:
         text = _norm("".join(page.get_text() for page in doc))
     lost = []
@@ -351,7 +365,8 @@ def _lost_fragments(fragments: list[str], pdf_bytes: bytes) -> list[int]:
 
 
 def _split_table(fragment: str, rows_per_part: int = 12) -> list[str] | None:
-    """把一张长表拆成几张（各自带表头）。Story 对跨页长表偶尔也会吃行，拆小了就不跨页。"""
+    """Split a long table into several, each with its own header. Story occasionally drops rows from a
+    table that spans a page; splitting it small enough keeps it on one page."""
     import re as _re
 
     m = _re.search(r"^(.*?)(<table class='data'>)(.*)(</table>)(.*)$", fragment, _re.S)
@@ -372,8 +387,10 @@ def _split_table(fragment: str, rows_per_part: int = 12) -> list[str] | None:
 
 def _flow_verified(fragments: list[str], css: str, images: list[tuple[str, bytes]], mediabox: fitz.Rect,
                    margin: int, doc_id: str) -> tuple[bytes, int]:
-    """排完就核对：每个片段的文字都得在纸上。丢了就把那个片段挪到新页重排；还丢就把它（表格）拆小。
-    MuPDF 的 Story 在分页处会静默吃内容，这是唯一可靠的对策——宁可多试几次，不出一份缺页的文件。"""
+    """Lay out, then verify: every fragment's text must be on the page. If some is missing, move that
+    fragment to a fresh page and retry; if it's still missing, split it (a table) smaller. MuPDF's Story
+    silently drops content at page breaks, and this is the only reliable defence -- better to retry a few
+    times than ship a file with missing pages."""
     frags = list(fragments)
     breaks: set[int] = set()
     for attempt in range(16):
@@ -390,16 +407,17 @@ def _flow_verified(fragments: list[str], css: str, images: list[tuple[str, bytes
             frags[index:index + 1] = parts
             breaks = {b if b <= index else b + len(parts) - 1 for b in breaks}
             continue
-        # 已经在新页开头、又不是表格：把它后面的一块也推到新页，改变分页位置
+        # already at the top of a fresh page, and not a table: push the block after it to a new page too,
+        # to shift where the break falls
         if index + 1 < len(frags) and index + 1 not in breaks:
             breaks.add(index + 1)
             continue
-        raise LayoutError(f"{doc_id}: 片段 {index} 反复丢内容：{_text_nodes(frags[index])[:2]!r}")
-    raise LayoutError(f"{doc_id}: 16 次重排后仍有内容丢失")
+        raise LayoutError(f"{doc_id}: fragment {index} keeps losing content: {_text_nodes(frags[index])[:2]!r}")
+    raise LayoutError(f"{doc_id}: still losing content after 16 retries")
 
 
 def render(doc: Doc, reported_iso: str) -> tuple[bytes, int]:
-    """返回 (PDF 字节, 页数)。"""
+    """Returns (PDF bytes, page count)."""
     f = doc.family
     html_text, images, fragments = to_html(doc)
     _check_glyphs(doc, html_text)

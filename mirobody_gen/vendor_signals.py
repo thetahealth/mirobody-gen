@@ -1,25 +1,26 @@
 """Vendor-cloud push payloads: the third data channel for the same synthetic person.
 
-厂商云端推送：同一个虚拟人的第三条数据通道。
+mirobody's `collect/providers/<vendor>` endpoints (`kernel/decoders/{apple,garmin,oura,whoop}.py`)
+accept **each vendor's own raw API objects** — not the phone-health-store batch shape, and every
+vendor's field names, units and time-zone representation differ: Garmin's
+`startTimeOffsetInSeconds` is seconds relative to local midnight, Oura's `bedtime_start` is ISO 8601
+with an offset, WHOOP's energy is in kilojoules, and Apple's
+`HKCategoryTypeIdentifierSleepAnalysis` carries no number at all, only a sleep-stage name.
 
-mirobody 的 `collect/providers/<vendor>` 端点（`kernel/decoders/{apple,garmin,oura,whoop}.py`）
-接收的是**厂商自己 API 的原始对象**——不是手机健康库批量那个形状，字段名、单位、
-时区表示各家都不一样：Garmin 的 `startTimeOffsetInSeconds` 是相对本地午夜的秒数、
-Oura 的 `bedtime_start` 是 ISO 8601 带 offset、Whoop 的能量是 kilojoule、
-Apple 的 `HKCategoryTypeIdentifierSleepAnalysis` 根本没有数字只有分期名。
+These four vendors' decoders **do not reuse** `devices.py`'s crosswalk table: mirobody wrote
+dedicated byte-level parsers for them (`decoders/samples/*/records.json` are their acceptance test
+cases). Testing those parsers at scale requires the same synthetic person to **simultaneously**:
+  - hand in a lab report (the file layer, `corpus.py`)
+  - batch-sync a phone health store (`/api/data`, `devices.py`)
+  - wear a Garmin / Oura / WHOOP directly (this module)
 
-这四个厂商的解码器**不复用** `devices.py` 的 crosswalk 表：mirobody 为他们写了
-专门的 byte-level 解析器（`decoders/samples/*/records.json` 就是验收用例）。要规模化
-测这些解析器，唯一的办法是让同一个虚拟人**同时**：
-  - 交一份化验单（文件层，`corpus.py`）
-  - 批量同步手机健康库（`/api/data`，`devices.py`）
-  - 直接挂一块 Garmin / Oura / Whoop（本模块）
+The payloads re-shape the series devices.jsonl is written from (`devices.series_for`), so a day's
+steps, resting heart rate and sleep are the same number on both channels; `adopted_vendors` decides
+who has which payloads.
 
-三个通道对同一人生理曲线独立观测，才能问出"不同厂商对同一天的 deep sleep 是否
-落到同一行"这种解码一致性问题。
-
-与 `devices.py` 的分工：那边是对公开 crosswalk 表照抄，这边是对
-`decoders/samples/*` 的验收 input 照抄——两条链路的字段名来自不同的上游文档。
+Division of labour with `devices.py`: that module copies a public crosswalk table verbatim; this one
+copies the acceptance-test input shapes under `decoders/samples/*` verbatim — the two pipelines'
+field names come from different upstream documentation.
 """
 
 from __future__ import annotations
@@ -31,12 +32,14 @@ from datetime import date, datetime, timedelta, timezone
 
 from . import model
 
-#: 一人至多挂几块厂商云设备。智表+戒指的组合在真实世界常见（一块 Garmin 运动、
-#: 一枚 Oura 睡眠）,三块以上罕见。
+#: Adoption of each cloud wearable among people who can have one (see `adopted_vendors`); a watch plus
+#: a ring is common, three devices are rare.
 VENDOR_ADOPTION = {"garmin": 0.30, "oura": 0.08, "whoop": 0.05}
+#: The phone stores Garmin, Oura and WHOOP write into (not Huawei Health or Xiaomi).
+CLOUD_STORES = ("apple", "health_connect")
 
-#: 厂商 → 期望落到的 catalogue metric 前缀。真值文件里按这个对账:
-#: 输入谁的字段、预期 mirobody 落到哪个 catalog 指标。
+#: Vendor -> expected catalogue-metric prefixes. The truth file reconciles against this: which
+#: vendor field went in, and which catalogue metric mirobody should resolve it to.
 EXPECTED = {
     "garmin": {
         "dailies": ["dailySteps", "dailyDistance", "dailyCaloriesActive", "dailyCaloriesBasal",
@@ -82,7 +85,7 @@ EXPECTED = {
 
 
 def _by_day(series: dict) -> dict[date, dict[str, list[dict]]]:
-    """把 devices.series_for 的 record 流按本地日期分桶，供按日组装厂商对象。"""
+    """Bucket devices.series_for's record stream by local date, for assembling vendor objects day by day."""
     buckets: dict[date, dict[str, list[dict]]] = {}
     for r in series["records"]:
         day = date.fromisoformat(r["time"][:10])
@@ -91,20 +94,15 @@ def _by_day(series: dict) -> dict[date, dict[str, list[dict]]]:
 
 
 def _local_ms(day: date, tz_off: str, hour: int = 0, minute: int = 0) -> int:
-    """本地某时刻的 unix ms。tz_off 是 '+08:00' 样式。"""
+    """Unix ms for a local time. `tz_off` is styled like '+08:00'."""
     sign = 1 if tz_off[0] == "+" else -1
     oh, om = int(tz_off[1:3]), int(tz_off[4:6])
     local = datetime(day.year, day.month, day.day, hour, minute, tzinfo=timezone.utc)
     return int((local - timedelta(seconds=sign * (oh * 3600 + om * 60))).timestamp() * 1000)
 
 
-def _tz_str(off: str) -> str:
-    """'+08:00' → 'UTC+08:00'。各厂商文档的时区字段写法不同，这里按需组装。"""
-    return f"UTC{off}"
-
-
-# ── Apple HealthKit records(JSON 形式,等 export.xml 时另说)────────────────
-# 对照 mirobody/kernel/decoders/samples/apple/records.json 的 input 形状。
+# ── Apple HealthKit records (JSON shape; export.xml is a separate concern) ─────
+# Matches the input shape of mirobody/kernel/decoders/samples/apple/records.json.
 def _apple_records(person: model.Person, days: dict[date, dict[str, list[dict]]],
                    tz: str, rng: random.Random) -> list[dict]:
     out: list[dict] = []
@@ -126,7 +124,7 @@ def _apple_records(person: model.Person, days: dict[date, dict[str, list[dict]]]
         if "sbp" in bucket and "dbp" in bucket:
             sbp, dbp = bucket["sbp"][0], bucket["dbp"][0]
             t = f"{day.isoformat()} 08:00:00 {apple_off}"
-            # 血压在 Apple 里走 Correlation;XML reader 只解一次、跳过 child record。
+            # Blood pressure goes through a Correlation in Apple's model; the XML reader parses it once and skips the child records.
             out.append({"type": "HKCorrelationTypeIdentifierBloodPressure",
                         "input": {"systolic": str(sbp["value"]), "diastolic": str(dbp["value"]),
                                   "unit": "mmHg", "sourceName": "Cuff",
@@ -158,7 +156,7 @@ def _apple_records(person: model.Person, days: dict[date, dict[str, list[dict]]]
     return out
 
 
-# ── Garmin Health API(dailies / sleeps / bodyComps / activities / pulseOx)──────
+# ── Garmin Health API (dailies / sleeps / bodyComps / activities / pulseOx) ────
 def _garmin_records(person: model.Person, days: dict[date, dict[str, list[dict]]],
                     tz_off: str, rng: random.Random) -> list[dict]:
     out: list[dict] = []
@@ -196,7 +194,7 @@ def _garmin_records(person: model.Person, days: dict[date, dict[str, list[dict]]
                                         {"timestampOffsetInSeconds": 900 * i,
                                          "heartRateInBeatsPerMinute": max(40, int(rhr + rng.gauss(0, 4)))}
                                         for i in range(rng.randint(0, 6))]}})
-        # sleeps(用 devices.py 的 sleep span,Garmin 给睡眠分期 + levels map)
+        # sleeps (reuses devices.py's sleep span; Garmin wants sleep stages plus a levels map)
         if "sleep" in bucket:
             r = bucket["sleep"][0]
             bed = datetime.fromisoformat(r["time"][:19])
@@ -240,7 +238,8 @@ def _garmin_records(person: model.Person, days: dict[date, dict[str, list[dict]]
                                     "bodyWaterInPercent": round(rng.uniform(50, 60), 1),
                                     "boneMassInGrams": int(w_kg * 44),
                                     "muscleMassInGrams": int(w_kg * 440)}})
-        # pulseOx:高血压/呼吸事件期间增加监测(简化:仅慢病人群隔天一次)
+        # pulseOx: more frequent during hypertension/respiratory events (simplified: chronic-disease
+        # archetypes only, roughly every other day)
         if person.archetype in ("hypertension", "osa") and rng.random() < 0.3:
             out.append({"data_type": "pulseOx",
                         "payload": {"summaryId": f"g-o-{day.isoformat()}",
@@ -251,7 +250,7 @@ def _garmin_records(person: model.Person, days: dict[date, dict[str, list[dict]]
     return out
 
 
-# ── Oura Ring v2 API(daily_activity / sleep / daily_spo2 / daily_stress)─────────
+# ── Oura Ring v2 API (daily_activity / sleep / daily_spo2 / daily_stress) ──────
 def _oura_records(person: model.Person, days: dict[date, dict[str, list[dict]]],
                   tz_off: str, rng: random.Random) -> list[dict]:
     out: list[dict] = []
@@ -317,7 +316,7 @@ def _oura_records(person: model.Person, days: dict[date, dict[str, list[dict]]],
     return out
 
 
-# ── Whoop v2 API(cycle / workouts / recovery)─────────────────────────────────
+# ── Whoop v2 API (cycle / workouts / recovery) ─────────────────────────────────
 def _whoop_records(person: model.Person, days: dict[date, dict[str, list[dict]]],
                    tz_off: str, rng: random.Random) -> list[dict]:
     out: list[dict] = []
@@ -339,7 +338,7 @@ def _whoop_records(person: model.Person, days: dict[date, dict[str, list[dict]]]
                                           "average_heart_rate": rhr + 10,
                                           "max_heart_rate": rhr + 85}}})
         if rng.random() < 0.55:
-            # workouts:活动量大的日子才记一次,对标样本里 zone 的分布
+            # workouts: logged only on days with real activity, matching the zone distribution in the sample data
             km = round(rng.gauss(6, 3), 1)
             zones = [60, 120, 600, 900, 1200, 720]
             out.append({"data_type": "workouts",
@@ -370,45 +369,48 @@ def _whoop_records(person: model.Person, days: dict[date, dict[str, list[dict]]]
     return out
 
 
-# ── 总装 ─────────────────────────────────────────────────────────────────────
+# ── assembly ────────────────────────────────────────────────────────────────
 
 BUILDERS = {"apple": _apple_records, "garmin": _garmin_records,
             "oura": _oura_records, "whoop": _whoop_records}
 
-#: 一个人的厂商采用集合(确定性:同人同 seed 同集合)。高血压 + 高血压倾向的人更可能挂设备。
-def adopted_vendors(person: model.Person, seed: int) -> list[str]:
+
+def adopted_vendors(person: model.Person, seed: int, series: dict) -> list[str]:
+    """The payload vendors of a person whose device series is `series`, deterministic in seed and person.
+
+    An Apple Health store is also given in HealthKit JSON (`apple`). Garmin, Oura and WHOOP go only to
+    someone who wears a device and whose store is one those devices write into, so the series already
+    holds that device's steps, resting heart rate and sleep. The hypertension archetype adopts more."""
+    out = ["apple"] if series["vendor"] == "apple" else []
+    if not (series["habits"]["wearable"] and series["vendor"] in CLOUD_STORES):
+        return out
     rng = random.Random(f"vendors:{seed}:{person.person_id}")
     base = {v: p for v, p in VENDOR_ADOPTION.items()}
     if person.archetype == "hypertension":
-        base["garmin"] += 0.25; base["oura"] += 0.08; base["whoop"] += 0.10
-    # 队列里没有"运动人群"原型;hypertension 是唯一明确会主动挂设备的,其余按渗透率走。
-    return [v for v, p in base.items() if rng.random() < p]
+        base["garmin"] += 0.25
+        base["oura"] += 0.08
+        base["whoop"] += 0.10
+    # The cohort has no "athletic" archetype; hypertension is the only one that clearly adopts
+    # devices on purpose, everyone else follows the baseline penetration rate.
+    return out + [v for v, p in base.items() if rng.random() < p]
 
 
 def write_all(out_dir: pathlib.Path, people: list[model.Person], seed: int,
-              langs: dict[str, str], series: dict[str, dict]) -> int:
-    """为每个采用厂商设备的虚拟人输出原始 push payload。
-
-    每人每厂商一个 JSON 文件(payload + input 的数组,可直接喂对应 decoder),
-    真值写在 `vendor_signals.jsonl`。
-    返回生成的文件数。"""
+              langs: dict[str, str]) -> int:
+    """Write one JSON file per person and vendor, ready for that vendor's decoder, and the truth in
+    `vendor_signals.jsonl`. Returns the number of files."""
     from . import devices
 
     root = out_dir / "vendor_signals"
     total_files = 0
     with (out_dir / "vendor_signals.jsonl").open("w", encoding="utf-8") as fh:
         for person in people:
-            adopted = adopted_vendors(person, seed)
+            lang = langs.get(person.person_id, "zh")
+            s = devices.series_for(person, seed, lang)
+            adopted = adopted_vendors(person, seed, s)
             if not adopted:
                 continue
-            lang = langs.get(person.person_id, "zh")
             tz = devices.POPULATION.get(lang, devices._DEFAULT_POPULATION)["tz"]
-            s = series.get(person.person_id)
-            if s is None:
-                # 挂云厂商的人必然戴表/戴戒指,而且这块专用设备(iPhone 同步的健康库)
-                # 才能提供 steps/sleep/rhr——小米/华为路由的字段集没有 sleep。
-                s = devices.series_for(person, seed, lang,
-                                       force_wearable=True, force_vendor="apple")
             days = _by_day(s)
             for vendor in adopted:
                 builder = BUILDERS[vendor]
@@ -422,7 +424,7 @@ def write_all(out_dir: pathlib.Path, people: list[model.Person], seed: int,
                                             "vendor": vendor, "tz": tz, "records": records},
                                            ensure_ascii=False, indent=1) + "\n", encoding="utf-8")
                 total_files += 1
-                # 真值:把每条 record 的 data_type 与期望 catalogue metric 前缀拍平。
+                # Truth: flatten each record's data_type together with its expected catalogue-metric prefixes.
                 truth_rows = []
                 for rec in records:
                     dt = rec.get("data_type") or rec.get("type")

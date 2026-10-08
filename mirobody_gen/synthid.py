@@ -1,15 +1,17 @@
 """Synthetic identifiers (visit, barcode, specimen numbers) with a verifiable checksum tail.
 
-合成编号：门诊号、条码号、标本号。带一个**可验证的校验尾**。
+A lab report always prints some number, and the privacy gate's PII predicate (a visit-number label
+followed by six or more digits) is aimed squarely at that kind of string. Two bad fixes: print no
+number at all (unrealistic — this is exactly the `meta.subject_field_as_indicator` hazard, a number
+mistaken for an indicator), or carve an exemption for `out/` into the gate (which would leave the
+gate purely decorative).
 
-检验单上总要印一串号码，而隐私闸门的 PII 谓词（"门诊号"后面跟六位以上数字）正是冲着这种串去的。
-两个坏办法：不印号码（失真——`meta.subject_field_as_indicator` 这类陷阱就是号码被当成指标），
-或者给闸门开个"out/ 目录不查"的口子（那闸门就只剩装饰作用）。
-
-这里的办法：合成编号的最后三位是前面数字的**带盐哈希**。闸门独立重算一遍
-（`audit/privacy.py` 里另写一份，不 import 这里——同一个函数跑两遍只能确认它自己的盲区），
-对得上才放行，并计数打印。一串真实号码碰巧对上的概率是千分之一；
-而真实号码进入产物还要先躲过 n-gram 回放检测。
+The fix here: the last three digits of a synthetic number are a **salted hash** of the digits before
+them. The gate recomputes that hash independently (`audit/privacy.py` keeps its own copy rather than
+importing this module — running the same function twice would only confirm its own blind spots), and
+only passes a number that checks out, counting and printing the result. A real number matching this
+checksum by chance has roughly a one-in-a-thousand probability, and a real number would first have to
+survive n-gram replay detection to reach the output at all.
 """
 
 from __future__ import annotations
@@ -26,7 +28,8 @@ def checksum(body: str) -> str:
 
 
 def make(rng: random.Random, digits: int = 10, prefix: str = "") -> str:
-    """`digits` 是总位数（含三位校验尾）。`prefix` 是字母前缀，如条码的 `B`。"""
+    """`digits` is the total length including the three-digit checksum tail. `prefix` is a letter
+    prefix, e.g. `B` for a barcode."""
     body = "".join(str(rng.randrange(10)) for _ in range(digits - 3))
     if body[0] == "0":
         body = str(rng.randrange(1, 10)) + body[1:]

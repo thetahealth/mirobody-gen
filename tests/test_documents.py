@@ -35,7 +35,7 @@ class Documents(unittest.TestCase):
             self.assertIn("summary", sections, b["doc_id"])
             self.assertTrue(b["cover"] and b["cover"]["title"], b["doc_id"])
             departments = [s for s in sections if s in ("internal", "surgical", "eye", "ent", "dental", "gyn", "tcm")]
-            # 入职体检只有四个科室，其余套餐至少五个
+            # a pre-employment check-up has only four departments; every other package has at least five
             self.assertGreaterEqual(len(departments), 4 if b["package"] == "entry" else 5, b["doc_id"])
             aux = [s for s in sections if s in ("ecg", "chest_xray", "chest_ct", "abd_us", "thyroid_us", "carotid_us",
                                                   "breast_us", "prostate_us", "gyn_us", "bmd", "hp_breath", "spirometry",

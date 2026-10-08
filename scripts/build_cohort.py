@@ -1,18 +1,21 @@
-"""手写的队列设计 → `resources/cohort.json`。
+"""Hand-authored cohort design -> `resources/cohort.json`.
 
     python3 scripts/build_cohort.py --write
 
-这份是**临床设计**，不是代码细节：哪几种人、各占多少、慢病怎么进展、干预什么时候起效、
-一次就诊开哪些单子。它放在 spec 里而不是埋在 `generator/person.py` 里，有两个理由：
+This is **clinical design**, not code detail: which archetypes exist, their relative
+frequencies, how each chronic condition progresses, when an intervention takes effect, what
+a visit orders. It lives in the spec rather than buried in `generator/person.py` for two
+reasons:
 
-1. 要能被不读 Python 的人审。"他汀让 LDL 降 38%、4–6 周起效"是一条可以被质疑的临床主张，
-   它应该躺在一个能指着看的文件里。
-2. 生成物里会出现这些名字（`iron_deficiency_anemia`、`checkup-center`），
-   而隐私闸门的豁免只认 spec 里声明过的公共词汇——不声明的话，
-   它们会被当成"可能是从真实语料搬来的字符串"报出来。那个报警是对的：
-   闸门不该替任何未经声明的字符串背书。
+1. It must be reviewable by someone who doesn't read Python. "A statin drops LDL by 38%,
+   taking effect in 4-6 weeks" is a falsifiable clinical claim; it belongs in a file anyone
+   can point at.
+2. Names such as `iron_deficiency_anemia` and `checkup-center` show up in generated output,
+   and the privacy gate's exemption only recognizes public vocabulary declared in the spec --
+   anything undeclared gets flagged as a possible string lifted from the real corpus. That
+   flag is correct: the gate should never vouch for an undeclared string on its own.
 
-`generator/person.py` 从这里读，不再自己持有一份。
+`generator/person.py` reads from here rather than keeping its own copy.
 """
 
 from __future__ import annotations
@@ -25,12 +28,14 @@ REPO = pathlib.Path(__file__).resolve().parent.parent
 RESOURCES = REPO / "mirobody_gen" / "resources"
 
 
-#: 医嘱 → 指标键。子集是手写的，因为"肾功能五项"不是一个可以从套餐名推出来的东西。
+#: Order set -> indicator keys. Hand-written because "five-item renal panel" isn't something
+#: derivable from a package name.
 #:
-#: 2026-09-29 审查后分了档：真实体检报告不会在基础套餐里印载脂蛋白、脂蛋白(a)、胱抑素 C、
-#: 糖化白蛋白这些项目，也不会印呼吸频率（那是病房和门诊的生命体征）。
-#: `checkup_basic / standard / premium` 是三档套餐的检验部分；科室与辅助检查在
-#: `resources/narratives.json` 的 `packages` 里，同名对应。
+#: Tiered after a 2026-09-29 review: a real check-up report would not print apolipoprotein,
+#: lipoprotein(a), cystatin C or glycated albumin in a basic package, nor respiratory rate
+#: (that's an inpatient/outpatient vital sign, not a check-up one). `checkup_basic / standard
+#: / premium` are the lab portion of the three package tiers; departments and imaging/other
+#: investigations are under `packages` in `resources/narratives.json`, matched by name.
 ORDERS: dict[str, list[str]] = {
     "cbc": ["wbc", "rbc", "hgb", "hct", "mcv", "mch", "mchc", "rdw", "plt", "mpv",
             "pdw", "pct", "neut_pct", "lymph_pct", "mono_pct", "eos_pct", "baso_pct",
@@ -47,7 +52,7 @@ ORDERS: dict[str, list[str]] = {
     "lipid_full": ["chol", "tg", "hdl", "ldl", "nonhdl", "apoa1", "apob", "lpa"],
     "glucose_basic": ["glu"],
     "glucose": ["glu", "hba1c"],
-    "glucose_ext": ["glu", "hba1c", "ga"],           # 内分泌门诊偶尔加做糖化白蛋白
+    "glucose_ext": ["glu", "hba1c", "ga"],           # endocrinology occasionally adds glycated albumin
     "thyroid_basic": ["tsh", "ft3", "ft4"],
     "thyroid": ["tsh", "ft3", "ft4", "tt3", "tt4", "tpoab"],
     "urinalysis": ["urine_sg", "urine_ph", "urine_pro", "urine_glu", "urine_bld",
@@ -58,18 +63,19 @@ ORDERS: dict[str, list[str]] = {
     "cardiac": ["ldh", "ck", "ckmb"],
     "tumor": ["afp", "cea", "psa", "ca125"],
     "vitals": ["height", "weight", "bmi", "waist", "sbp", "dbp", "pulse"],
-    "vitals_clinic": ["temp", "pulse", "resp", "spo2", "sbp", "dbp", "weight"],   # 门诊病历的体格检查行
+    "vitals_clinic": ["temp", "pulse", "resp", "spo2", "sbp", "dbp", "weight"],   # the clinic-note vitals line
     "ecg": ["pulse", "pr_interval", "qrs_duration", "qtc", "qrs_axis"],
     "vitamin": ["vitd", "hcy"],
-    # ── 2026-09-29 扩充：主流套餐里常见、原目录没有的组 ──
-    # 出处：《健康体检基本项目专家共识（2022）》的"1+X"备选项目目录、各大体检中心公开套餐目录、
-    # 日本人間ドック基本检查项目、Quest/Labcorp 公开样例报告。
+    # ── 2026-09-29 addition: groups common in mainstream packages, missing from the original set ──
+    # Sources: the "1+X" optional-item catalogue in the Expert Consensus on Basic Health
+    # Check-up Items (2022), published package catalogues from major check-up centres, the
+    # basic items of Japan's ningen dock, and public sample reports from Quest/Labcorp.
     "liver_full": ["alt", "ast", "alp", "ggt", "tp", "alb", "glb", "ag_ratio",
                    "tbil", "dbil", "ibil", "tba", "che", "pa"],
     "pancreas": ["amy", "lps"],
     "renal_early": ["umalb", "uacr", "b2mg"],
     "glucose_full": ["glu", "hba1c", "insulin", "cpep"],
-    "glucose_ogtt": ["glu", "ogtt2h", "hba1c"],            # 内分泌门诊的糖耐量
+    "glucose_ogtt": ["glu", "ogtt2h", "hba1c"],            # the endocrinology glucose-tolerance test
     "thyroid_full": ["tsh", "ft3", "ft4", "tt3", "tt4", "tpoab", "tgab", "tg_protein"],
     "coagulation": ["pt", "inr", "aptt", "tt", "fib"],
     "coagulation_full": ["pt", "inr", "aptt", "tt", "fib", "ddimer"],
@@ -88,9 +94,11 @@ ORDERS: dict[str, list[str]] = {
     "body_composition": ["body_fat", "visceral_fat", "muscle_mass", "bmr"],
     "echo": ["lvedd", "ivs", "la", "lvef", "ea"],
 }
-#: 五档套餐的检验部分。`entry` 是入职体检（用人单位不得要求乙肝项目，所以没有肝炎标志物），
-#: `senior` 是老年人健康体检（国家基本公共卫生服务规范第三版的"健康体检"项目），
-#: 其余三档是体检中心自费套餐的常见配置。
+#: The lab portion of the five package tiers. `entry` is a pre-employment exam (employers may
+#: not require hepatitis B testing, so no hepatitis markers); `senior` is the older-adult
+#: exam (the "health examination" items in the National Basic Public Health Service Norms,
+#: 3rd edition); the remaining three tiers are common configurations of self-pay check-up
+#: center packages.
 CHECKUP_PACKAGES: dict[str, list[str]] = {
     "entry": ["vitals", "cbc", "urinalysis", "liver_basic", "renal_basic", "glucose_basic", "blood_type"],
     "senior": ["vitals", "cbc", "urinalysis", "liver_basic", "renal_basic", "glucose_basic", "lipid_basic"],
@@ -107,10 +115,12 @@ for _tier, _groups in CHECKUP_PACKAGES.items():
                                   {k2 for g2 in _groups[:_groups.index(g)] for k2 in ORDERS[g2]}]
 ORDERS["checkup"] = ORDERS["checkup_standard"]
 
-#: 原型 = (人数, 基线偏移, 年趋势, 常规复查的医嘱, 复查间隔月数, 事件剧本名)
+#: Archetype = (headcount, baseline shift, annual trend, routine follow-up orders, follow-up
+#: interval in months, event script name).
 #:
-#: 基线偏移是**相对参考区间中心的倍数**：`{"glu": 1.25}` 表示这个人的空腹血糖
-#: 比一般人高 25%。趋势是每年的相对变化。
+#: The baseline shift is a **multiplier on the reference-range center**: `{"glu": 1.25}` means
+#: this person's fasting glucose runs 25% above the typical value. Trend is the relative
+#: change per year.
 ARCHETYPES: list[dict] = [
     {"name": "healthy", "n": 18, "shift": {}, "trend": {},
      "followup": [], "interval": 0, "script": None},
@@ -123,9 +133,10 @@ ARCHETYPES: list[dict] = [
      "shift": {"chol": 1.35, "ldl": 1.45, "tg": 1.6, "hdl": 0.82, "bapwv_l": 1.08},
      "trend": {}, "followup": ["lipid"], "interval": 6, "script": "statin"},
     {"name": "iron_deficiency_anemia", "n": 5,
-     # 偏移打在**独立变量**上：缺铁是小细胞低色素性贫血，MCV 与 MCH 降、
-     # 红细胞计数轻度降，于是血红蛋白与压积由恒等式自然跟着降。
-     # 直接压血红蛋白是压不出自洽的血常规的。
+     # The shift is applied to the **independent variables**: iron deficiency is a
+     # microcytic, hypochromic anemia, so MCV and MCH drop along with a mild fall in red
+     # cell count; hemoglobin and hematocrit then follow from the identities that derive
+     # them. Pushing hemoglobin down directly cannot produce a self-consistent CBC.
      "shift": {"rbc": 0.90, "mcv": 0.82, "mchc": 0.93, "ferritin": 0.25, "serum_iron": 0.45},
      "trend": {}, "followup": ["cbc", "anemia"], "interval": 4, "script": "iron"},
     {"name": "thyroid_disorder", "n": 5,
@@ -144,8 +155,8 @@ ARCHETYPES: list[dict] = [
      "trend": {"bapwv_l": 0.01}, "followup": ["vitals_clinic"], "interval": 6, "script": "antihypertensive"},
 ]
 
-#: 事件剧本。每条 = (名称, 类型, 效应, 健康影响, 强度)
-#: 效应：指标键 → (相对幅度, 起效天数, 半衰期天数或 None)
+#: Event scripts. Each entry = (name, type, effect direction, health impact, strength).
+#: Effects: indicator key -> (relative magnitude, days to onset, half-life in days or None)
 SCRIPTS: dict[str, dict] = {
     "metformin": {
         "name": "开始二甲双胍", "type": "medication", "effect": "positive", "impact": "high",
@@ -154,14 +165,15 @@ SCRIPTS: dict[str, dict] = {
     },
     "statin": {
         "name": "开始他汀治疗", "type": "medication", "effect": "positive", "impact": "high",
-        # LDL 的阶跃在 4–6 周内完成，这是他汀的药效学事实，也是"起效延迟"这个
-        # 参数存在的理由：当天开药、当天复查是看不到变化的。
+        # The LDL step completes over 4-6 weeks -- a pharmacodynamic fact about statins, and
+        # the reason the "onset delay" parameter exists at all: a same-day prescription and
+        # same-day recheck would show no change.
         "effects": {"ldl": (-0.38, 35, None), "chol": (-0.26, 35, None),
                     "tg": (-0.12, 35, None), "alt": (0.15, 60, 180)},
     },
     "iron": {
         "name": "开始补铁治疗", "type": "medication", "effect": "positive", "impact": "medium",
-        # 同理：作用在 MCV/MCH/RBC 上，血红蛋白与压积跟着涨。
+        # Same logic: the effect acts on MCV/MCH/RBC, and hemoglobin and hematocrit rise with them.
         "effects": {"rbc": (0.08, 60, None), "mchc": (0.05, 75, None),
                     "mcv": (0.12, 90, None), "ferritin": (1.6, 90, None),
                     "serum_iron": (0.8, 45, None)},
@@ -182,7 +194,7 @@ SCRIPTS: dict[str, dict] = {
     },
 }
 
-#: 每个人都可能遇到的一次性事件（与原型无关）。
+#: One-off events anyone might encounter (independent of archetype).
 INCIDENTS: list[dict] = [
     {"name": "急性上呼吸道感染", "type": "health_event", "effect": "negative", "impact": "medium",
      "duration": 10,
@@ -204,11 +216,12 @@ INCIDENTS: list[dict] = [
                  "weight_kg": (-0.05, 120, None)}},
 ]
 
-#: 原型 → 诊断（SNOMED CT）。
+#: Archetype -> diagnosis (SNOMED CT).
 #:
-#: 这一层是为了接种子层留的**接缝**：PySynthea / Synthea 直接给 SNOMED 诊断，
-#: 到时候这张表换成"诊断 → 指标偏移"的反向查表即可，原型这个概念会退役。
-#: 现在先正着写，是因为我们自己的队列是从原型出发的。
+#: This layer is a **seam left for a future seeding layer**: PySynthea / Synthea emit SNOMED
+#: diagnoses directly, and this table can then flip into a "diagnosis -> indicator shift"
+#: lookup, retiring the archetype concept. It's written forward for now because our own
+#: cohort starts from archetypes.
 ARCHETYPE_CONDITIONS: dict[str, list[dict]] = {
     "healthy": [],
     "prediabetes_to_t2dm": [{"code": "44054006", "display": "2型糖尿病"}],
@@ -220,16 +233,18 @@ ARCHETYPE_CONDITIONS: dict[str, list[dict]] = {
     "hypertension": [{"code": "38341003", "display": "高血压"}],
 }
 
-#: 诊断标准：**值达到什么程度，就必须有对应的诊断**。
+#: Diagnostic criteria: **once a value crosses this line, the matching diagnosis must exist**.
 #:
-#: 这是临床审计第五类检查的依据。它抓的是一种两边都犯过的不自洽：
-#: 文件上印着 HbA1c 7.2%，而这个人的诊断集合里没有糖尿病——那在纸面上就是
-#: 一个没被诊断的糖尿病人。ESL-Bench（LLM 生成值，不受诊断约束）与 Synthea
-#: （模块里 {low,high} 均匀抽样）各自都会产生这种病历。
+#: This backs the clinical audit's fifth check class. It catches an inconsistency both ESL-Bench
+#: and Synthea have independently produced: a chart printing HbA1c 7.2% for a person whose
+#: diagnosis set has no diabetes -- an undiagnosed diabetic on paper. ESL-Bench generates
+#: values with no diagnostic constraint; Synthea's modules sample {low, high} uniformly.
 #:
-#: `persistence` 是需要连续几次就诊都满足才算数。写 1 会让审计被单次噪声刷屏——
-#: 参考区间本身就是 95% 区间，健康人偶尔越界是常态，不是漏诊。
-#: 阈值全部取自各自的诊断指南，不是我拍的。
+#: `persistence` is how many consecutive visits must meet the criterion before it counts.
+#: Setting it to 1 would flood the audit with single-visit noise -- a reference range is
+#: itself a 95% interval, so healthy people occasionally fall outside it; that's normal, not
+#: a missed diagnosis. All thresholds come from their respective diagnostic guidelines, not
+#: from guesswork.
 DIAGNOSTIC_CRITERIA: list[dict] = [
     {"condition": {"code": "44054006", "display": "2型糖尿病"},
      "any_of": [{"key": "hba1c", "op": ">=", "value": 6.5},
@@ -278,8 +293,8 @@ def main() -> None:
                         "archetypes": len(ARCHETYPES),
                         "people": sum(a["n"] for a in ARCHETYPES),
                         "orders": len(ORDERS)},
-        # 这些名字会出现在 manifest 里，所以要声明成公共词汇，否则隐私闸门会（正确地）
-        # 把它们当成来历不明的字符串报出来。
+        # These names show up in the manifest, so they must be declared as public vocabulary --
+        # otherwise the privacy gate will (correctly) flag them as strings of unknown origin.
         "_vocabulary_fields": ["orders", "checkup_packages", "archetypes", "scripts", "incidents", "regions",
                                "name", "type", "effect", "impact", "followup", "script",
                                "exam_locations", "detection_methods",
@@ -296,15 +311,15 @@ def main() -> None:
         "detection_methods": ["laboratory", "Imaging", "Physiological", "Pathological", "wearable"],
     }
     total = sum(a["n"] for a in ARCHETYPES)
-    print(f"原型 {len(ARCHETYPES)} 种 · 共 {total} 人 · 医嘱 {len(ORDERS)} 套 · "
-          f"剧本 {len(SCRIPTS)} 个 · 随机事件 {len(INCIDENTS)} 个")
+    print(f"{len(ARCHETYPES)} archetypes · {total} people · {len(ORDERS)} order sets · "
+          f"{len(SCRIPTS)} scripts · {len(INCIDENTS)} random incidents")
     for a in ARCHETYPES:
-        print(f"  {a['name']:<24}{a['n']:>3} 人  复查 {'/'.join(a['followup']) or '（无）':<16}"
-              f"剧本 {a['script'] or '（无）'}")
+        print(f"  {a['name']:<24}{a['n']:>3} people  follow-up {'/'.join(a['followup']) or '(none)':<16}"
+              f"script {a['script'] or '(none)'}")
     if args.write:
         out = RESOURCES / "cohort.json"
         out.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
-        print(f"\n已写出 {out}")
+        print(f"\nWrote {out}")
 
 
 if __name__ == "__main__":

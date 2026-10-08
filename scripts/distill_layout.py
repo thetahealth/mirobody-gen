@@ -1,26 +1,32 @@
-"""把真实语料的版式观察蒸馏成 `resources/layout.json`。
+"""Distill the real corpus's layout observations into `resources/layout.json`.
 
-    python3 scripts/distill_layout.py              # 报告 + 丢弃清单，不写文件
-    python3 scripts/distill_layout.py --write      # 写 resources/layout.json
-    python3 scripts/distill_layout.py --dropped 40 # 看被白名单挡掉的是什么
+    python3 scripts/distill_layout.py              # report + drop list, doesn't write a file
+    python3 scripts/distill_layout.py --write      # write resources/layout.json
+    python3 scripts/distill_layout.py --dropped 40 # see what the allowlist blocked
 
-输入是 `analysis/*.json`（627 份真实文档的版式观察）。输出是渲染器要用的**形态**：
-列组与列序、参考值方言、标记方言、日期标签与字面格式、页面构件种类、叙述段标签、
-以及页数/行数/语言的分布。
+The input is `analysis/*.json` (layout observations from 627 real documents). The output is
+the **shape** the renderer needs: column groups and ordering, reference-value dialects, flag
+dialects, date labels and literal formats, the kinds of page furniture, narrative-block
+labels, and the distribution of page count / row count / language.
 
-## 过闸（docs/zh-CN/plan.md §4.2）
+## Gating (docs/zh-CN/plan.md §4.2)
 
-1. **文档数 ≥ 3**：只出现一两次的串最可能是某台仪器、某个批号、某家机构。
-2. **白名单，不是黑名单**：列头必须能映射到一个已知**角色**（name/result/unit/reference/
-   flag/…），映射不上的整条列组丢弃。这条不是洁癖——实测 n≥3 的"列头"里混着
-   `葡萄糖`/`肌酐`/`白细胞计数`（转置表把指标放到了列上）、`«NAME»`（脱敏占位符）、
-   以及 `联系电话` 这种真实表单字段。黑名单永远追不上这些。
-3. **模板化而不是实例化**：参考值方言存成 `{lo}--{hi}{unit}` 这样的模板，
-   数字由我们自己的临床 spec 填；日期存成字面格式而不是某个日期。
-4. **带 source 标签**：输出的每一块都标 `format-token`，审计会检查。
+1. **Document count >= 3**: a string seen only once or twice is most likely a particular
+   instrument, batch number or institution.
+2. **An allowlist, not a denylist**: a column header must map to a known **role**
+   (name/result/unit/reference/flag/...), and the whole column group is dropped if it
+   doesn't. This isn't fastidiousness -- the "column headers" observed with n>=3 include
+   things like glucose/creatinine/WBC-count (a transposed table puts indicators on columns),
+   `«NAME»` (a redaction placeholder), and real form fields like a phone-number column. A
+   denylist can never keep up with these.
+3. **Templatize, don't instantiate**: a reference-value dialect is stored as a template like
+   `{lo}--{hi}{unit}`, with numbers filled in from our own clinical spec; a date is stored as
+   its literal format, not a specific date.
+4. **Tagged with a source**: every block of output is marked `format-token`, which the audit checks.
 
-被挡掉的东西会打印出来（`--dropped`）。**丢了什么要看得见**，否则白名单会悄悄把
-某一整类真实版式挡在门外，而这种损失在输出里只表现为"生成的报告没那么多样"。
+What gets blocked is printed out (`--dropped`). **What's lost must be visible**, or the
+allowlist can silently shut an entire class of real layouts out, and that loss would only
+show up in the output as "the generated reports aren't as diverse."
 """
 
 from __future__ import annotations
@@ -36,9 +42,10 @@ REPO = pathlib.Path(__file__).resolve().parent.parent
 RESOURCES = REPO / "mirobody_gen" / "resources"
 MIN_DOCS = 3
 
-# ── 列头白名单：拼写 → 角色 ──────────────────────────────────────
-# 逐条人工审过。角色是渲染器真正需要的东西：它要知道这一列放什么，而不是它叫什么。
-# 同一角色下的多种拼写就是"版式多样性"的一部分，全部保留。
+# ── Column-header allowlist: spelling -> role ───────────────────────
+# Reviewed entry by entry. A role is what the renderer actually needs: what this column holds,
+# not what it's called. The several spellings under one role are themselves part of "layout
+# diversity" and are all kept.
 COLUMN_ROLES: dict[str, str] = {}
 
 
@@ -79,22 +86,26 @@ _role("category", "分类", "类别", "科室", "科别", "组别", "Category", 
       "一级目录（中文）", "一级目录（英文）", "二级目录（中文）", "二级目录（英文）",
       "一级目录", "二级目录", "三级目录")
 _role("date", "日期", "检查日期", "报告日期", "采样日期", "Date", "Collected", "Reported")
-# 转置导出（产线 xlsx，157 份）的列：一行是一次检查，列是元信息 + 指标名。
-# 这四个列头各出现在约 90 份文档里，第一版白名单把它们整条丢掉了，等于把最大的一类
-# 真实版式挡在门外。列**标签**是结构，可以留；列里的**内容**（真实机构名、真实文件名，
-# 而真实文件名形如 `<姓名>_体检报告_<日期>_<体检号>.pdf`）由生成器自己合成。
+# Columns from the transposed export (the pipeline's xlsx, 157 documents): one row is one
+# examination, and the columns are metadata + indicator names. Each of these four headers
+# appears in about 90 documents; the first-version allowlist dropped them wholesale, shutting
+# out the single largest class of real layouts. The column **label** is structure and can
+# stay; the **content** of the column (a real institution name, a real filename -- a real
+# filename looks like `<name>_checkup-report_<date>_<checkup-id>.pdf`) is synthesized by the
+# generator itself.
 _role("meta_facility", "机构名称", "医院名称", "送检机构", "Facility", "Institution")
 _role("meta_filename", "文件名称", "文件名", "File", "Filename", "File Name")
 _role("meta_report_time", "报告时间", "报告时间（Report Time）", "Report Time", "ReportTime")
 _role("meta_checkup", "体检", "是否体检", "体检标记")
-# 骨密度报告：T 值/Z 值是标准列，不是指标名。
+# Bone-density reports: T-score/Z-score are standard columns, not indicator names.
 _role("tscore", "T值", "T-score", "T Score", "T值(T-score)")
 _role("zscore", "Z值", "Z-score", "Z Score")
 _role("bmd", "骨密度", "BMD", "骨密度值")
 _role("result", "检测值", "测量值", "本次结果", "Measured Value")
 _role("reference", "REF.RANGE", "REF RANGE", "参考值(范围)", "参考值范围(Reference)")
 
-#: 标记方言白名单。生成器要用它来渲染"异常"这件事，所以只收真的是标记的东西。
+#: Flag-dialect allowlist. The generator uses this to render "abnormal," so only things that
+#: are genuinely flags belong here.
 FLAG_MARKERS = {
     "↑", "↓", "⇑", "⇓", "▲", "▼", "H", "L", "h", "l", "HH", "LL", "*", "**", "+", "++",
     "+++", "-", "±", "高", "低", "偏高", "偏低", "升高", "降低", "正常", "异常", "阴性",
@@ -102,8 +113,9 @@ FLAG_MARKERS = {
     "危急", "复查",
 }
 
-#: 页面构件分类：只记**种类**，不记字面。实测的字面里有
-#: `RJ-QR-46-16`、`总院【XN-2000】血常`、`Run: 20693-20` 这类仪器/批次/院区串。
+#: Page-furniture classification: records only the **kind**, never the literal text. Observed
+#: literals include instrument/batch/branch strings such as an equipment code, a headquarters
+#: institution tag with a bracketed model number, or a run identifier.
 FURNITURE_KINDS: list[tuple[str, tuple[str, ...]]] = [
     ("page_number", ("第", "页", "共", "page", "Page", "/", "頁")),
     ("print_info", ("打印", "print", "Print", "打印次数", "打印时间")),
@@ -120,7 +132,7 @@ FURNITURE_KINDS: list[tuple[str, tuple[str, ...]]] = [
     ("logo", ("logo", "Logo", "LOGO", "标识")),
 ]
 
-#: 文档类型分类：把 627 条自由文本 doc_kind 收敛成有限集合。
+#: Document-type classification: collapses 627 free-text doc_kind values into a finite set.
 DOC_KINDS: list[tuple[str, tuple[str, ...]]] = [
     ("checkup_book", ("体检报告", "健康体检", "體檢", "checkup", "check-up", "physical examination",
                       "health examination", "体检")),
@@ -152,9 +164,10 @@ DOC_KINDS: list[tuple[str, tuple[str, ...]]] = [
     ("blood_gas", ("血气", "blood gas", "动脉血")),
 ]
 
-#: 语言归一化。分析器写了 9 种写法，其中 4 种是同一件事
-#: （繁體中文 / 繁体中文 / Chinese (Traditional) / Traditional Chinese）。
-#: 原样透传会让采样器按错的分布抽语言——这与 unit_location 是同一类错。
+#: Language canonicalization. The analyzer produced 9 spellings, 4 of which are the same
+#: thing: the simplified- and traditional-script labels for "Traditional Chinese" below, plus
+#: its two English spellings. Passing them through unchanged would make the sampler draw
+#: languages from the wrong distribution -- the same class of error as unit_location.
 LANGUAGE_CANON: dict[str, str] = {
     "简体中文": "zh-Hans", "中文": "zh-Hans", "Chinese": "zh-Hans",
     "Simplified Chinese": "zh-Hans", "Chinese (Simplified)": "zh-Hans",
@@ -164,9 +177,11 @@ LANGUAGE_CANON: dict[str, str] = {
     "日本語": "ja", "Japanese": "ja",
 }
 
-#: 单位位置：把分析器写的 28 种自由文本（"third column"、"第三列"、"单位 column"、
-#: "inside '检查结果' column, after value with space"…）收敛成渲染器真正要的五种。
-#: 原样透传是不行的：那既是散文也是别人对真实文档的描述，隐私闸门会（正确地）报警。
+#: Unit location: collapses the analyzer's 28 free-text forms ("third column", a Chinese
+#: equivalent of "column 3", "unit column" in Chinese, "inside the result column, after the
+#: value with a space"...) into the five the renderer actually needs. Passing them through
+#: unchanged won't work: that's prose, and someone else's description of a real document,
+#: which the privacy gate would (correctly) flag.
 UNIT_LOCATIONS: list[tuple[str, tuple[str, ...]]] = [
     ("in_reference", ("reference", "参考", "range")),
     ("in_value_cell", ("embedded", "value cell", "in value", "result column", "检查结果",
@@ -177,11 +192,12 @@ UNIT_LOCATIONS: list[tuple[str, tuple[str, ...]]] = [
     ("none", ("none", "n/a", "not applicable", "无", "没有", "empty")),
 ]
 
-#: 日期字面格式白名单：必须由日期/时间占位符与常见分隔符组成。
-#: 这条挡掉 `«D:####-##-##»`（脱敏占位符）与 `unknown`。
+#: Date literal-format allowlist: must be composed only of date/time placeholders and common
+#: separators. This blocks `«D:####-##-##»` (a redaction placeholder) and `unknown`.
 DATE_FORMAT_RE = re.compile(r"^[YMDHhms年月日时分秒/.\-: ]+$")
 
-#: 列头本身是日期时的形状：脱敏占位符 `«D:####年##月»`，或字面日期 `2024年3月`、`2024-03`。
+#: The shape of a column header that is itself a date: a redaction placeholder of the form
+#: `«D:####» + year/month markers`, or a literal date such as "2024, month 3" or `2024-03`.
 DATE_COLUMN_RE = re.compile(
     r"^«?D?:?[#\d]{2,4}[-/年][#\d]{1,2}([-/月][#\d]{1,2})?[日]?»?$")
 
@@ -190,9 +206,11 @@ def normalize_label(text: str) -> str:
     return re.sub(r"\s+", "", str(text)).strip()
 
 
-#: 指标名词表。转置表把指标放在列上，所以"这个列头是不是一个指标名"必须回答得了。
-#: 词表从 `indicator_rows[].name` 收集（医学词汇，不是个人信息），出现在 ≥3 份文档才收。
-#: 这样"葡萄糖""肌酐"作为列头是合法的 analyte 角色，而"张三"不会是。
+#: Indicator-name vocabulary. A transposed table puts indicators on columns, so the question
+#: "is this column header an indicator name" must be answerable. The vocabulary is collected
+#: from `indicator_rows[].name` (medical terminology, not personal information), and only
+#: accepted once it appears in >=3 documents. That way "glucose" or "creatinine" is a
+#: legitimate analyte role as a column header, while a person's name is not.
 ANALYTE_NAMES: set[str] = set()
 
 
@@ -212,14 +230,15 @@ def role_of(label: str) -> str | None:
     lab = normalize_label(label)
     if lab in COLUMN_ROLES:
         return COLUMN_ROLES[lab]
-    # 大小写不敏感地再试一次（Unit / UNIT / unit）
+    # Retry case-insensitively (Unit / UNIT / unit)
     for spelling, role in COLUMN_ROLES.items():
         if spelling.lower() == lab.lower():
             return role
     if lab in ANALYTE_NAMES:
         return "analyte"
-    # 列头本身就是一个日期（转置导出里"一列 = 一次检查"）。实测里它是脱敏后的
-    # `«D:####年##月»`，原件是 `2024年3月` 这样的月份。
+    # The column header is itself a date (in a transposed export, "one column = one
+    # examination"). As observed it's the redacted year/month placeholder matched by
+    # DATE_COLUMN_RE; the original is a plain year-and-month value.
     if DATE_COLUMN_RE.match(lab):
         return "date_column"
     return None
@@ -234,11 +253,12 @@ def classify(text: str, table: list[tuple[str, tuple[str, ...]]]) -> str | None:
 
 
 def templatize_reference(example: str) -> str | None:
-    """`3.5--9.5x10^9/L` → `{n}--{n}x10^9/L`：留方言，去数字。"""
+    """`3.5--9.5x10^9/L` -> `{n}--{n}x10^9/L`: keep the dialect, strip the numbers."""
     if not example or len(example) > 40:
         return None
-    # 含脱敏占位符的例子整条丢：`{n}.«D:####-#».{n}mIU/L` 这种模板留在 spec 里，
-    # 等于把语料的加工痕迹当成了一种真实的参考值方言。
+    # Drop any example containing a redaction placeholder outright: a template like
+    # `{n}.«D:####-#».{n}mIU/L` surviving into the spec would treat a corpus de-identification
+    # artifact as a real reference-value dialect.
     if "«" in example or "»" in example:
         return None
     t = re.sub(r"\d+(?:\.\d+)?", "{n}", str(example).strip())
@@ -246,11 +266,14 @@ def templatize_reference(example: str) -> str | None:
 
 
 def _fold_label(label: str, role: str | None = None) -> str:
-    """列头折叠：指标列与日期列都收敛成占位符，只有已知角色的列头才留字面。
+    """Column-header folding: both indicator and date columns collapse to placeholders; only
+    a column header with a known role keeps its literal text.
 
-    未知列头**不折叠成 {analyte} 而是原样保留**，再由上层 n≥3 的闸门决定去留——
-    第一版把未知列头也折进 {analyte}，结果脱敏占位符 `«D:####-##-##»` 被当成指标名
-    混进了 spec，被隐私闸门当场抓到。折叠是为了压噪声，不是为了掩盖没看懂的东西。
+    An unknown column header is **kept as-is rather than folded into {analyte}**, leaving
+    the n>=3 gate upstream to decide whether it survives -- the first version folded unknown
+    headers into {analyte} too, and a redaction placeholder `«D:####-##-##»` slipped into the
+    spec disguised as an indicator name, caught on the spot by the privacy gate. Folding is
+    meant to suppress noise, not to hide something we don't understand.
     """
     role = role or role_of(label)
     if role == "analyte" or label in ANALYTE_NAMES:
@@ -263,7 +286,7 @@ def _fold_label(label: str, role: str | None = None) -> str:
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--write", action="store_true")
-    ap.add_argument("--dropped", type=int, default=0, help="打印前 N 个被挡掉的列头")
+    ap.add_argument("--dropped", type=int, default=0, help="print the first N column headers that were blocked")
     args = ap.parse_args()
 
     global ANALYTE_NAMES
@@ -303,11 +326,14 @@ def main() -> None:
             if not cols:
                 continue
             roles = [role_of(c) for c in cols]
-            # 转置导出的上下文接纳：一张表里已经有 ≥2 个元信息列（机构名称/报告时间/
-            # 文件名称/体检/目录），说明这是"一行一次检查、一列一个指标"的导出格式，
-            # 此时剩下的未知列头就是指标名。不这样做的话，指标词表永远抓不到它们——
-            # 转置表里指标**只**出现在列上，从不出现在 indicator_rows 里，
-            # 而从列头去建指标词表是循环论证。
+            # Context acceptance for a transposed export: if a table already has >=2
+            # metadata-like columns (institution name / report time / filename / checkup /
+            # category), that means it's the "one row = one examination, one column = one
+            # indicator" export format, and the remaining unknown column headers are
+            # indicator names. Without this, the indicator vocabulary could never catch them --
+            # in a transposed table, indicators appear **only** on columns, never in
+            # indicator_rows, so building the indicator vocabulary from column headers alone
+            # would be circular.
             meta_like = sum(1 for r in roles if r and (r.startswith("meta_") or r == "category"))
             if meta_like >= 2:
                 roles = [r if r else "analyte" for r in roles]
@@ -317,8 +343,10 @@ def main() -> None:
                     if r is None:
                         dropped_labels[c] += 1
                 continue
-            # 含脱敏占位符的列头一律整条丢弃：`«NAME»`、`«D:####年##月»` 是语料的加工痕迹，
-            # 不是版式。留一个占位符在 spec 里，隐私闸门会（正确地）当场报警。
+            # Any column header containing a redaction placeholder is dropped outright: `«NAME»`
+            # and the redacted year/month date placeholder are artifacts of how the corpus was
+            # de-identified, not layout. Leaving a placeholder in the spec would (correctly) set off the privacy
+            # gate on the spot.
             if any("«" in c or "»" in c for c in cols):
                 dropped_sets += 1
                 for c in cols:
@@ -326,8 +354,10 @@ def main() -> None:
                         dropped_labels[c] += 1
                 continue
             seen_sets.add(tuple(zip(cols, roles)))
-            # 角色序列里把连续的 analyte 列折叠成一个 `analyte+`：转置表有几十个指标列，
-            # 逐个记下来只会让"列组"这个统计量炸成噪声，而渲染器要的是"这里有一串指标列"。
+            # Fold consecutive analyte columns in a role sequence into one `analyte+`: a
+            # transposed table has dozens of indicator columns, and recording each one
+            # individually would just blow up the "column group" statistic into noise, when
+            # what the renderer needs is just "there's a run of indicator columns here."
             folded: list[str] = []
             for r in roles:
                 if r == "analyte" and folded and folded[-1] == "analyte+":
@@ -335,8 +365,9 @@ def main() -> None:
                 folded.append("analyte+" if r == "analyte" else str(r))
             seen_roles.add(tuple(folded))
             if t.get("unit_location"):
-                # "none" 要先匹配：一条写着 "none (separate column)" 的描述，
-                # 按 separate_column 记会把"这份报告没有单位列"记反。
+                # "none" must be matched first: a description reading "none (separate column)"
+                # recorded as separate_column would record the exact opposite of "this report has
+                # no unit column."
                 raw = str(t["unit_location"]).strip().lower()
                 where = ("none" if raw.startswith(("none", "n/a", "not applicable", "无"))
                          else classify(raw, UNIT_LOCATIONS))
@@ -381,8 +412,9 @@ def main() -> None:
             lab = normalize_label(s)
             if lab and "«" not in lab and role_of(lab) == "examiner":
                 signature[lab] += 1
-        # 0 页是分析器的伪值（xlsx 没有页的概念，图像也未必数得出页）。
-        # 留在分布里，采样器会抽出"零页文档"这种不存在的东西。
+        # A page count of 0 is an analyzer artifact (xlsx has no concept of pages, and an image
+        # may not have a countable page either). Leaving it in the distribution would let the
+        # sampler draw a "zero-page document," which doesn't exist.
         if isinstance(a.get("page_count"), int) and a["page_count"] >= 1:
             pages[a["page_count"]] += 1
         rows_per_doc.append(len(a.get("indicator_rows") or []))
@@ -394,38 +426,39 @@ def main() -> None:
                 langs_unknown[str(lang).strip()] += 1
 
     def gate(counter: collections.Counter, min_docs: int = MIN_DOCS) -> list[dict]:
-        # 排序键要把**值本身**带上。只按计数排的话，并列项的先后取决于
-        # Counter 的插入顺序，而插入顺序又来自 set 的迭代顺序——Python 的字符串哈希
-        # 每个进程都不一样，于是同一份输入两次跑出不同的 spec。
-        # 这个 bug 是 `test_spec_is_regenerable_without_drift` 抓到的。
+        # The sort key must carry the **value itself**. Sorting by count alone would let ties
+        # break by Counter insertion order, which in turn comes from set iteration order --
+        # Python's string hashing differs per process, so the same input would produce a
+        # different spec on two separate runs. This bug was caught by
+        # `test_spec_is_regenerable_without_drift`.
         items = sorted(counter.items(), key=lambda kv: (-kv[1], str(kv[0])))
         return [{"value": k if isinstance(k, str) else list(k), "documents": v}
                 for k, v in items if v >= min_docs]
 
     kept_sets = gate(col_sets)
     kept_roles = gate(col_sets_roles)
-    print(f"文档 {docs} 份")
-    print(f"列组：保留 {len(kept_sets)} 种拼写组合 / {len(kept_roles)} 种角色组合"
-          f"（n≥{MIN_DOCS}）；整条丢弃 {dropped_sets} 次，涉及 {len(dropped_labels)} 种未知列头")
-    print(f"参考值方言模板 {len(gate(ref_tpl))} 种 · 标记 {len(gate(flags, 1))} 种 · "
-          f"日期标签 {len(gate(date_labels))} 种 · 日期格式 {len(gate(date_fmts))} 种")
+    print(f"{docs} documents")
+    print(f"Column groups: kept {len(kept_sets)} spelling combinations / {len(kept_roles)} role combinations"
+          f" (n>={MIN_DOCS}); dropped wholesale {dropped_sets} times, covering {len(dropped_labels)} unknown column headers")
+    print(f"{len(gate(ref_tpl))} reference-value dialect templates · {len(gate(flags, 1))} flag markers · "
+          f"{len(gate(date_labels))} date labels · {len(gate(date_fmts))} date formats")
     if langs_unknown:
-        print("语言写法未归一（已丢弃）:",
+        print("Language spellings not canonicalized (dropped):",
               ", ".join(f"{k}:{v}" for k, v in langs_unknown.most_common(5)))
-    print(f"页面构件 {len(furniture)} 类 · 文档类型 {len(doc_kinds)} 类 · "
-          f"叙述段标签 {len(gate(narrative))} 种 · 签名角色 {len(gate(signature))} 种")
+    print(f"{len(furniture)} page-furniture kinds · {len(doc_kinds)} document types · "
+          f"{len(gate(narrative))} narrative-block labels · {len(gate(signature))} signature roles")
 
-    print("\n角色组合（前 12）:")
+    print("\nRole combinations (top 12):")
     for item in kept_roles[:12]:
         print(f"  {item['documents']:4d}  {' | '.join(item['value'])}")
-    print("\n参考值方言（前 12）:")
+    print("\nReference-value dialects (top 12):")
     for item in gate(ref_tpl)[:12]:
         print(f"  {item['documents']:4d}  {item['value']}")
-    print("\n文档类型:", ", ".join(f"{k}:{v}" for k, v in sorted(doc_kinds.items(), key=lambda kv: (-kv[1], str(kv[0])))))
-    print("页面构件:", ", ".join(f"{k}:{v}" for k, v in sorted(furniture.items(), key=lambda kv: (-kv[1], str(kv[0])))))
+    print("\nDocument types:", ", ".join(f"{k}:{v}" for k, v in sorted(doc_kinds.items(), key=lambda kv: (-kv[1], str(kv[0])))))
+    print("Page furniture:", ", ".join(f"{k}:{v}" for k, v in sorted(furniture.items(), key=lambda kv: (-kv[1], str(kv[0])))))
 
     if args.dropped:
-        print(f"\n被白名单挡掉的列头（前 {args.dropped}，按文档数）:")
+        print(f"\nColumn headers blocked by the allowlist (top {args.dropped}, by document count):")
         for lab, n in dropped_labels.most_common(args.dropped):
             print(f"  {n:4d}  {lab[:60]}")
 
@@ -477,7 +510,7 @@ def main() -> None:
         }
         out = RESOURCES / "layout.json"
         out.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
-        print(f"\n已写出 {out}")
+        print(f"\nWrote {out}")
 
 
 if __name__ == "__main__":

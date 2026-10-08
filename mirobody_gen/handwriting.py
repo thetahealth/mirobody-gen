@@ -1,7 +1,5 @@
 """Handwritten files: notebook logs, a doctor's note in a clinic booklet, a printed form filled in by hand.
 
-手写文件：居家记录本、门诊病历本上医生的手写记录、手填的打印表格。
-
     mirobody-gen build --seed 7 --out out/p3 --render --handwriting
 
 Handwriting is a way a document comes into being, alongside a printer and an export: the same person,

@@ -1,36 +1,46 @@
 """Extraction scoring: MedRepBench official and corrected metrics, hazard attribution, pair deltas.
 
-抽取评分：MedRepBench 官方口径 + 修正口径 + 按陷阱归因 + 对照对差值。
-
     mirobody-gen score out/p3/files.jsonl predictions.jsonl
     mirobody-gen score out/p3/pairs.jsonl predictions.jsonl --pairs
     mirobody-gen score out/p3/files.jsonl predictions.jsonl --json report.json
 
-预测文件与 MedRepBench 同格式：每行 `{"image": <文件相对路径>, "items": [五字段…]}`，
-所以同一份预测既能交给它的官方脚本（配 `mirobody-gen medrep-view` 导出的标注），也能交给这里。
-每项可以多带三个字段 `loinc / value_num / unit_ucum`（抽取之后术语层的输出），带了就另算语义层。
+Predictions use MedRepBench's own format: each line is `{"image": <relative path>, "items": [five
+fields...]}`, so one prediction file works both with MedRepBench's official script (paired with labels
+exported by `mirobody-gen medrep-view`) and with this module. Each item may carry three extra fields,
+`loinc / value_num / unit_ucum` (the terminology layer's output after extraction); when present, the
+semantic layer is scored too.
 
-## 为什么官方口径之外还要别的口径
+## Why score anything beyond the official metric
 
-读 MedRepBench 的 `scripts/evaluate_objective.py` 得到的四处（见 docs/handoff 评测计划 §5）：
+Reading MedRepBench's `scripts/evaluate_objective.py` turns up four gaps (see docs/handoff evaluation
+plan §5):
 
-1. **名字不中，整行作废**：按名字精确匹配，名字没对上，这一行的值、单位、范围、标记一并算错；
-2. **按真值条数按序截断**：预测只留前 K 条（K = 真值条数）。前面多抽一行受检者字段，
-   最后一行真读数就被挤掉——**多抽**被记成了**漏抽**，而且记在哪一行取决于顺序；
-3. **只有召回，没有精确率**：多抽的行只通过截断间接受罚；
-4. **"无法判定"与"判错"同分**。
+1. A name mismatch voids the whole row: matching is by exact name, and a miss fails the value, unit,
+   range and flag together even when those are right;
+2. Predictions are truncated to the ground-truth row count, in order: one extra row ahead of a true
+   reading (e.g. a subject field) pushes the last real reading out, so an over-extraction gets scored
+   as a miss, and which row eats the penalty depends on order;
+3. Recall only, no precision: over-extracted rows are penalized only indirectly, through truncation;
+4. "undeterminable" and "wrong" score the same.
 
-所以这里同时给出：
+So this module reports, alongside the official metric:
 
-* `V0`：官方口径的逐行复现（`tests/test_score.py` 在有官方脚本时断言两者逐字段一致）；
-* `aligned`：**最优一对一行对齐**（匈牙利算法，名字相似度 + 值是否相同）代替按序截断，
-  报告行召回、行精确率，以及**只在对齐行上**算的字段准确率——把"读没读到这一行"
-  与"这一行读得对不对"分开。表格识别领域的做法同理：GriTS [smock2023grits] 先求两张表的
-  最相似子结构再比单元格，TEDS [zhong2020image] 比树编辑距离，都不按顺序截断；
-* **必须弃权**：印了行名却没印值的行（"未做"），抽出一个值就记一次幻觉；
-* **干扰行**：受检者字段、"异常项目数"、混进表格的日期——抽出来就是误报；
-* **按陷阱归因**：每一行带着它身上的陷阱名，逐类统计召回与值准确率；
-* **对照对**（`--pairs`）：同一内容只差一类陷阱的两份文件，分数之差就是这类陷阱的效应。
+* `V0`: a row-for-row reproduction of the official metric (`tests/test_score.py` asserts field-for-
+  field agreement with the official script when it is available);
+* `aligned`: optimal one-to-one row alignment (the Hungarian algorithm, on name similarity plus
+  whether the value matches) in place of truncation by order, reporting row recall, row precision,
+  and field accuracy computed only over aligned rows — separating "was this row found" from "was it
+  read correctly". Table-recognition work does the same: GriTS [smock2023grits] finds the most
+  similar substructure between two tables before comparing cells, TEDS [zhong2020image] compares tree
+  edit distance; neither truncates by order;
+* mandatory abstention: a row whose name is printed but whose value is not (e.g. "not performed")
+  counts a hallucination if the prediction supplies a value anyway;
+* distractor rows: subject fields, an "abnormal result count", a stray date inside a table — extracting
+  any of these is a false positive;
+* hazard attribution: each row carries the name of the hazard planted on it, and recall and value
+  accuracy are tallied per hazard;
+* paired contrasts (`--pairs`): two files with identical content but one hazard's difference, whose
+  score delta is that hazard's measured effect.
 """
 
 from __future__ import annotations
@@ -44,7 +54,7 @@ import re
 FIELDS = ["item_name", "item_value", "item_unit", "item_range", "is_abnormal"]
 
 
-# ── 官方口径（按 MedRepBench 公开脚本的语义重写，不含其代码）───────────
+# ── Official metric (reimplemented from the public MedRepBench script's semantics; no code copied) ──
 def norm_text(value) -> str:
     value = "" if value is None else str(value)
     value = value.strip().lower().replace(" ", "")
@@ -64,7 +74,7 @@ def field_equal(field: str, pred, ref) -> bool:
 
 
 def official(ref_items: list[dict], pred_items: list[dict], truncate: bool = True) -> dict[str, int]:
-    """一份文档的官方口径计数：每个字段答对几条（分母是真值条数）。"""
+    """Per-document official-metric counts: rows correct per field (denominator is the truth row count)."""
     preds = pred_items[:len(ref_items)] if truncate else list(pred_items)
     used: set[int] = set()
     correct = dict.fromkeys(FIELDS, 0)
@@ -80,7 +90,7 @@ def official(ref_items: list[dict], pred_items: list[dict], truncate: bool = Tru
     return correct
 
 
-# ── 行对齐 ───────────────────────────────────────────────────────
+# ── Row alignment ──────────────────────────────────────────────────
 _PAREN = re.compile(r"[\(（][^\)）]*[\)）]")
 
 
@@ -95,7 +105,8 @@ def _bigrams(s: str) -> set[str]:
 def name_similarity(pred: str, ref: str) -> float:
     a, b = norm_text(pred), norm_text(ref)
     if a == b:
-        return 1.0          # 含两边都是空串：MedRepBench 有 10 条名称为空的标注，官方口径视为相等
+        return 1.0          # includes both empty: MedRepBench has 10 labels with an empty name,
+                             # which the official metric treats as equal
     if not a or not b:
         return 0.0
     ra, rb = relaxed(pred), relaxed(ref)
@@ -109,7 +120,8 @@ def name_similarity(pred: str, ref: str) -> float:
 
 
 def hungarian(cost: list[list[float]]) -> list[int]:
-    """最小费用完美匹配（方阵）。返回每行分到的列。O(n³)，n 在一百以内足够快。"""
+    """Minimum-cost perfect matching on a square matrix. Returns each row's assigned column.
+    O(n^3), fast enough for n under a hundred."""
     n = len(cost)
     INF = float("inf")
     u, v, p, way = [0.0] * (n + 1), [0.0] * (n + 1), [0] * (n + 1), [0] * (n + 1)
@@ -149,7 +161,8 @@ def hungarian(cost: list[list[float]]) -> list[int]:
 
 
 def align(refs: list[dict], preds: list[dict], threshold: float = 0.5) -> list[tuple[int, int, float]]:
-    """(真值下标, 预测下标, 相似度)。相似度 = 名字相似度 + 0.5×值是否相同；低于阈值不算对齐。"""
+    """(truth index, prediction index, similarity). similarity = name similarity + 0.5 x value match;
+    below the threshold it is not an alignment."""
     if not refs or not preds:
         return []
     n = max(len(refs), len(preds))
@@ -157,7 +170,7 @@ def align(refs: list[dict], preds: list[dict], threshold: float = 0.5) -> list[t
     for i, r in enumerate(refs):
         for j, p in enumerate(preds):
             s = name_similarity(p.get("item_name", ""), r["item_name"])
-            if s > 0:            # 值相同只能加分，不能单独促成对齐
+            if s > 0:            # a value match can only add to the score, never create an alignment alone
                 s += 0.5 * field_equal("item_value", p.get("item_value"), r["item_value"])
             sim[i][j] = s
     assignment = hungarian([[-x for x in row] for row in sim])
@@ -165,7 +178,7 @@ def align(refs: list[dict], preds: list[dict], threshold: float = 0.5) -> list[t
             if i < len(refs) and 0 <= j < len(preds) and sim[i][j] >= threshold]
 
 
-# ── 一份文档 ─────────────────────────────────────────────────────
+# ── One document ────────────────────────────────────────────────────
 _DISTRACTOR_LABELS = {"姓名", "性别", "年龄", "门诊号", "病历号", "ID号", "标本号", "科室", "标本类型", "送检医生",
                       "Name", "Sex", "Age", "MRN", "Lab No.", "Specimen", "Requested by",
                       "异常项目数", "是否异常", "Abnormal results", "Flagged"}
@@ -188,7 +201,7 @@ def score_document(record: dict, preds: list[dict], tally: Tally, by_hazard: dic
     abstain = [i for i, r in enumerate(rows) if not r["readable"]]
     refs = [rows[i] for i in readable]
 
-    # V0：官方口径只看可读且无不可读字段的行（与 medrep_view 导出的一致）
+    # V0: the official metric only sees readable rows with no unreadable field (matches medrep_view's export)
     v0_refs = [{k: rows[i][k] for k in FIELDS} for i in readable if not rows[i]["unreadable_fields"]]
     for truncate, tag in ((True, "v0"), (False, "v1")):
         got = official(v0_refs, preds, truncate)
@@ -208,7 +221,7 @@ def score_document(record: dict, preds: list[dict], tally: Tally, by_hazard: dic
         if "is_abnormal" not in ref["unreadable_fields"]:
             key = "flag_det" if ref["is_abnormal"] != "" else "flag_undet"
             doc.add(**{f"{key}_n": 1, f"{key}_ok": norm_text(pred.get("is_abnormal")) == ref["is_abnormal"]})
-    # 必须弃权：名字对得上某个不可读行、却给了一个值
+    # Mandatory abstention: the name matches an unreadable row, but a value was given anyway
     for i in abstain:
         name = rows[i]["item_name"]
         doc.add(abstain_rows=1)
@@ -217,13 +230,14 @@ def score_document(record: dict, preds: list[dict], tally: Tally, by_hazard: dic
                 if norm_text(p.get("item_value")) not in ("", "--", "/", "未做", "n/a", "notdone"):
                     doc.add(hallucinated=1)
                 break
-    # 干扰行：受检者字段、统计行被当成指标
+    # Distractor rows: a subject field or a summary row extracted as if it were an indicator
     for j, p in enumerate(preds):
         if j not in matched_pred and relaxed(p.get("item_name", "")) in {relaxed(x) for x in _DISTRACTOR_LABELS}:
             doc.add(distractor_extracted=1)
     tally.c.update(doc.c)
 
-    # 按陷阱：行级陷阱落在行上，文档级陷阱（rows 为空）落在整份文档的所有行上
+    # By hazard: a row-level hazard applies to its own rows; a document-level hazard (empty `rows`)
+    # applies to every row in the document
     matched_ref = {readable[i]: preds[j] for i, j, _ in pairs}
     for hz in record["hazards"]:
         idxs = hz["rows"] or readable
@@ -295,10 +309,11 @@ PAIR_METRICS = ("recall", "precision", "value_acc", "unit_acc", "range_acc", "fl
 
 
 def paired_effects(records: list[dict], predictions: dict[str, list[dict]]) -> dict:
-    """对照对：每组内 variant − base，逐个口径求平均差。
+    """Paired contrasts: variant minus base within each group, averaged per metric.
 
-    比率类口径只在两份文件上都有定义时才计入（例如 `reference.absent` 之后范围准确率没有定义，
-    这一组就不进"Δ范围准确率"的平均）；计数类（幻觉、干扰行）直接相减。
+    A ratio metric counts only when it is defined on both files (e.g. range accuracy is undefined
+    after `reference.absent`, so that group is excluded from the average delta range accuracy);
+    count metrics (hallucinations, distractors) are subtracted directly.
     """
     groups: dict[str, dict[str, dict]] = collections.defaultdict(dict)
     for r in records:
@@ -333,25 +348,29 @@ def paired_effects(records: list[dict], predictions: dict[str, list[dict]]) -> d
 def render(report: dict, effects: dict | None) -> str:
     def f(x):
         return "—" if x is None else f"{x:.3f}"
-    lines = [f"文档 {report['documents']} 份", "",
-             "| 口径 | 名称 | 值 | 单位 | 范围 | 标记 | 平均 |", "|---|---|---|---|---|---|---|"]
-    for tag, label in (("v0", "V0 官方（按序截断）"), ("v1", "V1 不截断")):
+    lines = [f"{report['documents']} documents", "",
+             "| Metric | Name | Value | Unit | Range | Flag | Average |", "|---|---|---|---|---|---|---|"]
+    for tag, label in (("v0", "V0 official (truncated by order)"), ("v1", "V1 untruncated")):
         r = report[tag]
         lines.append(f"| {label} | " + " | ".join(f(r[k]) for k in FIELDS) + f" | {f(r['average'])} |")
     a = report["aligned"]
-    lines += ["", "对齐口径：行召回 " + f(a["row_recall"]) + " · 行精确率 " + f(a["row_precision"])
-              + " · 对齐行上：值 " + f(a["value_acc"]) + " 单位 " + f(a["unit_acc"]) + " 范围 " + f(a["range_acc"])
-              + " 标记（可判定）" + f(a["flag_acc_determinable"]) + " 标记（应弃权）" + f(a["flag_abstain_acc"]),
-              f"必须弃权行 {report['abstain']['rows']}，其中给出了值（幻觉）{report['abstain']['hallucinated']}；"
-              f"干扰行被抽成指标 {report['distractors_extracted']} 条", "",
-              "| 陷阱 | 行数 | 行召回 | 对齐行值准确率 |", "|---|---:|---:|---:|"]
+    lines += ["", "Aligned metric: row recall " + f(a["row_recall"]) + " · row precision " + f(a["row_precision"])
+              + " · on aligned rows: value " + f(a["value_acc"]) + " unit " + f(a["unit_acc"])
+              + " range " + f(a["range_acc"]) + " flag (determinable) " + f(a["flag_acc_determinable"])
+              + " flag (should-abstain) " + f(a["flag_abstain_acc"]),
+              f"mandatory-abstain rows {report['abstain']['rows']}, of which {report['abstain']['hallucinated']} "
+              f"were given a value (hallucinated); distractor rows extracted as indicators "
+              f"{report['distractors_extracted']}", "",
+              "| Hazard | Rows | Row recall | Value accuracy (aligned) |", "|---|---:|---:|---:|"]
     for name, h in sorted(report["by_hazard"].items(), key=lambda kv: (kv[1]["row_recall"] or 0)):
         lines.append(f"| {name} | {h['rows']} | {f(h['row_recall'])} | {f(h['value_acc_given_aligned'])} |")
     if effects:
         def d(x):
             return "—" if x is None else ("0" if abs(x) < 5e-4 else f"{x:+.3f}")
-        lines += ["", "对照对（variant − base，组内配对；计数类为每组平均多出的条数）", "",
-                  "| 陷阱 | 组数 | Δ行召回 | Δ行精确率 | Δ值 | Δ单位 | Δ范围 | Δ标记 | Δ幻觉 | Δ干扰行 |",
+        lines += ["", "Paired contrasts (variant minus base, paired within group; count metrics are the "
+                  "average extra count per group)", "",
+                  "| Hazard | Groups | Δ row recall | Δ row precision | Δ value | Δ unit | Δ range | "
+                  "Δ flag | Δ hallucinated | Δ distractors |",
                   "|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|"]
         order = sorted(effects.items(), key=lambda kv: min((kv[1][f"delta_{m}"] or 0) for m in PAIR_METRICS[:6]))
         for name, e in order:
@@ -360,8 +379,9 @@ def render(report: dict, effects: dict | None) -> str:
 
 
 def records_from_medrep(path: pathlib.Path, include_types: set[str] = frozenset({"Laboratory"})) -> list[dict]:
-    """MedRepBench 的标注 CSV → 本评分器的记录。没有陷阱、没有弃权行：它的标注不带这些。
-    这样 mirobody 在 MedRepBench 上跑出的预测，也能用同一把尺子算对齐口径（评测计划 §S6）。"""
+    """MedRepBench's label CSV, converted to this scorer's record shape. No hazards, no abstention
+    rows: its labels don't carry those. This lets predictions mirobody produces on MedRepBench be
+    scored with the same aligned metric (evaluation plan §S6)."""
     import csv
 
     csv.field_size_limit(10**9)

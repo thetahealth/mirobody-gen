@@ -1,26 +1,28 @@
-"""手写的指标目录 → `resources/indicators.json`。
+"""Hand-authored indicator catalogue -> `resources/indicators.json`.
 
-    python3 scripts/build_indicators.py            # 打印 + 与语料分布对账
-    python3 scripts/build_indicators.py --write    # 写 resources/indicators.json
+    python3 scripts/build_indicators.py            # print + reconcile against the corpus distribution
+    python3 scripts/build_indicators.py --write    # write resources/indicators.json
 
-这一份是整套 spec 里**唯一不从语料蒸馏**的部分，也是取值合法性的来源。
+The only part of the spec **not distilled from the corpus**, and the source of truth for
+value legality.
 
-## 每个字段从哪来
+## Where each field comes from
 
-| 字段 | 来源 | 为什么是它 |
+| Field | Source | Why |
 |---|---|---|
-| 参考区间 | 中华人民共和国卫生行业标准 WS/T 404.1–.8（生化）、WS/T 405（血细胞）及通行临床区间 | 公开标准。用真实语料里观察到的参考值当区间，等于把某家医院某台仪器的口径当成了事实 |
-| CVI / CVG | Westgard / EFLM 生物学变异数据库 | 决定同一个人复查时数值该抖多少。没有它，纵向序列要么纹丝不动，要么乱跳 |
-| 单位 | UCUM 常用写法 | 方言（fL/fl、/L 与 /l、μ 与 u）由渲染层从 `resources/layout.json` 的实测分布施加，不在这里枚举 |
-| LOINC | 构建时向 `mirobody.engine.resolve` 查询 | 不是为了"抄答案"，而是为了**记录哪些名字解析得出、哪些解析不出**：解析不出的那些是评测里考弃权的素材 |
-| 名称变体 | 手写（含繁体、英文、缩写、`#`/`%` 后缀） | 打印名就是提取的键；同一指标的多种印法是版式多样性的一部分 |
+| Reference range | PRC health industry standards WS/T 404.1-.8 (chemistry), WS/T 405 (hematology), and standard clinical ranges | Public standards. Using reference values observed in the real corpus would treat one hospital's one instrument as ground truth |
+| CVI / CVG | Westgard / EFLM biological-variation database | Sets how much a value should jitter on repeat testing of the same person. Without it, a longitudinal series is either frozen or bouncing randomly |
+| Unit | Common UCUM notation | Dialect variants (fL/fl, /L vs /l, mu vs u) are applied by the render layer from the observed distribution in `resources/layout.json`, not enumerated here |
+| LOINC | Queried against `mirobody.engine.resolve` at build time | Not to "copy the answer," but to **record which names resolve and which don't**: the ones that don't resolve are material for abstention in evaluation |
+| Name variants | Hand-written (includes Traditional Chinese, English, abbreviations, `#`/`%` suffixes) | The printed name is the extraction key; an indicator's several printed forms are part of layout diversity |
 
-## 语料在这里的唯一角色：对账，不是取值
+## The corpus's only role here: reconciliation, not sourcing values
 
-`--compare` 会把手写区间与 `library/synth_spec.json` 里实测的 p05/p50/p95 并排打印。
-两者差得离谱时，说明**其中一个是错的**——可能是我写错了区间，也可能是语料那一侧
-混进了别的单位（实测的"红细胞压积 p50=3.0"就是 % 与 L/L 两种单位混在了一起）。
-这是校准，不是数据流：没有任何一个生成出来的数值来自这张对账表。
+`--compare` prints the hand-written ranges side by side with the observed p05/p50/p95 from
+`library/synth_spec.json`. A large gap between the two means **one of them is wrong** --
+maybe a range was mis-transcribed, maybe the corpus side mixes units (an observed
+"hematocrit p50=3.0" turned out to be % and L/L mixed together). This is calibration, not a
+data pipeline: no generated value is ever sourced from this reconciliation table.
 """
 
 from __future__ import annotations
@@ -32,11 +34,14 @@ import pathlib
 REPO = pathlib.Path(__file__).resolve().parent.parent
 RESOURCES = REPO / "mirobody_gen" / "resources"
 
-# 参考区间的来源。**每一项都必须是可引用的东西**：标准号、指南名、或"厂商说明书"。
+# Sources for the reference ranges. **Every entry must be something citable**: a standard
+# number, a guideline name, or "manufacturer's package insert."
 #
-# 第一版这里只有一个 `COMMON = "通行临床区间"`，98 项里 57 项标它，其中 54 项连注释都没有。
-# 2026-09-22 的评审说得对："通行临床区间"不是一个可引用的来源——对隐私论证无所谓
-# （手写区间本来就不来自语料），但对临床有效性和论文可复现性来说，它等于没说。
+# The first version had just one `COMMON = "standard clinical range"`, tagging 57 of 98
+# entries, 54 of them without even a comment. The 2026-09-22 review was right: "standard
+# clinical range" isn't a citable source -- it doesn't matter for the privacy argument (the
+# hand-written ranges never came from the corpus anyway), but for clinical validity and
+# paper reproducibility it says nothing at all.
 WS404 = "WS/T 404（临床常用生化检验项目参考区间）"
 WS405 = "WS/T 405—2012（血细胞分析参考区间）"
 LIPID = "中国成人血脂异常防治指南（2016年修订版）"
@@ -54,31 +59,34 @@ KDIGO = "KDIGO 2012 慢性肾脏病评估与管理指南（UACR < 30 mg/g）"
 TBS = "Bethesda（TBS）2014 宫颈细胞学报告系统；《中国子宫颈癌筛查指南（2023）》：NILM 为未见上皮内病变或恶性细胞"
 PULSEOX = "WHO《Pulse Oximetry Training Manual》：健康成人静息 SpO₂ 95%–100%"
 DERIVED = "由恒等式定义"
-#: 只为 98 个调用点的第 8 个位置参数保留的旧常量，值被忽略。见 add() 里的说明。
+#: Legacy constant kept only for the 8th positional argument at 98 call sites; its value is
+#: ignored. See the note in add().
 COMMON = "（弃用：出处见 REFERENCE_SOURCES）"
 
-#: 单侧参考区间的**人群中心值**。
+#: The **population center value** for one-sided reference ranges.
 #:
-#: 只有上限的项目（总胆固醇 <5.18）不能用"上限乘一个固定系数"来定中心：
-#: 总胆固醇的人群中位数在 4.6（占上限的 89%），而 CRP 的中位数在 1.5（占上限的 19%）。
-#: 用同一个系数，要么让一半人贴着上限走，要么让所有人都低得不像话。
-#: 这些值取自各自指南/教材里的人群分布描述，与参考区间同源。
+#: An upper-bound-only item (total cholesterol <5.18) can't get its center from "upper bound
+#: times a fixed factor": the population median for total cholesterol sits at 4.6 (89% of the
+#: upper bound), while CRP's median sits at 1.5 (19% of its upper bound). Using one factor for
+#: both would either push half the population right up against the upper bound or make
+#: everyone implausibly low. These values come from the same guidelines/textbooks as the
+#: reference ranges, describing the population distribution.
 TYPICAL_CENTER: dict[str, float] = {
-    # 血脂：中国成人血脂异常防治指南里的人群分布
+    # Lipids: population distribution from the Chinese guideline on adult dyslipidemia
     "chol": 4.6, "tg": 1.1, "ldl": 2.8, "hdl": 1.35, "lpa": 120,
-    # 肝胆
+    # Liver and biliary
     "dbil": 3.5, "tba": 4.0,
-    # 炎症：偏态分布，中位数远低于上限
+    # Inflammation: skewed distribution, median well below the upper bound
     "crp": 1.5, "hscrp": 0.9, "hcy": 10.0,
-    # 甲状腺抗体、肿瘤标志物：绝大多数人在低位
+    # Thyroid antibodies, tumor markers: most people sit near the low end
     "tpoab": 9.0, "afp": 2.8, "cea": 1.8, "psa": 0.9, "ca125": 12.0,
-    # 心肌酶
+    # Cardiac enzymes
     "ckmb": 10.0,
-    # 肾：eGFR 只有下限，健康人在 95–110
+    # Renal: eGFR has only a lower bound; healthy adults sit at 95-110
     "egfr": 102.0,
-    # 镜检：真实报告绝大多数是 0–2/HP，取区间中点会系统性偏高
+    # Microscopy: real reports are overwhelmingly 0-2/HP; the range midpoint would run systematically high
     "urine_rbc": 0.6, "urine_wbc": 1.2,
-    # 2026-09-29 扩充
+    # 2026-09-29 addition
     "ca199": 8.0, "ca153": 9.0, "ca724": 1.5, "cyfra211": 1.4, "nse": 9.0, "scc": 0.6, "fpsa": 0.25,
     "pg1": 95.0, "pg2": 8.0, "ddimer": 0.25, "umalb": 6.0, "uacr": 8.0, "hstni": 3.0, "ntprobnp": 45.0,
     "ogtt2h": 6.0, "tgab": 15.0, "rf": 8.0, "aso": 60.0, "ccp": 5.0, "nonhdl": 3.2, "hp_ab": 0.0,
@@ -86,44 +94,46 @@ TYPICAL_CENTER: dict[str, float] = {
     "visceral_fat": 6.0, "la": 30.0, "ea": 1.3, "spo2": 98.0,
 }
 
-#: 每个指标的参考区间出处。缺一个键就构建失败——这比"默认填个通用值"好，
-#: 因为默认值会让"没想清楚出处"和"确实是通用区间"长得一模一样。
+#: Reference-range source for every indicator. A missing key fails the build -- better than
+#: defaulting to a generic value, because a default would make "never decided on a source"
+#: look identical to "genuinely a generic range."
 REFERENCE_SOURCES: dict[str, str] = {
-    # 体格与生命体征
+    # Anthropometry and vital signs
     "height": LABMANUAL, "weight": LABMANUAL, "bmi": OBESITY, "waist": OBESITY,
     "sbp": HYPERTENSION, "dbp": HYPERTENSION, "pulse": ECGTEXT, "resp": LABMANUAL, "temp": LABMANUAL,
-    # 血常规
+    # Complete blood count
     "wbc": WS405, "rbc": WS405, "hgb": WS405, "hct": WS405, "mcv": WS405, "mch": WS405,
     "mchc": WS405, "rdw": LABMANUAL, "plt": WS405, "mpv": LABMANUAL, "pdw": LABMANUAL,
     "pct": LABMANUAL, "neut_pct": WS405, "lymph_pct": WS405, "mono_pct": WS405,
     "eos_pct": WS405, "baso_pct": WS405, "neut_abs": WS405, "lymph_abs": WS405,
     "mono_abs": WS405, "eos_abs": WS405, "baso_abs": WS405,
-    # 肝肾功能与电解质
+    # Liver and renal function, electrolytes
     "alt": WS404, "ast": WS404, "alp": WS404, "ggt": WS404, "tp": WS404, "alb": WS404,
     "glb": DERIVED, "ag_ratio": DERIVED, "tbil": WS404, "dbil": WS404, "ibil": DERIVED,
     "tba": LABMANUAL, "urea": WS404, "crea": WS404, "ua": WS404, "cysc": VENDOR,
     "egfr": DERIVED, "k": WS404, "na": WS404, "cl": WS404, "ca": WS404, "phos": WS404,
     "mg": WS404, "ldh": WS404, "ck": WS404, "ckmb": VENDOR,
-    # 血糖血脂
+    # Glucose and lipids
     "glu": DIABETES, "hba1c": DIABETES, "ga": VENDOR,
     "chol": LIPID, "tg": LIPID, "hdl": LIPID, "ldl": LIPID,
     "apoa1": LIPID, "apob": LIPID, "lpa": LIPID,
-    # 甲功与激素
+    # Thyroid and hormones
     "tsh": VENDOR, "ft3": VENDOR, "ft4": VENDOR, "tt3": VENDOR, "tt4": VENDOR,
     "tpoab": VENDOR,
-    # 炎症、贫血、维生素
+    # Inflammation, anemia, vitamins
     "crp": LABMANUAL, "hscrp": LABMANUAL, "esr": LABMANUAL, "hcy": VENDOR,
     "vitd": VENDOR, "ferritin": VENDOR, "serum_iron": LABMANUAL, "b12": VENDOR,
     "folate": VENDOR,
-    # 肿瘤标志物：全部是厂商切点，没有国家标准区间
+    # Tumor markers: all vendor cutoffs, no national standard range
     "afp": VENDOR, "cea": VENDOR, "psa": VENDOR, "ca125": VENDOR,
-    # 尿常规
+    # Urinalysis
     "urine_sg": LABMANUAL, "urine_ph": LABMANUAL, "urine_pro": LABMANUAL,
     "urine_glu": LABMANUAL, "urine_bld": LABMANUAL, "urine_ket": LABMANUAL,
     "urine_nit": LABMANUAL, "urine_rbc": LABMANUAL, "urine_wbc": LABMANUAL,
-    # 心电
+    # ECG
     "pr_interval": ECGTEXT, "qrs_duration": ECGTEXT, "qtc": ECGTEXT, "qrs_axis": ECGTEXT,
-    # 2026-09-29 扩充：按《健康体检基本项目专家共识（2022）》的备选项目目录与主流套餐补的
+    # 2026-09-29 addition: filled in from the optional-item catalogue in the Expert Consensus
+    # on Basic Health Check-up Items (2022) and mainstream packages
     "spo2": PULSEOX,
     "hbsag": LABMANUAL, "hbsab": LABMANUAL, "hbeag": LABMANUAL, "hbeab": LABMANUAL, "hbcab": LABMANUAL,
     "hcvab": LABMANUAL,
@@ -146,39 +156,43 @@ REFERENCE_SOURCES: dict[str, str] = {
     "hpv16": VENDOR, "hpv18": VENDOR, "hpv_other": VENDOR, "tct": TBS,
 }
 
-#: 指标目录。
+#: The indicator catalogue.
 #:
-#: 每条 = (键, 中文主名, 英文名, 缩写, 单位, 小数位, 参考区间, 区间来源, CVI%, CVG%, 套餐, 备注)
-#: 参考区间的形式：
-#:   ("range", lo, hi)              不分性别
-#:   ("range_sex", (男lo,男hi), (女lo,女hi))
-#:   ("upper", hi)                  只有上限（`≤x` / `<x`）
-#:   ("lower", lo)                  只有下限（`>x`）
-#:   ("qualitative", 正常值)         定性项
-#:   None                           这个项目通常不印参考值
+#: Each entry = (key, Chinese name, English name, abbreviation, unit, decimal places,
+#: reference range, range source, CVI%, CVG%, panel, note).
+#: Reference-range shapes:
+#:   ("range", lo, hi)              sex-independent
+#:   ("range_sex", (male lo, male hi), (female lo, female hi))
+#:   ("upper", hi)                  upper bound only (`<=x` / `<x`)
+#:   ("lower", lo)                  lower bound only (`>x`)
+#:   ("qualitative", normal_value)   qualitative item
+#:   None                           this item is not usually printed with a reference value
 #:
-#: CVI/CVG 取自 Westgard 数据库；查不到的填 None，生成时退化为按区间宽度估一个保守的抖动。
+#: CVI/CVG come from the Westgard database; unavailable ones are None, and generation falls
+#: back to a conservative jitter estimated from the range width.
 INDICATORS: list[dict] = []
 
 
 def add(key, zh, en, abbr, unit, decimals, ref, _legacy_src, cvi, cvg, panel,
         *, variants=(), kind="quantitative", derived=None, sex=None, note="",
         positive_rate=None, positive_values=None, categories=None):
-    # 来源只认 REFERENCE_SOURCES 这一处。第 8 个位置参数留着是为了不动 98 个调用点，
-    # 但它的值被忽略——两处写来源，早晚会有一处过时。
+    # REFERENCE_SOURCES is the only place a source is recognized. The 8th positional argument
+    # stays so the 98 call sites don't need to change, but its value is ignored -- writing the
+    # source in two places means one of them eventually goes stale.
     if key not in REFERENCE_SOURCES:
-        raise KeyError(f"指标 {key} 没有在 REFERENCE_SOURCES 里声明参考区间出处")
+        raise KeyError(f"indicator {key} has no reference-range source declared in REFERENCE_SOURCES")
     INDICATORS.append({
         "key": key, "zh": zh, "en": en, "abbr": abbr, "unit": unit, "decimals": decimals,
         "reference": ref, "reference_source": REFERENCE_SOURCES[key], "cvi": cvi, "cvg": cvg,
         "panel": panel, "name_variants": list(variants), "value_kind": kind,
         "derived_from": derived, "sex_specific": sex, "note": note,
-        # 定性项：人群阳性率与阳性时印什么（默认 +/++/弱阳性）；分类项：取值与权重
+        # Qualitative items: population positive rate and what gets printed when positive
+        # (default +/++/weakly positive); categorical items: values and weights
         "positive_rate": positive_rate, "positive_values": positive_values, "categories": categories,
     })
 
 
-# ── 体格与生命体征 ───────────────────────────────────────────────
+# ── Anthropometry and vital signs ──────────────────────────────
 add("height", "身高", "Height", "", "cm", 1, None, COMMON, None, None, "vitals",
     variants=("身長", "Height", "身高(cm)"))
 add("weight", "体重", "Body weight", "", "kg", 1, None, COMMON, None, None, "vitals",
@@ -188,9 +202,10 @@ add("bmi", "体重指数", "Body mass index", "BMI", "kg/m²", 1, ("range", 18.5
     derived="weight / (height/100)**2")
 add("waist", "腰围", "Waist circumference", "", "cm", 1, ("range_sex", (0, 90), (0, 85)), COMMON,
     None, None, "vitals", variants=("腰圍",),
-    # 腰围必须由 BMI 派生，不能按参考区间抽。那个区间是 "≤90"，下限的 0 是占位符
-    # 而不是真下限——按中点抽会给出 45 cm 的腰围配 104 kg 的体重。
-    # 线性近似锚在两点：BMI 22 → 男 80 / 女 74 cm；BMI 31 → 男 105 / 女 99 cm。
+    # Waist circumference must be derived from BMI, not sampled from the reference range. That
+    # range is "<=90"; the 0 lower bound is a placeholder, not a real floor -- sampling from the
+    # midpoint would pair a 45 cm waist with a 104 kg body weight. The linear approximation is
+    # anchored at two points: BMI 22 -> male 80 / female 74 cm; BMI 31 -> male 105 / female 99 cm.
     derived="2.8 * bmi + (19 if male else 13)")
 add("sbp", "收缩压", "Systolic blood pressure", "SBP", "mmHg", 0, ("range", 90, 139), COMMON,
     None, None, "vitals", variants=("收縮壓", "Systolic Blood Pressure", "血压收缩压"))
@@ -200,12 +215,13 @@ add("pulse", "心率", "Heart rate", "HR", "次/分", 0, ("range", 60, 100), COM
     None, None, "vitals", variants=("脉搏", "脈搏", "Heart Rate", "Pulse"))
 add("resp", "呼吸", "Respiratory rate", "RR", "次/分", 0, ("range", 12, 20), COMMON,
     None, None, "vitals", variants=("呼吸频率",))
-# 体温只在门诊病历的体格检查行出现（T 36.5℃）。CVI 手写为 0.5%：体温的生理波动约 ±0.2℃，
-# 用缺省的 5% 会造出 34.8℃ 的门诊病人。
+# Temperature only appears on the clinic-note vitals line (T 36.5C). CVI is hand-set to 0.5%:
+# physiological temperature variation is about +-0.2C, and the default 5% would produce a
+# 34.8C outpatient.
 add("temp", "体温", "Body temperature", "T", "℃", 1, ("range", 36.0, 37.2), COMMON,
     0.5, 0.5, "vitals", variants=("體溫", "Temperature", "体温(℃)"))
 
-# ── 血常规 WS/T 405 ──────────────────────────────────────────────
+# ── Complete blood count, WS/T 405 ───────────────────────────────
 add("wbc", "白细胞计数", "White blood cell count", "WBC", "10^9/L", 2,
     ("range", 3.5, 9.5), WS405, 11.4, 21.3, "cbc",
     variants=("白细胞", "白細胞計數", "白细胞总数", "WBC", "白细胞计数(WBC)"))
@@ -269,7 +285,7 @@ add("baso_abs", "嗜碱性粒细胞绝对值", "Basophil count", "BASO#", "10^9/
     ("range", 0, 0.06), WS405, 25.0, 70.0, "cbc",
     variants=("嗜碱性粒细胞#", "BASO#"), derived="wbc * baso_pct/100")
 
-# ── 肝功能 WS/T 404.1 / .2 / .4 ─────────────────────────────────
+# ── Liver function, WS/T 404.1 / .2 / .4 ─────────────────────────
 add("alt", "丙氨酸氨基转移酶", "Alanine aminotransferase", "ALT", "U/L", 0,
     ("range_sex", (9, 50), (7, 40)), WS404, 19.4, 41.6, "chemistry",
     variants=("谷丙转氨酶", "穀丙轉氨酶", "血清丙氨酸氨基转移酶", "ALT", "GPT"))
@@ -306,7 +322,7 @@ add("ibil", "间接胆红素", "Indirect bilirubin", "IBIL", "μmol/L", 1,
 add("tba", "总胆汁酸", "Total bile acid", "TBA", "μmol/L", 1,
     ("upper", 10.0), COMMON, None, None, "chemistry", variants=("胆汁酸", "TBA"))
 
-# ── 肾功能 WS/T 404.5 ───────────────────────────────────────────
+# ── Renal function, WS/T 404.5 ────────────────────────────────────
 add("urea", "尿素", "Urea", "BUN", "mmol/L", 2,
     ("range_sex", (3.1, 8.0), (2.6, 7.5)), WS404, 12.1, 18.7, "chemistry",
     variants=("血清尿素", "尿素氮", "BUN", "Urea"))
@@ -322,7 +338,7 @@ add("egfr", "估算肾小球滤过率", "Estimated GFR", "eGFR", "mL/min/1.73m²
     ("lower", 90), DERIVED, None, None, "chemistry",
     variants=("eGFR", "肾小球滤过率估算值"), derived="CKD-EPI 2021(crea, age, sex)")
 
-# ── 血糖与血脂 ───────────────────────────────────────────────────
+# ── Glucose and lipids ─────────────────────────────────────────────
 add("glu", "空腹血糖", "Fasting plasma glucose", "FPG", "mmol/L", 2,
     ("range", 3.9, 6.1), COMMON, 5.6, 7.5, "glucose",
     variants=("葡萄糖", "血糖", "空腹葡萄糖", "GLU", "FBG", "飯前血糖"))
@@ -351,7 +367,7 @@ add("apob", "载脂蛋白B", "Apolipoprotein B", "ApoB", "g/L", 2,
 add("lpa", "脂蛋白(a)", "Lipoprotein(a)", "Lp(a)", "mg/L", 0,
     ("upper", 300), COMMON, 8.0, 85.0, "lipid", variants=("脂蛋白a", "LP(a)"))
 
-# ── 电解质 WS/T 404.3 / .6 ──────────────────────────────────────
+# ── Electrolytes, WS/T 404.3 / .6 ────────────────────────────────
 add("k", "钾", "Potassium", "K", "mmol/L", 2, ("range", 3.5, 5.3), WS404, 4.6, 5.6,
     "chemistry", variants=("血清钾", "K+", "钾离子"))
 add("na", "钠", "Sodium", "Na", "mmol/L", 1, ("range", 137, 147), WS404, 0.6, 0.7,
@@ -365,7 +381,7 @@ add("phos", "无机磷", "Phosphorus", "P", "mmol/L", 2, ("range", 0.85, 1.51), 
 add("mg", "镁", "Magnesium", "Mg", "mmol/L", 2, ("range", 0.75, 1.02), WS404, 3.6, 6.4,
     "chemistry", variants=("血清镁",))
 
-# ── 心肌酶 WS/T 404.7 ───────────────────────────────────────────
+# ── Cardiac enzymes, WS/T 404.7 ───────────────────────────────────
 add("ldh", "乳酸脱氢酶", "Lactate dehydrogenase", "LDH", "U/L", 0,
     ("range", 120, 250), WS404, 8.6, 14.7, "chemistry", variants=("LDH", "乳酸去氢酶"))
 add("ck", "肌酸激酶", "Creatine kinase", "CK", "U/L", 0,
@@ -374,7 +390,7 @@ add("ck", "肌酸激酶", "Creatine kinase", "CK", "U/L", 0,
 add("ckmb", "肌酸激酶同工酶", "Creatine kinase MB", "CK-MB", "U/L", 1,
     ("upper", 25), COMMON, None, None, "chemistry", variants=("CK-MB", "肌酸激酶同工酶MB"))
 
-# ── 甲状腺 ───────────────────────────────────────────────────────
+# ── Thyroid ─────────────────────────────────────────────────────────
 add("tsh", "促甲状腺激素", "Thyroid stimulating hormone", "TSH", "mIU/L", 3,
     ("range", 0.27, 4.20), COMMON, 19.3, 24.6, "thyroid",
     variants=("促甲状腺素", "TSH", "超敏促甲状腺激素"))
@@ -389,7 +405,7 @@ add("tt4", "总甲状腺素", "Total thyroxine", "TT4", "nmol/L", 1,
 add("tpoab", "甲状腺过氧化物酶抗体", "Thyroid peroxidase antibody", "TPOAb", "IU/mL", 1,
     ("upper", 34), COMMON, None, None, "thyroid", variants=("抗TPO抗体", "TPOAb"))
 
-# ── 炎症与其他 ───────────────────────────────────────────────────
+# ── Inflammation and others ───────────────────────────────────────
 add("crp", "C反应蛋白", "C-reactive protein", "CRP", "mg/L", 2,
     ("upper", 8.0), COMMON, 42.2, 76.3, "inflammation", variants=("CRP", "C-反应蛋白"))
 add("hscrp", "超敏C反应蛋白", "High-sensitivity CRP", "hs-CRP", "mg/L", 2,
@@ -414,7 +430,7 @@ add("b12", "维生素B12", "Vitamin B12", "VB12", "pmol/L", 0,
 add("folate", "叶酸", "Folate", "FA", "nmol/L", 1,
     ("range", 7.0, 46.4), COMMON, 24.0, 37.0, "anemia", variants=("血清叶酸",))
 
-# ── 肿瘤标志物（性别相关的刻意保留，供审计查人口学冲突）─────────
+# ── Tumor markers (sex association kept deliberately, for the audit to check demographic conflicts) ──
 add("afp", "甲胎蛋白", "Alpha-fetoprotein", "AFP", "ng/mL", 2,
     ("upper", 7.0), COMMON, None, None, "tumor", variants=("AFP",))
 add("cea", "癌胚抗原", "Carcinoembryonic antigen", "CEA", "ng/mL", 2,
@@ -425,7 +441,7 @@ add("psa", "前列腺特异性抗原", "Prostate specific antigen", "PSA", "ng/m
 add("ca125", "糖类抗原125", "Cancer antigen 125", "CA125", "U/mL", 1,
     ("upper", 35.0), COMMON, None, None, "tumor", variants=("CA-125",), sex="female")
 
-# ── 尿常规（定性为主）───────────────────────────────────────────
+# ── Urinalysis (mostly qualitative) ───────────────────────────────
 add("urine_sg", "尿比重", "Urine specific gravity", "SG", "", 3,
     ("range", 1.003, 1.030), COMMON, None, None, "urinalysis", variants=("比重", "SG"))
 add("urine_ph", "尿酸碱度", "Urine pH", "pH", "", 1,
@@ -451,7 +467,7 @@ add("urine_rbc", "镜检红细胞", "Urine RBC (microscopy)", "U-RBC", "/HP", 1,
 add("urine_wbc", "镜检白细胞", "Urine WBC (microscopy)", "U-WBC", "/HP", 1,
     ("range", 0, 5), COMMON, None, None, "urinalysis", variants=("尿白细胞", "白细胞(镜检)"))
 
-# ── 心电图数值 ───────────────────────────────────────────────────
+# ── ECG values ─────────────────────────────────────────────────────
 add("pr_interval", "PR间期", "PR interval", "PR", "ms", 0,
     ("range", 120, 200), COMMON, None, None, "ecg", variants=("P-R间期",))
 add("qrs_duration", "QRS时限", "QRS duration", "QRS", "ms", 0,
@@ -462,11 +478,11 @@ add("qrs_axis", "QRS电轴", "QRS axis", "", "°", 0,
     ("range", -30, 90), COMMON, None, None, "ecg", variants=("心电轴",))
 
 
-# ── 2026-09-29 扩充：主流体检套餐与专家共识备选项目 ──────────────
-# 生命体征
+# ── 2026-09-29 addition: mainstream check-up packages and the expert-consensus optional-item catalogue ──
+# Vital signs
 add("spo2", "血氧饱和度", "Oxygen saturation", "SpO2", "%", 0, ("range", 95, 100), COMMON, 0.5, 0.5, "vitals",
     variants=("血氧", "SpO₂", "指脉氧"))
-# 乙肝五项 / 丙肝（定性；阳性率按人群）
+# Hepatitis B panel / hepatitis C (qualitative; positive rate by population)
 add("hbsag", "乙肝表面抗原", "Hepatitis B surface antigen", "HBsAg", "", 0, ("qualitative", "阴性"), COMMON, None, None,
     "hepatitis", variants=("HBsAg", "乙型肝炎表面抗原", "乙型肝炎表面抗原(HK)"), kind="qualitative",
     positive_rate=0.06, positive_values=[["阳性", 1]])
@@ -481,7 +497,7 @@ add("hbcab", "乙肝核心抗体", "Hepatitis B core antibody", "HBcAb", "", 0, 
     "hepatitis", variants=("Anti-HBc",), kind="qualitative", positive_rate=0.08, positive_values=[["阳性", 1]])
 add("hcvab", "丙肝抗体", "Hepatitis C antibody", "HCV-Ab", "", 0, ("qualitative", "阴性"), COMMON, None, None,
     "hepatitis", variants=("Anti-HCV", "丙型肝炎抗體"), kind="qualitative", positive_rate=0.005, positive_values=[["阳性", 1]])
-# 肿瘤标志物（扩展）
+# Tumor markers (extended)
 add("ca199", "糖类抗原19-9", "Cancer antigen 19-9", "CA19-9", "U/mL", 2, ("upper", 37.0), COMMON, 16.0, 102.0, "tumor",
     variants=("CA199", "CA 19-9", "糖類抗原19-9"))
 add("ca153", "糖类抗原15-3", "Cancer antigen 15-3", "CA15-3", "U/mL", 2, ("upper", 25.0), COMMON, 6.2, 62.9, "tumor",
@@ -504,7 +520,7 @@ add("pg2", "胃蛋白酶原Ⅱ", "Pepsinogen II", "PGⅡ", "ng/mL", 1, ("upper",
     variants=("PGII", "胃蛋白酶原II"))
 add("pgr", "胃蛋白酶原比值", "Pepsinogen I/II ratio", "PGR", "", 2, ("lower", 3.0), COMMON, None, None, "tumor",
     variants=("PGⅠ/PGⅡ", "PGI/PGII"), derived="pg1 / pg2")
-# 凝血四项 + D-二聚体
+# Coagulation panel + D-dimer
 add("pt", "凝血酶原时间", "Prothrombin time", "PT", "s", 1, ("range", 11.0, 14.0), COMMON, 2.4, 6.8, "coagulation",
     variants=("PT", "血浆凝血酶原时间"))
 add("inr", "国际标准化比值", "International normalised ratio", "INR", "", 2, ("range", 0.8, 1.2), COMMON, 2.4, 6.8, "coagulation",
@@ -517,36 +533,36 @@ add("fib", "纤维蛋白原", "Fibrinogen", "FIB", "g/L", 2, ("range", 2.0, 4.0)
     variants=("FIB", "Fbg", "纤维蛋白原含量"))
 add("ddimer", "D-二聚体", "D-dimer", "D-D", "mg/L FEU", 2, ("upper", 0.5), COMMON, 23.0, 28.0, "coagulation",
     variants=("D-Dimer", "DD", "D二聚体"))
-# 血型（分类项）
+# Blood type (categorical)
 add("abo", "ABO血型", "ABO blood group", "ABO", "", 0, None, COMMON, None, None, "blood_type",
     variants=("血型", "ABO"), kind="categorical", categories=[["A", 28], ["B", 24], ["O", 41], ["AB", 7]])
 add("rh", "Rh(D)血型", "Rh(D) type", "Rh", "", 0, None, COMMON, None, None, "blood_type",
     variants=("RhD", "Rh血型"), kind="categorical", categories=[["阳性", 99], ["阴性", 1]])
-# 肾早期损伤
+# Early renal damage
 add("umalb", "尿微量白蛋白", "Urine microalbumin", "mALB", "mg/L", 1, ("upper", 20.0), COMMON, 36.0, 55.0, "renal_early",
     variants=("尿微量清蛋白", "U-mALB"))
 add("uacr", "尿白蛋白/肌酐比值", "Urine albumin/creatinine ratio", "UACR", "mg/g", 1, ("upper", 30.0), COMMON, 30.0, 50.0, "renal_early",
     variants=("ACR", "尿微量白蛋白肌酐比"))
 add("b2mg", "β2-微球蛋白", "Beta-2 microglobulin", "β2-MG", "mg/L", 2, ("range", 1.0, 3.0), COMMON, 5.9, 15.0, "renal_early",
     variants=("β2微球蛋白", "B2-MG"))
-# 心肌标志物
+# Cardiac markers
 add("hstni", "超敏肌钙蛋白I", "High-sensitivity troponin I", "hs-cTnI", "ng/L", 1, ("upper", 26.2), COMMON, 9.7, 57.0, "cardiac",
     variants=("hs-TnI", "肌钙蛋白I"))
 add("ntprobnp", "N末端脑钠肽前体", "NT-proBNP", "NT-proBNP", "pg/mL", 0, ("upper", 125.0), COMMON, 30.0, 40.0, "cardiac",
     variants=("NT-proBNP", "氨基末端B型利钠肽原"))
-# 糖代谢
+# Glucose metabolism
 add("insulin", "空腹胰岛素", "Fasting insulin", "INS", "μIU/mL", 2, ("range", 2.6, 24.9), COMMON, 21.0, 58.0, "glucose",
     variants=("胰岛素", "FINS"))
 add("cpep", "C肽", "C-peptide", "C-P", "ng/mL", 2, ("range", 1.1, 4.4), COMMON, 9.3, 30.0, "glucose",
     variants=("C-肽", "空腹C肽"))
 add("ogtt2h", "餐后2小时血糖", "2-hour post-load glucose", "2hPG", "mmol/L", 2, ("upper", 7.8), COMMON, None, None, "glucose",
     variants=("OGTT 2h", "糖负荷后2小时血糖", "餐后两小时血糖"), derived="glu × 个体餐后系数（1.05–1.9）")
-# 甲状腺（扩展）
+# Thyroid (extended)
 add("tgab", "甲状腺球蛋白抗体", "Thyroglobulin antibody", "TgAb", "IU/mL", 1, ("upper", 115.0), COMMON, 12.0, 60.0, "thyroid",
     variants=("TGAb", "抗甲状腺球蛋白抗体"))
 add("tg_protein", "甲状腺球蛋白", "Thyroglobulin", "Tg", "ng/mL", 2, ("range", 3.5, 77.0), COMMON, 8.0, 40.0, "thyroid",
     variants=("TG", "甲状腺球蛋白(Tg)"))
-# 风湿与免疫
+# Rheumatology and immunology
 add("rf", "类风湿因子", "Rheumatoid factor", "RF", "IU/mL", 1, ("upper", 20.0), COMMON, 8.5, 40.0, "immune",
     variants=("RF", "類風濕因子"))
 add("aso", "抗链球菌溶血素O", "Antistreptolysin O", "ASO", "IU/mL", 0, ("upper", 200.0), COMMON, 10.0, 40.0, "immune",
@@ -563,7 +579,7 @@ add("c3", "补体C3", "Complement C3", "C3", "g/L", 2, ("range", 0.9, 1.8), COMM
     variants=("C3",))
 add("c4", "补体C4", "Complement C4", "C4", "g/L", 2, ("range", 0.1, 0.4), COMMON, 8.9, 33.0, "immune",
     variants=("C4",))
-# 生化（扩展）
+# Chemistry (extended)
 add("amy", "淀粉酶", "Amylase", "AMY", "U/L", 0, ("range", 35, 135), COMMON, 8.7, 28.0, "chemistry",
     variants=("血淀粉酶", "AMS", "澱粉酶"))
 add("lps", "脂肪酶", "Lipase", "LPS", "U/L", 0, ("range", 13, 60), COMMON, 23.0, 40.0, "chemistry",
@@ -574,12 +590,12 @@ add("pa", "前白蛋白", "Prealbumin", "PA", "mg/L", 0, ("range", 200, 400), CO
     variants=("PAB", "前清蛋白"))
 add("nonhdl", "非高密度脂蛋白胆固醇", "Non-HDL cholesterol", "non-HDL-C", "mmol/L", 2, ("upper", 4.1), COMMON, None, None, "lipid",
     variants=("Non-HDL-C", "非HDL胆固醇"), derived="chol - hdl")
-# 便、幽门螺杆菌
+# Stool, H. pylori
 add("fobt", "便潜血", "Faecal occult blood", "FOBT", "", 0, ("qualitative", "阴性"), COMMON, None, None, "stool",
     variants=("大便隐血", "粪便隐血试验", "大便隱血"), kind="qualitative", positive_rate=0.04, positive_values=[["阳性", 3], ["弱阳性", 1]])
 add("hp_ab", "幽门螺杆菌抗体", "Helicobacter pylori antibody", "Hp-Ab", "", 0, ("qualitative", "阴性"), COMMON, None, None, "hp",
     variants=("HP抗体", "幽门螺旋杆菌抗体"), kind="qualitative", positive_rate=0.40, positive_values=[["阳性", 1]])
-# 肺功能
+# Spirometry
 add("fvc", "用力肺活量", "Forced vital capacity", "FVC", "L", 2, ("range_sex", (2.8, 5.5), (2.0, 4.2)), COMMON, 3.0, 12.0, "spirometry",
     variants=("FVC",))
 add("fvc_pct", "用力肺活量占预计值", "FVC % predicted", "FVC%pred", "%", 0, ("lower", 80), COMMON, 3.0, 8.0, "spirometry",
@@ -590,7 +606,7 @@ add("fev1", "第一秒用力呼气容积", "FEV1", "FEV1", "L", 2, None, COMMON,
     variants=("FEV1.0", "一秒量"), derived="fvc × fev1_fvc / 100")
 add("fev1_pct", "一秒量占预计值", "FEV1 % predicted", "FEV1%pred", "%", 0, ("lower", 80), COMMON, None, None, "spirometry",
     variants=("FEV1%pred",), derived="fvc_pct × fev1_fvc / 82")
-# 动脉硬化
+# Arterial stiffness
 add("bapwv_l", "左侧臂踝脉搏波传导速度", "baPWV (left)", "baPWV-L", "cm/s", 0, ("upper", 1400), COMMON, 6.0, 12.0, "arterial",
     variants=("左baPWV", "L-baPWV"))
 add("bapwv_r", "右侧臂踝脉搏波传导速度", "baPWV (right)", "baPWV-R", "cm/s", 0, ("upper", 1400), COMMON, None, None, "arterial",
@@ -599,7 +615,7 @@ add("abi_l", "左侧踝臂指数", "ABI (left)", "ABI-L", "", 2, ("range", 0.9, 
     variants=("左ABI", "L-ABI"))
 add("abi_r", "右侧踝臂指数", "ABI (right)", "ABI-R", "", 2, ("range", 0.9, 1.3), COMMON, 4.0, 6.0, "arterial",
     variants=("右ABI", "R-ABI"))
-# 人体成分（生物电阻抗）
+# Body composition (bioelectrical impedance)
 add("body_fat", "体脂率", "Body fat percentage", "PBF", "%", 1, ("range_sex", (10.0, 20.0), (18.0, 28.0)), COMMON, 3.0, 20.0, "body_composition",
     variants=("体脂百分比", "身體脂肪百分比", "Body Fat"))
 add("visceral_fat", "内脏脂肪等级", "Visceral fat level", "VFL", "", 0, ("upper", 9), COMMON, 5.0, 30.0, "body_composition",
@@ -608,7 +624,7 @@ add("muscle_mass", "骨骼肌量", "Skeletal muscle mass", "SMM", "kg", 1, ("ran
     variants=("肌肉量", "骨骼肌"))
 add("bmr", "基础代谢率", "Basal metabolic rate", "BMR", "kcal/d", 0, ("range_sex", (1400, 1900), (1100, 1500)), COMMON, 2.0, 10.0, "body_composition",
     variants=("基础代谢", "BMR(kcal)"))
-# 心脏彩超
+# Echocardiography
 add("lvef", "左室射血分数", "LV ejection fraction", "LVEF", "%", 0, ("range", 55, 75), COMMON, 5.0, 6.0, "echo",
     variants=("EF", "射血分数"))
 add("lvedd", "左室舒张末期内径", "LV end-diastolic diameter", "LVEDd", "mm", 0, ("range_sex", (45, 55), (40, 50)), COMMON, 3.0, 6.0, "echo",
@@ -619,7 +635,7 @@ add("la", "左房内径", "Left atrium diameter", "LA", "mm", 0, ("upper", 35), 
     variants=("LAD", "左房前后径"))
 add("ea", "二尖瓣E/A比值", "Mitral E/A ratio", "E/A", "", 2, ("lower", 1.0), COMMON, 8.0, 15.0, "echo",
     variants=("E/A", "二尖瓣血流E/A"))
-# 宫颈癌筛查（女性）
+# Cervical cancer screening (female)
 add("hpv16", "HPV16型", "HPV type 16", "HPV16", "", 0, ("qualitative", "阴性"), COMMON, None, None, "cervical",
     variants=("HPV 16", "人乳头瘤病毒16型"), kind="qualitative", sex="female", positive_rate=0.02, positive_values=[["阳性", 1]])
 add("hpv18", "HPV18型", "HPV type 18", "HPV18", "", 0, ("qualitative", "阴性"), COMMON, None, None, "cervical",
@@ -630,7 +646,7 @@ add("tct", "液基薄层细胞学检查", "Liquid-based cytology (TCT)", "TCT", 
     variants=("TCT", "宫颈细胞学", "宫颈液基细胞学"), kind="qualitative", sex="female", positive_rate=0.06,
     positive_values=[["ASC-US", 8], ["LSIL", 2], ["ASC-H", 1]])
 
-# 港台写法：同一指标在繁体报告里的常见印法
+# Hong Kong / Taiwan spellings: common printed forms of the same indicator in Traditional-script reports
 EXTRA_VARIANTS = {
     "hgb": ["血色素", "血紅素"], "tg": ["三酸甘油酯", "三酸甘油脂"], "crea": ["肌酸酐"], "alt": ["谷丙轉氨酶", "GPT"],
     "ast": ["谷草轉氨酶", "GOT"], "chol": ["總膽固醇"], "hdl": ["高密度膽固醇"], "ldl": ["低密度膽固醇"],
@@ -643,51 +659,54 @@ for item in INDICATORS:
             item["name_variants"].append(v)
 
 
-# ── 构建 ─────────────────────────────────────────────────────────
+# ── Build ────────────────────────────────────────────────────────
 class ResolverUnavailable(RuntimeError):
-    """解析器装不上/跑不起来。**与"这个名字解析不出"是两回事。**
+    """The resolver won't load or won't run. **This is not the same thing as "this name
+    doesn't resolve."**
 
-    第一版把两者都接成 `(None, False)`，于是 `scripts/numbers.py` 遮蔽标准库 `numbers`
-    导致 numpy 崩掉时，98 项的 LOINC 全部静默归零，spec 照样写了出去——
-    输出看起来只像"mirobody 的词表很差"，不像 bug。
-    **一个环境故障绝不能长得像一个测量结果。**
+    The first version collapsed both into `(None, False)`, so when `scripts/numbers.py`
+    shadowed the standard-library `numbers` and crashed numpy, all 98 LOINC fields silently
+    zeroed out and the spec was written anyway -- the output just looked like "mirobody's
+    vocabulary is poor," not like a bug.
+    **An environment failure must never be allowed to look like a measurement.**
     """
 
 
 def resolver() -> object:
-    """拿到解析器；拿不到就抛，不要返回一个"什么都解析不出"的替身。"""
+    """Get the resolver; raise if it can't be obtained rather than returning a stand-in that
+    resolves nothing."""
     try:
         from mirobody.engine import resolve
-    except Exception as e:                       # noqa: BLE001 - 环境问题要原样报出来
-        raise ResolverUnavailable(f"导入 mirobody.engine 失败：{type(e).__name__}: {e}") from e
+    except Exception as e:                       # noqa: BLE001 - an environment issue must surface as-is
+        raise ResolverUnavailable(f"failed to import mirobody.engine: {type(e).__name__}: {e}") from e
     try:
-        probe = resolve("血红蛋白")               # 一个必定解析得出的名字，用来验环境
+        probe = resolve("血红蛋白")               # a name that must always resolve, used to validate the environment
     except Exception as e:                       # noqa: BLE001
-        raise ResolverUnavailable(f"调用 resolve() 失败：{type(e).__name__}: {e}") from e
+        raise ResolverUnavailable(f"resolve() call failed: {type(e).__name__}: {e}") from e
     if not getattr(probe, "resolved", False):
         raise ResolverUnavailable(
-            "探针『血红蛋白』都解析不出，说明词表没装好（LFS 数据包？），"
-            "而不是这些指标名真的解析不出")
+            "the probe name could not even be resolved, which means the vocabulary isn't "
+            "installed properly (missing LFS data?), not that these indicator names truly don't resolve")
     return resolve
 
 
 def resolve_loinc(resolve, name: str) -> tuple[str | None, bool]:
-    """这个打印名解析成什么。**只**在这里把"解析不出"记为 False。"""
+    """What this printed name resolves to. **Only** here does "doesn't resolve" get recorded as False."""
     try:
         result = resolve(name)
-    except Exception:                            # noqa: BLE001 - 单个名字的失败就是解析不出
+    except Exception:                            # noqa: BLE001 - a single name's failure just means it doesn't resolve
         return None, False
     return (result.loinc or None), bool(result.resolved)
 
 
 def compare_with_corpus() -> None:
-    """手写区间 vs 语料实测分位数。校准用，不是数据来源。"""
+    """Hand-written ranges vs. the corpus's observed quantiles. For calibration, not a data source."""
     path = REPO / "library" / "synth_spec.json"
     if not path.is_file():
-        print("（没有 library/synth_spec.json，跳过对账）")
+        print("(no library/synth_spec.json, skipping reconciliation)")
         return
     observed = json.loads(path.read_text(encoding="utf-8"))["indicators"]
-    print(f"\n{'指标':<22}{'手写区间':<22}{'语料 p05/p50/p95':<28}{'判断'}")
+    print(f"\n{'indicator':<22}{'hand-written range':<22}{'corpus p05/p50/p95':<28}{'flag'}")
     checked = flagged = 0
     for item in INDICATORS:
         names = [item["zh"], *item["name_variants"]]
@@ -699,8 +718,8 @@ def compare_with_corpus() -> None:
             continue
         checked += 1
         num = hit["numeric"]
-        # 这里必须用分支而不是字典字面量：字典会把所有分支都求值，
-        # 于是 ("upper", 8.0) 也会去取 ref[2][0]，当场 TypeError。
+        # This must be branches, not a dict literal: a dict literal would evaluate every
+        # branch, so ("upper", 8.0) would also try ref[2][0] and raise TypeError on the spot.
         if ref[0] == "range":
             lo, hi = ref[1], ref[2]
         elif ref[0] == "range_sex":
@@ -710,23 +729,24 @@ def compare_with_corpus() -> None:
         else:
             lo, hi = ref[1], ref[1] * 3
         p50 = num["p50"]
-        # 中位数落在区间宽度的 ±1.5 倍以外就标出来：不是判谁对，是提示这里要看一眼。
+        # Flag it when the median falls outside the range width by more than 1.5x: this isn't a
+        # verdict, just a prompt to take a look.
         width = max(hi - lo, 1e-9)
         off = p50 < lo - 1.5 * width or p50 > hi + 1.5 * width
         flagged += off
         span = "{}–{}".format(lo, hi)
         seen_str = "{}/{}/{}".format(num["p05"], p50, num["p95"])
-        mark = "← 差得远，看一眼" if off else ""
+        mark = "<- way off, take a look" if off else ""
         print("{:<22}{:<22}{:<28}{}".format(item["zh"], span, seen_str, mark))
-    print(f"\n对上号的 {checked} 项，其中 {flagged} 项中位数明显偏离手写区间。")
+    print(f"\n{checked} items matched, of which {flagged} have a median clearly off from the hand-written range.")
 
 
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--write", action="store_true")
-    ap.add_argument("--compare", action="store_true", help="与语料实测分位数对账")
+    ap.add_argument("--compare", action="store_true", help="reconcile against the corpus's observed quantiles")
     ap.add_argument("--no-resolver", action="store_true",
-                    help="解析器不可用时仍然构建（LOINC 留空）。默认是报错退出")
+                    help="build anyway when the resolver is unavailable (LOINC left blank); default is to error out")
     args = ap.parse_args()
 
     try:
@@ -734,12 +754,13 @@ def main() -> None:
     except ResolverUnavailable as e:
         if not args.no_resolver:
             raise SystemExit(
-                f"解析器不可用：{e}\n"
-                f"这会让 {len(INDICATORS)} 项的 expect_resolvable 全变成 false 并写进 spec。\n"
-                f"用 mirobody 的解释器重跑：\n"
+                f"resolver unavailable: {e}\n"
+                f"This would make expect_resolvable false for all {len(INDICATORS)} items and write "
+                f"that into the spec.\n"
+                f"Rerun with mirobody's interpreter:\n"
                 f"  ../mirobody/.venv/bin/python scripts/build_indicators.py --write\n"
-                f"确实要在没有解析器的情况下构建，加 --no-resolver（LOINC 字段会留空）。")
-        print(f"（--no-resolver：{e}；LOINC 字段留空）")
+                f"To build without a resolver anyway, pass --no-resolver (LOINC fields will be left blank).")
+        print(f"(--no-resolver: {e}; LOINC fields left blank)")
         resolve = None
 
     resolved = unresolved = 0
@@ -756,13 +777,13 @@ def main() -> None:
     derived = sum(1 for i in INDICATORS if i["derived_from"])
     with_cvi = sum(1 for i in INDICATORS if i["cvi"])
 
-    print(f"指标 {len(INDICATORS)} 项 · 套餐 {len(panels)} 个 · 恒等式派生 {derived} 项 · "
-          f"带 CVI 的 {with_cvi} 项")
-    print(f"LOINC 解析：{resolved} 项解析得出，{unresolved} 项解析不出"
-          f"（{resolved / len(INDICATORS):.0%}）")
-    print("套餐构成：" + " · ".join(f"{k}:{v}" for k, v in sorted(panels.items())))
+    print(f"{len(INDICATORS)} indicators · {len(panels)} panels · {derived} identity-derived · "
+          f"{with_cvi} with CVI")
+    print(f"LOINC resolution: {resolved} resolved, {unresolved} unresolved"
+          f" ({resolved / len(INDICATORS):.0%})")
+    print("Panel composition: " + " · ".join(f"{k}:{v}" for k, v in sorted(panels.items())))
     if unresolved:
-        print("解析不出的（这些是评测里考弃权的素材）：",
+        print("Unresolved (material for abstention in evaluation):",
               ", ".join(i["zh"] for i in INDICATORS if not i["expect_resolvable"]))
 
     if args.compare:
@@ -793,7 +814,7 @@ def main() -> None:
         }
         out = RESOURCES / "indicators.json"
         out.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
-        print(f"\n已写出 {out}")
+        print(f"\nWrote {out}")
 
 
 if __name__ == "__main__":

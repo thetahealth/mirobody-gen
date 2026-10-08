@@ -99,6 +99,16 @@ Per person: `vendor`, `source` (the `source` value a phone client sends), `files
 `time`. Each batch file is `{"records": [{indicator, value, unit, time, source, end_time?}]}` with at
 most 500 records.
 
+## `vendor_signals.jsonl` and `vendor_signals/<person>/<vendor>.json`
+
+The person's device series (the one `devices.jsonl` is written from) in each vendor's API shape. Vendors:
+`apple` (every Apple Health store, HealthKit JSON) and `garmin` · `oura` · `whoop` (only for someone with
+`habits.wearable` whose store is Apple Health or Health Connect). Each file is `{person_id, synthetic, vendor,
+tz, records[]}`; a HealthKit record is `{type, input}`, any other `{data_type, payload}`, in the shape of the
+acceptance records in mirobody's `kernel/decoders/samples/<vendor>/`. Per file, `vendor_signals.jsonl` has
+`person_id`, `synthetic`, `vendor`, `file`, `n_records`, and `records[]` with `data_type` (the HealthKit type
+for `apple`), `input` (the payload) and `expected_metrics` (the catalogue metrics the decoder should produce).
+
 ## `journal.jsonl`
 
 `person_id`, `date`, `lang`, `text`, `expected[]`: either `{kind: "symptom", name, symptom_id, icpc3,

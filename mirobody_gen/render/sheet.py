@@ -1,10 +1,12 @@
-"""T1：XLSX 与 CSV。与 PDF 共用 `grid.table_grid`，版式只决定一次。
+"""T1: XLSX and CSV. Shares `grid.table_grid` with the PDF renderer, so layout is decided once.
 
-单元格一律存**文本**：`5.90` 存成数字就只剩 `5.9`，印刷真值随之改变。数值单元格
-（存数、靠 number_format 显示位数）是真实导出里确实有的另一种陷阱，但它需要自己的真值口径
-（抽取器读到的是 5.9 还是 5.90？），留到那时一起定。
+Every cell is stored as **text**: storing `5.90` as a number leaves only `5.9`, changing the printed
+truth. Numeric cells (a stored number, digits shown via `number_format`) are a real trap real-world
+exports do have, but they need their own ground-truth convention (does an extractor read 5.9 or 5.90?) --
+left for when that's taken on.
 
-确定性：openpyxl 把"现在"写进 docProps 与 zip 条目的时间戳，这里全部改成报告日期。
+Deterministic: openpyxl stamps "now" into docProps and the zip entries' timestamps; all of that is
+rewritten to the report date here.
 """
 
 from __future__ import annotations
@@ -86,7 +88,7 @@ def _normalize_zip(data: bytes, when: datetime) -> bytes:
             info.external_attr = 0o600 << 16
             data = src.read(name)
             if name == "docProps/core.xml":
-                # openpyxl 保存时无视 properties.modified，一律写"现在"。这里改回报告日期。
+                # openpyxl ignores properties.modified on save and always writes "now"; put the report date back
                 iso = when.strftime("%Y-%m-%dT%H:%M:%SZ").encode()
                 data = re.sub(rb"(<dcterms:modified[^>]*>)[^<]*(</dcterms:modified>)",
                               rb"\g<1>" + iso + rb"\g<2>", data)

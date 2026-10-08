@@ -1,21 +1,22 @@
 """Extraction hazards: injection and detection. Which named hazards a file carries is decided only here.
 
-陷阱：注入与认定。一份文件带哪些具名陷阱，**只在这里判定**。
+A hazard has one of three origins, recorded verbatim in the manifest's `source` field:
 
-陷阱有三种来路，manifest 里的 `source` 字段照实写：
+* `layout` — a consequence of the layout choice. An institution whose layout glues the unit to the
+  value puts `unit.glued_to_value` on every one of its slips. But it only counts when the content
+  actually prints it: a slip with no `10^9/L`-style unit never carries `unit.superscript`, however
+  distinctive the layout's superscript convention is.
+* `content` — a consequence of the content itself: a qualitative item brings `value.non_numeric`;
+  blood pressure printed in one cell brings `value.pair_in_one_cell`.
+* `incident` — a one-off event on a single file (a name wraps, a reference range gets truncated),
+  drawn independently at the real corpus's **document rate**.
 
-* `layout`  —— 版式选择的后果。机构的版式把单位粘在值上，这家的每张单子就都带
-  `unit.glued_to_value`。但**只有纸上真的印出了对应内容才算**：没有 10^9/L 这类单位的单子，
-  版式里的上标写法再特别，也不带 `unit.superscript`。
-* `content` —— 内容本身带来的：有定性项就有 `value.non_numeric`，血压印成一格就有
-  `value.pair_in_one_cell`。
-* `incident` —— 单份文件的偶发事件（某一行名字折行、某一格参考范围被截断），
-  按真实语料的**文档率**独立抽取。
-
-每一类在 `STATUS` 里都有登记：`injected / layout / content` 是这一层能造的；
-`channel` 是**通道**造成的（OCR 认错字、数字里多出空格），它们在文本层 PDF 里不会自然发生，
-硬造就是伪造——留给图像层由劣化自然产生；`deferred` 写明了为什么还没做。
-`tests/test_render.py` 检查 spec 里每一个 `generate=true` 的类都有登记，没有一类是被静默丢掉的。
+Every class is registered in `STATUS`: `injected / layout / content` are the ones this layer can
+produce; `channel` hazards come from the **channel** (OCR misreads a character, a stray space appears
+in a number) and do not occur naturally in a text-layer PDF — forcing them there would be fake, so
+they're left for the image layer's degradation to produce naturally; `deferred` records why a class
+isn't implemented yet. `tests/test_render.py` checks that every `generate=true` class in spec is
+registered, so none is silently dropped.
 """
 
 from __future__ import annotations
@@ -28,73 +29,74 @@ from .document import Cells, Doc
 from .layout import script_of
 
 STATUS: dict[str, tuple[str, str]] = {
-    # ── 版式 ──
-    "unit.glued_to_value": ("layout", "版式把单位粘在值上"),
-    "unit.glued_to_reference": ("layout", "单位印在参考范围格里，空格或 & 相连"),
-    "unit.in_header_or_reference_only": ("layout", "单位只在表头"),
-    "unit.missing": ("layout", "版式不印单位"),
-    "reference.absent": ("layout", "版式没有参考范围列"),
-    "table.bilingual_header": ("layout", "第二行英文表头"),
-    "reference.separator_dialect": ("layout", "区间分隔符方言"),
-    "flag.text_dialect": ("layout", "文字标记"),
-    "flag.arrow_glued": ("layout", "箭头粘在数值上"),
-    "value.flag_combined_in_cell": ("layout", "值与标记同格"),
-    "value.parenthetical": ("layout", "值后括号标记"),
-    "unit.superscript": ("layout", "10^9/L 的各种写法"),
-    "unit.case_variant": ("layout", "单位大小写"),
-    "reference.sex_partitioned": ("layout", "按性别分层的参考范围印在一格"),
-    "meta.subject_field_as_indicator": ("layout", "受检者字段印成表格行"),
-    "value.multiple_per_row": ("layout", "上次结果列"),
-    "table.row_label_as_column": ("layout", "分类列"),
-    "meta.date_format_dialect": ("layout", "日期格式方言"),
-    "meta.multiple_dates": ("layout", "采样/接收/报告/打印多个日期"),
-    "meta.page_furniture": ("layout", "页码、打印信息"),
-    "ocr.noise_text": ("layout", "水印与印章。文本层里的水印字就是噪声文本"),
-    "value.decimal_comma": ("layout", "逗号小数点"),
-    "ocr.punctuation_swap": ("layout", "全角括号"),
-    "value.blank_column": ("layout", "整列为空"),
-    "table.transposed": ("layout", "转置导出表"),
-    # ── 内容 ──
-    "value.non_numeric": ("content", "定性结果"),
-    "table.two_result_columns": ("layout", "正常值与异常值分列（美式化验单的 In Range / Out Of Range）"),
-    "reference.inequality": ("content", "单侧参考范围"),
-    "value.pair_in_one_cell": ("content", "血压一格两值"),
-    "unit.slash_ambiguous": ("content", "次/分 这类单位"),
-    "table.multiple_tables": ("content", "一份文件多张表"),
-    "table.page_break_loses_header": ("content", "表格跨页、续页无表头（渲染后认定）"),
-    # ── 偶发 ──
-    "table.wrapped_cell": ("injected", "名称折行"),
-    "reference.split_across_lines": ("injected", "参考范围折行"),
-    "value.missing": ("injected", "某一行没有结果；该行进必须弃权集合"),
-    "table.truncated": ("injected", "参考范围被截断；该字段移出分母"),
-    "table.misalignment": ("injected", "缺一格导致后面的格左移"),
-    "meta.mixed_into_rows": ("injected", "日期/机构混进结果行"),
-    "table.flag_row_as_data": ("injected", "是否异常 之类的统计行"),
-    "meta.narrative_block": ("injected", "叙述段落"),
-    "value.duplicated_in_summary": ("injected", "小结里重复表中数值"),
-    "ocr.mixed_script": ("injected", "繁简混排"),
-    "table.header_ambiguous": ("injected", "某列表头为空"),
-    "reference.ambiguous_column": ("injected", "参考范围列的表头像标记列"),
-    "flag.column_confusion": ("injected", "标记列为空，标记挤进结果格"),
-    "reference.multiple_rows": ("injected", "参考范围分多行"),
-    "unit.on_separate_line": ("injected", "单位另起一行（在值或参考范围之后）"),
-    # ── 通道（图像层自然产生，文本层不造）──
-    "ocr.other": ("channel", "OCR 错误兜底类"),
-    "ocr.name_misspelled": ("channel", "OCR 认错指标名"),
-    "unit.ocr_corrupted": ("channel", "OCR 改形单位"),
-    "reference.garbled": ("channel", "OCR 弄坏参考范围"),
-    "value.space_in_number": ("channel", "数值里多出空格"),
-    "reference.space_inside_number": ("channel", "参考范围数字里多出空格"),
-    "value.missing_decimal_point": ("channel", "小数点丢失。印成错值会让印刷真值与临床真值冲突，"
-                                               "需要单独的真值口径，先不造"),
-    # ── 延后 ──
-    "ocr.chart_annotation": ("deferred", "需要趋势图；体检报告书目前不画图表"),
-    "reference.ratio_not_unit": ("deferred", "需要血清学（s/co、index）指标，目录里还没有"),
-    "value.contradicts_other_section": ("deferred", "需要小结与表格两套数值，真值口径未定"),
-    "value.comparator": ("deferred", "需要各项目的检出限，不同试剂厂家不同，没有可引用的统一出处"),
-    "unit.inconsistent_across_sets": ("deferred", "需要同一指标在一份文件里出现两次"),
-    "flag.contradicts_reference": ("deferred", "实测文档率为 0"),
-    "value.everything_in_one_cell": ("deferred", "实测文档率为 0"),
+    # ── layout ──
+    "unit.glued_to_value": ("layout", "layout glues the unit to the value"),
+    "unit.glued_to_reference": ("layout", "unit printed in the reference-range cell, joined by a space or &"),
+    "unit.in_header_or_reference_only": ("layout", "unit only in the header"),
+    "unit.missing": ("layout", "layout prints no unit"),
+    "reference.absent": ("layout", "layout has no reference-range column"),
+    "table.bilingual_header": ("layout", "second header row in English"),
+    "reference.separator_dialect": ("layout", "range-separator dialect"),
+    "flag.text_dialect": ("layout", "text flag"),
+    "flag.arrow_glued": ("layout", "arrow glued to the value"),
+    "value.flag_combined_in_cell": ("layout", "value and flag share a cell"),
+    "value.parenthetical": ("layout", "flag in parentheses after the value"),
+    "unit.superscript": ("layout", "the various ways of writing 10^9/L"),
+    "unit.case_variant": ("layout", "unit letter case"),
+    "reference.sex_partitioned": ("layout", "sex-partitioned reference range printed in one cell"),
+    "meta.subject_field_as_indicator": ("layout", "subject field printed as a table row"),
+    "value.multiple_per_row": ("layout", "previous-result column"),
+    "table.row_label_as_column": ("layout", "category column"),
+    "meta.date_format_dialect": ("layout", "date format dialect"),
+    "meta.multiple_dates": ("layout", "multiple dates: collected/received/reported/printed"),
+    "meta.page_furniture": ("layout", "page numbers, print metadata"),
+    "ocr.noise_text": ("layout", "watermarks and stamps; in the text layer a watermark's text is noise text"),
+    "value.decimal_comma": ("layout", "decimal comma"),
+    "ocr.punctuation_swap": ("layout", "full-width parentheses"),
+    "value.blank_column": ("layout", "a whole column left blank"),
+    "table.transposed": ("layout", "transposed export table"),
+    # ── content ──
+    "value.non_numeric": ("content", "qualitative result"),
+    "table.two_result_columns": ("layout", "normal and abnormal values in separate columns (In Range / Out Of Range on US-style lab slips)"),
+    "reference.inequality": ("content", "one-sided reference range"),
+    "value.pair_in_one_cell": ("content", "blood pressure as two values in one cell"),
+    "unit.slash_ambiguous": ("content", "units like 次/分 (times/minute)"),
+    "table.multiple_tables": ("content", "several tables in one file"),
+    "table.page_break_loses_header": ("content", "table spans a page break; the continuation has no header (detected after rendering)"),
+    # ── incidental ──
+    "table.wrapped_cell": ("injected", "name wraps onto two lines"),
+    "reference.split_across_lines": ("injected", "reference range wraps onto two lines"),
+    "value.missing": ("injected", "a row has no result; that row joins the must-abstain set"),
+    "table.truncated": ("injected", "reference range truncated; that field is dropped from the denominator"),
+    "table.misalignment": ("injected", "a missing cell shifts the following cells left"),
+    "meta.mixed_into_rows": ("injected", "a date/institution line mixed into the result rows"),
+    "table.flag_row_as_data": ("injected", "a summary row such as 'any abnormal' mixed into the data"),
+    "meta.narrative_block": ("injected", "a narrative paragraph"),
+    "value.duplicated_in_summary": ("injected", "a table value repeated in the summary"),
+    "ocr.mixed_script": ("injected", "simplified and traditional characters mixed"),
+    "table.header_ambiguous": ("injected", "some column header left blank"),
+    "reference.ambiguous_column": ("injected", "the reference-range column header reads like a flag column"),
+    "flag.column_confusion": ("injected", "flag column blank, flag crowded into the result cell"),
+    "reference.multiple_rows": ("injected", "reference range split across several rows"),
+    "unit.on_separate_line": ("injected", "unit on its own line (after the value or the reference range)"),
+    # ── channel (produced naturally by the image layer; never forced in the text layer) ──
+    "ocr.other": ("channel", "OCR error catch-all"),
+    "ocr.name_misspelled": ("channel", "OCR misreads the indicator name"),
+    "unit.ocr_corrupted": ("channel", "OCR distorts the unit"),
+    "reference.garbled": ("channel", "OCR garbles the reference range"),
+    "value.space_in_number": ("channel", "a stray space inside a number"),
+    "reference.space_inside_number": ("channel", "a stray space inside a reference-range number"),
+    "value.missing_decimal_point": ("channel", "decimal point dropped; printing it as a wrong value would put the "
+                                               "printed and clinical truth layers in conflict and needs a separate "
+                                               "truth convention, so it is not produced yet"),
+    # ── deferred ──
+    "ocr.chart_annotation": ("deferred", "needs a trend chart; checkup report books don't draw charts yet"),
+    "reference.ratio_not_unit": ("deferred", "needs a serology indicator (s/co, index), not yet in the catalogue"),
+    "value.contradicts_other_section": ("deferred", "needs two sets of values, summary and table, with an undecided truth convention"),
+    "value.comparator": ("deferred", "needs each assay's detection limit, which varies by reagent vendor with no citable unified source"),
+    "unit.inconsistent_across_sets": ("deferred", "needs the same indicator to appear twice in one file"),
+    "flag.contradicts_reference": ("deferred", "measured document rate is 0"),
+    "value.everything_in_one_cell": ("deferred", "measured document rate is 0"),
 }
 
 
@@ -106,12 +108,12 @@ def rate(name: str) -> float:
 
 
 def _reading_rows(doc: Doc) -> list[tuple[int, int, Cells]]:
-    """(表序号, 行序号, 成分)，只含真读数行。"""
+    """(table index, row index, cell), limited to rows that hold a real reading."""
     return [(t, i, c) for t, table in enumerate(doc.tables)
             for i, c in enumerate(table.rows) if c.printed is not None]
 
 
-# ── 偶发注入 ─────────────────────────────────────────────────────
+# ── Incidental injection ──
 def _wrapped_cell(doc: Doc, rng: random.Random) -> list[int]:
     cands = [c for _, _, c in _reading_rows(doc) if len(c.name) >= 5 and "\n" not in c.name]
     out = []
@@ -220,8 +222,9 @@ def _duplicated_summary(doc: Doc, rng: random.Random) -> list[int]:
         p = doc.printed[i]
         word = words["high"] if doc.readings[p.readings[0]].status == "high" else words["low"]
         parts.append(f"{p.item_name} {p.item_value}{(' ' + p.item_unit) if p.item_unit else ''} {word}")
-    # 每项一行：同一格里"high"紧挨着下一项的"Total Cholesterol"，会拼出一个真实语料里也有的
-    # 英文短语——两个公共词首尾相接，回放检测按设计不豁免（2026-09-23 实测命中）。
+    # One line per item: "high" sitting right next to the next item's "Total Cholesterol" spells out a
+    # phrase that also occurs in the real corpus - two common words butted together. The replay detector
+    # does not exempt this by design (hit confirmed 2026-09-23).
     doc.narratives.append((words["label"], "\n".join(parts)))
     doc.distractors.append({"kind": "summary_duplicate", "items": parts})
     return abn[:4]
@@ -324,7 +327,8 @@ INCIDENTS = {
 
 
 def inject(doc: Doc, rng: random.Random, only: list[str] | None = None) -> None:
-    """按真实文档率独立抽取偶发陷阱。`only` 给定时只注入这几类（最小对照对用），且必定尝试。"""
+    """Draw incidental hazards independently at their real document rate. When `only` is given, inject
+    just those classes (for minimal-contrast pairs) and always attempt them."""
     names = only if only is not None else sorted(INCIDENTS)
     for name in names:
         if only is None and rng.random() >= rate(name):
@@ -343,7 +347,7 @@ def _applied_header(doc: Doc, name: str) -> bool:
     return any(c in cols for c in ("unit", "flag", "abbr", "reference", "seq")) and bool(doc.tables)
 
 
-# ── 版式与内容陷阱的认定 ─────────────────────────────────────────
+# ── Detecting layout and content hazards ──
 _ARROWS = ("↑", "↓", "↑↑", "↓↓")
 _POWER = re.compile(r"\^|×|\*|E\d|⁹|¹²|^[GT]/L$")
 
@@ -363,8 +367,9 @@ def detect(doc: Doc) -> None:
         reading = doc.readings[p.readings[0]]
         if c.unit and c.unit_at == "value" and not c.unit[0].isdigit():
             add("unit.glued_to_value", c.printed)
-        # 两类要分开：`&` 相连是"粘连"（glued_to_reference 的描述："常见 '&' 作分隔"）；
-        # 空格相连、结果格里没有单位，是"单位只在参考范围里"（in_header_or_reference_only）。
+        # Keep the two apart: joined by `&` is "glued" (glued_to_reference: commonly separated by '&');
+        # joined by a space, with no unit in the result cell, is "unit only in the reference range"
+        # (in_header_or_reference_only).
         if c.unit and c.unit_at == "reference_amp":
             add("unit.glued_to_reference", c.printed)
         if c.unit and c.unit_at in ("reference", "header"):

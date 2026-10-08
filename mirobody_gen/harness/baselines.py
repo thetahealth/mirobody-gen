@@ -1,15 +1,16 @@
 """Two free reference extractors that emit MedRepBench-format predictions.
 
-两个不花钱的参照抽取器，输出 MedRepBench 格式的预测文件。
-
     mirobody-gen baselines oracle out/p3/files.jsonl --out out/p3/pred_oracle.jsonl
     mirobody-gen baselines rules  out/p3/files.jsonl --out out/p3/pred_rules.jsonl
 
-* `oracle`：直接交出印刷真值。所有口径都应当是 1.0——不是，就是评分器或导出有错。
-* `rules`：一个**故意朴素**的确定性抽取器。PDF 按坐标把文字聚成行，表格按单元格读；
-  一行里第一个像名字的格当名称、第一个像数的格当值，再按正则认单位、参考范围与标记。
-  它的用处不是比谁强，而是：零成本、完全可复现，用来确认陷阱确实会让分数掉、
-  掉在哪一类，以及评分链路端到端是通的。它**不读** manifest 里的任何答案，只读文件。
+`oracle` hands back the printed ground truth verbatim, so every metric should read 1.0; anything
+less means the scorer or the export is broken. `rules` is a deliberately naive deterministic
+extractor: it clusters PDF text into lines by coordinate (tables are read cell by cell), takes the
+first name-shaped cell as the item name and the first number-shaped cell as the value, then matches
+units, reference ranges and flags with regexes. Its point isn't to be competitive — it's zero-cost
+and fully reproducible, so it confirms that a hazard actually costs score, which category it costs,
+and that the scoring pipeline works end to end. It never reads any answer from the manifest, only
+from the files themselves.
 """
 
 from __future__ import annotations
@@ -68,7 +69,7 @@ def _cells(path: pathlib.Path) -> list[list[str]]:
         book = openpyxl.load_workbook(path, read_only=True, data_only=True)
         return [["" if c is None else str(c) for c in row] for s in book.worksheets for row in s.iter_rows(values_only=True)]
     raw = path.read_bytes().decode("utf-8-sig")
-    return [row for row in csv.reader(io.StringIO(raw))]
+    return list(csv.reader(io.StringIO(raw)))
 
 
 def rules_extract(path: pathlib.Path) -> list[dict]:

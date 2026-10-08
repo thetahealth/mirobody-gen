@@ -1,14 +1,16 @@
 """Minimal-contrast pairs: the same visit rendered clean, then with one hazard class at a time.
 
-最小对照对：同一次就诊、同一套内容，先按一个**干净版式**排一份，再每次只打开**一类**陷阱排一份。
+Same visit, same content, laid out once in a **clean layout**, then once more per **single** hazard
+class turned on. The two files differ only in that one hazard, so the difference in extraction results
+between them is that hazard's **causal effect**, not a correlation tangled up with a dozen other things
+in the layout. This brings CheckList's [ribeiro2020beyond] invariance test (INV) to documents. One
+catch: at the printed-truth layer, some hazards legitimately change the correct answer (after
+`unit.missing`, the unit should no longer be extractable); what stays invariant is the semantic-truth
+layer. So contrast pairs are scored against the semantic layer — this is exactly what the two truth
+layers are for.
 
-两份的差别只有那一类陷阱，所以两份文件上抽取结果的差就是这类陷阱的**因果效应**，而不是和版式里
-其他十几种东西缠在一起的相关。这是 CheckList [ribeiro2020beyond] 的不变性测试（INV）搬到文档上。
-有一处要小心：在印刷真值那一层，有的陷阱会合法地改变正确答案（`unit.missing` 之后单位本来就不该被抽出来）；
-不变的是语义真值那一层。所以对照对的评分以语义层为准——这正是两层真值的用处。
-
-对齐视图（`view:<场景>`）是 PureDocBench 的 Clean / Digital Degraded / Real Degraded 三视图搬到这里：
-同一份 base 只换交付形态，真值一字不变。
+Aligned views (`view:<scene>`) bring PureDocBench's Clean / Digital Degraded / Real Degraded triplet
+here: the same base, only the delivery form changes, truth unchanged.
 """
 
 from __future__ import annotations
@@ -28,7 +30,8 @@ from .render import degrade
 
 
 def clean_family(f: layout.Family) -> layout.Family:
-    """把一个机构的版式"洗干净"：所有版式类陷阱都关掉，列头写法保留该机构的语言。"""
+    """Clean an institution's layout: turn off every layout-class hazard, keeping its column headers
+    in the institution's own language."""
     en = f.language == "en"
     cols = ("seq", "name", "result", "unit", "reference", "flag")
     headers = {r: (layout.spellings(r, f.language) or [r])[0] for r in cols}
@@ -47,7 +50,7 @@ def _drop(cols: tuple[str, ...], role: str) -> tuple[str, ...]:
     return tuple(c for c in cols if c != role)
 
 
-#: 版式类陷阱 → 在干净版式上只打开这一类需要改什么。
+#: Layout-class hazard -> what to change on the clean layout to turn on just this one.
 TOGGLES = {
     "unit.glued_to_value": lambda f: dict(unit_at="value", columns=_drop(f.columns, "unit")),
     "unit.glued_to_reference": lambda f: dict(unit_at="reference_amp", columns=_drop(f.columns, "unit")),
@@ -95,7 +98,8 @@ def render_pairs(seed: int, people: list[Person], encounters: dict[str, list[Enc
         base_family = clean_family(registry.family(home["hospital"]))
         pair_id = f"pair{k:03d}"
         groups = [g for s in split_encounter(random.Random(f"{pair_id}:split"), enc) for g in s]
-        # 上一次就诊的数值：只有"上次结果"列那一类变体会把它印出来，其余变体里它不出现。
+        # The previous visit's values: only the "previous result" column variant prints them; they're
+        # absent from every other variant.
         earlier = [e for e in encounters[person.person_id] if e.exam_date < enc.exam_date]
         previous = {r.key: (r.value, e.exam_date.isoformat()) for e in earlier for r in e.readings}
 
@@ -120,12 +124,13 @@ def render_pairs(seed: int, people: list[Person], encounters: dict[str, list[Enc
             doc.doc_id = f"{pair_id}_{name}"
             hazards.detect(doc)
             if name != "base" and name not in doc.hazards:
-                continue                                   # 这份内容上这类陷阱没有着力点
+                continue                                   # this content gives that hazard class nothing to act on
             path, pages, delivery = render_doc(doc, root, f"{pair_id}/{name}")
             records.append(record(doc, path, out_dir, pages, [enc],
                                   {"pair": {"pair_id": pair_id, "variant": name}}, delivery=delivery))
-        # 对齐视图：同一份 base，只换交付形态。真值一个字不变，差的只有像素——
-        # 这是 PureDocBench 的 Clean / Digital Degraded / Real Degraded 三视图搬到这里。
+        # Aligned views: the same base, only the delivery form changes. Truth is unchanged down to the
+        # last character; only the pixels differ — PureDocBench's Clean / Digital Degraded / Real
+        # Degraded triplet, brought here.
         for scene in ("flatbed_scan", "app_enhanced", "phone_flat_top", "phone_creased", "photocopy", "screenshot"):
             doc = copy.deepcopy(base)
             doc.doc_id = f"{pair_id}_view_{scene}"

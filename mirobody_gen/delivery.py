@@ -1,10 +1,9 @@
 """Delivery tiers: whether a PDF reaches the user as a text-layer PDF, a scan, a phone photo, a degraded copy or a screenshot.
 
-交付形态：一份 PDF 家族的文件到用户手里是文本层 PDF、扫描件、手机照片、劣化件还是屏幕截图。
-
-分层权重、场景权重、严重度分布、栅格化分辨率与笔圈率都在 `resources/delivery.json`
-（手写，校准依据是参考集图像的聚合统计 `numbers_images.json`，见 docs/zh-CN/degradation.md §3）。
-每个人再叠一层对数正态扰动（`upload_habit`）：有人总是拍照，有人只传 PDF。
+Tier weights, scene weights, severity distribution, rasterization DPI and pen-circling rate all live in
+`resources/delivery.json` (hand-written, calibrated against the reference corpus's aggregate image
+statistics in `numbers_images.json`; see docs/zh-CN/degradation.md §3). Each person gets an additional
+log-normal perturbation on top (`upload_habit`): some always photograph, others only ever upload PDFs.
 """
 
 from __future__ import annotations
@@ -24,7 +23,7 @@ def _d() -> dict:
 
 
 def page_break_check(doc: Doc, data: bytes) -> None:
-    """PDF 跨页：续页上出现了某张表的行，却没有那张表的表头 → `table.page_break_loses_header`。"""
+    """PDF page break: a continuation page carries a table's rows but not its header -> `table.page_break_loses_header`."""
     import fitz
 
     with fitz.open("pdf", data) as pdf_doc:
@@ -43,8 +42,8 @@ def page_break_check(doc: Doc, data: bytes) -> None:
 
 
 def upload_habit(seed: int, person: Person) -> dict[str, float]:
-    """一个人上传文件的习惯：有人总是拍照，有人只传 PDF，有人全是截图。
-    按人给分层权重加一个对数正态扰动，整体均值仍是 TIER_WEIGHTS。"""
+    """One person's upload habit: some always photograph, some only upload PDFs, some only screenshot.
+    Applies a log-normal perturbation to the tier weights per person; the overall mean stays TIER_WEIGHTS."""
     rng = random.Random(f"habit:{seed}:{person.person_id}")
     raw = {t: w * math.exp(rng.gauss(0, 0.9)) for t, w in _d()["tier_weights"].items()}
     total = sum(raw.values())
@@ -52,8 +51,9 @@ def upload_habit(seed: int, person: Person) -> dict[str, float]:
 
 
 def choose_delivery(rng: random.Random, habit: dict[str, float], doc: Doc, pages: int) -> dict:
-    """这份 PDF 家族的文件以什么形态交付。多页文件只能整体扫描（scanpdf）或保持文本层：
-    手机一页一张照片会把一份文件拆成多个图像，真值随之要拆，这一版不做。"""
+    """What form this PDF-family file is delivered in. A multi-page file can only be scanned whole
+    (scanpdf) or kept as a text layer: one phone photo per page would split a file into several
+    images, which would require splitting the truth too, and this version does not do that."""
     weights = dict(habit)
     if pages > 1:
         weights = {t: w for t, w in weights.items() if t in ("T0", "T2")}
@@ -76,12 +76,13 @@ def choose_delivery(rng: random.Random, habit: dict[str, float], doc: Doc, pages
 def render_doc(doc: Doc, out_root: pathlib.Path, rel: str, habit: dict[str, float] | None = None,
                rng: random.Random | None = None, delivery: dict | None = None
                ) -> tuple[pathlib.Path, int | None, dict]:
-    """渲染一份文件。返回 (路径, 页数, 交付记录)。`delivery` 给定时按它来（对照对用）。"""
+    """Render one file. Returns (path, page count, delivery record). When `delivery` is given, it is used
+    as-is (for contrast pairs)."""
     reported = next((d["iso"] for d in doc.dates if d["role"] == "reported"),
                     doc.dates[0]["iso"] if doc.dates else "2026-01-01T00:00:00")
     fmt = doc.family.fmt
     if doc.kind not in ("lab_slip", "export"):
-        fmt = "pdf"                      # 报告书、病历、心电图与超声报告没有表格导出这回事
+        fmt = "pdf"                      # report books, medical records, ECG and ultrasound reports have no table export
     (out_root / rel).parent.mkdir(parents=True, exist_ok=True)
     pages: int | None = None
     if fmt == "xlsx":
@@ -105,7 +106,8 @@ def render_doc(doc: Doc, out_root: pathlib.Path, rel: str, habit: dict[str, floa
         path.write_bytes(data)
         return path, pages, delivery
 
-    # 图像层：先（可能）用笔圈出异常值，再栅格化、跑场景算子链、编码
+    # Image layer: optionally circle abnormal values in pen first, then rasterize, run the scene's
+    # operator chain, and encode.
     marked: list[str] = []
     if delivery["tier"] in ("T2", "T3") and rng is not None and rng.random() < _d()["annotate_rate"]:
         targets = [p.item_value for p in doc.printed if p.is_abnormal == "1" and p.readable]

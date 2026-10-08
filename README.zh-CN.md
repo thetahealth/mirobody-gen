@@ -38,12 +38,15 @@
 | --- | --- | --- |
 | **文档** | 化验单、体检报告书、门诊病历、心电/超声/影像报告、家庭记录、App 导出表——以文本层 PDF、XLSX、CSV，以及 24 种扫描/拍照/复印/截屏场景（T0–T6 档）交付；可选手写的记录本、医生手写病历与手填表格（H1–H3 档） | 文件上传管线 |
 | **手机健康库** | `devices/` 批次，每批 ≤500 条，字段名照抄 Apple / 华为 / 小米 / Health Connect 的 crosswalk 表，可直接 POST | `POST /api/data` |
-| **厂商云** | `vendor_signals/`：字节级对标的 HealthKit JSON、Garmin Health API（dailies/sleeps/bodyComps/activities/pulseOx）、Oura v2（活动/睡眠/心率/血氧/压力）、WHOOP v2（周期/训练/恢复） | `kernel/decoders/{apple,garmin,oura,whoop}.py`——输出形状以 [`mirobody/kernel/decoders/samples/`](https://github.com/thetahealth/mirobody/tree/feat/1.5.4/mirobody/kernel/decoders/samples) 的验收记录为锚 |
+| **厂商云** | `vendor_signals/`：字节级对标的 HealthKit JSON、Garmin Health API（dailies/sleeps/bodyComps/activities/pulseOx）、Oura v2（活动/睡眠/心率/血氧/压力）、WHOOP v2（周期/训练/恢复） | `kernel/decoders/{apple,garmin,oura,whoop}.py`——输出形状以 [`mirobody/kernel/decoders/samples/`](https://github.com/thetahealth/mirobody/tree/main/mirobody/kernel/decoders/samples) 的验收记录为锚 |
 | **基因** | WeGene、23andMe、AncestryDNA、MyHeritage 与 VCF 导出；41 个 PGx 位点 + catalog 子集 + 表外位点，等位基因按祖源频率抽取，1.5% no-call | 遗传学处理器 |
 
 同一个人**纵向地横跨四条通道**：2024 年体检报告书上的血红蛋白、那一周 Garmin dailies 里的静息心率、
 消费级基因文件里的 CYP2C19 双倍型，属于同一个人、同一条事件时间线。正是这种同一性，让"你有没有把这个人的
 化验单和这个人的可穿戴流合并成一个人"成为一个可检验的问题。
+厂商云 payload 就是手机健康库那条序列换成各家 API 的形状：健康库是 Apple Health 的人都有 HealthKit JSON；
+Garmin / Oura / WHOOP 只给戴着设备、且健康库是这些设备写入的 Apple Health 或 Health Connect 的人——
+所以同一天的步数、静息心率在 `devices/` 与那天的 Garmin daily 里是同一个数。
 
 ## 数值怎么来
 
@@ -144,8 +147,8 @@ mirobody-gen build --seed 7 --out out/p3 --render --handwriting
 数据路径上没有模型：数值、发现、版式与图像全部来自资源、代码与种子。可选层
 （`mirobody-gen build --paraphrase`）只让模型对**叙事模板换措辞**；候选必须保住每个槽位、数字与锁定词、
 留在同一种语言、不含任何人名或标识符，被接受的改写会成为一份*资源*，被隐私门当作不可信文本扫描。
-默认关闭；`mirobody-gen compare` 展示它改了什么。设计与契约见
-[docs/zh-CN/llm-integration-2026-09-29.md](docs/zh-CN/llm-integration-2026-09-29.md)（设计记录不进公开树）。
+默认关闭；`mirobody-gen compare` 展示它改了什么。设计记录与契约在中文设计目录（`docs/zh-CN/`，
+不进公开树——需要可索取）。
 
 ## 现状与 mirobody 的关系
 

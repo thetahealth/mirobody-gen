@@ -1,42 +1,41 @@
 """Multi-model cross-annotation for the clinical judgements deterministic rules cannot express.
 
-多模型交叉标注：确定性规则表达不了的那部分临床判断。
-
-    mirobody-gen llm-panel out/p3/manifest.jsonl --sample 12        # 干跑，只打包不外发
+    mirobody-gen llm-panel out/p3/manifest.jsonl --sample 12               # dry run, packs nothing out
     mirobody-gen llm-panel out/p3/manifest.jsonl --sample 12 \\
-        --models claude-opus-5,gpt-5.4,gemini-3-pro                     # 真调用
+        --models claude-opus-5,gpt-5.4,gemini-3-pro                        # calls the models for real
 
-## 这不是闸门
+## This is not a gate
 
-`audit/clinical.py` 是闸门：恒等式、生理边界、人口学、标记一致、RCV 超出率、
-诊断一致——这些有确定答案，非零退出即拦下。
+`audit/clinical.py` is the gate: identities, physiological bounds, demographics, flag consistency,
+RCV excess rate, diagnosis consistency — all have a definite answer, and a non-zero exit blocks the
+build. This panel blocks nothing. It answers the question rules cannot: does this trajectory read
+like a real patient? That judgement has no definite answer, so its output is a ranking for a human to
+read, not a pass/fail. Turning it into a gate would let something with no clear standard decide
+whether the corpus can be used.
 
-**这个面板不拦任何东西。** 它回答的是规则写不出来的问题："这条轨迹读起来像不像
-一个真实病人"。这类判断没有确定答案，所以它的产物是**给人看的排序**，
-不是通过/不通过。把它做成闸门，等于让一个说不清标准的东西决定语料能不能用。
+## Why several models, and why report their agreement
 
-## 为什么要多个模型，以及为什么要报一致性
+MITRE measured this for Synthea's LLM work (arXiv:2507.21123, table 1): the same module, the same
+rubric, three models run 5 times each — GPT's standard deviation was 18.4, Claude's 1.5. The spread
+between reviewing models was larger than the spread between the things being reviewed. They picked
+the lowest-variance model as the sole judge. We go further: ask all of them, and treat the disagreement
+itself as a signal.
 
-MITRE 在 Synthea 的 LLM 工作里实测过（arXiv:2507.21123 表 1）：同一个模块、同一套
-评分标准，三个模型跑 5 次，GPT 的标准差 18.4、Claude 1.5——**评审模型之间的差异
-比被评审对象之间的差异还大**。他们据此选了方差最小的那个当评审。
+* Models **agree there's a problem** → probably a real one; goes first in the human queue.
+* Models **disagree sharply** → the case itself is ambiguous, still needs a human, for a different
+  reason.
+* Models agree there's no problem → that only means this layer found nothing, not that quality is
+  acceptable; it cannot be used to claim the corpus passes.
 
-我们做得更保守一点：不选一个，而是都问，然后**把分歧本身当成信号**。
+Each model runs in its own session, sharing no context and unaware of the others' answers — sharing
+would make this a relay, not cross-annotation.
 
-* 多个模型**一致认为有问题** → 大概率真有问题，排在人工队列最前面。
-* 多个模型**打分分歧很大** → 这个案例本身是模糊的，同样要人看，但原因不同。
-* 一致认为没问题 → 不代表没问题，只代表这一层没看出来。**不能据此声称质量合格。**
+## What leaves the machine
 
-每个模型独立会话、不共享上下文、不知道别的模型说了什么——共享了就不是交叉标注，
-是接龙。
-
-## 外发的是什么
-
-**只有合成数据。** 送出去之前逐条断言 `synthetic: true`，有一条不是就整体拒绝，
-不做"跳过那一条继续"——那正是隐私事故的典型形状。
-
-真实语料（`corpus/` 及其派生物）在这里一个字节都不参与。这道断言是代码里的，
-不是约定。
+Synthetic data only. Every record is asserted `synthetic: true` before anything is sent; if even one
+record fails that, the whole batch is rejected — never "skip that one and keep going", which is the
+shape a privacy incident takes. The real corpus (`corpus/` and anything derived from it) never
+touches this path; the assertion is in code, not a convention.
 """
 
 from __future__ import annotations
@@ -52,14 +51,16 @@ import sys
 
 PACKAGE = pathlib.Path(__file__).resolve().parents[1]
 RESOURCES = PACKAGE / "resources"
-#: 源码检出的根目录。只有需要检出才有的东西（参考集、缓存、产物）才用它；安装后的包里没有这些。
+#: Root of the source checkout. Only used for things that exist solely in a checkout (reference
+#: sets, caches, build output); an installed package carries none of these.
 REPO = PACKAGE.parent
 CACHE = REPO / ".cache" / "llm_panel"
 
-#: 评分表。编号是刻意的——MITRE 的做法是让评审逐条对编号需求打分并给理由，
-#: 这样分数可以被追到具体哪一条，而不是一个说不清来源的总分。
+#: The rubric. Numbered items are deliberate: MITRE's approach has the reviewer score each numbered
+#: requirement with a reason, so a score can be traced to a specific item rather than an opaque total.
 #:
-#: 每条都要求"给出证据指向"（哪一次就诊、哪个指标），否则模型会给出漂亮但空的评语。
+#: Each item also demands pointed evidence (which visit, which indicator); without that the model
+#: tends to produce polished but empty commentary.
 RUBRIC: list[tuple[str, str]] = [
     ("R1", "数值与诊断集合是否互相解释得通？有没有值达到诊断标准却没有诊断，"
            "或有诊断却完全看不出痕迹的情况？"),
@@ -87,7 +88,7 @@ SYSTEM = (
 
 
 def build_packet(record_group: list[dict]) -> str:
-    """一个人的全部就诊 → 一段纯文本，送给模型。"""
+    """One person's full visit history, rendered as plain text for the model."""
     person = record_group[0]["person"]
     lines = [
         f"# 虚拟人 {record_group[0]['person_id']}",
@@ -120,22 +121,23 @@ def build_prompt(packet: str) -> str:
 
 
 def assert_synthetic(records: list[dict]) -> None:
-    """外发前的硬断言。有一条不是合成数据，整体拒绝。"""
+    """Hard assertion before anything is sent: one non-synthetic record rejects the whole batch."""
     offenders = [r.get("file") for r in records if r.get("synthetic") is not True]
     if offenders:
         raise SystemExit(
-            f"拒绝外发：{len(offenders)} 条记录没有 synthetic=true 标记，"
-            f"例如 {offenders[:3]}。\n"
-            f"这个面板只允许送合成数据。不做『跳过那几条继续』——"
-            f"那正是隐私事故的典型形状。")
+            f"refusing to send: {len(offenders)} records lack a synthetic=true flag, "
+            f"e.g. {offenders[:3]}.\n"
+            f"This panel only ever sends synthetic data. There is no 'skip those and continue' — "
+            f"that is exactly the shape of a privacy incident.")
 
 
 def call_model(model: str, prompt: str) -> dict:
-    """调用一个模型。缓存按 (模型, prompt) 的哈希，重跑不花钱。
+    """Call one model. Cached by a hash of (model, prompt), so a rerun costs nothing.
 
-    走 OpenAI 兼容接口（`LLM_BASE_URL` + `LLM_API_KEY`），因为我们要问的三家
-    都有兼容端点，省得为每家写一个客户端。没有配置就报错退出，不静默降级——
-    静默降级会让"面板跑过了"和"面板根本没跑"长得一样。
+    Uses the OpenAI-compatible chat endpoint (`LLM_BASE_URL` + `LLM_API_KEY`) since all three
+    providers we query expose one, sparing a client per vendor. Raises when unconfigured rather
+    than degrading silently — silent degradation would make "the panel ran" and "the panel never
+    ran" indistinguishable.
     """
     key = hashlib.blake2b(f"{model}\n{prompt}".encode(), digest_size=16).hexdigest()
     cached = CACHE / f"{key}.json"
@@ -145,8 +147,8 @@ def call_model(model: str, prompt: str) -> dict:
     base = os.environ.get("LLM_BASE_URL")
     token = os.environ.get("LLM_API_KEY")
     if not (base and token):
-        raise SystemExit("需要 LLM_BASE_URL 与 LLM_API_KEY 环境变量；"
-                         "只想看送出去的内容长什么样就不要加 --models（默认干跑）。")
+        raise SystemExit("LLM_BASE_URL and LLM_API_KEY are required; omit --models to see what "
+                         "would be sent without calling anything (the default is a dry run).")
 
     import urllib.request
 
@@ -170,7 +172,7 @@ def call_model(model: str, prompt: str) -> dict:
 
 
 def agreement(scores: list[float]) -> tuple[float, float]:
-    """(均值, 标准差)。标准差就是分歧本身，它和均值一样重要。"""
+    """(mean, stdev). The stdev is the disagreement itself, as important as the mean."""
     if len(scores) < 2:
         return (scores[0] if scores else float("nan")), 0.0
     return statistics.mean(scores), statistics.stdev(scores)
@@ -198,10 +200,10 @@ def main() -> None:
     models = [m.strip() for m in args.models.split(",") if m.strip()]
     if not models:
         packet = build_packet(by_person[chosen[0]])
-        print(f"干跑：会送 {len(chosen)} 个人给每个模型，每人一次调用。")
-        print(f"下面是第一个人的送出内容（{len(packet)} 字符），逐字就是这些：\n")
-        print(packet[:2000] + ("\n…（截断）" if len(packet) > 2000 else ""))
-        print(f"\n评分表 {len(RUBRIC)} 条。加 --models 才会真的调用。")
+        print(f"dry run: would send {len(chosen)} people to each model, one call per person.")
+        print(f"below is exactly what would be sent for the first person ({len(packet)} characters):\n")
+        print(packet[:2000] + ("\n...(truncated)" if len(packet) > 2000 else ""))
+        print(f"\nrubric has {len(RUBRIC)} items. Add --models to actually call them.")
         return
 
     results: dict[str, dict] = {}
@@ -212,9 +214,9 @@ def main() -> None:
             try:
                 results[person_id][model] = call_model(model, prompt)
             except Exception as e:                       # noqa: BLE001
-                print(f"  {person_id} / {model} 失败：{type(e).__name__}: {e}", file=sys.stderr)
+                print(f"  {person_id} / {model} failed: {type(e).__name__}: {e}", file=sys.stderr)
 
-    # 汇总：一致认为有问题的排最前，其次是分歧最大的。
+    # Summarize: consensus problems first, then the most disputed.
     rows = []
     for person_id, per_model in results.items():
         for code, _text in RUBRIC:
@@ -232,26 +234,26 @@ def main() -> None:
                            key=lambda r: r["mean"])
     disputed = sorted([r for r in rows if r["stdev"] > 0.25], key=lambda r: -r["stdev"])
 
-    print(f"{len(chosen)} 个人 × {len(models)} 个模型 × {len(RUBRIC)} 条 = {len(rows)} 个评分点\n")
-    print(f"一致认为有问题（均分≤0.5 且分歧小）{len(consensus_bad)} 处：")
+    print(f"{len(chosen)} people × {len(models)} models × {len(RUBRIC)} items = {len(rows)} scored points\n")
+    print(f"consensus problems (mean <= 0.5, low disagreement): {len(consensus_bad)}")
     for r in consensus_bad[:10]:
-        print(f"  {r['person_id']} {r['item']} 均分 {r['mean']}  "
+        print(f"  {r['person_id']} {r['item']} mean {r['mean']}  "
               f"{list(r['reasons'].values())[0][:90]}")
-    print(f"\n分歧大（标准差>0.25，说明案例本身模糊）{len(disputed)} 处：")
+    print(f"\nhigh disagreement (stdev > 0.25, the case itself is ambiguous): {len(disputed)}")
     for r in disputed[:10]:
-        print(f"  {r['person_id']} {r['item']} 均分 {r['mean']} 标准差 {r['stdev']}")
+        print(f"  {r['person_id']} {r['item']} mean {r['mean']} stdev {r['stdev']}")
     if rows:
         overall = statistics.mean(r["mean"] for r in rows)
         spread = statistics.mean(r["stdev"] for r in rows)
-        print(f"\n总体均分 {overall:.3f}，模型间平均标准差 {spread:.3f}")
-        print("注意：**总体均分高不等于质量合格**——它只说明这一层没看出问题。"
-              "能拦住东西的是 audit/clinical.py。")
+        print(f"\noverall mean {overall:.3f}, average inter-model stdev {spread:.3f}")
+        print("note: a high overall mean does not mean the corpus passes quality — it only means "
+              "this layer found nothing. audit/clinical.py is what actually gates.")
 
     out = pathlib.Path(args.out) if args.out else path.parent / "llm_panel.json"
     out.write_text(json.dumps({"models": models, "rubric": dict(RUBRIC),
                                "rows": rows, "raw": results},
                               ensure_ascii=False, indent=2), encoding="utf-8")
-    print(f"\n已写出 {out}（人工复核前端会读它）")
+    print(f"\nwritten {out} (the review front end reads it)")
 
 
 if __name__ == "__main__":

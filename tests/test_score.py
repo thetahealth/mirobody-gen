@@ -1,10 +1,11 @@
-"""评分器的契约测试。
+"""Contract tests for the scorer.
 
     python3 -m pytest tests/test_score.py -q
 
-与 MedRepBench 官方脚本逐字段一致的那条测试需要官方脚本本身：
-`MEDREPBENCH_SCORER=/path/to/scripts/evaluate_objective.py`。它不在本仓库里
-（数据集 CC BY-NC 4.0，脚本随数据集发布，不再分发），没有就跳过。
+The test that checks field-for-field agreement with the official MedRepBench script needs that script
+itself: `MEDREPBENCH_SCORER=/path/to/scripts/evaluate_objective.py`. It isn't in this repository (the
+dataset is CC BY-NC 4.0 and the script ships with the dataset, not redistributed here), and the test is
+skipped without it.
 """
 
 from __future__ import annotations
@@ -34,7 +35,8 @@ class Matching(unittest.TestCase):
         self.assertEqual(sum(cost[i][j] for i, j in enumerate(assignment)), 5)
 
     def test_truncation_turns_an_extra_row_into_a_miss(self):
-        """官方口径的第 2 个坑：前面多抽一行，最后一行真读数被挤掉。"""
+        """The official scoring's second pitfall: one extra row drawn earlier pushes the true last row
+        out of the window."""
         refs = [item("白细胞计数"), item("红细胞计数")]
         preds = [item("姓名", "张三"), item("白细胞计数"), item("红细胞计数")]
         self.assertEqual(score.official(refs, preds, truncate=True)["item_name"], 1)
@@ -43,7 +45,8 @@ class Matching(unittest.TestCase):
         self.assertEqual(len(pairs), 2)
 
     def test_name_cascade_and_relaxed_alignment(self):
-        """官方口径的第 1 个坑：名字写法不同，值再对也全算错；对齐口径把两件事分开。"""
+        """The official scoring's first pitfall: a different spelling of the item name fails the value too,
+        however correct it is; the alignment pass keeps the two separate."""
         refs = [item("白细胞计数(WBC)", "6.2")]
         preds = [item("白细胞计数", "6.2")]
         got = score.official(refs, preds)
@@ -52,7 +55,8 @@ class Matching(unittest.TestCase):
         self.assertGreaterEqual(s, 0.5)
 
     def test_trailing_zero_is_not_normalized(self):
-        """12.80 与 12.8 在官方口径下不相等（只去整零小数）。"""
+        """12.80 and 12.8 are not equal under the official scoring (only a whole-number trailing .0 is
+        stripped)."""
         self.assertFalse(score.field_equal("item_value", "12.8", "12.80"))
         self.assertTrue(score.field_equal("item_value", "12", "12.00"))
 
@@ -79,10 +83,10 @@ class Oracle(unittest.TestCase):
         self.assertEqual(report["abstain"]["hallucinated"], 1)
 
 
-@unittest.skipUnless(os.environ.get("MEDREPBENCH_SCORER"), "未提供 MedRepBench 官方评分脚本")
+@unittest.skipUnless(os.environ.get("MEDREPBENCH_SCORER"), "MedRepBench's official scoring script was not provided")
 class OfficialEquivalence(unittest.TestCase):
     def test_v0_matches_the_official_script(self):
-        """同一份标注与预测，官方脚本与 V0 逐字段计数一致。"""
+        """The official script and V0 count the same labels and predictions identically, field for field."""
         refs = [item("白细胞计数", "6.20", "10^9/L", "3.5~9.5", "0"), item("PT", "12.80", "", "9-14", ""),
                 item("血红蛋白", "88", "g/L", "115-150", "1")]
         preds = [item("白细胞计数", "6.2", "10^9/L", "3.5-9.5", "0"), item("PT", "12.8", "", "9-14", "0"),

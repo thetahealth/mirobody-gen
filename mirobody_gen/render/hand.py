@@ -1,7 +1,5 @@
 """Handwriting: a pen that writes strings onto paper the way a hand does, and the paper it writes on.
 
-手写：一支笔，把字符串按人手的样子写到纸上；以及它写在什么纸上。
-
 A font gives a hand the shape of its letters. Everything that makes a line look written rather than
 typeset is added here, glyph by glyph, from a seeded stream: the baseline wanders and the line drifts
 off the rule, each glyph has its own size, rotation and spacing, the whole hand leans by a slant, a
@@ -343,7 +341,7 @@ class Sheet:
             self.stroke(pts, pen, role="strike")
 
     def ditto(self, x: float, baseline: float, pen: Pen, row: int | None = None, field: str | None = None) -> None:
-        """A ditto mark (〃): two short slanted strokes, drawn rather than typeset (few faces have the glyph)."""
+        """A ditto mark (U+3003): two short slanted strokes, drawn rather than typeset (few faces have the glyph)."""
         rng = self.rng
         h = pen.digit_px * rng.uniform(0.55, 0.7)
         top = baseline - pen.digit_px * 0.95

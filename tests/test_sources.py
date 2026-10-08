@@ -11,10 +11,12 @@ import pathlib
 import sys
 import tempfile
 
+import pytest
+
 REPO = pathlib.Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(REPO))
 
-from mirobody_gen import devices, genomics, journal, person as person_mod, spec  # noqa: E402
+from mirobody_gen import devices, genomics, journal, person as person_mod, spec, vendor_signals  # noqa: E402
 
 SEED = 7
 
@@ -114,3 +116,48 @@ def test_same_seed_gives_identical_sources():
     b = journal.entries_for(people[1], SEED, langs[people[1].person_id])
     assert a == b
     assert devices.series_for(people[1], SEED, "zh") == devices.series_for(people[1], SEED, "zh")
+
+
+def test_default_language_draw_is_the_0_3_0_draw():
+    # 0.3.0 drew "en" when the home stream's first number was below 0.5: a seed must keep its cohort.
+    for pid in (f"p{i:03d}" for i in range(1, 201)):
+        expected = "en" if person_mod.home_stream(SEED, pid).random() < 0.5 else "zh"
+        assert person_mod.person_lang(SEED, pid) == expected
+
+
+def test_lang_mix_ignores_order_and_rejects_bad_weights(monkeypatch):
+    monkeypatch.setattr(person_mod, "_LANG_MIX", person_mod._LANG_MIX)
+    pids = [f"p{i:03d}" for i in range(1, 101)]
+    person_mod.set_lang_mix("zh:0.45,en:0.4,ja:0.15")
+    first = [person_mod.person_lang(SEED, pid) for pid in pids]
+    person_mod.set_lang_mix("ja:15, en:40, zh:45")
+    assert [person_mod.person_lang(SEED, pid) for pid in pids] == first
+    assert set(first) == {"en", "ja", "zh"}
+    for bad in ("zh:-1,en:1", "zh:0,en:0", "zh:1,zh:2", ",en:1", "zh:nan", "zh:x"):
+        with pytest.raises(ValueError):
+            person_mod.set_lang_mix(bad)
+
+
+def test_vendor_payloads_carry_the_phone_store_series():
+    people, langs = _people(40)
+    with tempfile.TemporaryDirectory() as tmp:
+        out = pathlib.Path(tmp)
+        devices.write_all(out, people, SEED, langs)
+        vendor_signals.write_all(out, people, SEED, langs)
+        stores = {r["person_id"]: r for r in map(json.loads, (out / "devices.jsonl").open(encoding="utf-8"))}
+        pushes = [json.loads(line) for line in (out / "vendor_signals.jsonl").open(encoding="utf-8")]
+    assert {"apple", "garmin"} <= {p["vendor"] for p in pushes}
+    dailies = 0
+    for push in pushes:
+        store = stores[push["person_id"]]
+        if push["vendor"] == "apple":
+            assert store["vendor"] == "apple"
+            continue
+        assert store["habits"]["wearable"] and store["vendor"] in vendor_signals.CLOUD_STORES
+        if push["vendor"] == "garmin":
+            steps = {r["time"][:10]: r["value"] for r in store["records"] if r["metric"] == "steps"}
+            for row in push["records"]:
+                if row["data_type"] == "dailies":
+                    assert row["input"]["steps"] == steps.get(row["input"]["calendarDate"], 0)
+                    dailies += 1
+    assert dailies

@@ -1,59 +1,67 @@
 """Privacy gate: prove that outputs and resources contain nothing from the reference set. Non-zero exit on hits.
 
-隐私闸门：证明生成物与 spec 里没有真实语料的内容。非零退出码即有问题。
+    mirobody-gen audit-privacy                      # scan mirobody_gen/resources
+    mirobody-gen audit-privacy --targets spec out    # also scan build output
+    mirobody-gen audit-privacy --report              # stats only, no verdict
 
-    mirobody-gen audit-privacy                      # 扫 mirobody_gen/resources
-    mirobody-gen audit-privacy --targets spec out   # 连生成物一起扫
-    mirobody-gen audit-privacy --report             # 只看统计，不判定
+## Three checks
 
-## 三项检查
+**1. Replay detection**: `corpus/text/**` (extracted text of 771 real documents, 5.8MB) is cut into
+N-character n-grams, and every target file is scanned for them; a hit means reference-corpus text was
+copied verbatim into an output.
 
-**① 回放检测**：把 `corpus/text/**`（771 份真实文档的提取文本，5.8MB）切成 N 字 n-gram，
-扫描每一个目标文件，命中即为"真实语料的字面被搬进了产物"。
+The index stores only **hashes**, never plaintext: each n-gram is blake2b-hashed to 8 bytes into a
+sorted uint64 array, and a hit is a binary search. So the index file itself is not a copy of the corpus
+and can be committed or shipped safely. (This isn't fastidiousness: the first version cached n-grams as
+plaintext, and that cache was itself a shredded copy of patient records.)
 
-索引只存**哈希**，不存明文：n-gram 经 blake2b 取 8 字节存进一个排序好的 uint64 数组，
-命中与否靠二分查找。所以索引文件本身不是语料的副本，可以安全落盘、可以带着跑。
-（这不是洁癖：第一版如果把 n-gram 明文缓存下来，那个缓存就是一份重新切碎的病历。）
+A hit is then checked against an **exemption**: if the n-gram falls entirely within a single whitelisted
+vocabulary term (an indicator name, unit, column header, flag, or standard label -- each one already
+past the gate before it entered the spec), it's a window onto a public medical term and identifies no
+one. The exemption is deliberately narrow: it does not accept "a few public terms concatenated", because
+the join of the tail of one unrelated public term to the head of another can itself be copied text.
 
-命中后还要过一道**豁免**：如果这段 n-gram 整段落在**某一个**白名单词汇里
-（指标名、单位、列头、标记、标准标签——每一条自己都是过闸后进 spec 的），
-那它就是一个公开医学词汇的窗口，标识不了任何人。豁免条件刻意收得很紧：
-不接受"若干个公共词拼起来"，因为两个无关公共词的尾首相接本身就可能是被搬运的原文。
-豁免会被计数并打印，**不会被藏起来**。
+**2. PII predicates**: ID numbers, phone numbers, visit numbers, name fields, institution names. Written
+**separately** from the predicates in `.githooks/pre-commit` -- running the same predicate twice can only
+confirm its own blind spot, a mistake this project already paid for (a first audit reported "0 names
+leaked" while a real physician's name sat in the corpus, because the audit called the same function the
+filter used). This uses structural detection: the name following a name label, and an institution name,
+must **belong to the fiction pool** (`resources/fiction.json`, an allow-list), not "doesn't look like a
+real name" (a deny-list).
 
-**② PII 谓词**：身份证、手机号、就诊号、姓名字段、机构名。与 `.githooks/pre-commit`
-里那套**分开写**——同一个谓词跑两遍只能确认它自己的盲区，这个项目为此付过代价
-（第一次审计报告"0 人名泄漏"，而库里躺着一个真实医生姓名，因为审计调用的是过滤时
-用的同一个函数）。这里用的是结构化检测：姓名标签后的名字与机构名必须**属于虚构池**
-（`resources/fiction.json`，白名单），而不是"不像真名就放行"（黑名单）。
+The visit-number check has an escape hatch for generated output: synthetic IDs carry a salted check
+suffix in their last three digits (`mirobody_gen/synthid.py`); this module reimplements the same check
+**independently** (no import from the generator), and a match is excused and counted. The odds of a real
+number matching by chance are about one in a thousand, and it would first have to survive replay
+detection.
 
-就诊号这一条对生成物有一个放行口：合成编号的末三位是带盐校验尾（`mirobody_gen/synthid.py`），
-这里**另写一份**同样的校验（不 import 生成器），对得上才放行，并计数打印。
-真实号码碰巧对上的概率是千分之一，而且它先得躲过回放检测。
+(Before 2026-09-23 this docstring already said "names and institutions must belong to the fiction pool"
+with no code enforcing it -- the documentation preceded the implementation. The check was added once the
+renderer started printing names on paper.)
 
-（2026-09-23 之前本段已经写着"机构名与人名必须属于虚构池"，但代码里没有这项检查——
-文档先于实现。渲染器开始往纸上印姓名之后才补上。）
+**3. Spec provenance**: every file under `resources/*.json` must declare `_source`, `_provenance` and
+`_vocabulary_fields` (which fields hold public vocabulary eligible for exemption), and must not contain
+the de-identification placeholder `«...»` (a trace of reference-corpus processing that leaked through
+when the spec was distilled).
 
-**③ spec 溯源**：`resources/*.json` 每个文件都必须声明 `_source`、`_provenance` 与
-`_vocabulary_fields`（哪些字段装的是可用于豁免的公开词汇），
-且不得含脱敏占位符 `«…»`（那是真实语料的加工痕迹，混进 spec 说明蒸馏时漏了过滤）。
+## What this gate does not cover
 
-## 这道闸门管不到什么
+**Human-written prose (`docs/`, `README.md`, `docs/zh-CN/plan.md`) is out of scope for replay
+detection.** Tested on 2026-09-23: scanning `docs/` reported 56 hits, every one a common medical English
+phrase on inspection -- "reference range", "interpretation", "total protein", "health records". The
+reference corpus naturally contains English passages, and any English-language draft will collide with
+them in a 12-character window.
 
-**人写的散文文档（`docs/`、`README.md`、`docs/zh-CN/plan.md`）不在回放检测的适用范围内。**
-2026-09-23 实测：拿它扫 `docs/`，报出 56 处命中，逐条核对全是常见医学英文——
-"reference range"、"interpretation"、"total protein"、"health records"。
-真实语料里本来就有英文段落，任何一篇用英文写的论文草稿都会在 12 字窗口上撞到它们。
-这不是泄漏，是回放检测的设计前提（"语料字面出现在产物里"）对散文不成立。
+The fix is **not** to whitelist these English phrases -- that would also excuse them exactly where the
+gate matters (the spec and generated output). Prose is reviewed by the commit hook's PII rules and by a
+human; replay detection is responsible only for what machines produce: `mirobody_gen/resources/` and
+`out/`.
 
-解决办法**不是**把这些英文词加进白名单——那会在闸门真正该管的地方（spec 与生成物）
-把同样的短语一并放过。散文文档由提交钩子的 PII 规则与人工评审把关；
-回放检测只对机器产出的东西负责：`mirobody_gen/resources/` 与 `out/`。
-
-图像类产物（jpg/png/扫描 pdf）里的文字，本工具**读不出来**，所以回放检测覆盖不到它们。
-这不是漏洞而是边界：图像是由 manifest 的行渲染出来的，而 manifest 走的是同一道检查。
-换句话说，图像的隐私性继承自它的真值来源，不是被独立验证的。要独立验证需要对产物做 OCR，
-那是另一条工序（`audit/readability.py` 会做，顺带就能拿到文本）。
+Text inside image outputs (jpg/png/scanned PDF) is **unreadable to this tool**, so replay detection
+doesn't cover it either. That's a boundary, not a hole: an image is rendered from the manifest's rows,
+which go through this same check, so an image's privacy properties are inherited from its source of
+truth rather than independently verified. Independent verification would need OCR on the output -- a
+separate pass (`audit/readability.py` does this, and gets the text as a side effect).
 """
 
 from __future__ import annotations
@@ -69,32 +77,36 @@ import numpy as np
 
 PACKAGE = pathlib.Path(__file__).resolve().parents[1]
 RESOURCES = PACKAGE / "resources"
-#: 源码检出的根目录。只有需要检出才有的东西（参考集、缓存、产物）才用它；安装后的包里没有这些。
+#: Root of the source checkout. Used only for things that exist only in a checkout (reference set,
+#: cache, build output) -- an installed package has none of these.
 REPO = PACKAGE.parent
 CORPUS_TEXT = REPO / "corpus" / "text"
 CACHE = REPO / ".cache" / "corpus_ngrams.npy"
 
-#: n-gram 长度（归一化之后的字符数）。
+#: N-gram length (characters, after normalization).
 #:
-#: 12 是权衡出来的：中文信息密度高，8 字窗口里"白细胞计数参考范围"这种纯公共词汇的
-#: 组合会大量误报；20 字窗口又会漏掉"一行被整行搬运"以外的情况。12 字在实测语料上
-#: 让豁免率落在可读的范围内（跑 `--report` 看当前数字）。
+#: 12 is a tradeoff: Chinese carries more information per character, so an 8-character window produces
+#: heavy false positives on combinations of pure public terms like "WBC count reference range"; a
+#: 20-character window misses anything short of "an entire line copied verbatim". 12 characters keeps
+#: the exemption rate in a readable range on the corpus tested so far (run `--report` to see the current
+#: number).
 NGRAM = 12
 
 _DROP = re.compile(r"[\s　·•\-—–_=|/\\()（）\[\]【】{}<>《》\"'“”‘’,，.。;；:：!！?？*#&+~]")
 
 
 def normalize(text: str) -> str:
-    """归一化：去空白与标点、全角转半角、英文小写。
+    """Normalize: strip whitespace and punctuation, fold full-width to half-width, lowercase ASCII.
 
-    归一化比原文更宽——排版差异（空格、全角半角）不该让一段被搬运的文本逃过检测。
+    Normalization is intentionally looser than the raw text -- a layout difference (spacing, full/half
+    width) shouldn't let copied text slip past detection.
     """
     text = unicodedata.normalize("NFKC", text)
     return _DROP.sub("", text).lower()
 
 
 def ngram_hashes(text: str, n: int = NGRAM) -> np.ndarray:
-    """文本 → uint64 哈希数组。短于 n 的文本返回空数组。"""
+    """Text -> array of uint64 hashes. Text shorter than n returns an empty array."""
     import hashlib
 
     if len(text) < n:
@@ -107,38 +119,40 @@ def ngram_hashes(text: str, n: int = NGRAM) -> np.ndarray:
 
 
 def build_index(rebuild: bool = False) -> np.ndarray:
-    """真实语料的 n-gram 哈希索引（排序后的 uint64 数组）。"""
+    """The reference corpus's n-gram hash index (a sorted uint64 array)."""
     if CACHE.is_file() and not rebuild:
         return np.load(CACHE)
     if not CORPUS_TEXT.is_dir():
-        raise SystemExit(f"找不到 {CORPUS_TEXT}——没有真实语料就无法做回放检测。"
-                         "若这台机器上本来就没有语料，用 --skip-replay 明确跳过，"
-                         "并且知道自己跳过了什么。")
+        raise SystemExit(f"{CORPUS_TEXT} not found -- replay detection needs the reference corpus. "
+                         "If this machine legitimately has no corpus, pass --skip-replay to skip it "
+                         "explicitly, knowing what that skips.")
     chunks: list[np.ndarray] = []
     files = sorted(CORPUS_TEXT.glob("*.txt"))
     for i, f in enumerate(files, 1):
         chunks.append(ngram_hashes(normalize(f.read_text(encoding="utf-8", errors="ignore"))))
         if i % 100 == 0:
-            print(f"  建索引 {i}/{len(files)} …", file=sys.stderr)
+            print(f"  building index {i}/{len(files)} ...", file=sys.stderr)
     index = np.unique(np.concatenate(chunks)) if chunks else np.empty(0, dtype=np.uint64)
     CACHE.parent.mkdir(parents=True, exist_ok=True)
     np.save(CACHE, index)
     return index
 
 
-# ── 目标文件的文本提取 ───────────────────────────────────────────
+# ── Text extraction from target files ──────────────────────────────
 def extract_text(path: pathlib.Path) -> list[str] | None:
-    """能读出文本就返回**文本单元列表**；读不出（图像等）返回 None。
+    """Return a **list of text units** when the file's text can be read; None when it can't (images, etc.).
 
-    返回列表而不是一整段，是因为 n-gram 不能跨越语义边界：把整个 JSON 当一段文本扫，
-    `"结果"` 的结尾和下一个键 `"单位"` 的开头会拼成一个真实语料里也存在的 12 字窗口，
-    于是报出一堆并不存在的"逐字搬运"。JSON 按每个字符串值切，表格按行切。
+    A list rather than one blob, because an n-gram must not cross a semantic boundary: scanning an
+    entire JSON document as one string would let the end of `"result"` and the start of the next key,
+    `"unit"`, concatenate into a 12-character window that also happens to exist in the reference corpus,
+    reporting phantom "verbatim copies". JSON is cut per string value; tables are cut per row.
     """
     suffix = path.suffix.lower()
     if suffix == ".jsonl":
-        # 逐行解析。第一版对 .jsonl 走的是"整个文件 json.loads"，必然失败，
-        # 于是退回按行扫原文——键名与值被拼在一起，`"start_date": "2026-04-…"`
-        # 归一化后成了 `startdate202604…`，报出一堆并不存在的"逐字搬运"。
+        # Parsed line by line. The first version did `json.loads` on the whole file, which always
+        # failed and fell back to scanning the raw text line by line -- keys and values got concatenated,
+        # so `"start_date": "2026-04-..."` normalized to `startdate202604...` and reported phantom
+        # "verbatim copies".
         units: list[str] = []
         for line in path.read_text(encoding="utf-8", errors="ignore").splitlines():
             line = line.strip()
@@ -156,8 +170,9 @@ def extract_text(path: pathlib.Path) -> list[str] | None:
             return path.read_text(encoding="utf-8", errors="ignore").splitlines()
         return _walk_strings(payload)
     if suffix in (".csv", ".tsv"):
-        # 按单元格切：同一行相邻两格的文字拼起来，会凭空造出一个真实语料里也有的窗口
-        # （导出表的表头就是一串指标名首尾相接）。
+        # Cut per cell: concatenating two adjacent cells in the same row can manufacture a window that
+        # also exists in the reference corpus (an exported table's header row is indicator names butted
+        # end to end).
         import csv as _csv
         import io as _io
 
@@ -171,7 +186,8 @@ def extract_text(path: pathlib.Path) -> list[str] | None:
             import fitz
         except ImportError:
             return None
-        # 按文字片段（span）切：表格一格通常就是一个 span；按行切会把同一行的几格拼在一起。
+        # Cut per text span: a table cell is usually one span; cutting per line would run several cells
+        # of the same row together.
         units: list[str] = []
         with fitz.open(path) as doc:
             for page in doc:
@@ -190,17 +206,20 @@ def extract_text(path: pathlib.Path) -> list[str] | None:
     return None
 
 
-# ── 白名单词汇（豁免用）─────────────────────────────────────────
+# ── Whitelist vocabulary (used for exemption) ───────────────────────
 def load_vocabulary() -> list[str]:
-    """公共词汇表：只取每份 spec 用 `_vocabulary_fields` **显式声明**的那些字段。
+    """The public-vocabulary table: only the fields each spec **explicitly declares** via
+    `_vocabulary_fields`.
 
-    第一版把 spec 里的所有字符串都当公共词汇，还加了个 `len <= 40` 的上限。两个错：
-    上限把 `Mean corpuscular hemoglobin concentration`（41 字符）悄悄挡在外面，
-    于是一个我自己手写的标准英文术语被报成了"逐字搬运"；而"所有字符串"又太宽——
-    说明性的散文一旦混进白名单，它里面万一真夹带了语料原文，就正好被自己豁免掉。
+    The first version treated every string in the spec as public vocabulary, with a `len <= 40` cap.
+    Both were wrong: the cap silently excluded `Mean corpuscular hemoglobin concentration`
+    (41 characters), so a standard English term written by hand got reported as "verbatim copying"; and
+    "every string" was too permissive -- if explanatory prose ever carried actual reference-corpus text,
+    putting it in the whitelist would excuse exactly that.
 
-    声明式的好处是这份清单本身可以被审：`_vocabulary_fields` 里的每个字段，
-    都是我们主张"这里装的是公开医学词汇或格式记号"的地方。
+    The benefit of declaring fields explicitly is that the list itself is auditable: every field named
+    in `_vocabulary_fields` is a place where we assert "this holds public medical vocabulary or a
+    formatting token".
     """
     raw: set[str] = set()
     slots: dict[str, list[str]] = {}
@@ -217,8 +236,9 @@ def load_vocabulary() -> list[str]:
             if len(value) > 1:
                 raw.add(value)
     terms = {normalize(piece) for value in raw for piece in expand_placeholders(value, slots)}
-    # 虚构池里的人名与机构名：它们本身另有白名单检查（NAME_FIELD / INSTITUTION），
-    # 放进词表只是为了"医师：某某"这种标签与名字的尾首相接能被解释。
+    # Names and institutions from the fiction pool have their own whitelist check (NAME_FIELD /
+    # INSTITUTION); they're added here only so a label-and-name join like "Physician: Jane Doe" can be
+    # explained.
     fiction_names, fiction_institutions, _ = load_fiction()
     terms |= {normalize(n) for n in fiction_names} | {normalize(n) for n in fiction_institutions}
     terms |= indicator_composites()
@@ -227,11 +247,14 @@ def load_vocabulary() -> list[str]:
 
 
 def expand_placeholders(value: str, slots: dict[str, list[str]]) -> list[str]:
-    """带 `{槽}` 的叙述模板（"甲状腺{side}叶结节（TI-RADS {tirads}类）"）展开成印得出来的词。
+    """Expand a narrative template with `{slot}` placeholders (e.g. a thyroid-nodule finding template
+    with `{side}` and `{tirads}` slots) into the words it can actually print.
 
-    槽在 spec 的 `_placeholders` 里**声明**过取值的（侧别、叶、回声、TI-RADS 分类）逐一代入；
-    没声明的（尺寸、牙位、异常项目清单）是数字或另一些公共词汇，**在槽处把模板切开**成两段——
-    切开之后每一段仍只由声明过的公共词汇构成，而槽里的内容由别的词条解释（数字不构成搬运证据）。"""
+    Slots **declared** with their value sets in the spec's `_placeholders` (laterality, lobe,
+    echogenicity, TI-RADS category) are substituted in; undeclared slots (size, tooth position, a list
+    of abnormal findings) hold numbers or other public vocabulary, so the template is **split at the
+    slot** into two pieces instead -- each piece is still built only from declared public vocabulary, and
+    the slot's content is explained by a different term (digits aren't evidence of copying)."""
     if "{" not in value:
         return [value]
     variants = [value]
@@ -245,8 +268,9 @@ def expand_placeholders(value: str, slots: dict[str, list[str]]) -> list[str]:
 
 
 def expanded_templates() -> set[str]:
-    """`resources/templates.json` 里带 `{t}` 的标题模板（"{t} Report"、"{t}检验报告单"），
-    用同一份文件里声明的套餐标题展开。展开后的每一条仍只由两份已声明的公共词汇构成。"""
+    """Expand the `{t}` title templates in `resources/templates.json` ("{t} Report", "{t} Test Report")
+    using the panel titles declared in the same file. Each expansion is still built from two already
+    declared public terms."""
     path = RESOURCES / "templates.json"
     if not path.is_file():
         return set()
@@ -264,11 +288,12 @@ def expanded_templates() -> set[str]:
 
 
 def indicator_composites() -> set[str]:
-    """同一指标词条内名称与缩写的两两拼接：`高密度脂蛋白胆固醇(HDL-C)` 归一化后是
-    `高密度脂蛋白胆固醇hdlc`，两半各自是公共词汇，拼起来仍只是这一个指标的名字。
+    """Pairwise concatenation of an indicator's own name and abbreviation: e.g. an indicator's Chinese
+    name joined with its English abbreviation normalizes to the two run together, lowercased -- each
+    half is public vocabulary, and the join is still just this one indicator's name.
 
-    只在**同一词条内**拼。两个无关词条的尾首相接不在此列——那本身可能就是被搬运的原文
-    （见 `is_public_term_window` 的说明）。
+    Only joined **within the same entry**. Joining the tail of one unrelated entry to the head of
+    another is excluded -- that could itself be copied text (see `is_public_term_window`).
     """
     path = RESOURCES / "indicators.json"
     if not path.is_file():
@@ -280,7 +305,7 @@ def indicator_composites() -> set[str]:
         unit = item.get("unit") or ""
         for a in names:
             if unit:
-                out.add(normalize(a + unit))          # 导出表表头 "Total Protein(g/L)"
+                out.add(normalize(a + unit))          # export-table header, e.g. "Total Protein(g/L)"
             for b in names:
                 if a != b:
                     out.add(normalize(a + b))
@@ -288,19 +313,22 @@ def indicator_composites() -> set[str]:
 
 
 def residual_text(fragment: str) -> str:
-    """去掉数字（与标记符号、顿号冒号）之后的残余。
+    """What's left after stripping digits (and the up/down arrows, full-width commas and colons used to
+    string public terms together).
 
-    **数字不构成文本搬运的证据**（↑↓ 与顿号冒号同理——它们只是把公共词汇串起来的记号）：检验值是机理模型算出来的，三位有效数字的读数、日期、
-    参考区间与真实语料的数字天然会撞（"报告时间20241028"撞上某份真实报告同一天的日期）。
-    数字的隐私风险——证件号、电话、就诊号——由 PII 谓词单独管。所以回放命中之后，
-    看的是**去掉数字剩下的文字**能不能被一个公共词条解释；一段真实病历的叙述句，
-    去掉数字之后仍然是叙述句，照样会被抓住。
+    **Digits are not evidence of copied text**: lab values come from a mechanistic model, and a
+    three-significant-figure reading, a date or a reference range will naturally collide with digits in
+    the reference corpus ("report time 20241028" happens to match some real report's date). The privacy
+    risk of digits -- ID numbers, phone numbers, visit numbers -- is handled separately by the PII
+    predicates. So after a replay hit, what matters is whether the **non-digit residue** can be
+    explained by a public term; a narrative sentence from a real chart is still a narrative sentence
+    once its digits are removed, and will still be caught.
     """
     return re.sub(r"[\d↑↓、，,;；:：]", "", fragment)
 
 
 def _strings_under(node, fields: set[str], inside: bool = False) -> list[str]:
-    """树里所有落在声明字段下的字符串（字段名在任意深度命中即可）。"""
+    """All strings in the tree that fall under a declared field (the field name may match at any depth)."""
     if isinstance(node, str):
         return [node] if inside else []
     if isinstance(node, dict):
@@ -325,7 +353,7 @@ def _walk_strings(node) -> list[str]:
     return []
 
 
-#: 窗口最多可以由几个**连续**的公共词条拼成。
+#: Maximum number of **consecutive** public terms a window may be built from.
 MAX_TERMS_PER_WINDOW = 3
 _affix_cache: dict[int, tuple[set[str], set[str], set[str]]] = {}
 
@@ -341,20 +369,27 @@ def _affixes(vocabulary: list[str]) -> tuple[set[str], set[str], set[str]]:
 
 
 def is_public_term_window(fragment: str, vocabulary: list[str]) -> bool:
-    """这段窗口是否由公共词汇解释得了。
+    """Whether this window can be explained by public vocabulary.
 
-    第一版只放行"整段落在某一个词条里"（`酸激酶同工酶mb相对指数` 落在 `肌酸激酶同工酶MB相对指数` 里），
-    并刻意拒绝拼接：两个无关公共词的尾首相接也可能是搬来的原文。表格语料下这条够用。
+    The first version only allowed "the whole fragment falls within one term" (a truncated indicator
+    name falling within its own full name, abbreviation included), and deliberately rejected
+    concatenation: the tail of one unrelated public term joined to the head of another could itself be
+    copied text. That was enough for tabular text.
 
-    2026-09-29 起有了叙述型文档（科室键值对、超声所见、总检），它们**本来就是公共短语的序列**：
-    "超声提示：" 后面紧跟 "甲状腺未见明显异常"，"肝脏：" 后面紧跟 "肝脏形态大小正常"，
-    真实报告里同样的短语也是同样的顺序。于是放宽为：窗口可以由**至多三个连续的公共词条**拼成
-    （开头可以切在某个词条中间、结尾也可以，中间的必须是整词）。残余风险是一段只由三个词典短语
-    拼成的原文会被放过；再长的原文一定跨过更多词条边界，仍会被抓住。
+    Starting 2026-09-29, narrative documents appeared (department key-value pairs, ultrasound findings,
+    summary impressions) that **are themselves sequences of public phrases**: an "ultrasound impression:"
+    label is immediately followed by a stock finding such as "thyroid shows no obvious abnormality", a
+    "liver:" label by "liver shape and size normal", and real reports use the same phrases in the same
+    order. So the rule was relaxed: a window may be
+    built from **up to three consecutive public terms** (it may start or end mid-term, but any term in
+    the middle must be whole). The residual risk is that original text built from exactly three
+    dictionary phrases slips through; anything longer necessarily crosses more term boundaries and is
+    still caught.
 
-    第一版还试过"把所有白名单词汇从片段里逐个剥掉，剩不下几个字就豁免"——那是错的：
-    对截断窗口失效（12 字窗口 `notapplicabl` 并不包含完整的词 `notapplicable`）。
-    这里的做法用词条的后缀集与前缀集，截断窗口自然落在里面。
+    The first version also tried "strip every whitelisted term out of the fragment one at a time, and
+    exempt it if little is left" -- that was wrong: it fails on a truncated window (the 12-character
+    window `notapplicabl` doesn't contain the complete word `notapplicable`). This version instead uses
+    each term's suffix and prefix sets, which a truncated window naturally falls into.
     """
     whole, suffixes, prefixes = _affixes(vocabulary)
     n = len(fragment)
@@ -376,22 +411,23 @@ def is_public_term_window(fragment: str, vocabulary: list[str]) -> bool:
     return False
 
 
-# ── 检查 ─────────────────────────────────────────────────────────
-#: 与 `.githooks/pre-commit` 里那套**分开写**的 PII 谓词。
+# ── Checks ───────────────────────────────────────────────────────────
+#: PII predicates written **separately** from the set in `.githooks/pre-commit`.
 PII_PATTERNS: list[tuple[str, re.Pattern]] = [
-    ("身份证号", re.compile(r"[1-9]\d{5}(?:19|20)\d{2}(?:0[1-9]|1[0-2])"
+    ("national ID number", re.compile(r"[1-9]\d{5}(?:19|20)\d{2}(?:0[1-9]|1[0-2])"
                             r"(?:0[1-9]|[12]\d|3[01])\d{3}[\dXx]")),
-    ("手机号", re.compile(r"(?<!\d)1[3-9]\d{9}(?!\d)")),
-    ("就诊/病案号", re.compile(r"(?:门诊|住院|病案|体检|就诊卡)\s*号\s*[:：]?\s*\d{6,}")),
-    ("脱敏占位符", re.compile(r"«[^»]{0,20}»")),
-    ("邮箱", re.compile(r"[\w.+-]+@[\w-]+\.[\w.]+")),
-    ("固话", re.compile(r"(?<!\d)0\d{2,3}-\d{7,8}(?!\d)")),
+    ("mobile phone number", re.compile(r"(?<!\d)1[3-9]\d{9}(?!\d)")),
+    ("visit/record number", re.compile(r"(?:门诊|住院|病案|体检|就诊卡)\s*号\s*[:：]?\s*\d{6,}")),
+    ("redaction placeholder", re.compile(r"«[^»]{0,20}»")),
+    ("email", re.compile(r"[\w.+-]+@[\w-]+\.[\w.]+")),
+    ("landline phone number", re.compile(r"(?<!\d)0\d{2,3}-\d{7,8}(?!\d)")),
 ]
 
 
-# ── 虚构池白名单（姓名、机构名）与合成编号 ───────────────────────
-#: 与 `mirobody_gen/synthid.py` **分开写**的同一个校验算法。两份实现必须一致，
-#: `tests/test_render.py` 断言这一点；闸门不 import 生成器，否则它只能确认生成器自己的盲区。
+# ── Fiction-pool whitelist (names, institutions) and synthetic IDs ────
+#: The same check algorithm as `mirobody_gen/synthid.py`, written **independently**. The two
+#: implementations must agree -- `tests/test_render.py` asserts this; the gate doesn't import the
+#: generator, or it could only confirm the generator's own blind spot.
 _SYNTH_SALT = "mirobody-gen/synthetic-id/v1"
 
 
@@ -406,7 +442,7 @@ def synthetic_id(number: str) -> bool:
 
 
 def load_fiction() -> tuple[set[str], list[str], set[str]]:
-    """(虚构人名, 虚构机构名, 机构类型后缀)。"""
+    """(fiction person names, fiction institution names, institution-type suffixes)."""
     path = RESOURCES / "fiction.json"
     if not path.is_file():
         return set(), [], set()
@@ -417,16 +453,19 @@ def load_fiction() -> tuple[set[str], list[str], set[str]]:
 
 
 def institution_ok(found: str, institutions: list[str], types: set[str]) -> bool:
-    """机构名必须能在虚构池里找到。类型后缀（"市第人民医院"、"General Hospital"）只在**整串相等**
-    时放行——它是模板本身出现在 spec 里；若按子串放行，任何"XX General Hospital"都会溜过去。"""
+    """An institution name must be found in the fiction pool. A type suffix (a generic "... City No. 1
+    People's Hospital" or "General Hospital" ending) is allowed only on an **exact full-string match**
+    -- it's the template itself appearing in the spec; allowing it as a substring would let any "XX
+    General Hospital" through."""
     return found in types or any(name in found or found in name for name in institutions)
 
 
-#: 姓名字段：标签后面跟着的那个名字必须属于虚构池。
+#: Name field: the name following one of these labels must belong to the fiction pool.
 NAME_FIELD = re.compile(r"(?:姓名|送检医生|申请医生|检验者|审核者|检查者|操作者|检验人|报告医生|"
                         r"Name|Requested by|Performed By|Verified By|Physician)\s*[:：]\s*"
                         r"([\u4e00-\u9fff]{2,4}|[A-Z][a-z]+ [A-Z][a-z]+)")
-#: 机构名：以机构类后缀结尾的一串。必须能在虚构池里找到。
+#: Institution name: a run of characters ending in an institution-type suffix. Must be found in the
+#: fiction pool.
 INSTITUTION = re.compile(r"([\u4e00-\u9fff]{2,14}(?:医院|保健院|体检中心|管理中心|检验所|检验中心|服务中心|门诊部))"
                          r"|((?:[A-Z][a-z]+ ){1,3}(?:General Hospital|Medical Centre|Medical Center|Hospital|"
                          r"Clinical Laboratories|Pathology Services|Health Screening Centre|Family Clinic))")
@@ -474,7 +513,8 @@ def scan(paths: list[pathlib.Path], index: np.ndarray | None,
     excused_samples: list[str] = []
     synthetic_ids = 0
     excused_numeric = 0  # folded into `excused` since the screen was factored out
-    # 词条本身也去掉数字，才能和"去数字后的残余"比：`×10^9/L` 去数字是 `×^l`。
+    # Terms also have digits stripped, so they're comparable to the "residue after stripping digits":
+    # stripping digits from `×10^9/L` gives `×^l`.
     digitless = digitless_terms(vocabulary)
     fiction_names, fiction_institutions, institution_types = load_fiction()
     seen: set[str] = set()
@@ -490,7 +530,7 @@ def scan(paths: list[pathlib.Path], index: np.ndarray | None,
         rel = path.relative_to(REPO) if path.is_relative_to(REPO) else path
         text = "\n".join(units)
 
-        # ① 回放：逐个文本单元扫，n-gram 不跨单元
+        # (1) Replay: scan unit by unit; n-grams never cross a unit boundary
         for unit in units:
             if index is None or not index.size:
                 break
@@ -498,54 +538,57 @@ def scan(paths: list[pathlib.Path], index: np.ndarray | None,
             excused += ok
             for fragment in hits:
                 findings += 1
-                print(f"回放命中  {rel}: …{fragment}…")
+                print(f"replay hit  {rel}: ...{fragment}...")
 
-        # ② PII
+        # (2) PII
         for label, pattern in PII_PATTERNS:
             for match in pattern.finditer(text):
-                if label == "就诊/病案号" and synthetic_id(match.group()):
+                if label == "visit/record number" and synthetic_id(match.group()):
                     synthetic_ids += 1
                     continue
                 findings += 1
-                print(f"PII 命中  {rel}: {label} → {match.group()[:24]}")
-        # ②' 姓名与机构名：白名单，不是黑名单
+                print(f"PII hit  {rel}: {label} -> {match.group()[:24]}")
+        # (2') Names and institutions: an allow-list, not a deny-list
         for match in NAME_FIELD.finditer(text):
             if match.group(1) not in fiction_names:
                 findings += 1
-                print(f"姓名不在虚构池  {rel}: {match.group()[:24]}")
+                print(f"name not in fiction pool  {rel}: {match.group()[:24]}")
         for match in INSTITUTION.finditer(text):
             found = match.group(1) or match.group(2)
             if not institution_ok(found, fiction_institutions, institution_types):
                 findings += 1
-                print(f"机构不在虚构池  {rel}: {found[:30]}")
+                print(f"institution not in fiction pool  {rel}: {found[:30]}")
 
-    print(f"\n扫描 {scanned} 个文件 · 命中 {findings} 处 · "
-          f"按公共词汇豁免 {excused} 处 · 去数字后落在公共词条内 {excused_numeric} 处 · "
-          f"合成编号（校验尾通过）{synthetic_ids} 个 · "
-          f"读不出文本 {len(unreadable)} 个")
+    print(f"\nscanned {scanned} files · {findings} hits · "
+          f"{excused} excused as public vocabulary · {excused_numeric} excused as a digit-stripped "
+          f"public term · {synthetic_ids} synthetic IDs (check suffix passed) · "
+          f"{len(unreadable)} files with unreadable text")
     if report_only and excused_samples:
-        # docstring 承诺"豁免会被计数并打印，不会被藏起来"。只打一个总数不算打印：
-        # 看不到是哪些词撑起了那个 0 命中，就无法判断豁免规则是不是太松。
-        print("  豁免样例（每条都整段落在某一个公共词汇里）：")
+        # The docstring promises exemptions are "counted and printed, never hidden". Printing only a
+        # total doesn't count: without seeing which terms prop up that zero-hit result, there's no way
+        # to judge whether the exemption rule is too loose.
+        print("  excused samples (each falls entirely within one public term):")
         for fragment in excused_samples[:20]:
             print(f"    {fragment}")
         if len(excused_samples) > 20:
-            print(f"    …另有 {len(excused_samples) - 20} 条")
+            print(f"    ...and {len(excused_samples) - 20} more")
     if unreadable:
-        print(f"  （读不出的是图像等二进制产物，回放检测覆盖不到它们；见模块文档"
-              f"\"这道闸门管不到什么\"。前几个：{', '.join(p.name for p in unreadable[:3])}）")
+        print(f"  (unreadable files are images and other binary output that replay detection can't "
+              f"cover; see the module docstring's \"What this gate does not cover\". A few: "
+              f"{', '.join(p.name for p in unreadable[:3])})")
     return 0 if report_only else findings
 
 
-#: 参考区间允许的出处形态。三值枚举放在文件级表达不了"一个文件里混着标准、指南、
-#: 厂商说明书和恒等式"这件事——所以逐项还要有一个**可引用**的出处，
-#: 且必须命中下面的形态之一。`通行临床区间` 这种说法不算出处。
+#: Acceptable forms for a reference-range citation. A three-value enum at the file level can't express
+#: "one file mixes standards, guidelines, manufacturer inserts and identities" -- so each indicator needs
+#: its own **citable** source, matching one of the patterns below. A phrase like "common clinical
+#: interval" does not count as a citation.
 CITATION_PATTERNS = ("WS/T", "GB/T", "指南", "操作规程", "说明书", "由恒等式定义",
                      "心电图学", "WHO", "IFCC", "CLSI", "专家共识")
 
 
 def check_indicator_citations() -> int:
-    """每个指标的参考区间都要有可引用的出处。"""
+    """Every indicator's reference range must have a citable source."""
     path = RESOURCES / "indicators.json"
     if not path.is_file():
         return 0
@@ -553,33 +596,35 @@ def check_indicator_citations() -> int:
     for item in json.loads(path.read_text(encoding="utf-8"))["indicators"]:
         source = item.get("reference_source") or ""
         if not any(p in source for p in CITATION_PATTERNS):
-            print(f"出处不可引用  {item['key']}: reference_source={source!r}"
-                  f"（要么给标准号/指南名/说明书，要么说明为什么没有）")
+            print(f"source not citable  {item['key']}: reference_source={source!r} "
+                  f"(give a standard number, guideline name, or package insert, or explain why not)")
             problems += 1
     return problems
 
 
 def check_spec_provenance() -> int:
-    """spec 的每个文件都要声明来源。"""
+    """Every spec file must declare its provenance."""
     allowed = {"public-standard", "format-token", "hand-authored", "llm-paraphrase", "llm-template"}
     problems = 0
     for path in sorted((RESOURCES).glob("*.json")):
         payload = json.loads(path.read_text(encoding="utf-8"))
         source = payload.get("_source") if isinstance(payload, dict) else None
         if source not in allowed:
-            print(f"溯源缺失  {path.relative_to(REPO)}: _source={source!r}，"
-                  f"必须是 {sorted(allowed)} 之一")
+            print(f"missing provenance  {path.relative_to(REPO)}: _source={source!r}, "
+                  f"must be one of {sorted(allowed)}")
             problems += 1
         if isinstance(payload, dict) and "_provenance" not in payload:
-            print(f"溯源缺失  {path.relative_to(REPO)}: 没有 _provenance")
+            print(f"missing provenance  {path.relative_to(REPO)}: no _provenance")
             problems += 1
         if isinstance(payload, dict) and "_vocabulary_fields" not in payload:
-            print(f"溯源缺失  {path.relative_to(REPO)}: 没有 _vocabulary_fields"
-                  f"（要声明哪些字段装的是可豁免的公开词汇；没有可豁免字段就写 []）")
+            print(f"missing provenance  {path.relative_to(REPO)}: no _vocabulary_fields "
+                  f"(declare which fields hold exemptable public vocabulary; [] if none do)")
             problems += 1
-        # 模型产出的资源是不可信文本：不得豁免任何字段，必须以原文过回放检测与 PII 谓词
+        # Model-generated resources are untrusted text: they must not exempt any field, and must pass
+        # replay detection and the PII predicates verbatim.
         if isinstance(payload, dict) and str(source).startswith("llm-") and payload.get("_vocabulary_fields"):
-            print(f"豁免越界  {path.relative_to(REPO)}: _source={source!r} 的资源不得声明 _vocabulary_fields")
+            print(f"exemption out of bounds  {path.relative_to(REPO)}: a resource with "
+                  f"_source={source!r} must not declare _vocabulary_fields")
             problems += 1
     return problems
 
@@ -607,7 +652,7 @@ def main() -> None:
     index = None
     if not args.skip_replay:
         index = build_index(args.rebuild_index)
-        print(f"真实语料 n-gram 索引：{index.size:,} 个 {NGRAM} 字窗口（只存哈希）")
+        print(f"reference-corpus n-gram index: {index.size:,} {NGRAM}-character windows (hashes only)")
 
     problems = scan(paths, index, load_vocabulary(), args.report)
     problems += check_spec_provenance()
@@ -616,9 +661,9 @@ def main() -> None:
     if args.report:
         raise SystemExit(0)
     if problems:
-        print(f"\n隐私闸门未通过：{problems} 处。")
+        print(f"\nprivacy gate failed: {problems} problem(s).")
         raise SystemExit(1)
-    print("隐私闸门通过。")
+    print("privacy gate passed.")
 
 
 if __name__ == "__main__":

@@ -1,15 +1,17 @@
 """Diary sentences: symptoms and numbers in a person's own words, with split-and-code truth.
 
-日记：一个人用自己的话记下的症状与数字，给 mirobody 的 `POST /journal/sentence` 与 `POST /journal` 当素材。
+Material for mirobody's `POST /journal/sentence` and `POST /journal`. Its contract (per
+`collect/sentence.py`, read 2026-09-29): a model splits one sentence into several items, each with
+`kind in measurement / symptom / condition / medication / other`, `name` kept as the person's own
+words, and `assertion in present / negated / hypothetical`; `symptom` items are then matched exactly
+against the ICPC-3 symptom axis. Truth here has two layers: **which items the sentence should split
+into** (kind plus surface wording), and **what each should resolve to** (an S-axis code, or an
+expected abstention). Measurements also carry a LOINC.
 
-那边的契约（2026-09-29 读 `collect/sentence.py`）：一句话由模型拆成若干条，每条
-`kind ∈ measurement / symptom / condition / medication / other`，`name` 保留本人原话，
-`assertion ∈ present / negated / hypothetical`；然后 `symptom` 走 ICPC-3 症状轴的精确匹配。
-所以真值分两层：**这句话应拆出哪几条**（kind + 原话表面），以及**每条该编成什么**
-（S 轴码，或该弃权）。测量值另带 LOINC。
-
-句子按 `resources/complaints.json` 的模板拼，症状按原型/事件/日常背景抽（与门诊主诉共用一套池子，
-所以"日记里说头晕"与"门诊病历主诉头晕"在同一个人身上是同一段时间——纵向对账的素材）。
+Sentences are assembled from `resources/complaints.json` templates; symptoms are drawn from the same
+archetype/event/background pools as clinic chief complaints, so "dizzy in the diary" and "dizzy as a
+chief complaint" fall in the same window for the same person — material for longitudinal
+reconciliation.
 """
 
 from __future__ import annotations
@@ -28,7 +30,7 @@ LOINC = {"sbp": "8480-6", "dbp": "8462-4", "pulse": "8867-4", "weight": "29463-7
 
 
 def _sentence(rng: random.Random, lang: str, s1: str, s2: str | None, person: Person, when: date) -> tuple[str, list[dict]]:
-    lang = spec.doc_lang(lang)   # 日记是文档措辞层：ja 组写英文日记（见 spec.doc_lang）
+    lang = spec.doc_lang(lang)   # diary wording is the document layer: the ja group writes in English (see spec.doc_lang)
     ph = spec.complaints()["phrasing"][lang]
     templates = [t for t in ph["journal"] if ("{s2}" in t) == (s2 is not None)]
     t = rng.choice(templates)
@@ -64,19 +66,19 @@ def entries_for(person: Person, seed: int, lang: str) -> list[dict]:
     start = person.weight_anchors[0][0]
     out: list[dict] = []
     day = start
-    diligence = rng.choice([0.3, 0.6, 1.0, 1.6])          # 有人天天记，有人一年三条
+    diligence = rng.choice([0.3, 0.6, 1.0, 1.6])          # some people write daily, some write thrice a year
     while day <= CORPUS_END:
         candidates: list[str] = []
-        # 日常背景
+        # background symptoms
         for sid, rate in pools["background"].items():
             if rng.random() < rate * diligence / 30:
                 candidates.append(sid)
-        # 原型：干预前症状多，干预后少
+        # archetype: more symptoms before the intervention, fewer after
         after = bool(scripted) and scripted[0].start <= day
         pool = arch["after"] if after else arch["before"]
         if pool and rng.random() < (0.02 if after else 0.05) * diligence:
             candidates.append(rng.choice(pool))
-        # 事件期间
+        # during an event
         for e in person.events:
             if e.note == "随机事件" and 0 <= (day - e.start).days <= min(e.duration_days, 21):
                 inc = pools["incident"].get(e.name, [])

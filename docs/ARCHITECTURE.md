@@ -14,7 +14,7 @@ templates.json   │   journal.py    diary sentences             delivery.py tie
 fiction.json     │   genomics.py   raw genotype exports        render/     pdf, sheet, grid, degrade
 vocab.json       │   synthid.py    checksummed synthetic ids   pairs.py    minimal-contrast pairs          harness/ scoring
 delivery.json    │   manifest.py   manifest.jsonl, people.jsonl
-handwriting.json │                                             handwriting.py handwritten files (opt-in)
+handwriting.json │   vendor_signals.py vendor-cloud payloads   handwriting.py handwritten files (opt-in)
 numbers*.json    │                                             render/hand.py pen, paper, legibility
 llm_prompts.json ┘   llm/          optional: offline paraphrase enrichment (contract, cache, CLI)
 ```
@@ -35,7 +35,9 @@ CVA), rounded to the printed precision, with derived quantities computed from th
 `profile.py` gives each person a set of named findings (sticky, dated, growing) and each visit its
 chief complaints, with the code each surface is expected to receive downstream. `manifest.py` writes
 the visit-level truth. `devices.py`, `journal.py` and `genomics.py` produce the same person's other
-sources from the same model.
+sources from the same model; `vendor_signals.py` re-shapes the person's one device series
+(`devices.series_for`, which the home logs and handwritten logs also read) as Garmin, Oura, WHOOP
+and HealthKit payloads.
 
 **File layer.** `layout.py` samples a layout family per fictional institution from the format-token
 distributions (column set, reference-range dialect, flag markers, unit position, date labels, page

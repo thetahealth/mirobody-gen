@@ -1,28 +1,37 @@
-"""生成 `resources/fiction.json`：渲染器印在纸上的人名、地名、机构名，全部来自这里。
+"""Build `resources/fiction.json`: the sole source of person names, place names and
+institution names the renderer prints on a document.
 
-    python3 scripts/build_fiction.py            # 打印统计
-    python3 scripts/build_fiction.py --write    # 写 resources/fiction.json
+    python3 scripts/build_fiction.py            # print the statistics
+    python3 scripts/build_fiction.py --write    # write resources/fiction.json
 
-## 为什么要单独一份虚构池
+## Why a separate fictional pool
 
-一张检验单上要印姓名、送检医生、检验者、审核者、医院名。这些字段是隐私闸门的**白名单**
-检查对象（`audit/privacy.py` 的 ②）：印出来的名字必须属于这份池子，而不是"看起来不像真名就放行"。
-白名单要能被审，所以它必须是一份落盘的、有限的清单，不能是运行时随手拼的。
+A lab slip prints a patient name, ordering physician, technician, reviewer and hospital
+name. These fields are checked against the privacy gate's **allowlist** (`audit/privacy.py`,
+check 2): a printed name must belong to this pool, rather than being waved through just
+because it "doesn't look like a real name." An allowlist has to be auditable, so it must be a
+finite list on disk, not something assembled on the fly at runtime.
 
-## 怎么造的
+## How it's built
 
-* 姓与名用字是**公共知识**（常见姓氏、常见名字用字），手写在下面；
-* 用固定种子从组合空间里**抽样**一个子集，而不是穷举——穷举的话，一个常见名字"不在池里"
-  本身就泄露了它在真实语料里出现过（见下一条）；抽样之后，绝大多数组合本来就不在池里，
-  缺席不携带任何信息；
-* 每个候选都拿去和真实语料的提取文本做子串比对，**出现过的一律丢弃**；机构名还要过一遍
-  隐私闸门同款的 12 字 n-gram 回放检测（类型后缀"General Hospital"这类公共词汇除外）——
-  2026-09-23 实测，一个生造地名的尾字母加上"Family Clinic"正好撞上真实语料里的某家诊所名。
-  这一步只会删、不会加，真实语料里的任何字面都进不了池子；
-* 地名是**生造的**两字组合，机构名是"地名 + 机构类型"。英文同理。
+* Surname and given-name characters are **public knowledge** (common surnames, common
+  name characters), hand-written below.
+* A fixed seed **samples** a subset of the combination space rather than enumerating it --
+  enumeration would mean a common name's absence from the pool reveals that it appeared in
+  the real corpus (see below). After sampling, most combinations are simply not in the pool
+  to begin with, so an absence carries no information.
+* Every candidate is substring-matched against the real corpus's extracted text, and **any
+  match is dropped**; institution names also go through the same 12-character n-gram replay
+  check used by the privacy gate (exempting public type suffixes like "General Hospital").
+  A 2026-09-23 run found a fabricated place name's trailing characters plus "Family Clinic"
+  collided with a real clinic's name in the corpus. This step only removes candidates, never
+  adds any -- no real-corpus string can enter the pool.
+* Place names are **fabricated** two-character combinations; institution names are "place +
+  institution type." Same approach for English.
 
-生造地名无法保证世界上没有同名的小地方。所以还有第二层：渲染器默认在每页印
-`SYNTHETIC SAMPLE` 横幅，PDF/XLSX 元数据里始终写 synthetic（docs/zh-CN/plan.md §9.1）。
+A fabricated place name can't guarantee no real, small place shares it, so there's a second
+layer: the renderer prints a `SYNTHETIC SAMPLE` banner on every page by default, and PDF/XLSX
+metadata always marks the file synthetic (docs/zh-CN/plan.md §9.1).
 """
 
 from __future__ import annotations
@@ -51,7 +60,8 @@ FIRST_EN = ["James", "Mary", "John", "Linda", "David", "Susan", "Daniel", "Karen
 LAST_EN = ["Carter", "Hughes", "Porter", "Bennett", "Fletcher", "Holland", "Sutton", "Barker",
            "Warren", "Palmer", "Lowe", "Chambers", "Fox", "Webb", "Lambert", "Hayes", "Doyle",
            "Chan", "Wong", "Lau", "Tan", "Lim", "Ng", "Ho", "Leung", "Tsang", "Yip", "Kwok"]
-#: 生造地名的用字：刻意选"像地名、但两两组合很少是真地名"的字。
+#: Characters for fabricated place names: deliberately chosen to "look place-like, but rarely
+#: form a real place name when paired."
 PLACE_CHARS = list("岚澄霁穗岫汀澜溪桐棠杉蘅苓芷沅湄涟霖樾渚峪麓禾砚翎珩璟晗曦")
 PLACE_EN_PREFIX = ["Wren", "Quill", "Yar", "Brack", "Fern", "Kest", "Lorn", "Mistle", "Ossen",
                    "Pell", "Rook", "Sable", "Tarn", "Vell", "Whin"]
@@ -80,7 +90,8 @@ def _corpus_blob() -> str | None:
 
 
 def _replay_checker(types: list[str]):
-    """与 audit/privacy.py 同一个索引、同一种归一化。命中且不整段落在某个类型后缀里 → True。"""
+    """Same index, same normalization as audit/privacy.py. True if it hits and the hit doesn't
+    fall entirely inside a type-suffix window."""
     import sys
 
     import numpy as np
@@ -129,8 +140,11 @@ def build(blob: str | None) -> tuple[dict, int]:
     places_zh = keep(["".join(rng.sample(PLACE_CHARS, 2)) for _ in range(3000)], 420)
     places_en = keep([rng.choice(PLACE_EN_PREFIX) + rng.choice(PLACE_EN_SUFFIX) for _ in range(3000)], 110)
 
-    # 机构 = 地名 × 机构类型。版式多样性的长尾要靠机构数撑（真实语料约四分之三的文档版式只出现一次），
-    # 所以池子要比 60 个虚拟人会去的机构多得多；实际用到哪些由 generator/files.py 的中国餐馆过程决定。
+    # Institution = place x institution type. Layout diversity's long tail has to be carried by
+    # the number of institutions (about three-quarters of real-corpus document layouts occur
+    # only once), so the pool needs to be far larger than the institutions 60 synthetic people
+    # would actually visit; which ones get used is decided by the Chinese-restaurant process in
+    # generator/files.py.
     institutions: list[dict] = []
     seen: set[str] = set()
 
@@ -162,8 +176,9 @@ def build(blob: str | None) -> tuple[dict, int]:
                  "隐私闸门把这里当白名单：输出文件里的姓名与机构名必须属于本文件。",
         "_provenance": {"script": "scripts/build_fiction.py", "seed": SEED,
                         "filtered_against_corpus": blob is not None},
-        # 名字不给回放检测豁免：豁免词汇只能是公开医学词汇，人名不是。
-        # 只有机构类型的通用后缀（"General Hospital"、"人民医院"）是公共词汇。
+        # Names get no exemption from the replay check: exempt vocabulary must be public
+        # medical terminology, and a person's name is not that. Only the generic institution-type
+        # suffixes (the English "General Hospital" and its Chinese equivalent) count as public vocabulary.
         "_vocabulary_fields": ["institution_types"],
         "institution_types": sorted({p.replace("{p}", "").replace("{n}", "").strip()
                                      for _, p in INSTITUTION_ZH + INSTITUTION_EN}),
@@ -182,16 +197,16 @@ def main() -> None:
     args = ap.parse_args()
     blob = _corpus_blob()
     if blob is None:
-        print("警告：没有 corpus/text，无法与真实语料比对。不写文件。")
+        print("Warning: no corpus/text, cannot compare against the real corpus. Not writing the file.")
         if args.write:
             raise SystemExit(1)
     payload, dropped = build(blob)
-    print(f"中文姓名 {len(payload['person_names_zh'])} · 英文姓名 {len(payload['person_names_en'])} · "
-          f"地名 {len(payload['places_zh'])}+{len(payload['places_en'])} · "
-          f"机构 {len(payload['institutions'])} · 因在真实语料中出现而丢弃 {dropped}")
+    print(f"Chinese names {len(payload['person_names_zh'])} · English names {len(payload['person_names_en'])} · "
+          f"places {len(payload['places_zh'])}+{len(payload['places_en'])} · "
+          f"institutions {len(payload['institutions'])} · dropped for appearing in the real corpus {dropped}")
     if args.write:
         OUT.write_text(json.dumps(payload, ensure_ascii=False, indent=1) + "\n", encoding="utf-8")
-        print(f"已写出 {OUT}")
+        print(f"Wrote {OUT}")
 
 
 if __name__ == "__main__":

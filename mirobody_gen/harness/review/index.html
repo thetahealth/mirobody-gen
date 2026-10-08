@@ -1,31 +1,31 @@
 <!doctype html>
-<html lang="zh-CN" data-palette="#b3261e,#1f5c8b,#2f6b5f,#a8630a">
+<html lang="en" data-palette="#b3261e,#1f5c8b,#2f6b5f,#a8630a">
 <head>
 <meta charset="utf-8">
-<title>合成档案校样台</title>
+<title>Synthetic Record Proofing Desk</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <!--
-  单文件、离线、纯前端。双击打开即可用，不联网、不上传、没有后端。
-  这一点对本工具是硬要求而不是偏好：审的是健康档案形态的数据，
-  哪怕全是合成的，也不该为了"方便"就把它发到某个服务器上。
+  Single file, offline, pure front end. Double-click to open: no network, no upload, no backend.
+  That is a hard requirement here, not a preference: this reviews health-record-shaped data, and
+  even though all of it is synthetic, it should not be sent to a server for convenience.
 
-  字体刻意只用系统字体栈：file:// 下加载 Google Fonts 会失败，
-  而一个在离线环境里字体塌掉的审阅工具，比朴素的字体糟糕得多。
-  中文用宋体一系（报告就是这个气质），数字用等宽——检验单是竖着扫的，
-  数字不对齐就没法一眼看出哪一列不对劲。
+  Fonts are deliberately system-only: loading Google Fonts fails under file://, and a review tool
+  whose fonts collapse offline is worse than one with plain fonts. CJK uses a Songti-family serif
+  (the register a report has); numbers use monospace, since lab slips are scanned vertically and
+  misaligned digits hide which column is off at a glance.
 
-  用法：
-    python3 -m http.server 8000 -d harness/review   # 或者直接双击本文件
-    然后把 out/<build>/manifest.jsonl 拖进来（可选再拖 llm_panel.json、decisions.json）
+  Usage:
+    python3 -m http.server 8000 -d harness/review   # or just double-click this file
+    then drop out/<build>/manifest.jsonl in (optionally also llm_panel.json and decisions.json)
 -->
 <style>
 :root{
   --paper:#faf7f2; --paper-2:#f3eee5; --card:#fffdf9;
   --ink:#1a1917; --ink-2:#4a463f; --ink-3:#8a8479;
   --rule:#e3ddd2; --rule-2:#d2cabb;
-  /* 状态色。这是 status 用途（不是分类系列），所以固定语义、不复用：
-     高=暖红、低=冷蓝（高低是两种状态，用同一个红会丢掉方向），
-     通过=青绿、存疑=琥珀。每处都同时带文字或符号，不靠颜色单独表意。 */
+  /* Status colors, not a categorical palette, so their meaning is fixed and never reused:
+     high = warm red, low = cool blue (two different states; one red for both loses direction),
+     pass = teal, uncertain = amber. Every use also carries text or a symbol, never color alone. */
   --hi:#b3261e; --lo:#1f5c8b; --ok:#2f6b5f; --warn:#a8630a;
   --hi-soft:#f7e4e1; --lo-soft:#e2ecf4; --ok-soft:#e2eeea; --warn-soft:#f6e9d8;
   --band:#eceadf;
@@ -49,7 +49,7 @@ html,body{height:100%}
 body{
   margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);
   font-size:14px;line-height:1.55;
-  /* 纸的颗粒感：极淡的两层斜线，避免大面积纯色带来的塑料感 */
+  /* Paper grain: a very faint two-layer diagonal hatch, so flat fills don't look plastic */
   background-image:repeating-linear-gradient(135deg,rgba(0,0,0,.012) 0 1px,transparent 1px 7px);
 }
 button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
@@ -58,7 +58,7 @@ kbd{
   border-bottom-width:2px;border-radius:4px;background:var(--paper-2);color:var(--ink-2);
 }
 
-/* ── 骨架 ───────────────────────────────────────────── */
+/* ── Layout skeleton ──────────────────────────────────── */
 .shell{display:grid;grid-template-columns:270px minmax(0,1fr) 320px;grid-template-rows:auto 1fr;
   height:100vh;gap:0}
 header{
@@ -81,7 +81,7 @@ aside{border-right:1px solid var(--rule);background:var(--paper-2)}
 .verdicts{border-left:1px solid var(--rule);background:var(--paper-2)}
 main{padding:26px 34px 120px}
 
-/* ── 左栏：人 ───────────────────────────────────────── */
+/* ── Left column: people ──────────────────────────────── */
 .railhead{
   position:sticky;top:0;background:var(--paper-2);padding:12px 16px 8px;
   border-bottom:1px solid var(--rule);font-size:11.5px;letter-spacing:.1em;
@@ -102,7 +102,7 @@ main{padding:26px 34px 120px}
 .pip{width:7px;height:7px;border-radius:2px;background:var(--rule-2)}
 .pip.ok{background:var(--ok)} .pip.warn{background:var(--warn)} .pip.bad{background:var(--hi)}
 
-/* ── 中栏：报告 ─────────────────────────────────────── */
+/* ── Middle column: report ────────────────────────────── */
 .person-head{margin:0 0 4px;font-family:var(--serif);font-size:26px;letter-spacing:.02em}
 .dxline{color:var(--ink-2);font-size:13px;margin-bottom:22px}
 .dx{
@@ -157,7 +157,7 @@ tr.lo .value,tr.lo .flag{color:var(--lo)}
 tr.hi{background:linear-gradient(90deg,var(--hi-soft),transparent 55%)}
 tr.lo{background:linear-gradient(90deg,var(--lo-soft),transparent 55%)}
 
-/* ── 右栏：判定 ─────────────────────────────────────── */
+/* ── Right column: verdict ────────────────────────────── */
 .vbox{padding:16px}
 .vbox h2{font-family:var(--serif);font-size:15px;margin:0 0 3px;letter-spacing:.04em}
 .vsub{color:var(--ink-3);font-size:12px;margin-bottom:14px;font-family:var(--mono)}
@@ -206,36 +206,40 @@ textarea:focus{outline:2px solid var(--focus);outline-offset:-1px}
 <body>
 <div class="shell">
   <header>
-    <h1>合成档案校样台 <span class="mark">/ proofing desk</span></h1>
-    <span class="tagline">全部在浏览器内完成 · 不上传 · 无后端</span>
+    <h1>Proofing Desk <span class="mark">synthetic records</span></h1>
+    <span class="tagline">Runs entirely in the browser · nothing uploaded · no backend</span>
     <span class="spacer"></span>
     <button class="filebtn" id="load-manifest">manifest.jsonl</button>
     <button class="filebtn" id="load-panel">llm_panel.json</button>
-    <button class="filebtn" id="load-prev">继续上次</button>
-    <button class="filebtn" id="export">导出判定 <kbd>E</kbd></button>
+    <button class="filebtn" id="load-prev">Resume previous</button>
+    <button class="filebtn" id="export">Export verdicts <kbd>E</kbd></button>
   </header>
 
   <aside>
-    <div class="railhead"><span>虚拟人</span><span id="progress">0 / 0</span></div>
+    <div class="railhead"><span>People</span><span id="progress">0 / 0</span></div>
     <div id="people"></div>
   </aside>
 
   <main id="main">
     <div class="empty">
       <div class="dropzone" id="drop">
-        <h2>把 manifest.jsonl 拖进来</h2>
-        <p>或点右上角选文件。可以再拖 <code>llm_panel.json</code>（多模型评分）
-           与上次导出的 <code>decisions.json</code>。</p>
+        <h2>Drop manifest.jsonl here</h2>
+        <p>Or click the button in the top right to pick a file. You can also drop in
+           <code>llm_panel.json</code> (the multi-model scores) and a previously exported
+           <code>decisions.json</code>.</p>
       </div>
       <div class="note">
-        <b>这个台子解决什么。</b>确定性审计（<code>audit/clinical.py</code>）能拦住恒等式、
-        生理边界、人口学冲突这些有确定答案的问题；多模型面板（<code>audit/llm_panel.py</code>）
-        给出一个排序。但"这份档案读起来像不像真实病历"最终要人看。<br><br>
-        <b>怎么用。</b>左栏选人，中栏逐次就诊看，右栏判定。键盘更快：
-        <kbd>J</kbd>/<kbd>K</kbd> 换就诊，<kbd>1</kbd>/<kbd>2</kbd>/<kbd>3</kbd> 判定，
-        <kbd>N</kbd> 写备注，<kbd>[</kbd>/<kbd>]</kbd> 换人。<br><br>
-        <b>为什么每行都带纵向小图。</b>单次的值对不对，规则查得比人准；
-        人真正有优势的是看一条曲线像不像病程。小图里的浅带是参考区间。
+        <b>What this is for.</b> The deterministic audit (<code>audit/clinical.py</code>) catches
+        identities, physiological bounds and demographic conflicts — questions with a definite
+        answer. The multi-model panel (<code>harness/llm_panel.py</code>) produces a ranking.
+        But whether a record reads like a real chart is, in the end, a human judgment.<br><br>
+        <b>How to use it.</b> Pick a person on the left, step through visits in the middle, enter
+        a verdict on the right. Keyboard is faster:
+        <kbd>J</kbd>/<kbd>K</kbd> next/previous visit, <kbd>1</kbd>/<kbd>2</kbd>/<kbd>3</kbd> verdict,
+        <kbd>N</kbd> write a note, <kbd>[</kbd>/<kbd>]</kbd> next/previous person.<br><br>
+        <b>Why every row carries a sparkline.</b> Whether one value is correct, a rule checks better
+        than a human can; a human's real edge is judging whether a whole curve looks like a real
+        course of disease. The pale band in each sparkline is the reference range.
       </div>
     </div>
   </main>
@@ -247,7 +251,7 @@ textarea:focus{outline:2px solid var(--focus);outline-offset:-1px}
 const S = { people:[], byPerson:new Map(), panel:null, decisions:{},
             person:null, enc:0 };
 
-/* ── 读文件 ─────────────────────────────────────────── */
+/* ── Loading files ─────────────────────────────────────── */
 function pick(accept, cb){
   const i=document.createElement('input'); i.type='file'; i.accept=accept;
   i.onchange=()=>i.files[0]&&i.files[0].text().then(cb); i.click();
@@ -289,10 +293,11 @@ document.addEventListener('drop',ev=>{
   }
 });
 
-/* ── 纵向小图 ───────────────────────────────────────────
-   单序列，所以不需要图例——行名就是它的名字。参考区间画成浅带，
-   这样"在不在范围内"不靠颜色也读得出来（颜色只是第二重编码）。
-   异常点加一个带描边的实心点，描边用卡片底色，保证它压在线上仍分得清。   */
+/* ── Sparkline ────────────────────────────────────────────
+   A single series needs no legend: the row name is its label. The reference range is drawn as a
+   pale band so being in or out of range reads without relying on color (color is a second encoding
+   only). An abnormal point gets a solid outlined dot, the outline in the card color, so it stays
+   legible where it sits on the line.   */
 function sparkline(series, lo, hi){
   const W=104,H=22,P=3;
   const vals=series.map(p=>p.v);
@@ -313,13 +318,13 @@ function sparkline(series, lo, hi){
   }).join('');
   const last=series[series.length-1];
   return `<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" role="img"
-     aria-label="${series.length} 次测量，从 ${series[0].v} 到 ${last.v}">
+     aria-label="${series.length} measurements, from ${series[0].v} to ${last.v}">
      ${band}<path d="${path}" fill="none" stroke="var(--ink-2)" stroke-width="1.4"
        stroke-linejoin="round" stroke-linecap="round"/>${dots}
      <title>${series.map(p=>`${p.d} ${p.v}`).join('\n')}</title></svg>`;
 }
 
-/* ── 渲染 ───────────────────────────────────────────── */
+/* ── Rendering ─────────────────────────────────────────── */
 function verdictOf(pid,i){ return (S.decisions[pid]||{})[i]; }
 function render(){
   if(!S.people.length) return;
@@ -333,7 +338,7 @@ function renderPeople(){
       const v=verdictOf(pid,i); return `<span class="pip ${v?v.verdict:''}"></span>`;}).join('');
     return `<button class="person" data-pid="${pid}" aria-current="${pid===S.person}">
       <div class="pid">${pid}</div>
-      <div class="meta">${p.sex==='male'?'男':'女'} ${p.age}岁 · ${p.archetype}</div>
+      <div class="meta">${p.sex==='male'?'M':'F'} ${p.age}y · ${p.archetype}</div>
       <div class="pips">${pips}</div></button>`;
   }).join('');
   el.querySelectorAll('.person').forEach(b=>b.onclick=()=>{
@@ -345,9 +350,9 @@ function renderPeople(){
 function renderReport(){
   const list=S.byPerson.get(S.person), p=list[0].person;
   const dx=(p.conditions||[]).map(c=>
-    `<span class="dx ${c.source?'inferred':''}" title="${c.source||'原型自带'}">${c.display}${c.source?' ·推':''}</span>`
-  ).join('')||'<span class="dx">无慢病诊断</span>';
-  // 每个指标在这个人全程的序列，供小图使用
+    `<span class="dx ${c.source?'inferred':''}" title="${c.source||'default for archetype'}">${c.display}${c.source?' · inferred':''}</span>`
+  ).join('')||'<span class="dx">No chronic diagnoses</span>';
+  // Per-indicator series across this person's whole history, for the sparklines
   const hist=new Map();
   list.forEach(r=>r.rows.forEach(row=>{
     if(row.canonical_value==null) return;
@@ -356,8 +361,8 @@ function renderReport(){
   }));
   document.getElementById('main').innerHTML=`
     <h2 class="person-head">${S.person}</h2>
-    <div class="dxline">${p.sex==='male'?'男':'女'} · ${p.age} 岁 · ${p.height_cm} cm ·
-      ${p.region} · 原型 ${p.archetype}<br>${dx}</div>
+    <div class="dxline">${p.sex==='male'?'M':'F'} · ${p.age}y · ${p.height_cm} cm ·
+      ${p.region} · archetype ${p.archetype}<br>${dx}</div>
     ${list.map((r,i)=>encCard(r,i,hist)).join('')}`;
   document.getElementById('main').querySelectorAll('.enc').forEach(c=>c.onclick=()=>{
     S.enc=+c.dataset.i; render();});
@@ -367,9 +372,9 @@ function renderReport(){
 function encCard(r,i,hist){
   const v=verdictOf(S.person,i);
   const chip=v?`<span class="verdict-chip ${v.verdict}">${
-    {ok:'通过',warn:'存疑',bad:'错误'}[v.verdict]}</span>`:'';
+    {ok:'Pass',warn:'Uncertain',bad:'Wrong'}[v.verdict]}</span>`:'';
   const ev=(r.events_since_previous||[]).length
-    ? `<div class="events"><b>这段时间开始的事件：</b>${r.events_since_previous.join(' · ')}</div>`:'';
+    ? `<div class="events"><b>Events starting in this interval:</b>${r.events_since_previous.join(' · ')}</div>`:'';
   const rows=r.rows.map(row=>{
     const cls=row.status==='high'?'hi':row.status==='low'?'lo':'';
     const mark=row.status==='high'?'↑':row.status==='low'?'↓':'';
@@ -389,8 +394,8 @@ function encCard(r,i,hist){
       <span class="enc-kind">${r.exam_type} · ${r.exam_location}</span>
       <span class="enc-kind">${r.panels.join(' / ')}</span>${chip}</div>
     ${ev}
-    <table><thead><tr><th>项目</th><th class="num">结果</th><th>单位</th>
-      <th>参考范围</th><th></th><th>纵向</th></tr></thead>
+    <table><thead><tr><th>Item</th><th class="num">Result</th><th>Unit</th>
+      <th>Reference range</th><th></th><th>Trend</th></tr></thead>
     <tbody>${rows}</tbody></table></section>`;
 }
 function renderSide(){
@@ -398,35 +403,35 @@ function renderSide(){
   const v=verdictOf(S.person,S.enc)||{};
   const rows=(S.panel?.rows||[]).filter(x=>x.person_id===S.person);
   const rubric=S.panel?.rubric||{};
-  const panelHtml=rows.length?`<div class="panel"><h3>多模型面板</h3>${rows.map(x=>`
+  const panelHtml=rows.length?`<div class="panel"><h3>Multi-model panel</h3>${rows.map(x=>`
       <div class="rub"><span class="code">${x.item}</span>
         <span class="sc ${x.stdev>0.25?'disagree':''}">${x.mean.toFixed(2)}${
           x.stdev>0.25?` ±${x.stdev.toFixed(2)}`:''}</span>
         <span class="why">${rubric[x.item]||''}</span></div>`).join('')}
-      <div class="stats"><span>分歧大 = 案例本身模糊，同样要人看</span></div></div>`
-    :`<div class="panel"><h3>多模型面板</h3>
-       <div class="why" style="font-size:12px;color:var(--ink-3)">未加载 llm_panel.json。
-       面板只排序、不拦截；能拦住东西的是确定性审计。</div></div>`;
+      <div class="stats"><span>High disagreement = the case itself is ambiguous; still needs review</span></div></div>`
+    :`<div class="panel"><h3>Multi-model panel</h3>
+       <div class="why" style="font-size:12px;color:var(--ink-3)">llm_panel.json not loaded.
+       The panel only ranks; it never gates — gating is the deterministic audit's job.</div></div>`;
   const counts={ok:0,warn:0,bad:0};
   Object.values(S.decisions).forEach(m=>Object.values(m).forEach(d=>counts[d.verdict]++));
   document.getElementById('side').innerHTML=`<div class="vbox">
-    <h2>判定</h2><div class="vsub">${S.person} · ${r.collected}</div>
+    <h2>Verdict</h2><div class="vsub">${S.person} · ${r.collected}</div>
     <div class="choices">
       <button class="choice" data-v="ok"   aria-pressed="${v.verdict==='ok'}">
-        <span class="dot"></span>通过<span style="margin-left:auto"><kbd>1</kbd></span></button>
+        <span class="dot"></span>Pass<span style="margin-left:auto"><kbd>1</kbd></span></button>
       <button class="choice" data-v="warn" aria-pressed="${v.verdict==='warn'}">
-        <span class="dot"></span>存疑<span style="margin-left:auto"><kbd>2</kbd></span></button>
+        <span class="dot"></span>Uncertain<span style="margin-left:auto"><kbd>2</kbd></span></button>
       <button class="choice" data-v="bad"  aria-pressed="${v.verdict==='bad'}">
-        <span class="dot"></span>错误<span style="margin-left:auto"><kbd>3</kbd></span></button>
+        <span class="dot"></span>Wrong<span style="margin-left:auto"><kbd>3</kbd></span></button>
     </div>
-    <textarea id="note" placeholder="哪里不对、为什么——这段话会进 decisions.json，
-是回头改生成器的依据">${v.note||''}</textarea>
-    <div class="stats"><span>通过 ${counts.ok}</span><span>存疑 ${counts.warn}</span>
-      <span>错误 ${counts.bad}</span></div>
+    <textarea id="note" placeholder="What's wrong, and why — this goes into decisions.json
+and is the basis for fixing the generator">${v.note||''}</textarea>
+    <div class="stats"><span>Pass ${counts.ok}</span><span>Uncertain ${counts.warn}</span>
+      <span>Wrong ${counts.bad}</span></div>
     ${panelHtml}
-    <div class="keys"><kbd>J</kbd><kbd>K</kbd> 换就诊 ·
-      <kbd>[</kbd><kbd>]</kbd> 换人 · <kbd>1</kbd><kbd>2</kbd><kbd>3</kbd> 判定 ·
-      <kbd>N</kbd> 备注 · <kbd>E</kbd> 导出</div></div>`;
+    <div class="keys"><kbd>J</kbd><kbd>K</kbd> visit ·
+      <kbd>[</kbd><kbd>]</kbd> person · <kbd>1</kbd><kbd>2</kbd><kbd>3</kbd> verdict ·
+      <kbd>N</kbd> note · <kbd>E</kbd> export</div></div>`;
   document.querySelectorAll('.choice').forEach(b=>b.onclick=()=>mark(b.dataset.v));
   document.getElementById('note').onchange=e=>mark(v.verdict||'warn',e.target.value);
 }
@@ -441,7 +446,7 @@ function mark(verdict,note){
 function exportDecisions(){
   const blob=new Blob([JSON.stringify({
     reviewed_at:new Date().toISOString(),
-    // 判定按 file 记，不按序号——序号会随生成器的排期改变，file 不会。
+    // Verdicts are keyed by file, not index: the index shifts with the generator's ordering, file does not.
     decisions:S.decisions},null,2)],{type:'application/json'});
   const a=document.createElement('a');
   a.href=URL.createObjectURL(blob); a.download='decisions.json'; a.click();

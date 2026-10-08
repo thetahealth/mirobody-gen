@@ -1,19 +1,19 @@
 """Internal data model: Person, Event, Encounter, Reading, Complaint, Finding.
 
-生成器的内部模型：人、事件、就诊、读数。
+**The rendering layer knows only these four types.** They can come from either of two sources:
 
-**渲染层只认这四个东西。** 它们可以来自两个源：
+* `mirobody_gen.person` — this repo's cohort engine (prevalence-weighted, mechanism-driven values);
+* an external synthetic-person dataset (e.g. ESL-Bench, arXiv:2604.02834) — as long as it's loaded
+  into these four types, the rendering layer works unchanged.
 
-* `mirobody_gen.person` —— 本仓的队列引擎（按患病率配比、机理取值）；
-* 外部虚拟人数据集（如 ESL-Bench，arXiv:2604.02834）——只要按这四个类型装进来，渲染层照常工作。
+Sharing one model means the ablation "same synthetic person, structured ingestion vs. file ingestion"
+(docs/zh-CN/plan.md §6.1) is just swapping a data source, not swapping renderers.
 
-共用同一个模型，是为了让"同一个虚拟人，结构化入库 vs 文件入库"这个消融
-（docs/zh-CN/plan.md §6.1）只是换一个数据源，而不是换一套渲染器。
-
-字段名刻意向两边靠拢：`Reading` 的字段与 mirobody 提取契约同名
-（`original_indicator / value / unit / reference_range / status / detection_method`），
-`Encounter` 的字段与 ESL-Bench 的 exam 记录同名（`exam_date / exam_type / exam_location`）。
-中间层不自创第三套词汇——真值要能被两边直接读懂，否则评分就要靠映射，而映射会悄悄出错。
+Field names deliberately align with both sides: `Reading`'s fields match mirobody's extraction
+contract (`original_indicator / value / unit / reference_range / status / detection_method`), and
+`Encounter`'s fields match ESL-Bench's exam record (`exam_date / exam_type / exam_location`). This
+layer invents no third vocabulary — the truth must be directly legible to both, or scoring needs a
+mapping, and mappings fail silently.
 """
 
 from __future__ import annotations
@@ -24,15 +24,16 @@ from datetime import date
 
 @dataclass(frozen=True)
 class Event:
-    """时间线上的一个事件，以及它对哪些指标做了什么。
+    """An event on the timeline, and what it did to which indicators.
 
-    效应用三个数刻画：`magnitude`（相对基线的比例变化，正为升）、
-    `onset_days`（起效延迟，他汀不会当天就把 LDL 压下去）、
-    `decay_days`（效应衰减到一半所需天数，`None` 表示持续不衰减）。
+    The effect is three numbers: `magnitude` (fractional change from baseline, positive is up),
+    `onset_days` (delay before it takes effect — a statin doesn't drop LDL the same day), and
+    `decay_days` (days for the effect to decay to half, `None` meaning it never decays).
 
-    这三个数就是归因问题的**可计算答案**：问"为什么 LDL 降了"，答案是这条事件，
-    而不是某个模型的解释。ESL-Bench 用同样的思路（真值来自生成过程），
-    所以这里的字段名跟着它走：`event_type / health_effect / impact_level`。
+    These three numbers are the **computable answer** to an attribution question: asked "why did
+    LDL drop", the answer is this event, not some model's post-hoc explanation. ESL-Bench takes the
+    same approach (truth comes from the generation process), so field names follow it:
+    `event_type / health_effect / impact_level`.
     """
 
     name: str
@@ -41,14 +42,14 @@ class Event:
     duration_days: int
     health_effect: str         # positive / negative / neutral
     impact_level: str          # low / medium / high
-    #: 指标键 → (相对幅度, 起效天数, 半衰期天数或 None)
+    #: indicator key -> (relative magnitude, onset days, half-life days or None)
     effects: dict[str, tuple[float, int, int | None]] = field(default_factory=dict)
     note: str = ""
 
 
 @dataclass(frozen=True)
 class Person:
-    """一个虚拟人。**真值的根**：指标由这里派生，不是反过来。"""
+    """A synthetic person. **The root of truth**: indicators are derived from this, never the reverse."""
 
     person_id: str
     sex: str                   # male / female
@@ -56,12 +57,14 @@ class Person:
     height_cm: float
     archetype: str
     region: str
-    #: 指标键 → 个体基线偏移（相对倍数）。来自个体间变异 CVG，一个人一辈子不变。
+    #: indicator key -> individual baseline offset (relative multiplier). From between-subject
+    #: variation (CVG); fixed for a person's whole life.
     baseline: dict[str, float] = field(default_factory=dict)
-    #: 指标键 → 每年的趋势（相对倍数/年）。慢病进展走这里。
+    #: indicator key -> yearly trend (relative multiplier per year). Chronic-disease progression runs here.
     trend: dict[str, float] = field(default_factory=dict)
     events: tuple[Event, ...] = ()
-    #: 体重是会变的，所以不像身高那样固定：(日期, 公斤) 的锚点，中间线性插值。
+    #: Weight changes, unlike height, so it's a set of (date, kg) anchors with linear interpolation
+    #: between them.
     weight_anchors: tuple[tuple[date, float], ...] = ()
 
     def age_at(self, when: date) -> int:
@@ -70,11 +73,12 @@ class Person:
 
 @dataclass
 class Reading:
-    """一份报告上的一行。字段名与 mirobody 的提取契约一一对应。
+    """One row on a report. Field names map one-to-one onto mirobody's extraction contract.
 
-    `original_indicator` 是**打印名**——版式层会从 spec 的 name_variants 里挑一种写法，
-    所以同一个 `key` 在不同报告上可能印成"血红蛋白"、"Hemoglobin"或"血紅素"。
-    评分按 `key` 对齐，提取按 `original_indicator` 找，两者的差正是这套语料要测的东西。
+    `original_indicator` is the **printed name** — the layout layer picks one spelling from spec's
+    name_variants, so the same `key` (e.g. hemoglobin) may be printed under a different spelling,
+    script or alias on different reports. Scoring aligns on `key`; extraction looks for
+    `original_indicator`; the gap between the two is exactly what this corpus is meant to test.
     """
 
     key: str
@@ -82,9 +86,9 @@ class Reading:
     value: str
     unit: str
     reference_range: str
-    status: str                # normal / high / low（与提取契约一致）
+    status: str                # normal / high / low (matches the extraction contract)
     detection_method: str = "laboratory"
-    #: 评分用的附加列，不印在报告上。
+    #: Scoring-only extra columns, never printed on the report.
     canonical_value: float | None = None
     unit_ucum: str = ""
     loinc: str | None = None
@@ -92,14 +96,16 @@ class Reading:
     expect_resolvable: bool = False
     ref_low: float | None = None
     ref_high: float | None = None
-    #: 这一行可不可读。注入的陷阱让某一行读不出来时，它移出召回分母、进入"必须弃权"集合。
+    #: Whether this row can be read at all. When an injected hazard makes it unreadable, it drops
+    #: out of the recall denominator and into the "must abstain" set.
     readable: bool = True
 
 
 @dataclass(frozen=True)
 class Complaint:
-    """一条主诉/症状。`text` 是印出来或写进日记的表面；`icpc3` 是 mirobody 症状轴的期望答案，
-    `expect` 是那边应给的结果（coded / no-match / refused / needs-input）——弃权也是答案。"""
+    """A chief complaint or symptom. `text` is the surface form printed or written into a diary;
+    `icpc3` is the expected answer on mirobody's symptom axis, and `expect` is what mirobody should
+    return (coded / no-match / refused / needs-input) — abstaining is also a valid answer."""
 
     text: str
     symptom_id: str
@@ -110,13 +116,14 @@ class Complaint:
 
 @dataclass(frozen=True)
 class Finding:
-    """一条具名的检查所见（脂肪肝、甲状腺结节……）。印在哪、印成什么、mirobody 该编成什么码。"""
+    """A named finding on an exam (fatty liver, a thyroid nodule, ...): where it's printed, how it
+    reads, and what code mirobody should resolve it to."""
 
     id: str
-    where: str                 # 科室或辅助检查 id
-    item: str | None           # 条目 / 器官 id
-    surface: str               # 诊断表面（编码用）
-    icpc3: str | None          # ICPC-3 D 轴期望码；None = 期望弃权
+    where: str                 # department or auxiliary-exam id
+    item: str | None           # item / organ id
+    surface: str               # diagnosis surface form (for coding)
+    icpc3: str | None          # expected ICPC-3 D-axis code; None = expected abstention
     severity: str | None = None
     params: dict = field(default_factory=dict)
     since: date | None = None
@@ -124,10 +131,11 @@ class Finding:
 
 @dataclass
 class Encounter:
-    """一次就诊/体检。字段名与 ESL-Bench 的 exam 记录一致。
+    """One encounter or check-up. Field names match ESL-Bench's exam record.
 
-    `exam_type`：routine（体检报告书）/ follow-up（复查化验单）/ clinic（门诊病历 + 化验单）/
-    specialty（单项检查）。`package` 只在 routine 有（entry / senior / basic / standard / premium）。
+    `exam_type`: routine (check-up report) / follow-up (repeat lab panel) / clinic (clinic note plus
+    lab panel) / specialty (a single targeted exam). `package` is set only for routine (entry /
+    senior / basic / standard / premium).
     """
 
     person_id: str
@@ -136,7 +144,8 @@ class Encounter:
     exam_location: str         # hospital / clinic / checkup-center / lab
     panels: tuple[str, ...]
     readings: list[Reading] = field(default_factory=list)
-    #: 从上一次就诊到这一次之间开始的事件（纵向审计用它判断跳变有没有解释）。
+    #: Events that started between the previous encounter and this one (the longitudinal audit uses
+    #: this to judge whether a jump in values has an explanation).
     events_since_previous: tuple[str, ...] = ()
     package: str | None = None
     complaints: list[Complaint] = field(default_factory=list)

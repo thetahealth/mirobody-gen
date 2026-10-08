@@ -1,23 +1,26 @@
 """Render the truth layer into files and write one record per file to files.jsonl.
 
-把真值层渲染成文件，并写出逐文件的 files.jsonl。
-
     mirobody-gen build --seed 7 --out out/p2 --render
     mirobody-gen build --seed 7 --out out/p2 --render --pairs 12
 
-一次就诊 → 一到两份检验单，或一本体检报告；部分人另有一份转置导出表。
-每份文件一条 manifest 记录（`files.jsonl`），带两层真值、陷阱清单（逐行归因）与版式摘要。
+One visit becomes one or two lab slips, or one checkup report book; some people also get a transposed
+export table. Each file gets one manifest record (`files.jsonl`), carrying both truth layers, a hazard
+list (attributed row by row) and a layout summary.
 
-## 最小对照对（`--pairs`）
+## Minimal-contrast pairs (`--pairs`)
 
-同一次就诊、同一套内容，先按一个**干净版式**排一份（单位列、参考范围列、箭头标记列、
-标准分隔符、无水印……），再每次只打开**一类**陷阱排一份。两份的差别只有那一类陷阱，
-所以两份文件上抽取结果的差就是这类陷阱的**因果效应**，而不是和版式里其他十几种东西缠在一起的相关。
+Same visit, same content: lay it out once in a **clean layout** (unit column, reference-range column,
+arrow flags, standard separators, no watermark...), then once more per **single** hazard class turned
+on. The two files differ only in that one hazard, so the difference in extraction results between them
+is that hazard's **causal effect**, not a correlation tangled up with a dozen other things in the
+layout.
 
-这是 CheckList [ribeiro2020beyond] 的不变性测试（INV：施加保持标签的扰动，期望预测不变）
-搬到文档上。有一处要小心：**在印刷真值那一层，有的陷阱会合法地改变正确答案**
-（`unit.missing` 之后单位本来就不该被抽出来）；不变的是语义真值那一层（指标、数值、UCUM 单位）。
-所以对照对的评分以语义层为准——这正是两层真值的用处。
+This brings CheckList's [ribeiro2020beyond] invariance test (INV: apply a label-preserving
+perturbation, expect the prediction to stay the same) to documents. One catch: **at the printed-truth
+layer, some hazards legitimately change the correct answer** (after `unit.missing`, the unit should no
+longer be extractable); what stays invariant is the semantic-truth layer (indicator, value, UCUM unit).
+So contrast pairs are scored against the semantic layer — this is exactly what the two truth layers
+are for.
 """
 
 from __future__ import annotations
@@ -39,22 +42,28 @@ from .model import Encounter, Person
 TIER = {"pdf": "T0", "xlsx": "T1", "csv": "T1"}
 KIND_OF_LOCATION = {"checkup-center": "checkup_center", "hospital": "hospital",
                     "clinic": "clinic", "lab": "lab"}
-#: 主榜单每份文件的陷阱类数上限，取参考集实测的 p95（docs/zh-CN/numbers.md）。超过的进 stress 分层。
+#: Cap on hazard classes per file in the main split, taken from the reference corpus's measured p95
+#: (docs/zh-CN/numbers.md). Files above it go into the stress split.
 MAIN_CAP = spec.hazards()["per_document_count"]["p95"]
 
 
-#: 机构分配的参数。全部来自真实语料的**聚合计数**（resources/numbers.json），不来自任何一份记录：
-#: * 长尾：中国餐馆过程（Ewens）的集中度 α。按 627 份文档出现 491 种版式指纹反解得 α≈1041；
-#: * 大客户：真实最大的两个版式家族占文档的 60/627 与 37/627。在纵向队列里它们体现为
-#:   "一部分人的体检中心 / 常去医院就是这两家"，份额按人算；
-#: * 粘性：慢病复查多半回同一家医院（这一条没有真实计数可依，是纵向队列的结构假设，照实写出）。
+#: Institution-assignment parameters. All come from the real corpus's **aggregate counts**
+#: (resources/numbers.json), not from any single record:
+#: * long tail: the concentration alpha of the Chinese restaurant process (Ewens). Inverting the 491
+#:   layout fingerprints seen across 627 documents gives alpha ~= 1041;
+#: * big clients: the two largest real layout families account for 60/627 and 37/627 of documents. In
+#:   a longitudinal cohort this shows up as "some people's checkup center / usual hospital just is one
+#:   of these two"; the share is counted per person;
+#: * stickiness: chronic-disease follow-ups mostly return to the same hospital (no real count backs
+#:   this one; it's a structural assumption of the longitudinal cohort, stated as such).
 CRP_ALPHA = 1041.0
 BIG_CLIENT_SHARE = {"checkup_center": 0.30, "hospital": 0.20}
 STICKY_FOLLOWUP = 0.6
 
 
 class Institutions:
-    """一批语料里"谁去了哪家机构"。状态跨人累积：先被很多人去过的机构更可能再被去。"""
+    """Which institution each person in a corpus went to. State accumulates across people: an
+    institution many people have already visited is more likely to be visited again."""
 
     def __init__(self, registry: layout.Registry, seed: int):
         self.registry = registry
@@ -78,12 +87,15 @@ class Institutions:
 
 
 def home_institutions(seed: int, person: Person, process: Institutions) -> tuple[str, dict[str, int]]:
-    """这个人的语言组、体检中心与常去医院。大客户只在中文机构里。
+    """This person's language group, checkup center and usual hospital. Big clients exist only among
+    Chinese-language institutions.
 
-    返回值第一个元素是**人口学语言组**（person_lang 的原样，可能是 ja）——
-    设备时区、基因频率列靠它区分人群。机构池按文档措辞组（zh/en）二分：
-    一个讲日语的人的体检单当前由英文机构出具（文档措辞层见 `spec.doc_lang`），
-    但设备时区是 +09:00、基因按东亚频率抽——三层各归各。"""
+    The first return value is the **demographic language group** (person_lang as-is, which may be
+    `ja`) — it's what distinguishes populations for device time zone and gene-frequency draws. The
+    institution pool is split only into document-wording groups (zh/en): a Japanese speaker's checkup
+    slip is currently issued by an English-wording institution (the document-wording layer is
+    `spec.doc_lang`), but their device time zone is still +09:00 and genes still drawn at East Asian
+    frequencies — each of the three layers is kept separate."""
     rng = person_mod.home_stream(seed, person.person_id)
     group = person_mod.draw_lang(rng)
     doc_group = spec.doc_lang(group)
@@ -97,7 +109,8 @@ def home_institutions(seed: int, person: Person, process: Institutions) -> tuple
 
 
 def layout_summary(doc: Doc, page_count: int | None) -> dict:
-    """与 `audit/fingerprint.py` 约定的版式摘要。真实侧由 `scripts/build_numbers.layout_summary` 产出。"""
+    """Layout summary, in the format `audit/fingerprint.py` expects. The real-data side of this is
+    produced by `scripts/build_numbers.layout_summary`."""
     columns = list(doc.tables[0].headers[0]) if doc.tables and doc.tables[0].headers else []
     refs, flags = [], []
     for table in doc.tables:
@@ -119,8 +132,9 @@ def layout_summary(doc: Doc, page_count: int | None) -> dict:
 
 def documents_for(rng: random.Random, person: Person, enc: Encounter, idx: int, family: layout.Family,
                   previous: dict, banner: bool) -> list[Doc]:
-    """一次就诊产出哪些文件。体检 → 一本报告书；门诊 → 一份门诊病历 + 化验单；
-    专项 → 心电图报告 / 超声报告 / 一张单子；复查 → 一到几张化验单。"""
+    """Which files one visit produces. Checkup -> one report book; clinic -> an outpatient record plus
+    lab slips; specialty -> an ECG report / ultrasound report / one slip; follow-up -> one or a few lab
+    slips."""
     base = f"{person.person_id}_{enc.exam_date.isoformat()}_e{idx:02d}"
     docs: list[Doc] = []
     if enc.exam_type == "routine":
@@ -140,8 +154,10 @@ def documents_for(rng: random.Random, person: Person, enc: Encounter, idx: int, 
     if enc.exam_type == "clinic":
         clinic_keys = set(spec.cohort()["orders"]["vitals_clinic"])
         rest = dataclasses.replace(enc, readings=[r for r in enc.readings if r.key not in clinic_keys])
-        # 真实语料里门诊病历是小类（4/627）：多数门诊只留下化验单，病历本身在医院系统里。
-        # 没有化验单可留的（高血压复查只测血压）才一定出病历。
+        # Outpatient records are a small class in the real corpus (4/627): most clinic visits leave
+        # behind only a lab slip, with the record itself staying in the hospital's own system. Only a
+        # visit with no lab slip to leave behind (a hypertension follow-up that only measures blood
+        # pressure) is guaranteed to produce a record.
         if not rest.readings or rng.random() < 0.35:
             docs.append(book.build_outpatient(rng, f"{base}a", person, enc, family, banner=banner))
         if not rest.readings:
@@ -200,8 +216,9 @@ def record(doc: Doc, path: pathlib.Path, out_root: pathlib.Path, pages: int | No
         "printed_rows": [asdict(p) for p in doc.printed],
         "readings": [asdict(r) for r in doc.readings],
         "distractors": doc.distractors,
-        # 表格之外的真值。blocks 是键值对/叙述条目（Physiological / Imaging 行），
-        # findings 是具名所见的编码真值，summary 是总检结论与建议，complaints/diagnoses 来自门诊病历。
+        # Truth outside the tables. blocks are key-value/narrative entries (Physiological / Imaging
+        # rows); findings is the coded truth for named findings; summary is the overall conclusions and
+        # recommendations; complaints/diagnoses come from outpatient records.
         "blocks": [{"kind": b.kind, "title": b.title, "section": b.section_id,
                     "items": b.truth, "printed": [t for pair in b.rows for t in pair if t]}
                    for b in doc.blocks if b.kind in ("kv", "narrative", "summary")],
@@ -261,7 +278,8 @@ def render_corpus(seed: int, people: list[Person], encounters: dict[str, list[En
             filenames.append(first_file)
             for r in enc.readings:
                 previous[r.key] = (r.value, enc.exam_date.isoformat())
-        # 居家记录表：有血压计的人出血压日记，常称重的人出体重记录（素材来自设备序列，同一条生理线）
+        # Home logs: a person with a cuff gets a blood-pressure diary, a person who weighs themselves
+        # regularly gets a weight log (the material comes from the device series, the same physiology line)
         from . import devices as devices_mod
         from .person import person_lang
 

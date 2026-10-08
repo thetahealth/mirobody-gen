@@ -1,20 +1,23 @@
 """Device data: phone health-store batches for the same synthetic person.
 
-设备数据：同一个虚拟人在"文件"之外的第二条来源。
+mirobody's `POST /api/data` accepts batched records from a phone health store
+(`{"records": [{indicator, value, unit, time, source}]}`, up to 500 per call). `source` is the
+vendor tag (apple_health / huawei / xiaomi / health_connect) and `indicator` is that vendor's own
+field name (`HKQuantityTypeIdentifierBodyMass`, `com.huawei.instantaneous.body_weight`, ...), which
+mirobody maps to LOINC via `res/crosswalks/<vendor>.tsv`. Records here use that same table's field
+names, so a generated batch can be posted as-is; the truth records which LOINC each one should
+resolve to.
 
-mirobody 的 `POST /api/data` 接收手机健康库的批量记录
-（`{"records": [{indicator, value, unit, time, source}]}`，一次最多 500 条），
-`source` 是厂商标识（apple_health / huawei / xiaomi / health_connect），`indicator` 是厂商自己的
-字段名（`HKQuantityTypeIdentifierBodyMass`、`com.huawei.instantaneous.body_weight`……），
-mirobody 用 `res/crosswalks/<vendor>.tsv` 把它们编到 LOINC。这里按那张表的字段名出数据，
-所以生成的批次能原样喂给它；真值里记下每条记录该落到的 LOINC。
+This series shares the physiology model with the document layer: weight comes from
+`physiology.weight_at`, blood pressure from `physiology.measure` (same person, same event timeline
+as what a clinic visit would measure), and resting heart rate and steps follow the same event
+effects (starting to run, a month of overtime, a cold). That lets "weight on the scale" reconcile
+with "weight on the check-up report", and a home blood-pressure cuff with a clinic reading — the
+only way to test at scale that mirobody resolves `Body weight` and `bodyMass` to the same LOINC,
+29463-7.
 
-序列与文件层共用同一套生理模型：体重来自 `physiology.weight_at`，血压来自 `physiology.measure`
-（与门诊病历上测的是同一个人、同一条事件线），静息心率与步数按事件效应（开始跑步、连续加班、
-感冒）走。于是"体重秤上的体重"与"体检报告上的体重"、"家用血压计"与"门诊血压"是可以对账的——
-这是 mirobody 两源一码（`Body weight` 与 `bodyMass` 同为 29463-7）唯一能规模化测试的方式。
-
-一个人只有一个手机平台（厂商按人抽定）；高血压的人多半有家用血压计。
+Each person has exactly one phone platform (vendor drawn per person); most people with hypertension
+also own a home blood-pressure cuff.
 """
 
 from __future__ import annotations
@@ -29,8 +32,10 @@ from . import physiology
 from .model import Person
 from .person import CORPUS_END
 
-#: 厂商 → (source 值, 各指标的厂商字段名)。字段名照抄 mirobody res/crosswalks/<vendor>.tsv（2026-09-29）。
-#: 华为的 blood_pressure 一个类型对应两个码，那边"不猜"，所以血压按目录指标名（systolicPressures）送。
+#: Vendor -> (source value, each metric's vendor field name). Field names copied verbatim from
+#: mirobody's res/crosswalks/<vendor>.tsv (2026-09-29). Huawei's blood_pressure type maps to two
+#: codes and mirobody won't guess between them, so blood pressure is sent under the catalogue
+#: indicator names (systolicPressures) instead.
 VENDORS = {
     "apple": {"source": "apple_health", "fields": {
         "weight": ("HKQuantityTypeIdentifierBodyMass", "kg"),
@@ -62,17 +67,17 @@ VENDORS = {
 }
 LOINC = {"weight": "29463-7", "rhr": "40443-4", "hr": "8867-4", "steps": "55423-8", "sbp": "8480-6",
          "dbp": "8462-4", "sleep": "93832-4"}
-#: 每个语言组的**人口学画像**：设备时区偏移与品牌份额。这是人群学属性，
-#: 不是文档措辞——`--lang-mix` 引入的组必须在这里有一行，否则队列里
-#: 那部分人的设备会凭空消失（KeyError）或被安上别国的时区。
-#: 论文里引用：日本 Apple Watch 份额约六成（MMRI 2024 穿戴调查）；
-#: zh 组对应中国信通院 2023 穿戴出货量结构。
+#: Each language group's demographic profile: device time zone and brand share. This is a
+#: population attribute, not document wording — a group introduced by `--lang-mix` must have a row
+#: here, or that slice of the cohort loses its devices (KeyError) or gets another country's time
+#: zone. Sourced: Japan's Apple Watch share is roughly 60% (MMRI 2024 wearables survey); the zh row
+#: follows CAICT's 2023 wearables shipment breakdown.
 POPULATION = {
     "zh": {"tz": "+08:00", "vendors": {"huawei": 45, "apple": 30, "xiaomi": 20, "health_connect": 5}},
     "en": {"tz": "+00:00", "vendors": {"apple": 60, "health_connect": 30, "huawei": 5, "xiaomi": 5}},
     "ja": {"tz": "+09:00", "vendors": {"apple": 62, "health_connect": 28, "huawei": 4, "xiaomi": 6}},
 }
-#: 未知组默认讲英文世界的样子——保守且可复现。
+#: An unknown group defaults to the English-speaking world's profile: conservative and reproducible.
 _DEFAULT_POPULATION = POPULATION["en"]
 BATCH = 500
 
@@ -81,23 +86,21 @@ def _tz(lang: str) -> str:
     return POPULATION.get(lang, _DEFAULT_POPULATION)["tz"]
 
 
-def series_for(person: Person, seed: int, lang: str, *,
-               force_wearable: bool = False, force_vendor: str | None = None) -> dict:
-    """一个人的全部设备记录（按类型分组的日序列）。确定性：`RandomState`/`Random` 都按 seed+person。
+def series_for(person: Person, seed: int, lang: str) -> dict:
+    """A person's device records, deterministic in seed and person.
 
-    `force_wearable` / `force_vendor` 给 vendor_signals 用：一块 Garmin/Oura/Whoop 挂在手上，
-    智能库的"有没有戴表"与"是哪家的表"就不能再按权重抽——真实的因果方向是反的：
-    因为有了这块表，健康库里才有完整的 steps/sleep/rhr 序列。"""
+    This is the person's only device series: devices.jsonl, the home logs, the handwritten logs and the
+    vendor-cloud payloads all read it, so a day's reading is the same number on every channel."""
     rng = random.Random(f"device:{seed}:{person.person_id}")
     vw = POPULATION.get(lang, _DEFAULT_POPULATION)["vendors"]
-    vendor = force_vendor or rng.choices(list(vw), weights=list(vw.values()))[0]
+    vendor = rng.choices(list(vw), weights=list(vw.values()))[0]
     fields = VENDORS[vendor]["fields"]
     start = person.weight_anchors[0][0]
     end = min(person.weight_anchors[-1][0], CORPUS_END)
     tz = _tz(lang)
-    # 习惯：称重频率、是否戴表、有没有血压计
+    # Habits: how often they weigh in, whether they wear a watch, whether they own a cuff.
     weigh_rate = rng.choice([0.15, 0.3, 0.5, 0.9])
-    wearable = force_wearable or rng.random() < 0.6
+    wearable = rng.random() < 0.6
     cuff = person.archetype == "hypertension" and rng.random() < 0.85 or rng.random() < 0.15
     base_rhr = rng.gauss(64, 6) * (0.93 if person.archetype == "healthy" and rng.random() < 0.3 else 1.0)
     base_steps = rng.gauss(6500, 1800)
@@ -143,8 +146,9 @@ def series_for(person: Person, seed: int, lang: str, *,
             "habits": {"weigh_rate": weigh_rate, "wearable": wearable, "cuff": cuff}}
 
 
-#: 厂商没有这个字段时（小米健康云没有血压类型），血压计 App 把记录写进健康库用的是目录指标名——
-#: mirobody 的 `/api/data` 接受"已经是目录指标名"的 indicator。
+#: When a vendor has no field for a metric (Xiaomi Health has no blood-pressure type), a cuff app
+#: writes the record into the health store under the catalogue indicator name instead — mirobody's
+#: `/api/data` accepts an indicator that is already a catalogue name.
 FALLBACK_FIELDS = {"sbp": ("systolicPressures", "mmHg"), "dbp": ("diastolicPressures", "mmHg"),
                    "hr": ("heartRates", "bpm"), "rhr": ("restingHeartRates", "bpm"),
                    "sleep": ("dailyTotalSleepTime", "min"), "steps": ("steps", "count"), "weight": ("bodyMasss", "kg")}
@@ -156,7 +160,7 @@ def _rec(metric: str, fields: dict, value, stamp: str) -> dict:
 
 
 def write_all(out_dir: pathlib.Path, people: list[Person], seed: int, langs: dict[str, str]) -> int:
-    """每人一到几个批次文件（≤500 条，可直接 POST）+ `devices.jsonl` 真值。"""
+    """One to several batch files per person (<=500 records, ready to POST), plus `devices.jsonl` truth."""
     root = out_dir / "devices"
     root.mkdir(parents=True, exist_ok=True)
     total = 0
@@ -185,7 +189,7 @@ def write_all(out_dir: pathlib.Path, people: list[Person], seed: int, langs: dic
 
 
 def bp_log_windows(series: dict, rng: random.Random) -> list[list[dict]]:
-    """家庭血压记录表的素材：连续 7–14 天的血压记录，按日分组。"""
+    """Material for a home blood-pressure log: 7-14 consecutive days of readings, grouped by day."""
     by_day: dict[str, list[dict]] = {}
     for r in series["records"]:
         if r["_metric"] in ("sbp", "dbp", "hr"):

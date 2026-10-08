@@ -2,7 +2,7 @@
 
 **Regenerable, high-quality personal health data at scale — every report, wearable push, journal entry and genotype export traceable to the rule that produced it, with row-level ground truth.**
 
-[中文说明](README.zh-CN.md) · [Architecture](docs/ARCHITECTURE.md) · [Privacy model](docs/PRIVACY.md) · [Output schema](docs/SCHEMA.md) · [Changelog](CHANGELOG.md) · [Bibliography](docs/paper/refs.bib)
+[中文说明](README.zh-CN.md) · [Architecture](docs/ARCHITECTURE.md) · [Privacy model](docs/PRIVACY.md) · [Output schema](docs/SCHEMA.md) · [Changelog](CHANGELOG.md)
 
 [![License: Apache-2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 [![Python 3.11+](https://img.shields.io/badge/python-3.11%2B-3775A9)](pyproject.toml)
@@ -200,9 +200,8 @@ the public tree — ask if you need it).
   groups, 5 package tiers, 7 departments, 17 auxiliary examinations and 55 named findings; every
   reference interval cites a public standard or guideline.
 - The benchmark positioning — provisionally **ESL-Doc**, composed with ESL-Bench — is worked out in
-  a Chinese working article (`docs/zh-CN/paper.md`, kept out of the public tree) whose 47-entry
-  verified bibliography is public at [docs/paper/refs.bib](docs/paper/refs.bib). The generator
-  keeps this repository's name whatever the benchmark ends up called.
+  a Chinese working article kept out of the public tree. The generator keeps this repository's
+  name whatever the benchmark ends up called.
 
 ## Contributing, security, citation
 

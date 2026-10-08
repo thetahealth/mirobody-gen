@@ -2,7 +2,7 @@
 
 **可重放的高质量个人健康数据规模化生成器——每份报告、每条可穿戴推送、每句日记、每个基因位点都可追溯到产出它的规则，全部带逐行真值。**
 
-[English](README.md) · [架构](docs/ARCHITECTURE.md) · [隐私模型](docs/PRIVACY.md) · [输出 schema](docs/SCHEMA.md) · [参考文献库](docs/paper/refs.bib) · [变更日志](CHANGELOG.md)
+[English](README.md) · [架构](docs/ARCHITECTURE.md) · [隐私模型](docs/PRIVACY.md) · [输出 schema](docs/SCHEMA.md) · [变更日志](CHANGELOG.md)
 
 [![License: Apache-2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 [![Python 3.11+](https://img.shields.io/badge/python-3.11%2B-3775A9)](pyproject.toml)
@@ -160,8 +160,7 @@ mirobody-gen build --seed 7 --out out/p3 --render --handwriting
   `vendor_signals/` 的推送仍是手工喂给它的解码器测试套件。
 - 目录覆盖 172 个指标（153 定量、17 定性、2 分类）、52 个医嘱组、5 档套餐、7 个科室、17 项辅助检查与
   55 个具名发现；每条参考区间都注明了公开标准或指南出处。
-- 基准定位——暂定名 **ESL-Doc**，与 ESL-Bench 组合——在中文工作稿（`docs/zh-CN/paper.md`，不进公开树）中展开，
-  其 47 条全部核实过的参考文献库公开于 [docs/paper/refs.bib](docs/paper/refs.bib)。无论基准最终叫什么，
+- 基准定位——暂定名 **ESL-Doc**，与 ESL-Bench 组合——在不进公开树的中文工作稿中展开。无论基准最终叫什么，
   生成器都保留本仓库名。
 
 ## 贡献、安全、引用

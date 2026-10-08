@@ -50,7 +50,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); ver
 - English documents print qualitative results in English (`value_localization`), including exports.
 - `mirobody-gen paraphrase --refine N`: rejected candidates go back to the model with their reasons
   (progressive refinement after Kramer et al. 2026); design note §7 records the revised plan (L0: knowledge
-  profile → cohort spec) and nine newly surveyed references in `docs/paper/refs.bib`.
+  profile → cohort spec) and nine newly surveyed references.
 - Handwritten files, opt-in (`mirobody-gen build --render --handwriting`): notebook logs of home blood
   pressure (`128/82` in one cell, two readings), glucose (fasting and after meals) and morning weight; a
   doctor's note in a clinic booklet with the vitals inline; and the institution's own printed form with its
@@ -86,8 +86,8 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); ver
 - Vendor-cloud payloads now carry the same series as `devices.jsonl`: before, they were drawn from a second,
   forced series, so a person could have a Garmin with no wearable in the phone store and different values
   for the same day. HealthKit payloads, documented but never written, are written.
-- `.gitignore` re-includes `docs/` so that new top-level documents and `docs/paper/` can be tracked;
-  `docs/zh-CN/` stays local.
+- `.gitignore` re-includes `docs/` so that new top-level documents can be tracked; the companion
+  article's working material (`docs/zh-CN/`, `docs/paper/`) stays local.
 - Links into the untracked `docs/zh-CN/` from `docs/README.md` and `README.zh-CN.md`; links to mirobody's
   decoder samples point at `main` instead of a feature branch.
 
@@ -111,6 +111,8 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); ver
 - Dead code: `layout.hazards_of_family`, `Registry.families`, `synthid.is_synthetic`,
   `degrade.scenes_of_tier`, `corpus.EXT`, the `SPEC` alias, and stale stage references (P1–P4,
   `generator.*`, `spec/`) in docstrings.
+- `docs/paper/refs.bib` from the public tree: like `docs/zh-CN/`, it is working material for the
+  companion article and is kept locally.
 
 ## [0.3.0] — 2026-09-29
 

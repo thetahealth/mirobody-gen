@@ -1,24 +1,30 @@
-"""把真实语料里的提取陷阱描述蒸馏成一份分类学：`resources/hazards.json`。
+"""Distill the real corpus's extraction-hazard descriptions into a taxonomy: `resources/hazards.json`.
 
-    python3 scripts/distill_hazards.py                 # 覆盖率报告，不写文件
-    python3 scripts/distill_hazards.py --unmatched 30  # 看还漏了什么
-    python3 scripts/distill_hazards.py --write         # 写 resources/hazards.json
+    python3 scripts/distill_hazards.py                 # coverage report, doesn't write a file
+    python3 scripts/distill_hazards.py --unmatched 30  # see what's still missed
+    python3 scripts/distill_hazards.py --write         # write resources/hazards.json
 
-输入是 `analysis/*.json` 里每份真实文档的 `extraction_hazards`：627 份文档、3722 条
-自由文本描述（当初由模型逐份写出，所以几乎条条不重样——3694 条互不相同）。
-直接拿这些字符串当分类是不行的：它们既是自由文本，也含真实片段。
+The input is each real document's `extraction_hazards` in `analysis/*.json`: 627 documents,
+3722 free-text descriptions (originally written one by one by a model, so almost no two are
+alike -- 3694 are distinct). Using these strings as classes directly won't work: they're
+free text, and some contain real fragments.
 
-**这个脚本只输出类名与计数。** 每条原始描述里的 `snippet`（真实文档片段）和
-`wrong_result`（对真实值的引用）一概不读、不出。这是 docs/zh-CN/plan.md §4.2 的过闸规则：
-hazard 只取 class 与频次，片段由生成器自己合成。
+**This script outputs only class names and counts.** The `snippet` (a real-document
+fragment) and `wrong_result` (a reference to a real value) in each raw description are never
+read or emitted. This is the gate rule from docs/zh-CN/plan.md §4.2: a hazard carries only
+its class and frequency; fragments are synthesized by the generator itself.
 
-聚类用确定性规则，不用模型。理由不是省钱：一是同一批输入两次跑出同一份分类学，
-分类学才能进版本库；二是"某类占 12%"要能被人追到是哪条规则匹配的。
-未命中的描述会被原样报告（`--unmatched`），**不假装覆盖率是 100%**。
+Clustering uses deterministic rules, not a model. Not to save cost: first, so the same input
+produces the same taxonomy on every run, which is what lets the taxonomy live in version
+control; second, so "this class is 12%" can be traced back to the rule that matched it.
+Unmatched descriptions are reported as-is (`--unmatched`) -- **coverage is never pretended to
+be 100%**.
 
-规则的形状是**关键词组合**而不是一条长正则：一条规则 = 若干个词组，每个词组内任选其一命中，
-全部词组都命中才算这一类。第一版写成了带词序的长正则，覆盖率只有 40%——
-真实描述里"garbled reference range"和"reference range is garbled"都有，词序约束毫无道理。
+A rule's shape is a **combination of keyword groups**, not one long regex: a rule is several
+groups, any alternative within a group counts as a hit, and all groups must hit for the
+class to match. The first version was a long regex with word order baked in, and only
+covered 40% -- real descriptions have both "garbled reference range" and "reference range is
+garbled," and an order constraint between them makes no sense.
 """
 
 from __future__ import annotations
@@ -33,23 +39,25 @@ import re
 REPO = pathlib.Path(__file__).resolve().parent.parent
 RESOURCES = REPO / "mirobody_gen" / "resources"
 
-#: 一条规则 = (类名, 说明, [词组, ...], 是否要生成器复现)
+#: A rule = (class name, description, [keyword group, ...], whether the generator should reproduce it)
 #:
-#: 顺序**有意义**：自上而下第一个命中的规则胜出，所以具体的排在笼统的前面
-#: （`unit.glued_to_reference` 必须排在 `unit.glued_to_value` 前，否则后者会把它吃掉；
-#: 兜底的 `ocr.other` 必须排在所有 ocr.* 之后）。
+#: Order **matters**: scanning top to bottom, the first rule that matches wins, so specific
+#: rules come before general ones (`unit.glued_to_reference` must precede
+#: `unit.glued_to_value`, or the latter swallows it; the catch-all `ocr.other` must come
+#: after all other ocr.* rules).
 #:
-#: 最后一个字段为 False 表示**这类不该被生成器复现**——它不是真实世界的现象，
-#: 而是这批语料自己的加工痕迹。目前只有一类：脱敏占位符 `«NAME»`。
-#: 把它留在分类学里而不是删掉，是为了让"命中率"这个数字诚实。
+#: The last field being False means **this class should not be reproduced by the
+#: generator** -- it isn't a real-world phenomenon but an artifact of how this corpus was
+#: de-identified. Currently there's only one: the redaction placeholder `«NAME»`. It stays in
+#: the taxonomy rather than being deleted, so the "match rate" number stays honest.
 Rule = tuple[str, str, list[tuple[str, ...]], bool]
 
 TAXONOMY: list[Rule] = [
-    # ── 脱敏痕迹：计数，但不复现 ────────────────────────────────
+    # ── De-identification artifacts: counted, but not reproduced ──────
     ("artifact.redaction_placeholder", "脱敏占位符（书名号包起来的 NAME/ID/ORG 等）出现在正文里。这是本语料的加工痕迹，不是真实现象",
      [("placeholder", "«", "redact", "占位符")], False),
 
-    # ── 单位 ───────────────────────────────────────────────────
+    # ── Units ─────────────────────────────────────────────────────────
     ("unit.inconsistent_across_sets", "同一指标在不同检查组/不同行用了不同单位（uIU/ml 与 mU/L）",
      [("unit", "单位"),
       ("different", "differs", "differing", "inconsist", "vary", "varies", "varying", "mismatch", "不同", "不一致"),
@@ -79,7 +87,7 @@ TAXONOMY: list[Rule] = [
     ("unit.missing", "整行或整份文档没有单位",
      [("unit", "单位"), ("no ", "missing", "absent", "lack", "without", "empty", "缺失", "没有", "未标")], True),
 
-    # ── 参考范围 ───────────────────────────────────────────────
+    # ── Reference ranges ─────────────────────────────────────────────
     ("reference.multiple_rows", "多行参考范围（每个检查组一行），只读第一行就会错配",
      [("reference", "参考"),
       ("multiple", "several", "two ", "three", "one per", "each", "多个", "多行", "每组")], True),
@@ -116,7 +124,7 @@ TAXONOMY: list[Rule] = [
       ("ambiguous", "unclear", "which column", "confus", "mistaken", "misinterpret",
        "歧义", "不清", "混淆")], True),
 
-    # ── 值 ─────────────────────────────────────────────────────
+    # ── Values ────────────────────────────────────────────────────────
     ("value.pair_in_one_cell", "一格里印了一对值（血压 120/80）",
      [("blood pressure", "血压", "pair", "two values", "systolic"),
       ("single", "one cell", "one field", "combined", "same cell", "一格", "同一格", "/")], True),
@@ -147,7 +155,7 @@ TAXONOMY: list[Rule] = [
      [("blank", "empty", "no value", "空白", "为空"),
       ("column", "analyte", "列", "指标")], True),
 
-    # ── 表格结构 ───────────────────────────────────────────────
+    # ── Table structure ──────────────────────────────────────────────
     ("table.flag_row_as_data", "'是否异常' 之类的标记行被当成结果行",
      [("是否异常", "flag row", "status row", "abnormal row"),
       ("row", "data", "result", "value", "misinterpret", "mistaken", "行", "结果")], True),
@@ -177,7 +185,7 @@ TAXONOMY: list[Rule] = [
     ("table.truncated", "内容被截断或不完整",
      [("cut off", "truncat", "incomplete", "partially", "clipped", "截断", "不完整", "残缺")], True),
 
-    # ── OCR 与图像 ─────────────────────────────────────────────
+    # ── OCR and imaging ──────────────────────────────────────────────
     ("ocr.name_misspelled", "指标名被 OCR 认错",
      [("ocr", "misspell", "misread", "typo", "garbl", "misrecogn", "识别", "错字"),
       ("test name", "indicator", "analyte", "item name", "label", "项目", "指标", "名称", "abbreviation")], True),
@@ -196,7 +204,7 @@ TAXONOMY: list[Rule] = [
     ("ocr.other", "其他 OCR 错误（兜底）",
      [("ocr", "misread", "misrecogn", "garbl", "识别错", "乱码")], True),
 
-    # ── 元数据混入 ─────────────────────────────────────────────
+    # ── Metadata bleed-in ────────────────────────────────────────────
     ("meta.mixed_into_rows", "日期/机构/文件名混进了结果行",
      [("metadata", "date", "facility", "institution", "file name", "filename",
        "机构", "文件名", "日期"),
@@ -217,7 +225,7 @@ TAXONOMY: list[Rule] = [
      [("page number", "footer", "page header", "printed", "页码", "页脚", "页眉"),
       ("mistaken", "misread", "data", "value", "extract", "当作", "误")], True),
 
-    # ── 标记 ───────────────────────────────────────────────────
+    # ── Flags ─────────────────────────────────────────────────────────
     ("flag.arrow_glued", "箭头标记粘在数值上（5.9↑）",
      [("arrow", "↑", "↓", "箭头"), ("attach", "glue", "value", "adjacent", "数值", "粘")], True),
     ("flag.contradicts_reference", "标记与参考范围矛盾",
@@ -261,7 +269,7 @@ def normalize(text: str) -> str:
 
 
 def classify(text: str) -> str | None:
-    """第一个命中的类名；每个词组都要命中（组内任选其一）。"""
+    """The first class name that matches; every keyword group must hit (any alternative within a group counts)."""
     t = normalize(text)
     for name, _desc, groups, _gen in TAXONOMY:
         if all(any(alt in t for alt in group) for group in groups):
@@ -273,7 +281,8 @@ GENERATABLE = {name for name, _d, _g, gen in TAXONOMY if gen}
 
 
 def walk() -> tuple[list[tuple[int, str]], list[int], int]:
-    """[(文档序号, 描述)], 每份文档的陷阱条数, 文档数。只读 `hazard` 字段。"""
+    """[(document index, description)], hazard count per document, document count. Only the
+    `hazard` field is read."""
     items: list[tuple[int, str]] = []
     per_doc: list[int] = []
     doc_index = -1
@@ -285,7 +294,7 @@ def walk() -> tuple[list[tuple[int, str]], list[int], int]:
         hazards = analysis.get("extraction_hazards") or []
         per_doc.append(len(hazards))
         for h in hazards:
-            # `snippet` 与 `wrong_result` 是真实文档片段，这里连读都不读。
+            # `snippet` and `wrong_result` are real-document fragments; they're never even read here.
             name = h.get("hazard") if isinstance(h, dict) else h
             if name:
                 items.append((doc_index, str(name)))
@@ -294,8 +303,8 @@ def walk() -> tuple[list[tuple[int, str]], list[int], int]:
 
 def main() -> None:
     ap = argparse.ArgumentParser()
-    ap.add_argument("--write", action="store_true", help="写出 resources/hazards.json")
-    ap.add_argument("--unmatched", type=int, default=0, help="打印前 N 条未命中的描述")
+    ap.add_argument("--write", action="store_true", help="write resources/hazards.json")
+    ap.add_argument("--unmatched", type=int, default=0, help="print the first N unmatched descriptions")
     args = ap.parse_args()
 
     items, per_doc_raw, docs = walk()
@@ -311,8 +320,9 @@ def main() -> None:
         hits[cls] += 1
         docs_with[cls].add(doc_index)
 
-    # 每份文档的陷阱条数要**剔掉不复现的类**再算：`artifact.redaction_placeholder`
-    # 是这批语料自己的脱敏痕迹，把它算进去会让生成器的注入密度系统性偏高。
+    # Per-document hazard counts must be recomputed **excluding the non-reproduced classes**:
+    # `artifact.redaction_placeholder` is an artifact of how this corpus was de-identified, and
+    # counting it in would make the generator's injection density systematically too high.
     gen_per_doc = collections.Counter()
     for doc_index, text in items:
         cls = classify(text)
@@ -322,24 +332,24 @@ def main() -> None:
 
     total = len(items)
     matched = total - len(unmatched)
-    print(f"文档 {docs} 份 · 陷阱描述 {total} 条 · 命中 {matched} 条 "
-          f"({matched / total:.1%}) · 未命中 {len(unmatched)} 条")
+    print(f"{docs} documents · {total} hazard descriptions · {matched} matched "
+          f"({matched / total:.1%}) · {len(unmatched)} unmatched")
     raw_sorted, gen_sorted = sorted(per_doc_raw), sorted(per_doc)
-    print(f"分类学 {len(TAXONOMY)} 类，被命中 {len(hits)} 类")
-    print(f"每份文档陷阱数  原始 p50={raw_sorted[len(raw_sorted)//2]} "
+    print(f"{len(TAXONOMY)} classes in the taxonomy, {len(hits)} matched")
+    print(f"Hazards per document  raw p50={raw_sorted[len(raw_sorted)//2]} "
           f"p95={raw_sorted[int(len(raw_sorted)*.95)]}  ·  "
-          f"剔除不复现的类后 p50={gen_sorted[len(gen_sorted)//2]} "
+          f"excluding non-reproduced classes p50={gen_sorted[len(gen_sorted)//2]} "
           f"p75={gen_sorted[int(len(gen_sorted)*.75)]} "
           f"p95={gen_sorted[int(len(gen_sorted)*.95)]} "
-          f"max={max(per_doc)} 零占比={sum(1 for x in per_doc if x==0)/len(per_doc):.1%}"
-          "   ← 生成器按后者\n")
-    print(f"{'类名':<38}{'条数':>6}{'文档数':>7}{'文档占比':>9}  生成")
+          f"max={max(per_doc)} zero_share={sum(1 for x in per_doc if x==0)/len(per_doc):.1%}"
+          "   <- the generator uses the latter\n")
+    print(f"{'class':<38}{'count':>6}{'docs':>7}{'doc share':>9}  generate")
     for name, _desc, _groups, gen in TAXONOMY:
         n, d = hits.get(name, 0), len(docs_with.get(name, ()))
-        print(f"{name:<38}{n:>6}{d:>7}{d / docs:>8.1%}  {'是' if gen else '否'}")
+        print(f"{name:<38}{n:>6}{d:>7}{d / docs:>8.1%}  {'yes' if gen else 'no'}")
 
     if args.unmatched:
-        print(f"\n未命中的描述（前 {args.unmatched} 条）:")
+        print(f"\nUnmatched descriptions (first {args.unmatched}):")
         for t in unmatched[: args.unmatched]:
             print("  ·", t[:110])
 
@@ -383,7 +393,7 @@ def main() -> None:
         }
         out = RESOURCES / "hazards.json"
         out.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
-        print(f"\n已写出 {out}")
+        print(f"\nWrote {out}")
 
 
 if __name__ == "__main__":

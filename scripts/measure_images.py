@@ -1,23 +1,31 @@
-"""真实语料里图像文件的**聚合**形态统计 → `resources/numbers_images.json`。
+"""**Aggregate** shape statistics for image files in the real corpus -> `resources/numbers_images.json`.
 
-    python3 scripts/measure_images.py            # 打印
-    python3 scripts/measure_images.py --write    # 写 resources/numbers_images.json
+    python3 scripts/measure_images.py            # print
+    python3 scripts/measure_images.py --write    # write resources/numbers_images.json
 
-给图像劣化层（`mirobody_gen/render/degrade.py`）当校准目标：真实上传的照片/截图/扫描件
-是多大、多糊、多暗、经过了什么压缩。只输出分位数与计数，不输出任何一份文件的路径、
-内容或可辨识的像素——与 `resources/numbers.json` 同一口径（docs/zh-CN/plan.md §4.2：聚合量可以过闸，实例不行）。
+Calibration targets for the image-degradation layer (`mirobody_gen/render/degrade.py`): how
+large, how blurry, how dark, and how compressed a real uploaded photo/screenshot/scan is.
+Only quantiles and counts are output, never any file's path, content or identifiable pixels --
+the same standard as `resources/numbers.json` (docs/zh-CN/plan.md §4.2: aggregates may pass
+the gate, instances may not).
 
-量了什么，为什么：
+What's measured, and why:
 
-* 尺寸与长边：微信转发会把长边压到 1280（宽高比 ≤ 2 时），截图是手机屏幕宽度（1080/1170/1242…），
-  相机原图是 3000–4000。长边直方图直接告诉我们三条来路各占多少；
-* JPEG 质量估计：从量化表反推 IJG 质量因子的近似值（Q50 表的缩放比例）。微信约 70–85，
-  相机原图 90+，多次转发会更低；
-* 灰度/彩色：扫描件与复印件常是灰度，照片是彩色；
-* 背景亮度：取四角中位数——扫描/App 增强后接近 255，手机照片在 150–220（桌面、纸的阴影）；
-* 清晰度：灰度拉普拉斯方差（越低越糊），按长边归一到 1600 后算，否则大图天然更"清晰"；
-* 倾斜：用霍夫直线粗估文本行的主方向偏角（只看 ±10° 内的众数）；
-* EXIF：有没有相机厂商/机型字段（原图有，微信转发和截图没有）。
+* Size and long edge: WeChat forwarding caps the long edge at 1280 (when the aspect ratio is
+  <= 2), a screenshot is a phone's screen width (1080/1170/1242...), and a camera original is
+  3000-4000. The long-edge histogram tells us directly how much of each provenance there is.
+* JPEG quality estimate: back out an approximate IJG quality factor from the quantization
+  table (the Q50 table's scaling ratio). WeChat runs about 70-85, camera originals 90+, and
+  repeated forwarding pushes it lower.
+* Grayscale/color: scans and photocopies are often grayscale; photos are color.
+* Background brightness: the median of the four corners -- near 255 after scanning or app
+  enhancement, 150-220 for a phone photo (desk, paper shadow).
+* Sharpness: grayscale Laplacian variance (lower means blurrier), normalized to a 1600 long
+  edge first, since a larger image is otherwise naturally "sharper."
+* Skew: a Hough-line-style estimate of the dominant text-row angle (only the mode within +-10
+  degrees is considered).
+* EXIF: whether a camera make/model field is present (present in originals, absent from WeChat
+  forwards and screenshots).
 """
 
 from __future__ import annotations
@@ -32,9 +40,9 @@ from PIL import Image, ImageFilter, ImageOps
 
 REPO = pathlib.Path(__file__).resolve().parent.parent
 RESOURCES = REPO / "mirobody_gen" / "resources"
-CORPUS = REPO / "corpus" / "verified"          # 人工确认过的那一批（对应 library 的 619 份）
+CORPUS = REPO / "corpus" / "verified"          # the manually confirmed batch (the 619 files in library)
 
-#: IJG 标准亮度量化表（质量 50）。质量因子估计：q = 50/scale（scale = 表均值比）。
+#: The IJG standard luminance quantization table (quality 50). Quality-factor estimate: q = 50/scale (scale = the ratio of table means).
 _Q50 = np.array([
     16, 11, 10, 16, 24, 40, 51, 61, 12, 12, 14, 19, 26, 58, 60, 55, 14, 13, 16, 24, 40, 57, 69, 56,
     14, 17, 22, 29, 51, 87, 80, 62, 18, 22, 37, 56, 68, 109, 103, 77, 24, 35, 55, 64, 81, 104, 113, 92,
@@ -48,7 +56,7 @@ def jpeg_quality(img: Image.Image) -> int | None:
     table = np.array(list(q[0]), dtype=np.float64)
     if table.size != 64:
         return None
-    scale = table.sum() / _Q50.sum() * 100        # 与 Q50 表的比例（百分数）
+    scale = table.sum() / _Q50.sum() * 100        # ratio to the Q50 table, as a percentage
     quality = 5000 / scale if scale > 100 else 100 - scale / 2
     return int(max(1, min(100, round(quality))))
 
@@ -79,7 +87,8 @@ def is_grayscale(img: Image.Image) -> bool:
 
 
 def skew_estimate(gray: Image.Image) -> float | None:
-    """文本行倾斜角的粗估：对边缘图按 ±10° 逐 0.5° 旋转，取行投影方差最大的角度。"""
+    """Rough estimate of the text-row skew angle: rotate the edge image in 0.5-degree steps
+    over +-10 degrees and take the angle with the greatest row-projection variance."""
     w, h = gray.size
     scale = 800 / max(w, h)
     g = gray.resize((max(8, int(w * scale)), max(8, int(h * scale))), Image.BILINEAR)
@@ -182,13 +191,13 @@ def main() -> None:
     ap.add_argument("--write", action="store_true")
     args = ap.parse_args()
     if not CORPUS.is_dir():
-        raise SystemExit("本机没有 corpus/，这个脚本只能在有语料的机器上跑")
+        raise SystemExit("no corpus/ on this machine; this script only runs where the corpus is available")
     report = measure()
     print(json.dumps(report, ensure_ascii=False, indent=1))
     if args.write:
         out = RESOURCES / "numbers_images.json"
         out.write_text(json.dumps(report, ensure_ascii=False, indent=1) + "\n", encoding="utf-8")
-        print(f"已写出 {out}")
+        print(f"Wrote {out}")
 
 
 if __name__ == "__main__":

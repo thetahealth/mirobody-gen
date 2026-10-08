@@ -8,7 +8,8 @@ Templates are collected from `narratives.json` and `complaints.json`; every cand
 contract in `llm/contract.py`. The result is a resource with `_source: llm-paraphrase` and an empty
 `_vocabulary_fields`, so the privacy gate treats every string in it as untrusted text.
 
-这一层是可选叠加：不装 `paraphrases.json`，生成器的行为与现在完全相同。
+This layer is a purely optional addition: without `paraphrases.json` installed, the generator behaves
+exactly as it does today.
 """
 
 from __future__ import annotations
@@ -32,7 +33,7 @@ DEFAULT_BUNDLE = REPO / ".cache" / "llm" / "paraphrase_requests.jsonl"
 def _placeholders() -> dict[str, list[str]]:
     pools = {k: list(v) for k, v in (spec.narratives().get("_placeholders") or {}).items()}
     # diary and complaint slots: give the model the whole value list, so a wording must fit every value
-    # ("这阵子…1年了" is what happens when it only sees "3天")
+    # (seeing only a short duration like "3 days" produces a phrasing that reads wrong for "1 year")
     phr = spec.complaints()["phrasing"]
     pools["dur"] = phr["zh"]["durations"] + phr["en"]["durations"]
     pools["cause"] = phr["zh"]["causes"] + phr["en"]["causes"]

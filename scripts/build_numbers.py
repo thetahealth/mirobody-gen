@@ -1,28 +1,36 @@
-"""生成 `docs/zh-CN/numbers.md`：全项目**唯一**的实测数字表。
+"""Generate `docs/zh-CN/numbers.md`: the project's **single** table of measured numbers.
 
-    python3 scripts/build_numbers.py              # 打印
-    python3 scripts/build_numbers.py --write      # 写 docs/zh-CN/numbers.md 与 resources/numbers.json
+    python3 scripts/build_numbers.py              # print
+    python3 scripts/build_numbers.py --write      # write docs/zh-CN/numbers.md and resources/numbers.json
 
-## 为什么要有这个脚本
+## Why this script exists
 
-2026-09-22 的评审在 `docs/zh-CN/plan.md` 里找出同一个量有两到三个值：陷阱密度 p50 既写 4 又写 6，
-陷阱条数既写 2725 又写 3722，无表格文档数写 46 而 spec 里是 142，
-WS/T 405 的血红蛋白区间在 §2 写的是旧教材值而 spec 里是标准值——那一格还标着"已验证"。
+The 2026-09-22 review found the same quantity carrying two or three different values across
+`docs/zh-CN/plan.md`: hazard-density p50 was written as both 4 and 6, the hazard-description
+count as both 2725 and 3722, the table-less document count as 46 in prose but 142 in the
+spec, and the WS/T 405 hemoglobin range in §2 quoting an old textbook value while the spec
+had the standard one -- that cell was even marked "verified."
 
-根因不是粗心，是**数字被手抄进了散文**。44KB 的文档里同一个量出现四次，改一处忘三处是必然。
-文档纪律解决不了必然。所以这些数字改成**算出来**的：正文只引用这张表，不复述数值。
+The root cause wasn't carelessness; it's that **numbers get hand-copied into prose**. A
+44KB document repeating the same quantity four times makes "fix one, forget three" a
+near-certainty. Documentation discipline can't fix a near-certainty, so these numbers are
+made **computed** instead: prose cites this table and never restates a value.
 
-每一行都带定义与来源脚本。**同名不同义的量必须分成两行**，这正是 2725 与 3722、
-readings 与 rows 之所以打架的原因：它们本来就是不同的量，只是没人写下区别。
+Every row carries its definition and source script. **Quantities with the same name but a
+different meaning must get separate rows** -- that's exactly why 2725 and 3722, and
+`readings` and `rows`, collided: they were always different quantities, nobody had written
+down the distinction.
 
-## 这个文件曾经叫 `numbers.py`
+## This file used to be called `numbers.py`
 
-改名是因为它**遮蔽了标准库的 `numbers`**：`python3 scripts/xxx.py` 会把 `scripts/` 放在
-`sys.path[0]`，于是 numpy 导入 `numbers` 时拿到的是这个文件，`numbers.Integral` 不存在，
-numpy 炸，mirobody 的解析器随之 import 失败——而 `build_indicators.resolve_loinc` 用
-`except Exception` 把它接住了，结果是 89 个 LOINC 静默变成 0，spec 照样写出去。
+It was renamed because it **shadowed the standard-library `numbers`**: `python3
+scripts/xxx.py` puts `scripts/` at `sys.path[0]`, so when numpy imported `numbers` it got
+this file instead, `numbers.Integral` didn't exist, numpy crashed, and mirobody's resolver
+failed to import as a result -- which `build_indicators.resolve_loinc` caught with `except
+Exception`, silently zeroing 89 LOINC fields while the spec was written out anyway.
 
-`scripts/` 里的文件名不能与标准库同名。`tests/test_spec.py` 里有一条测试守着这件事。
+No file under `scripts/` may share a name with a standard-library module. A test in
+`tests/test_spec.py` guards this.
 """
 
 from __future__ import annotations
@@ -38,10 +46,11 @@ REPO = pathlib.Path(__file__).resolve().parent.parent
 RESOURCES = REPO / "mirobody_gen" / "resources"
 sys.path.insert(0, str(REPO / "scripts"))
 
-Row = tuple[str, str, str, str]   # 量 / 值 / 定义 / 来源
+Row = tuple[str, str, str, str]   # quantity / value / definition / source
 
-#: 机器可读的那几个分布，写进 resources/numbers.json 给 `audit/fidelity.py` 对账用。
-#: 只放聚合量（计数、比例、直方图），不放任何一份文档的内容。
+#: The machine-readable distributions, written into resources/numbers.json for
+#: `audit/fidelity.py` to reconcile against. Only aggregate quantities (counts, proportions,
+#: histograms) go here, never the content of any one document.
 MACHINE: dict = {}
 
 
@@ -63,10 +72,11 @@ def _norm(x):
 
 
 def layout_summary(a: dict) -> dict:
-    """真实侧：把一份分析整理成 `audit.fingerprint` 要的版式摘要。
+    """Real-document side: reduce one analysis to the layout summary `audit.fingerprint` needs.
 
-    参考值与标记用**实例**（`example`）模板化，不用分析器写的描述文本——
-    描述文本的措辞噪声会把同一种写法算成两种版式，见 `audit/fingerprint.py` 的说明。
+    Reference values and flag markers are templatized from an **instance** (`example`), not
+    from the analyzer's free-text description -- description wording noise would count the
+    same layout as two different ones; see the note in `audit/fingerprint.py`.
     """
     import re
 
@@ -110,7 +120,7 @@ def collect() -> tuple[list[Row], list[str]]:
     rows.append(("真实文档提取文本", str(corpus_text),
                  "`corpus/text/*.txt` 的文件数，回放检测的索引就建在它上面", "scripts/build_numbers.py"))
 
-    # ── 版式多样性 ──
+    # ── Layout diversity ──
     sys.path.insert(0, str(REPO))
     from mirobody_gen.audit import fingerprint as fp
 
@@ -137,7 +147,7 @@ def collect() -> tuple[list[Row], list[str]]:
                  "同一批文档、三种粒度。**这个数对定义很敏感**，引用时必须连同定义一起给",
                  "audit/fingerprint.py"))
 
-    # ── 表格与行 ──
+    # ── Tables and rows ──
     tables_per = collections.Counter(len(a.get("result_tables") or []) for a in analyses)
     colsets = collections.Counter(_norm(t.get("columns") or [])
                                   for a in analyses for t in (a.get("result_tables") or []))
@@ -155,7 +165,7 @@ def collect() -> tuple[list[Row], list[str]]:
                  "`analysis[].indicator_rows` 的条数：**分析器看到的表格行**",
                  "scripts/build_numbers.py"))
 
-    # ── pipeline 的 readings 是另一个量 ──
+    # ── the pipeline's readings is a different quantity ──
     synth = REPO / "library" / "synth_spec.json"
     if synth.is_file():
         docs = json.loads(synth.read_text(encoding="utf-8"))["documents"]["readings_per_document"]
@@ -167,7 +177,7 @@ def collect() -> tuple[list[Row], list[str]]:
         notes.append("`readings` 与 `rows` 是两个量。验收标准（docs/zh-CN/plan.md §5）里的分布检验要写明用哪个；"
                      "生成器目前按 `rows` 对齐，因为它对应「一份文件里印了多少行」。")
 
-    # ── 语言与页数 ──
+    # ── Language and page count ──
     layout = json.loads((RESOURCES / "layout.json").read_text(encoding="utf-8"))
     langs = layout["distributions"]["languages"]
     rows.append(("语言（多标签，已归一）",
@@ -180,7 +190,7 @@ def collect() -> tuple[list[Row], list[str]]:
     rows.append(("单页文档占比", f"{one}/{total_pages} = {one/total_pages:.1%}",
                  "已剔除分析器的 0 页伪值（xlsx 没有页的概念）", "scripts/distill_layout.py"))
 
-    # ── 陷阱 ──
+    # ── Hazards ──
     hazards = json.loads((RESOURCES / "hazards.json").read_text(encoding="utf-8"))
     prov, per_doc = hazards["_provenance"], hazards["per_document_count"]
     rows.append(("陷阱描述条数", f"{prov['descriptions']}（命中 {prov['matched']}，"
@@ -199,7 +209,7 @@ def collect() -> tuple[list[Row], list[str]]:
                  "含脱敏痕迹的原始密度是 p50=6/p95=10，用它会让注入密度系统性偏高",
                  "scripts/distill_hazards.py"))
 
-    # ── 指标目录 ──
+    # ── Indicator catalogue ──
     indicators = json.loads((RESOURCES / "indicators.json").read_text(encoding="utf-8"))
     items = indicators["indicators"]
     resolved = sum(1 for i in items if i.get("expect_resolvable"))
@@ -219,7 +229,7 @@ def collect() -> tuple[list[Row], list[str]]:
                  "每一项都必须是可引用的出处，`audit/privacy.py` 会检查",
                  "scripts/build_indicators.py"))
 
-    # ── 单位位置 ──
+    # ── Unit location ──
     unit_loc = layout.get("unit_location") or []
     rows.append(("单位印在哪里", " / ".join(f"{x['value']} {x['occurrences']}" for x in unit_loc),
                  "已从分析器的 28 种自由文本收敛成枚举", "scripts/distill_layout.py"))
@@ -260,7 +270,7 @@ def main() -> None:
                    "_provenance": {"script": "scripts/build_numbers.py"}, "_vocabulary_fields": [], **MACHINE}
         (RESOURCES / "numbers.json").write_text(
             json.dumps(payload, ensure_ascii=False, indent=1) + "\n", encoding="utf-8")
-        print(f"已写出 {out} 与 {RESOURCES / 'numbers.json'}")
+        print(f"Wrote {out} and {RESOURCES / 'numbers.json'}")
 
 
 if __name__ == "__main__":

@@ -1,30 +1,35 @@
 """Deterministic consistency checks over laboratory observations in FHIR R4 bundles.
 
-对一批 FHIR R4 bundle 做检验观测的确定性一致性检查。
-
-    mirobody-gen synthea-check <dir-with-*.json>            # 报告
-    mirobody-gen synthea-check <dir> --strict               # 有问题即非零退出
+    mirobody-gen synthea-check <dir-with-*.json>            # report
+    mirobody-gen synthea-check <dir> --strict               # non-zero exit on any finding
     mirobody-gen synthea-check <dir> --json report.json
 
-这是给 TIET-AI/tietai-synthea issue #113 承诺的那个校验器（docs/issues/pysynthea-observation-fidelity.md
-末尾"Happy to help"一段）。它**只读 FHIR bundle**，不依赖本仓的生成器，也不依赖 PySynthea 的包——
-任何能导出 R4 `Observation` 的合成器都能用它自查。
+This is the checker promised to TIET-AI/tietai-synthea issue #113 (the "Happy to help" paragraph at
+the end of docs/issues/pysynthea-observation-fidelity.md). It reads only FHIR bundles, depending
+neither on this repo's generator nor on the PySynthea package, so any synthesizer that exports R4
+`Observation` resources can self-check with it.
 
-查五件事，每一件都是检验医学的定义或 FHIR 的结构约束，不是风格偏好：
+It checks five things, each a laboratory-medicine definition or an FHIR structural constraint, not a
+style preference:
 
-1. **覆盖**：`Observation` 里带 `referenceRange` / `interpretation` 的比例（按 LOINC 分组）；
-2. **标记与区间一致**：`interpretation` 是 H/L/N 时，必须与 `valueQuantity` 落在 `referenceRange` 的哪一侧相符；
-3. **红细胞指数恒等式**：同一次 encounter 里 MCV = HCT×10/RBC、MCH = HGB/RBC×10、MCHC = HGB/HCT×100
-   （单位按 FHIR 里印的换算到 fL / pg / g/dL）；
-4. **蛋白与分类**：球蛋白 = 总蛋白 − 白蛋白；白细胞分类百分比之和 = 100；
-5. **印刷精度**：`valueQuantity.value` 的小数位数按分析物统计——`85.34241844236215 fL` 这种值是
-   合成数据最显眼的破绽，真实仪器按分析物固定位数出数。
+1. Coverage: the share of `Observation` resources carrying `referenceRange` / `interpretation`
+   (grouped by LOINC);
+2. Flag-range consistency: when `interpretation` is H/L/N, it must agree with which side of
+   `referenceRange` the `valueQuantity` actually falls on;
+3. Red-cell index identities within one encounter: MCV = HCT×10/RBC, MCH = HGB/RBC×10,
+   MCHC = HGB/HCT×100 (units converted to fL / pg / g/dL from whatever FHIR prints);
+4. Protein and differential: globulin = total protein − albumin; the white-cell differential
+   percentages sum to 100;
+5. Printed precision: decimal places of `valueQuantity.value`, tallied per analyte — a value like
+   `85.34241844236215 fL` is the most visible synthetic-data tell, since a real instrument prints a
+   fixed number of decimals per analyte.
 
-阈值与 issue 里的一致：MCV ±3 fL、MCHC ±1.5 g/dL、MCH ±1 pg、球蛋白 ±0.3 g/dL、分类合计 ±1.5。
+Thresholds match the issue: MCV ±3 fL, MCHC ±1.5 g/dL, MCH ±1 pg, globulin ±0.3 g/dL, differential
+sum ±1.5.
 
-实测（tietai-synthea 1.4.1，`synthea -p 8 --seed 7`，2026-09-29）：
-referenceRange 1020/2175、标记冲突 0、红细胞面板 8/8 自洽、球蛋白无面板、
->3 位小数的值 63/1858。前四项修好了，第五项还在。
+Measured (tietai-synthea 1.4.1, `synthea -p 8 --seed 7`, 2026-09-29): referenceRange 1020/2175, 0 flag
+conflicts, red-cell panels self-consistent 8/8, no globulin panels, values with >3 decimals 63/1858.
+The first four are fixed; the fifth is still open.
 """
 
 from __future__ import annotations
@@ -35,7 +40,8 @@ import json
 import pathlib
 import sys
 
-#: LOINC → (键, 目标单位)。单位换算只做 issue 里涉及的这几种，其余照原样比较。
+#: LOINC → (key, target unit). Unit conversion covers only the cases the issue raises; anything
+#: else is compared as printed.
 LOINC = {
     "789-8": ("rbc", "10*6/uL"), "718-7": ("hgb", "g/dL"), "4544-3": ("hct", "%"),
     "787-2": ("mcv", "fL"), "785-6": ("mch", "pg"), "786-4": ("mchc", "g/dL"),
@@ -43,7 +49,7 @@ LOINC = {
     "770-8": ("neut_pct", "%"), "736-9": ("lymph_pct", "%"), "5905-5": ("mono_pct", "%"),
     "713-8": ("eos_pct", "%"), "706-2": ("baso_pct", "%"),
 }
-#: 单位换算到目标单位的倍数。
+#: Multiplier converting the observed unit to the target unit.
 CONVERT = {
     ("hgb", "g/L"): 0.1, ("hgb", "g/dL"): 1.0,
     ("mchc", "g/L"): 0.1, ("mchc", "g/dL"): 1.0,

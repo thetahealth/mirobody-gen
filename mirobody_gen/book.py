@@ -1,21 +1,23 @@
 """Check-up books, outpatient records, ECG/ultrasound/imaging reports and home logs: everything in a file that is not a laboratory table.
 
-体检报告书的科室与总检、门诊病历、心电图报告、超声报告——检验表格之外的那三分之二。
+Checkup report books are the largest document class in the real corpus (157/627); their department
+sections are **key-value pairs** (63/76); imaging and ECG are **narrative**; the last page is the
+**overall conclusions and recommendations**. This layer arranges vocabulary from
+`resources/narratives.json` and findings computed by `profile.py` into `Block`s (key-value / narrative
+/ params table / image / summary), attached to `Doc.blocks`; the renderer prints them in block order.
 
-真实语料里体检报告书是最大的一类文档（157/627），而科室部分是**键值对**（63/76），
-影像与心电图是**叙述**，最后一页是**总检结论与建议**。这一层把 `resources/narratives.json` 里的
-词汇与 `profile.py` 算出来的所见，排成 `Block`（键值对 / 叙述 / 参数表 / 图像 / 总检），
-挂到 `Doc.blocks` 上；渲染器按块的顺序印。
+Truth has three layers, all written to the manifest:
 
-真值有三层，都写进 manifest：
+* `blocks[].truth`: what each key-value entry prints, whether it's abnormal, and which finding it
+  corresponds to — in mirobody's extraction contract these are the `detection_method = Physiological /
+  Imaging` rows;
+* `findings`: the coded truth for named findings (diagnosis surface -> expected ICPC-3 axis-D code, or
+  expected abstention);
+* `summary`: each overall conclusion mapped to its finding or abnormal indicator, each recommendation
+  mapped to its advice template — this is the truth for `additional_info.assessment / recommendations`.
 
-* `blocks[].truth`：每个键值对条目印了什么、是否异常、对应哪条所见——mirobody 的抽取契约里
-  这是 `detection_method = Physiological / Imaging` 的行；
-* `findings`：具名所见的编码真值（诊断表面 → ICPC-3 D 轴期望码，或期望弃权）；
-* `summary`：总检结论逐条对应到所见或异常指标，建议逐条对应到建议模板——这是
-  `additional_info.assessment / recommendations` 的真值。
-
-叙述里的数值（"结节大小约 7mm"）刻意**不**进印刷真值：它们是描述，不是指标。
+Numbers inside narratives ("nodule, approx. 7mm") are deliberately **excluded** from printed truth:
+they're descriptive, not indicators.
 """
 
 from __future__ import annotations
@@ -40,7 +42,7 @@ class Block:
     kind: str                       # kv / narrative / params / image / summary / tables / general_table / cover
     title: str = ""
     rows: list[tuple[str, str]] = field(default_factory=list)
-    columns: int = 2                # kv：每行几个"项目/结果"对（2 或 4）
+    columns: int = 2                # kv: how many name/value pairs per row (2 or 4)
     image: bytes | None = None
     image_size: tuple[int, int] = (0, 0)
     truth: list[dict] = field(default_factory=list)
@@ -79,14 +81,15 @@ def _fill(template: str, params: dict) -> str:
         return template
 
 
-# ── 科室键值对 ─────────────────────────────────────────────────
+# ── Department key-value sections ──
 def _dialect(f: Family) -> str:
     lang = _lang(f)
     return _sticky(f, "dialect").choice(_n()["normal_dialects"][lang])
 
 
 def _acuity_pair(rng: random.Random, low: bool, f: Family) -> tuple[str, str, str]:
-    """(印出来的文字, 左, 右)。两种记法各半；一格印两只眼是真实体检的固定写法。"""
+    """(printed text, left, right). The two notations split evenly; printing both eyes in one cell is
+    how real checkups always write it."""
     ac = _n()["acuity"]
     style = "five_point" if _sticky(f, "acuity").random() < 0.5 else "decimal"
     scale = ac[style]
@@ -152,7 +155,8 @@ def section_blocks(rng: random.Random, doc: Doc, person: Person, enc: Encounter,
                 abnormal, fid = True, finding.id
             else:
                 pool = item.get("normal", {}).get(lang)
-                # own_normal 的条目（中医体质）没有"未见异常"这种写法，只能印自己的正常值
+                # own_normal items (TCM constitution) have no "no abnormality found" wording; they can
+                # only print their own normal value
                 value = rng.choice(pool) if pool and (item.get("own_normal") or rng.random() < 0.7) else normal_word
             rows.append((label, value))
             truth.append({"label": label, "value": value, "abnormal": abnormal, "finding": fid,
@@ -161,9 +165,10 @@ def section_blocks(rng: random.Random, doc: Doc, person: Person, enc: Encounter,
     return blocks
 
 
-# ── 辅助检查叙述 ───────────────────────────────────────────────
+# ── Auxiliary-exam narratives ──
 def _ecg_strip(rng: random.Random, pulse: float, pr_ms: float, qrs_ms: float, brady: bool) -> tuple[bytes, tuple[int, int]]:
-    """一段Ⅱ导联条图：粉色网格 + P-QRS-T 波形，节律按心率。只是视觉构件，不编码任何真值。"""
+    """A lead-II strip: pink grid plus a P-QRS-T waveform paced to heart rate. A purely visual prop; it
+    encodes no truth."""
     w, h = 720, 130
     img = Image.new("RGB", (w, h), (255, 245, 245))
     d = ImageDraw.Draw(img)
@@ -171,35 +176,35 @@ def _ecg_strip(rng: random.Random, pulse: float, pr_ms: float, qrs_ms: float, br
         d.line((x, 0, x, h), fill=(255, 200, 200) if x % 25 else (255, 150, 150), width=1)
     for y in range(0, h, 5):
         d.line((0, y, w, y), fill=(255, 200, 200) if y % 25 else (255, 150, 150), width=1)
-    px_per_s = 125.0                                             # 25 mm/s，5 px/mm
+    px_per_s = 125.0                                             # 25 mm/s, 5 px/mm
     rr = 60.0 / max(40.0, pulse) * px_per_s
     base = h * 0.62
     pts = []
     x = 0.0
     phase = rng.uniform(0, rr)
     while x < w:
-        u = ((x + phase) % rr) / rr                             # 0..1 在一个心动周期里
+        u = ((x + phase) % rr) / rr                             # 0..1 within one cardiac cycle
         y = 0.0
-        # P 波
+        # P wave
         y += 6 * math.exp(-((u - 0.12) / 0.03) ** 2)
         # QRS
         y -= 4 * math.exp(-((u - 0.235) / 0.006) ** 2)
         y += 48 * math.exp(-((u - 0.25) / 0.008) ** 2)
         y -= 10 * math.exp(-((u - 0.268) / 0.006) ** 2)
-        # T 波
+        # T wave
         y += 12 * math.exp(-((u - 0.45) / 0.05) ** 2)
         wander = 3 * math.sin(x / 90.0) + rng.gauss(0, 0.6)
         pts.append((x, base - y + wander))
         x += 1.0
     d.line(pts, fill=(20, 20, 20), width=2)
-    d.rectangle((6, base - 50, 16, base), outline=(20, 20, 20), width=2)   # 定标脉冲
+    d.rectangle((6, base - 50, 16, base), outline=(20, 20, 20), width=2)   # calibration pulse
     buf = io.BytesIO()
     img.save(buf, "PNG", optimize=True)
     return buf.getvalue(), (w, h)
 
 
 def _us_image(rng: random.Random, seed: int) -> tuple[bytes, tuple[int, int]]:
-    """一幅像超声的扇形斑点图：只是视觉构件。"""
+    """A fan-shaped speckle image that looks like ultrasound: a purely visual prop."""
     w, h = 480, 360
     rs = np.random.RandomState(seed)
     Y, X = np.mgrid[0:h, 0:w].astype(np.float32)
@@ -216,7 +221,7 @@ def _us_image(rng: random.Random, seed: int) -> tuple[bytes, tuple[int, int]]:
     img = np.where(fan, intensity, 0).astype(np.uint8)
     out = Image.fromarray(img, "L").convert("RGB")
     d = ImageDraw.Draw(out)
-    for i in range(1, 8):                                        # 右侧深度刻度
+    for i in range(1, 8):                                        # depth scale on the right
         d.line((w - 12, i * 45, w - 6, i * 45), fill=(200, 200, 200), width=1)
     buf = io.BytesIO()
     out.save(buf, "PNG", optimize=True)
@@ -358,7 +363,7 @@ def aux_blocks(rng: random.Random, doc: Doc, person: Person, enc: Encounter, f: 
     return blocks
 
 
-# ── 总检 ────────────────────────────────────────────────────────
+# ── Overall summary ──
 def summary_block(rng: random.Random, doc: Doc, person: Person, enc: Encounter, f: Family) -> Block:
     n = _n()
     lang = _lang(f)
@@ -407,7 +412,8 @@ def summary_block(rng: random.Random, doc: Doc, person: Person, enc: Encounter, 
         rows.append((s["advice"], "\n".join(f"{i + 1}. {t}" for i, (t, _) in enumerate(advice))))
         for i, (t, meta) in enumerate(advice):
             truth.append({"kind": "advice", "index": i + 1, "text": t, **meta})
-    # 重要异常结果（《健康体检重要异常结果管理专家共识》A 类）：印一条通知，真值另记
+    # Critical abnormal results (Category A under the Expert Consensus on the Management of Critical
+    # Abnormal Results in Health Examinations): print one notice line; truth recorded separately
     critical = critical_results(enc, person.sex)
     if critical:
         j = n["judgement"][lang]
@@ -415,7 +421,7 @@ def summary_block(rng: random.Random, doc: Doc, person: Person, enc: Encounter, 
         rows.append((j["critical_label"], _fill(j["critical_text"], {"items": items})))
         truth.append({"kind": "critical", "index": 1, "text": items, "source": "critical",
                       "keys": [c.split(" ")[0] for c in critical]})
-    # 分级判定（A–E）：一部分机构印，按机构粘住
+    # Grade rating (A-E): only some institutions print it, sticky per institution
     if _sticky(f, "grades").random() < n["judgement"]["rate"].get(lang, 0.0):
         grades = judgement_grades(enc, person.sex)
         j = n["judgement"][lang]
@@ -431,7 +437,8 @@ def summary_block(rng: random.Random, doc: Doc, person: Person, enc: Encounter, 
 
 
 def _band_grade(bands: list, value: float) -> str:
-    """bands = [[grade, lo, hi], ...]，lo/hi 可为 null；落在哪段就是哪级。都不落时按 A。"""
+    """bands = [[grade, lo, hi], ...]; lo/hi may be null. The grade is whichever band the value falls
+    into; A if it falls into none."""
     for grade, lo, hi in bands:
         if (lo is None or value >= lo) and (hi is None or value < hi):
             return grade
@@ -439,8 +446,9 @@ def _band_grade(bands: list, value: float) -> str:
 
 
 def judgement_grades(enc: Encounter, sex: str) -> list[tuple[str, str]]:
-    """每个判定区域（血压、血脂、肝功能……与各辅助检查、科室）一个字母：A 无异常 … E 治疗中。
-    检验按数值分段，所见按具名所见的级别；一个区域取最重的。"""
+    """One letter per rating area (blood pressure, lipids, liver function, ... plus each auxiliary exam
+    and department): A no abnormality ... E under treatment. Lab values are graded by band; findings by
+    their own named severity; each area keeps its worst grade."""
     j = _n()["judgement"]
     order = "ABCDE"
     worst: dict[str, str] = {}
@@ -473,7 +481,7 @@ def judgement_grades(enc: Encounter, sex: str) -> list[tuple[str, str]]:
 
 
 def critical_results(enc: Encounter, sex: str) -> list[str]:
-    """超过 A 类重要异常结果阈值的读数，印成"指标 值 单位"。"""
+    """Readings past the Category-A critical-result threshold, printed as "indicator value unit"."""
     j = _n()["judgement"]["critical"]
     catalogue = spec.indicators()
     out: list[str] = []
@@ -488,10 +496,11 @@ def critical_results(enc: Encounter, sex: str) -> list[str]:
     return out
 
 
-# ── 体检报告书 ───────────────────────────────────────────────────
+# ── Checkup report book ──
 def build_book(rng: random.Random, doc_id: str, person: Person, enc: Encounter, groups: list[str],
                family: Family, previous: dict, banner: bool = True) -> Doc:
-    """完整的体检报告书：封面 → 阅读说明 → 总检（先或后）→ 一般检查 → 科室 → 辅助检查 → 检验。"""
+    """The full checkup report book: cover -> reading guide -> overall summary (first or last) ->
+    general exam -> departments -> auxiliary exams -> lab tests."""
     n = _n()
     param_groups = {aid for aid, a in n["aux"].items() if a["kind"] == "params"}
     lab_groups = [g for g in groups if g not in param_groups] or groups
@@ -534,11 +543,12 @@ def _finding_truth(x: Finding, lang: str) -> dict:
             "summary": _fill(fdef["summary"][lang], x.params), "since": x.since.isoformat() if x.since else None}
 
 
-# ── 门诊病历 ─────────────────────────────────────────────────────
+# ── Outpatient record ──
 def build_outpatient(rng: random.Random, doc_id: str, person: Person, enc: Encounter, family: Family,
                      banner: bool = True) -> Doc:
-    """门诊病历：主诉 / 现病史 / 既往史 / 体格检查 / 辅助检查 / 诊断 / 处理。
-    生命体征印成一行（T P R BP 体重），是印刷真值；主诉与诊断进各自的真值。"""
+    """Outpatient record: chief complaint / history of present illness / past history / physical exam /
+    auxiliary exams / diagnosis / plan. Vital signs print as one line (T P R BP weight) and form the
+    printed truth; the complaint and diagnosis each get their own truth layer."""
     n = _n()
     lang = _lang(family)
     o = n["outpatient"][lang]
@@ -549,7 +559,7 @@ def build_outpatient(rng: random.Random, doc_id: str, person: Person, enc: Encou
               subject=subject_fields(rng, person, family, enc.exam_date, rng.choice(t["departments"][family.lang_group]), "")[:4],
               dates=print_dates(rng, family, enc.exam_date)[:1], tables=[], banner=banner)
     doc.kind = "outpatient_record"
-    # 主诉
+    # Chief complaint
     dx_key = person.archetype
     uri = any(e.name == "急性上呼吸道感染" and abs((enc.exam_date - e.start).days) <= 10 for e in person.events)
     if uri:
@@ -601,7 +611,7 @@ def build_outpatient(rng: random.Random, doc_id: str, person: Person, enc: Encou
     rows += [(o["dx"], "\n".join(f"{i + 1}. {d}" for i, d in enumerate(dx_lines)) if len(dx_lines) > 1 else (dx_lines[0] if dx_lines else "")),
              (o["plan"], plan)]
     doc.blocks = [Block(kind="narrative", title="", rows=rows, section_id="outpatient")]
-    # 印刷真值：生命体征那一行
+    # Printed truth: the vital-signs line
     for key, printed_name, unit in (("temp", "T", "℃" if lang == "zh" else "°C"), ("pulse", "P", "次/分" if lang == "zh" else "/min"),
                                     ("resp", "R", "次/分" if lang == "zh" else "/min"), ("weight", "体重" if lang == "zh" else "Weight", "kg")):
         r = readings.get(key)
@@ -634,7 +644,7 @@ def build_outpatient(rng: random.Random, doc_id: str, person: Person, enc: Encou
     return doc
 
 
-# ── 心电图报告、超声报告 ────────────────────────────────────────
+# ── ECG and ultrasound reports ──
 def build_ecg_report(rng: random.Random, doc_id: str, person: Person, enc: Encounter, family: Family,
                      previous: dict, banner: bool = True) -> Doc:
     doc = build_doc(rng, doc_id, person, enc, ["ecg"], family, previous, banner=banner)
@@ -670,12 +680,13 @@ def build_ultrasound_report(rng: random.Random, doc_id: str, person: Person, enc
     return doc
 
 
-# ── 居家记录表（血压日记 / 晨起体重）────────────────────────────
+# ── Home log (blood-pressure diary / morning weight) ──
 def build_home_log(rng: random.Random, doc_id: str, person: Person, window: list[dict], family: Family,
                    log_kind: str, banner: bool = True) -> Doc:
-    """一张表里若干天的血压或体重：每一行有自己的日期。这是 mirobody 已知的失败模式
-    （`resolve_report_date` 给整份文件一个日期，demo 实测"7 行进、1 行出"）的规模化素材。
-    没有参考范围、没有标记；`is_abnormal` 一律无法判定；`observed` 逐行不同。"""
+    """Several days of blood pressure or weight in one table, each row with its own date. This is bulk
+    material for a known mirobody failure mode (`resolve_report_date` assigns the whole file one date;
+    the demo observed "7 rows in, 1 row out"). No reference range, no flag; `is_abnormal` is always
+    indeterminate; `observed` differs row by row."""
     n = _n()
     lang = _lang(family)
     hl = n["home_log"][lang]
@@ -737,10 +748,11 @@ def build_home_log(rng: random.Random, doc_id: str, person: Person, window: list
     return doc
 
 
-# ── 影像报告单（胸片 / 胸部 CT）────────────────────────────────
+# ── Imaging report (chest X-ray / chest CT) ──
 def build_imaging_report(rng: random.Random, doc_id: str, person: Person, enc: Encounter, family: Family,
                          banner: bool = True) -> Doc:
-    """放射科的报告单：检查所见 + 影像诊断。真实语料里 CT 报告 11 份、放射诊断报告 8 份。"""
+    """Radiology report: findings plus impression. In the real corpus, 11 CT reports and 8 radiology
+    diagnosis reports."""
     n = _n()
     lang = _lang(family)
     t = spec.templates()

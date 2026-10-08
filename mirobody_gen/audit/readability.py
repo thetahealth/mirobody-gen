@@ -1,31 +1,35 @@
 """Readability audit: whatever the manifest says is printed must be found on the page. Non-zero exit on problems.
 
-可读性审计：manifest 说纸上印了什么，就去纸上找。非零退出即有问题。
-
     mirobody-gen audit-readability out/p2/files.jsonl
     mirobody-gen audit-readability out/p2/pairs.jsonl
 
-印刷真值是评分的根。它由渲染器写，渲染器又是这个项目里最复杂的一段代码——
-如果渲染器把 `5.9↑` 印成了 `5.9 ↑`，manifest 却还说值格里是 `5.9↑`，
-那么所有抽取器都会在这一行上"犯错"，而错的其实是我们。
+Printed truth is the ground truth every score is built on. It's written by the renderer, the most
+complex piece of code in this project -- if the renderer prints `5.9↑` as `5.9 ↑` while the manifest
+still says the value cell holds `5.9↑`, every extractor "gets it wrong" on that row, and the fault is
+actually ours.
 
-所以这里**不 import 生成器**，只读产物：把文件里的文字重新抽出来（PDF 文本层 / XLSX / CSV），
-逐行检查 manifest 里每个可读行的名称、值、单位、参考范围确实出现在纸上。
-比较前去掉所有空白——折行、表格单元格边界在抽取文本里会变成换行或空格，那不算印错。
+So this module **never imports the generator**; it only reads the rendered output: text is re-extracted
+from the file (PDF text layer / XLSX / CSV), and each readable row's name, value, unit and reference
+range from the manifest is checked line by line against what's actually on the page. All whitespace is
+stripped before comparing -- line wraps and table-cell boundaries become newlines or spaces in extracted
+text, and that doesn't count as a printing error.
 
-另查一件与印刷无关、但同样是真值自洽性的事：**标记与参考范围一致**。
-数值型、参考范围是一个可解析的区间时，`is_abnormal` 必须等于"值在不在区间里"。
+A second, print-independent check of truth self-consistency: **flags must agree with the reference
+range**. When a value is numeric and the reference range parses as an interval, `is_abnormal` must equal
+whether the value falls outside that interval.
 
-图像层的产物读不出文字，这里跳过它们并计数；`--ocr` 时用本机 tesseract（chi_sim+eng）
-把图像认一遍，按场景报告"印刷真值的值有多大比例被认出来"——**只报告不判定**：
-OCR 认不出不等于人读不出，PureDocBench 也是同一份真值贯穿三个视图。
+Image-layer output has no extractable text; it's skipped and counted. With `--ocr`, local tesseract
+(chi_sim+eng) reads the image and reports, per scene, what share of the printed truth values it
+recognized -- **reported, not judged**: tesseract failing to read something doesn't mean a human
+couldn't, and PureDocBench is likewise one ground truth carried through three views.
 
-Handwritten pages (`--handwriting`) are checked against the transcript their record carries
-(`handwriting.transcript`): every truth row must be in what the hand wrote. Whether the transcript is
-what the ink says is the generator's own test (`tests/test_handwriting.py`), not this audit's.
+Handwritten pages are checked against the transcript their record carries (`handwriting.transcript`):
+every truth row must be in what the hand wrote. Whether the transcript is what the ink says is the
+generator's own test (`tests/test_handwriting.py`), not this audit's.
 
-表格之外还有键值对、叙述与总检（`blocks`）、主诉与诊断（门诊病历）：它们的每一段印出来的文字
-也必须在纸上找得到，与印刷行同一口径。
+Beyond tables there are key-value blocks, narrative and summary sections (`blocks`), and complaints and
+diagnoses (outpatient charts): every piece of text they print must likewise be found on the page, to the
+same standard as a printed row.
 """
 
 from __future__ import annotations
@@ -41,7 +45,8 @@ import unicodedata
 
 PACKAGE = pathlib.Path(__file__).resolve().parents[1]
 RESOURCES = PACKAGE / "resources"
-#: 源码检出的根目录。只有需要检出才有的东西（参考集、缓存、产物）才用它；安装后的包里没有这些。
+#: Root of the source checkout. Used only for things that exist only in a checkout (reference set,
+#: cache, build output) -- an installed package has none of these.
 REPO = PACKAGE.parent
 
 
@@ -50,8 +55,9 @@ def _norm(text: str) -> str:
 
 
 def _furniture_patterns() -> list[re.Pattern]:
-    """页脚构件（横幅、页码、打印时间）的正则：一段文字跨页时它们会插在中间，核对前先剔掉。
-    模板从 resources/templates.json 读（只读 JSON，不 import 生成器）。"""
+    """Regexes for page furniture (banner, page number, print timestamp): when a paragraph crosses a
+    page break these sit in the middle of it and must be stripped before comparing. Templates are read
+    from resources/templates.json (JSON only, no import from the generator)."""
     path = RESOURCES / "templates.json"
     out = [re.compile(r"^SYNTHETIC SAMPLE.*$")]
     if not path.is_file():
@@ -84,7 +90,7 @@ def file_text(path: pathlib.Path) -> str | None:
 
         with fitz.open(path) as doc:
             text = "\n".join(page.get_text() for page in doc)
-            return text if text.strip() else None          # 扫描件 PDF 没有文本层，按图像处理
+            return text if text.strip() else None          # a scanned PDF has no text layer; treat as an image
     if suffix == ".xlsx":
         import openpyxl
 
@@ -98,7 +104,8 @@ def file_text(path: pathlib.Path) -> str | None:
 
 
 def _present(want: str, blob: str) -> bool:
-    """一段文字在不在纸上。逐行找；一行太长、跨了页（页脚会插在中间）时退而按 20 字块找。"""
+    """Whether a piece of text is on the page. Checked line by line; a line that's too long or crosses
+    a page break (furniture gets inserted mid-line) falls back to checking it in 20-character chunks."""
     for line in want.split("\n"):
         n = _norm(line)
         if not n or n in blob:
@@ -117,7 +124,7 @@ _LOWER = re.compile(r"^\(?\s*[>≥]\s*(-?\d+(?:\.\d+)?)\s*\)?$")
 
 
 def flag_consistent(row: dict) -> bool | None:
-    """None = 不适用（定性、分层范围、非数值）。"""
+    """None = not applicable (qualitative result, tiered range, or non-numeric)."""
     value = row["item_value"].replace(",", ".")
     if not re.fullmatch(r"-?\d+(?:\.\d+)?", value) or not row["item_range"] or row["is_abnormal"] == "":
         return None
@@ -136,7 +143,8 @@ def flag_consistent(row: dict) -> bool | None:
 
 
 def _ocr_text(path: pathlib.Path) -> str | None:
-    """本机 tesseract 认图像（或扫描件 PDF 的各页）。没有 tesseract 时返回 None。"""
+    """Recognize an image (or each page of a scanned PDF) with local tesseract. Returns None without
+    tesseract installed."""
     import shutil
     import subprocess
     import tempfile
@@ -170,7 +178,7 @@ def audit(manifest: pathlib.Path, ocr: bool = False) -> int:
     for line in manifest.read_text(encoding="utf-8").splitlines():
         rec = json.loads(line)
         if not rec.get("synthetic"):
-            print(f"缺 synthetic 标记  {rec['file']}")
+            print(f"missing synthetic flag  {rec['file']}")
             problems += 1
         text = file_text(base / rec["file"])
         if text is None and rec.get("handwriting"):
@@ -191,18 +199,18 @@ def audit(manifest: pathlib.Path, ocr: bool = False) -> int:
                     st[1] += len(values)
             continue
         blob = _norm(_strip_furniture(text, tuple(x for x in (rec.get("institution"),) if x)))
-        # 块、总检、主诉、诊断——印出来的每段文字都得在纸上
+        # blocks, summary, complaints, diagnoses -- every printed piece of text must be on the page
         for block in rec.get("blocks") or []:
             for want in block.get("printed") or []:
                 checked += 1
                 if not _present(want, blob):
                     problems += 1
-                    print(f"纸上找不到  {rec['file']} 块[{block.get('section')}] {want[:40]!r}")
+                    print(f"not found on page  {rec['file']} block[{block.get('section')}] {want[:40]!r}")
         for item in (rec.get("complaints") or []) + (rec.get("diagnoses") or []):
             checked += 1
             if _norm(item["text"]) not in blob:
                 problems += 1
-                print(f"纸上找不到  {rec['file']} 主诉/诊断 {item['text']!r}")
+                print(f"not found on page  {rec['file']} complaint/diagnosis {item['text']!r}")
         for i, row in enumerate(rec["printed_rows"]):
             if not row["readable"]:
                 continue
@@ -213,15 +221,17 @@ def audit(manifest: pathlib.Path, ocr: bool = False) -> int:
                     continue
                 if _norm(want) not in blob:
                     problems += 1
-                    print(f"纸上找不到  {rec['file']} 行{i} {field}={want!r}")
+                    print(f"not found on page  {rec['file']} row{i} {field}={want!r}")
             ok = flag_consistent(row)
             if ok is False:
                 problems += 1
-                print(f"标记与范围不符  {rec['file']} 行{i} 值={row['item_value']} "
-                      f"范围={row['item_range']} 标记={row['is_abnormal']}")
-    print(f"\n核对 {checked} 个可读行 · 问题 {problems} · 读不出文字的文件（图像层，跳过）{skipped}")
+                print(f"flag disagrees with range  {rec['file']} row{i} value={row['item_value']} "
+                      f"range={row['item_range']} flag={row['is_abnormal']}")
+    print(f"\nchecked {checked} readable rows · {problems} problems · "
+          f"{skipped} files with unreadable text (image layer, skipped)")
     if ocr_stats:
-        print("图像层 OCR 复核（tesseract chi_sim+eng，只报告不判定）：印刷真值的值被认出的比例")
+        print("image-layer OCR recheck (tesseract chi_sim+eng, reported not judged): "
+              "share of printed-truth values recognized")
         for key, (hit, total) in sorted(ocr_stats.items()):
             print(f"  {key:<40} {hit}/{total} = {hit / max(total, 1):.0%}")
     return problems
@@ -234,9 +244,9 @@ def main() -> None:
     args = ap.parse_args()
     problems = sum(audit(pathlib.Path(m), ocr=args.ocr) for m in args.manifests)
     if problems:
-        print("可读性审计未通过。")
+        print("readability audit failed.")
         sys.exit(1)
-    print("可读性审计通过。")
+    print("readability audit passed.")
 
 
 if __name__ == "__main__":

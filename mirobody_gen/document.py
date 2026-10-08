@@ -1,34 +1,41 @@
 """The internal model of one file and its two truth layers (printed and semantic).
 
-一份文件的内部模型，以及它的两层真值。
+## Two truth layers (why this corpus can test both collect and translate)
 
-## 两层真值（这是整套语料能同时考 collect 与 translate 的原因）
+* **Printed truth** (`PrintedRow`): what this row prints on paper — name, value, unit, reference
+  range, abnormal flag. The five fields share their names and meaning with MedRepBench's objective
+  track (`item_name / item_value / item_unit / item_range / is_abnormal`). It answers "was this read
+  correctly?"
+* **Semantic truth** (`DocReading`): what this row **means** — indicator key, LOINC, clinical value,
+  UCUM unit, observation date. It answers "once read, does it land on the right standard code?"
 
-* **印刷真值**（`PrintedRow`）：纸上这一行印了什么——名称、值、单位、参考范围、异常标记，
-  五个字段与 MedRepBench 的客观赛道同名同义（`item_name / item_value / item_unit /
-  item_range / is_abnormal`）。它回答"读得对不对"。
-* **语义真值**（`DocReading`）：这一行**意味着**什么——指标键、LOINC、临床数值、UCUM 单位、
-  观测日期。它回答"读出来之后，落到标准编码上对不对"。
+The two layers are not one-to-one: a single `128/82` cell is one printed row but two readings
+(systolic, diastolic); a "previous result" column lets one printed row carry a reading dated earlier;
+one cell of a transposed export table is one reading. MedRepBench has only the first layer (printed
+content annotated row by row, OCR-assisted and human-checked; whether it was transcribed verbatim is
+not documented), so it cannot test the terminology layer — measured against its own real indicator
+names, mirobody's parser covers only about half of them (PAPER §9, item 8).
 
-两层之间不是一一对应：一格 `128/82` 是一个印刷行、两个读数（收缩压、舒张压）；
-一个"上次结果"列让一个印刷行带出一个更早日期的读数；转置导出表的一个单元格是一个读数。
-MedRepBench 只有第一层（逐行标注印刷内容，OCR 辅助构建、人工核对；是否逐字转写论文未写明），所以它考不了术语层——
-这一点用它自己的真实指标名量过：mirobody 的解析器只覆盖约一半（PAPER §9 第 8 条）。
+## Printed-truth conventions (the basis for scoring)
 
-## 印刷真值的约定（评分口径的根）
+* `item_name`: the text printed in the name cell, with line breaks removed. An abbreviation in its
+  own column is not folded in.
+* `item_value`: the value itself. **Excludes** a glued-on unit, arrow or parenthetical flag; keeps
+  comparison operators and the decimal comma as printed.
+* `item_unit`: the unit that applies to this row, wherever it's printed — unit column, value cell,
+  reference-range cell or header; `""` if printed nowhere.
+* `item_range`: the reference-range segment that applies to this subject, without a glued-on unit.
+  When printed as separate rows by sex, the subject's own sex is taken; the whole cell's original text
+  goes into `alternatives`.
+* `is_abnormal`: `"1"` abnormal, `"0"` normal, `""` **indeterminate**. Indeterminate = quantitative,
+  no printed reference range, and no printed flag. This matches MedRepBench's official prompt file's
+  definition of the field (`prompts/objective_extraction_prompt.md`, not the paper body); against its
+  real annotations, this rule matches annotator behavior better than "blank when there's no range"
+  (92.3% vs 88.2%; see the handoff evaluation plan, §S4).
 
-* `item_name`：名称列这一格印的字，去掉换行。缩写另起一列时不并入。
-* `item_value`：值本身。**不含**粘上去的单位、箭头、括号标记；保留比较符与逗号小数点（原样）。
-* `item_unit`：这一行适用的单位，无论印在单位列、值格、参考范围格还是表头；哪里都没印就是 `""`。
-* `item_range`：适用于这位受检者的那一段参考范围，不含粘上去的单位。按性别分行印的，
-  取本人性别那一段；整格原文放进 `alternatives`。
-* `is_abnormal`：`"1"` 异常、`"0"` 正常、`""` **无法判定**。无法判定 = 数值型、没印参考范围、
-  也没印标记。这与 MedRepBench 官方提示词文件（`prompts/objective_extraction_prompt.md`，不是论文正文）
-  对该字段的定义一致；在它的真实标注上，
-  这条规则比"没范围就空"更贴合标注习惯（92.3% vs 88.2%，见 docs/handoff 评测计划 §S4）。
-
-`readable=False` 的行进"必须弃权"集合，不进召回分母（docs/zh-CN/plan.md §3.6.2 第 1 条）。
-字段级不可读（参考范围被截断）记在 `unreadable_fields`，只把那个字段移出分母。
+Rows with `readable=False` join the "must abstain" set and are excluded from the recall denominator
+(docs/zh-CN/plan.md §3.6.2, item 1). A field that is unreadable on its own (e.g. a truncated reference
+range) is recorded in `unreadable_fields`, which drops only that field from the denominator.
 """
 
 from __future__ import annotations
@@ -51,9 +58,10 @@ def panel_title(group: str, en: bool) -> str:
     return pair[1 if en else 0] if pair else group
 
 
-#: 一个读数印在哪张表里，按这个顺序找它属于哪个医嘱组；表也按这个顺序排。
-#: 列的是每类表**最全**的那个医嘱组（肝功能 14 项那版），这样基础套餐的 6 项肝功能和深度套餐的
-#: 14 项都落在同一张"肝功能"表里；不在任何组里的按目录套餐名归表（`group_of`）。
+#: Which table a reading belongs to is found by walking this order; tables are laid out in this order
+#: too. Each entry is the **fullest** panel of its table (the 14-item liver-function version), so a
+#: basic package's 6 liver-function items and a deep package's 14 both land on the same "liver
+#: function" table; a key in no entry is tabled under its catalogue panel name (`group_of`).
 GROUP_ORDER = ["vitals", "body_composition", "cbc", "blood_type", "anemia", "coagulation_full", "liver_full",
                "renal", "renal_early", "electrolyte_full", "pancreas", "lipid_full", "glucose_full", "thyroid_full",
                "urinalysis", "stool", "inflammation", "immune", "hepatitis_full", "hp", "tumor_full", "cervical",
@@ -101,7 +109,7 @@ class DocReading:
 
 @dataclass
 class Cells:
-    """一行的印刷成分。表格序列化时按版式把它们拼进各列。"""
+    """One row's printed components. When a table is serialized, the layout assembles these into columns."""
     name: str
     value: str
     unit: str
@@ -112,10 +120,10 @@ class Cells:
     category: str = ""
     unit_at: str = "column"
     flag_at: str = "column"
-    unit_newline: bool = False          # 单位另起一行（unit.on_separate_line）
-    status: str = ""                    # normal / high / low：两列结果版式据此决定值印在哪一列
-    printed: int | None = None          # 指向 PrintedRow；None 表示干扰行
-    raw: dict[str, str] | None = None   # 干扰行直接给出各列文本
+    unit_newline: bool = False          # unit on its own line (unit.on_separate_line)
+    status: str = ""                    # normal / high / low: a two-column result layout uses this to pick the column
+    printed: int | None = None          # index into PrintedRow; None means a distractor row
+    raw: dict[str, str] | None = None   # a distractor row gives its column text directly
 
 
 @dataclass
@@ -144,7 +152,8 @@ class Doc:
     jitter: list[str] = field(default_factory=list)
     banner: bool = True
     kind: str = "lab_slip"              # lab_slip / export / checkup_book / outpatient_record / ecg_report / ultrasound_report / imaging_report / home_log
-    #: 检验表格之外的内容块（科室键值对、辅助检查叙述、总检），见 book.py。
+    #: Content blocks outside the lab tables (department key-value sections, auxiliary-exam
+    #: narratives, overall summary); see book.py.
     blocks: list = field(default_factory=list)
     cover: dict | None = None
     findings_truth: list[dict] = field(default_factory=list)
@@ -161,7 +170,7 @@ class Doc:
                     self.printed[r].hazards.append(name)
 
 
-# ── 印刷写法 ─────────────────────────────────────────────────────
+# ── Printed conventions ──
 def _paren(text: str, f: Family) -> str:
     return f"（{text}）" if f.paren_style == "fullwidth" else f"({text})"
 
@@ -172,7 +181,8 @@ def _variant_for(item: dict, script: str, rng: random.Random) -> str | None:
 
 
 def print_name(item: dict, f: Family, rng: random.Random) -> tuple[str, str]:
-    """(名称列文字, 缩写列文字)。同一机构同一指标总是同一个写法——一个 LIS 只有一份字典。"""
+    """(name-column text, abbreviation-column text). The same institution always writes the same
+    indicator the same way - one LIS has one dictionary."""
     sticky = random.Random(f"name:{f.family_id}:{item['key']}")
     if f.language == "en":
         native = item["en"]
@@ -209,7 +219,7 @@ def _fmt(x: float, decimals: int) -> str:
 
 
 def print_range(key: str, sex: str, f: Family, multiline: bool = False) -> tuple[str, list[str]]:
-    """(适用于本人的那段, 整格原文的备选写法)。"""
+    """(the segment that applies to this subject, the whole cell's original text as an alternative)."""
     item = spec.indicators()[key]
     ref = item["reference"]
     if not ref:
@@ -239,7 +249,8 @@ def print_flag(status: str, f: Family) -> str:
 
 def print_value(value: str, f: Family) -> str:
     """The value as this institution prints it: decimal comma where the family uses it, and qualitative
-    results in the document's language (an English report does not print 阳性)."""
+    results localized to the document's language (an English report prints "positive", not its Chinese
+    wording)."""
     value = _t().get("value_localization", {}).get(f.lang_group, {}).get(value, value)
     return value.replace(".", ",") if f.decimal_comma and re.fullmatch(r"-?\d+\.\d+", value) else value
 
@@ -248,7 +259,7 @@ def determinable(value_kind: str, printed_range: str, printed_flag: str) -> bool
     return value_kind in ("qualitative", "categorical") or bool(printed_range) or bool(printed_flag)
 
 
-# ── 日期 ────────────────────────────────────────────────────────
+# ── Dates ──
 def format_date(when: datetime, pattern: str) -> str:
     out = pattern
     for token, value in (("YYYY", f"{when.year:04d}"), ("YY", f"{when.year % 100:02d}"),
@@ -278,7 +289,7 @@ def print_dates(rng: random.Random, f: Family, collected: date) -> list[dict]:
     return out
 
 
-# ── 受检者字段 ───────────────────────────────────────────────────
+# ── Subject fields ──
 def subject_fields(rng: random.Random, person: Person, f: Family, collected: date,
                    department: str, specimen: str) -> list[tuple[str, str]]:
     fiction = spec.fiction()
@@ -302,16 +313,18 @@ def subject_fields(rng: random.Random, person: Person, f: Family, collected: dat
     return fields[:keep]
 
 
-# ── 文件拆分 ─────────────────────────────────────────────────────
+# ── File splitting ──
 def split_encounter(rng: random.Random, encounter: Encounter) -> list[list[str]]:
-    """一次就诊 → 若干张单子（每张单子是若干"组"）。体检拆得最细，复查常合在一张上。"""
+    """One visit -> several slips (each slip is one or more "groups"). Checkups split finest; follow-ups
+    are often combined onto a single slip."""
     groups: dict[str, list[Reading]] = {}
     for reading in encounter.readings:
         groups.setdefault(group_of(reading.key), []).append(reading)
     names = [g for g in GROUP_ORDER if g in groups] + (["other"] if "other" in groups else [])
     slips: list[list[str]] = []
     for g in names:
-        # 小组有一定概率并进上一张单子（"生化全项"、"血糖血脂"）
+        # A small group has some chance of merging into the previous slip (e.g. "comprehensive
+        # biochemistry", "glucose and lipids")
         if slips and len(groups[g]) <= 12 and rng.random() < 0.45 and g not in ("vitals", "ecg"):
             slips[-1].append(g)
         else:
@@ -322,10 +335,13 @@ def split_encounter(rng: random.Random, encounter: Encounter) -> list[list[str]]
 def build_doc(rng: random.Random, doc_id: str, person: Person, encounter: Encounter,
               groups: list[str], family: Family, previous: dict[str, tuple[str, str]],
               banner: bool = True, book: bool = False) -> Doc:
-    """把一张单子的读数按版式排成一份文件。`previous` 是 key → (上次的值, 上次日期)。
+    """Lay out one slip's readings into a file, following the given layout. `previous` is
+    key -> (last value, last date).
 
-    `book=True` 是体检报告：所有组各成一张带小标题的表，排成一份多页文件
-    （参考集里体检报告书是最大的一类文档）。完整的报告书（科室键值对、辅助检查叙述、总检）由 book.py 在这之上组装。"""
+    `book=True` builds a checkup report: each group becomes its own captioned table, laid out as one
+    multi-page file (checkup report books are the largest document class in the reference corpus). The
+    full report (department key-value sections, auxiliary-exam narratives, overall summary) is
+    assembled on top of this by book.py."""
     f = family
     en = f.language == "en"
     catalogue = spec.indicators()
@@ -378,7 +394,7 @@ def build_doc(rng: random.Random, doc_id: str, person: Person, encounter: Encoun
             flag = print_flag(status, f)
             group = group_of(reading.key)
 
-            # ── 印刷真值：只算纸上**看得见**的成分 ──
+            # ── Printed truth: count only what's actually visible on paper ──
             printed_range = range_text if has_ref_col else ""
             unit_visible = bool(unit) and (unit_at in ("value", "header") or
                                            (unit_at == "column" and "unit" in f.columns) or
@@ -386,7 +402,7 @@ def build_doc(rng: random.Random, doc_id: str, person: Person, encounter: Encoun
             printed_unit = unit if unit_visible else ""
             printed_flag = flag if (f.flag_at == "column" or (f.flag_at in ("glued", "spaced", "paren")
                                                               and status != "normal")) else ""
-            # 美式两列结果（In Range / Out Of Range）：值印在哪一列就是标记
+            # US-style two result columns (In Range / Out Of Range): which column the value prints in is the flag
             two_columns = "result_out" in f.columns
             flag_code = ("1" if status != "normal" else "0") \
                 if determinable(reading.value_kind, printed_range, printed_flag) or two_columns else ""
@@ -396,7 +412,7 @@ def build_doc(rng: random.Random, doc_id: str, person: Person, encounter: Encoun
                 is_abnormal=flag_code, table=t_index,
                 alternatives={"item_range": alts} if alts and printed_range else {}))
 
-            # ── 语义真值 ──
+            # ── Semantic truth ──
             for k in group_readings:
                 doc.printed[p_index].readings.append(len(doc.readings))
                 doc.readings.append(DocReading(

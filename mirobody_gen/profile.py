@@ -1,19 +1,22 @@
 """Profile layer: named findings per person, chief complaints per visit, check-up package choice.
 
-档案层：一个人有哪些检查所见、每次就诊说了什么主诉、体检选了哪档套餐。
+Truth comes from the generation process here too, same as the indicator layer (docs/zh-CN/plan.md
+section 3.3):
 
-真值来自生成过程，这一点与指标层一样（docs/zh-CN/plan.md §3.3）：
+* **Findings are drawn once per person and advance year by year.** A cyst, stone, nodule or cavity,
+  once it appears, stays (`sticky`) and only slowly grows or escalates in severity (fatty liver
+  mild -> moderate); a lifestyle intervention can walk fatty liver back down to mild. So one person's
+  check-up reports across several years tell **the same story**, not an independent draw each year —
+  when mirobody reconciles a longitudinal history, "last year's 6mm thyroid nodule is 7mm this year"
+  is a decidable question.
+* **Chief complaints follow the archetype and events.** Someone with diabetes reports thirst and
+  fatigue before starting metformin, occasional numbness after; the two weeks of a cold bring cough
+  and sore throat; a healthy person has no complaints at a check-up (a check-up report has no
+  complaints section at all). Every complaint's surface form is matched against mirobody's symptom
+  vocabulary in `resources/complaints.json`, so what code it should resolve to — or whether it should
+  be an abstention — is written into the truth.
 
-* **所见是按人抽一次、按年推进的。** 囊肿、结石、结节、龋齿一旦出现就一直在（`sticky`），
-  只会慢慢长大或升级（脂肪肝轻→中）；生活方式干预之后脂肪肝会退回轻度。于是同一个人
-  连续几年的体检报告是**同一条故事**，而不是每年独立抽一遍——mirobody 做纵向合并时，
-  "去年就有的甲状腺结节今年 6mm 变 7mm"是一个可判定的问题。
-* **主诉跟着原型与事件走。** 糖尿病人在开二甲双胍之前说口渴乏力，之后偶尔手麻；
-  感冒那两周说咳嗽咽痛；健康人体检时没有主诉（体检报告本来就没有主诉栏）。
-  每条主诉的表面都在 `resources/complaints.json` 里对照过 mirobody 的症状词表，
-  所以它该编成什么码、或者该弃权，是写在真值里的。
-
-发生率与 mirobody 无关，只求量级像人（spec 里写明了这一点）。
+Incidence rates have nothing to do with mirobody; they only aim for human-like magnitude, as noted in spec.
 """
 
 from __future__ import annotations
@@ -35,7 +38,7 @@ def _comp() -> dict:
     return spec.complaints()
 
 
-# ── 所见 ────────────────────────────────────────────────────────
+# ── findings ────────────────────────────────────────────────────
 def _eligible(fdef: dict, person: Person, age: int) -> bool:
     if fdef.get("sex") and fdef["sex"] != person.sex:
         return False
@@ -67,7 +70,8 @@ _TEETH = ["16", "26", "36", "46", "17", "27", "37", "47", "14", "24", "34", "44"
 
 
 def _params(fdef: dict, rng: random.Random) -> dict:
-    """所见文本里要填的槽：侧别、大小、回声、牙位……一次抽定，之后每年沿用（只让尺寸长）。"""
+    """Slots to fill into a finding's text: side, size, echogenicity, tooth position, etc. Drawn
+    once and reused every year after (only the size is allowed to grow)."""
     p: dict = {}
     side = rng.randrange(2)
     p["side"], p["side_en"] = _SIDES["zh"][side], _SIDES["en"][side]
@@ -93,7 +97,7 @@ def _params(fdef: dict, rng: random.Random) -> dict:
 
 
 class FindingState:
-    """一个人的一条所见：何时开始、参数、是否黏性。"""
+    """One of a person's findings: when it started, its parameters, whether it's sticky."""
 
     def __init__(self, fid: str, fdef: dict, since: date, params: dict, sticky: bool):
         self.fid, self.fdef, self.since, self.params, self.sticky = fid, fdef, since, params, sticky
@@ -104,12 +108,13 @@ class FindingState:
         years = max(0.0, (when - self.since).days / 365.25)
         params = dict(self.params)
         if "mm0" in params:
-            params["mm"] = int(round(params["mm0"] + 0.6 * years))     # 结节/囊肿每年长半毫米上下
+            params["mm"] = int(round(params["mm0"] + 0.6 * years))     # a nodule/cyst grows roughly half a millimetre a year
         severity = None
         if self.fdef.get("severity"):
             levels = self.fdef["severity"]
             idx = min(len(levels) - 1, int(years // 2))
-            # 生活方式干预之后退回最轻一档：这是归因问题的可判定答案之一
+            # Drops back to the mildest grade after a lifestyle intervention: one decidable answer
+            # to an attribution question.
             improved = any(e.event_type == "exercise_change" and e.start <= when
                            and (when - e.start).days > 120 for e in person.events)
             severity = levels[0] if improved else levels[idx]
@@ -119,7 +124,8 @@ class FindingState:
 
 
 def person_findings(person: Person, seed: int) -> list[FindingState]:
-    """按人抽一次。黏性所见抽中即有一个起始日期（观察窗前后都可能）；非黏性的每次就诊再抽。"""
+    """Drawn once per person. A sticky finding, once drawn, gets a start date (possibly before or
+    after the observation window); a non-sticky one is redrawn at every encounter."""
     rng = random.Random(f"findings:{seed}:{person.person_id}")
     start = person.weight_anchors[0][0]
     end = person.weight_anchors[-1][0]
@@ -127,7 +133,7 @@ def person_findings(person: Person, seed: int) -> list[FindingState]:
     out: list[FindingState] = []
     for fid, fdef in _narr()["findings"].items():
         if fdef.get("condition"):
-            continue                                            # 由数值决定（窦缓），不在这里抽
+            continue                                            # value-determined (e.g. sinus bradycardia), not drawn here
         if not _eligible(fdef, person, age_mid):
             continue
         rate = _rate(fdef, person, age_mid)
@@ -156,7 +162,7 @@ def _meets(values: dict[str, float], cond: dict) -> bool:
 
 def encounter_findings(person: Person, when: date, states: list[FindingState], package: str,
                        values: dict[str, float], seed: int) -> list[Finding]:
-    """这次体检报告上会出现的所见：在这档套餐的科室/辅助检查范围内，且这个人此时有。"""
+    """Findings that appear on this check-up report: within this package's sections/auxiliary exams, and present for this person now."""
     rng = random.Random(f"findings:{seed}:{person.person_id}:{when.isoformat()}")
     narr = _narr()
     pkg = narr["packages"][package]
@@ -176,12 +182,13 @@ def encounter_findings(person: Person, when: date, states: list[FindingState], p
         f = st.at(person, when, rng)
         if f is None:
             continue
-        # 同一条目只放一条所见（龋齿与缺牙不同时印在"牙齿"里，选先到的）
+        # Only one finding per item slot (a cavity and a missing tooth don't both print under
+        # "Teeth" at once — whichever is drawn first wins)
         if (where, item) in seen_slots and item is not None:
             continue
         seen_slots.add((where, item))
         out.append(f)
-    # 由数值决定的所见（心率 <60 → 窦性心动过缓）
+    # Findings determined by values (e.g. heart rate <60 -> sinus bradycardia)
     for fid, fdef in narr["findings"].items():
         cond = fdef.get("condition")
         if cond and fdef["where"][0] in scope and _meets(values, cond):
@@ -190,16 +197,17 @@ def encounter_findings(person: Person, when: date, states: list[FindingState], p
     return out
 
 
-# ── 套餐 ────────────────────────────────────────────────────────
+# ── check-up packages ──────────────────────────────────────────
 def choose_package(person: Person, kind: str, rng: random.Random) -> str:
-    """一个人的体检档次：机构类型的权重 × 年龄（年纪大的更常买深度套餐）× 原型（慢病人群偏标准）。"""
+    """A person's check-up tier: institution-type weights x age (older people buy deeper packages
+    more often) x archetype (chronic-disease people skew standard)."""
     weights = dict(_narr()["package_weights"].get(kind, _narr()["package_weights"]["hospital"]))
     age = person.age_at(person.weight_anchors[0][0])
     if age >= 50:
         weights["premium"] *= 1.8
         weights["basic"] *= 0.7
     if age >= 65:
-        # 老年人健康体检（社区卫生服务中心的免费项目）：项目少、每年一次
+        # Free senior health check-ups offered by community health centres: fewer items, once a year
         weights["senior"] = weights.get("senior", 0.0) + 0.6
     if person.archetype != "healthy":
         weights["standard"] *= 1.3
@@ -207,7 +215,7 @@ def choose_package(person: Person, kind: str, rng: random.Random) -> str:
     return rng.choices(names, weights=[weights[n] for n in names])[0]
 
 
-# ── 主诉 ────────────────────────────────────────────────────────
+# ── chief complaints ───────────────────────────────────────────
 def complaint_surface(symptom_id: str, lang: str, rng: random.Random) -> Complaint:
     comp = _comp()
     if symptom_id in comp["symptoms"]:
@@ -220,7 +228,8 @@ def complaint_surface(symptom_id: str, lang: str, rng: random.Random) -> Complai
         if pool:
             text = rng.choice(pool)
             return Complaint(text=text, symptom_id=symptom_id, icpc3=s["icpc3"], expect="coded")
-        # 英文没有确认过的表面：用中文词表的英文优选词缺失的情况——退回 no-match 的自造表面
+        # No confirmed English surface form: the Chinese vocabulary entry has no preferred English
+        # wording either — fall back to a made-up no-match surface form.
         return Complaint(text=symptom_id.replace("_", " "), symptom_id=symptom_id, icpc3=None, expect="no-match")
     f = comp["frontier"][symptom_id]
     pool = f["zh"] if lang == "zh" else (f["en"] or f["zh"])
@@ -228,7 +237,8 @@ def complaint_surface(symptom_id: str, lang: str, rng: random.Random) -> Complai
 
 
 def complaints_for(person: Person, when: date, exam_type: str, lang: str, seed: int) -> list[Complaint]:
-    """这次就诊的主诉。体检没有主诉；门诊/复查按原型与事件抽 0–2 条。"""
+    """This encounter's chief complaints. A check-up has none; a clinic/follow-up visit draws 0-2
+    based on archetype and events."""
     if exam_type == "routine":
         return []
     rng = random.Random(f"cc:{seed}:{person.person_id}:{when.isoformat()}")
@@ -246,8 +256,9 @@ def complaints_for(person: Person, when: date, exam_type: str, lang: str, seed: 
         return []
     n = 1 if rng.random() < 0.6 else 2
     picked = rng.sample(candidates, min(n, len(set(candidates))))
-    # 主诉措辞是文档措辞层（spec.doc_lang）；症状词表的 zh/en 选择在
-    # complaint_surface 里按 lang 直判，ja 走 en 池——两层一致。
+    # Complaint wording is the document layer (spec.doc_lang); the symptom vocabulary's zh/en choice
+    # is decided directly by lang in complaint_surface, with ja routed to the en pool — the two
+    # layers agree.
     durations = comp["phrasing"][_dl(lang)]["durations"]
     out = []
     for i, sid in enumerate(dict.fromkeys(picked)):

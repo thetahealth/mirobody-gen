@@ -4,8 +4,10 @@ A request carries one template with its slots; a candidate is accepted only if e
 The rules are deliberately mechanical so that a rejected candidate can be explained in one line and the
 same check can run in a test without a model.
 
-一条模板的同义改写允许改句式、语序、连接词，不允许改槽位、数字、锁定词、语言、长度量级，
-不允许出现机构名、人名或编号形状，也不允许与已接受的候选重复。
+A paraphrase of a template may change sentence structure, word order and connectives; it may not
+change slots, numbers, locked terms, language or length order of magnitude; it may not introduce an
+institution name, a person's name or an identifier shape; and it may not duplicate a candidate already
+accepted.
 """
 
 from __future__ import annotations
@@ -25,10 +27,12 @@ LATIN_RUN = re.compile(r"(?:[A-Za-z]{2,}\s+){3,}[A-Za-z]{2,}")      # four or mo
 STRAY_BRACE = re.compile(r"[{}]")
 UNITS = ("mmHg", "mmol/L", "μmol/L", "umol/L", "g/L", "U/L", "ng/mL", "mm", "cm", "kg", "‰", "%")
 #: Registers whose text is a coded surface, a diagnosis line, or a chief complaint whose every non-slot
-#: word carries meaning (反复 / 间断 / 伴 / 加重): never paraphrased.
+#: word carries meaning (e.g. qualifiers for recurrence, intermittency, an accompanying symptom, or
+#: worsening): never paraphrased.
 LOCKED_REGISTERS = ("impression", "summary", "surface", "diagnosis", "chief_complaint")
-#: ASCII punctuation between two CJK characters is an artefact ("评估-并安排"), never wording.
-CJK_ASCII_PUNCT = re.compile(r"[\u4e00-\u9fff][-_*#|^\\<>=+][\u4e00-\u9fff]")   # "/" and "~" are legitimate (龋齿/牙结石, 3~5)
+#: ASCII punctuation glued between two CJK characters is an artefact (a stray hyphen mid-phrase), never
+#: wording.
+CJK_ASCII_PUNCT = re.compile(r"[\u4e00-\u9fff][-_*#|^\\<>=+][\u4e00-\u9fff]")   # "/" and "~" are legitimate in CJK text: item lists and numeric ranges
 MIN_LENGTH_RATIO, MAX_LENGTH_RATIO = 0.6, 1.6
 MIN_NOVELTY = 0.15
 
@@ -113,7 +117,7 @@ def check(req: Request, candidate: str, accepted: list[str] = ()) -> list[str]:
     if missing:
         reasons.append(f"locked terms missing: {missing}")
     # 3b. in English a sentence-initial slot stays sentence-initial (its value is capitalised, "{s_cap}");
-    #     Chinese has no capitalisation, so "{side}肾…" may move freely
+    #     Chinese has no capitalisation, so a slot starting a Chinese template may move freely
     first = SLOT.match(req.template.strip())
     if first and (req.lang == "en" or first.group(1).endswith("_cap")) and not text.startswith("{" + first.group(1) + "}"):
         reasons.append(f"sentence-initial slot {{{first.group(1)}}} moved")

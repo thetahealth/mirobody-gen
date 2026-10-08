@@ -1,15 +1,14 @@
 """Build a corpus: the truth layer (manifest.jsonl) and, with --render, the files (files.jsonl).
 
-生成语料：真值层（manifest.jsonl），加 `--render` 渲染成文件（files.jsonl）。
-
     mirobody-gen build --seed 7 --out out/p3
     mirobody-gen build --seed 7 --people 8 --out out/smoke --stats
     mirobody-gen build --seed 7 --out out/p3 --render --pairs 12
 
-同 seed 必然产出同一批人、同一条时间线、同一组数值。**这是可重放的全部含义**：
-`out/` 随时可以删，判据是"生成器 + seed"，不是那堆字节。
+The same seed always yields the same people, timeline and values: that is the whole meaning of
+"reproducible" here. `out/` can be deleted at any time; the generator plus the seed is the source of
+truth, not the bytes on disk.
 
-生成完请立刻跑两道闸门——它们不是可选的收尾动作，是这套语料能不能用的判据：
+Run both gates right after a build; they are not optional, they decide whether the corpus is usable:
 
     mirobody-gen audit-clinical out/p3/manifest.jsonl
     mirobody-gen audit-privacy --targets mirobody_gen/resources out/p3
@@ -22,7 +21,6 @@ import collections
 import pathlib
 
 from . import spec, manifest, person as person_mod
-
 
 
 def main() -> None:
@@ -58,22 +56,23 @@ def main() -> None:
 
     out_dir = pathlib.Path(args.out)
     n_enc, n_rows = manifest.write(out_dir, people, encounters)
-    print(f"{len(people)} 人 · {n_enc} 次就诊 · {n_rows} 行读数 → {out_dir}")
+    print(f"{len(people)} people · {n_enc} encounters · {n_rows} readings → {out_dir}")
 
-    # 同一个人的另外三条来源——设备批次（POST /api/data）、日记句子、基因导出文件。
+    # The same people's other three sources: device batches (POST /api/data), diary sentences,
+    # genomics exports.
     from . import devices, genomics, journal
 
     langs = {p.person_id: person_mod.person_lang(args.seed, p.person_id) for p in people}
     n_dev = devices.write_all(out_dir, people, args.seed, langs)
     n_journal = journal.write_all(out_dir, people, args.seed, langs)
     n_gen = genomics.write_all(out_dir, people, args.seed, langs)
-    print(f"设备记录 {n_dev} 条（devices.jsonl）· 日记 {n_journal} 条（journal.jsonl）· 基因文件 {n_gen} 份（genomics.jsonl）")
+    print(f"devices {n_dev} (devices.jsonl) · journal {n_journal} (journal.jsonl) · genomics {n_gen} (genomics.jsonl)")
 
     # Vendor-cloud payloads: the device series above in Garmin, Oura, WHOOP and HealthKit shapes.
     from . import vendor_signals
 
     n_vsig = vendor_signals.write_all(out_dir, people, args.seed, langs)
-    print(f"厂商 push {n_vsig} 份（vendor_signals.jsonl）")
+    print(f"vendor pushes {n_vsig} (vendor_signals.jsonl)")
 
     if args.stats:
         _stats(people, encounters)
@@ -85,15 +84,15 @@ def main() -> None:
             records = corpus.render_corpus(args.seed, people, encounters, out_dir, banner=not args.no_banner,
                                            handwriting=args.handwriting)
             by_fmt = collections.Counter(r["format"] for r in records)
-            print(f"渲染 {len(records)} 份文件 {dict(by_fmt)} → {out_dir / 'files'}")
+            print(f"rendered {len(records)} files {dict(by_fmt)} → {out_dir / 'files'}")
             if args.handwriting:
                 tiers = collections.Counter((r["handwriting"]["tier"], r["language"]) for r in records
                                             if "handwriting" in r)
-                print(f"手写 {sum(tiers.values())} 份 {dict(sorted(tiers.items()))}")
+                print(f"handwritten {sum(tiers.values())} {dict(sorted(tiers.items()))}")
         if args.pairs:
             records = pairs.render_pairs(args.seed, people, encounters, out_dir, args.pairs,
                                          banner=not args.no_banner)
-            print(f"最小对照对 {args.pairs} 组，{len(records)} 份文件 → {out_dir / 'pairs'}")
+            print(f"{args.pairs} minimal-contrast pair groups, {len(records)} files → {out_dir / 'pairs'}")
 
 
 def _stats(people, encounters) -> None:
@@ -105,31 +104,33 @@ def _stats(people, encounters) -> None:
     def p(q: float) -> int:
         return rows_per[min(int(len(rows_per) * q), len(rows_per) - 1)]
 
-    print(f"\n每次就诊的行数  p25={p(.25)} p50={p(.5)} p75={p(.75)} p95={p(.95)} "
+    print(f"\nreadings per encounter  p25={p(.25)} p50={p(.5)} p75={p(.75)} p95={p(.95)} "
           f"max={rows_per[-1]}")
-    print("（实测真实语料的每文档行数：p25=1 p50=6 p75=15 p95=36 max=86。"
-          "一次就诊会拆成多份文件，所以这里偏大是正常的，拆成文件后再对）")
+    print("(reference corpus, per document: p25=1 p50=6 p75=15 p95=36 max=86. "
+          "one encounter splits into several files here, so these run higher until compared per file)")
 
     per_person = collections.Counter(len(v) for v in encounters.values())
-    print(f"每人就诊次数  {dict(sorted(per_person.items()))}")
+    print(f"encounters per person  {dict(sorted(per_person.items()))}")
 
-    # 异常率：这是能与真实语料直接对照的量，也是"队列按患病率配比"是否奏效的检验。
+    # Abnormal rate: the one quantity directly comparable to the reference corpus, and the check
+    # that prevalence-weighted cohort sampling is actually working.
     abnormal: dict[str, list[int]] = collections.defaultdict(list)
     for items in encounters.values():
         for encounter in items:
             for reading in encounter.readings:
                 abnormal[reading.key].append(reading.status != "normal")
-    print("\n异常率（生成 vs 真实语料实测）：")
+    print("\nabnormal rate (generated vs. reference corpus):")
     observed = {"chol": 0.274, "tg": 0.31, "ldl": 0.205, "ua": 0.143, "hgb": 0.009,
                 "glu": 0.026, "alt": 0.021, "crea": 0.037, "hba1c": 0.03, "plt": 0.0}
     for key, truth in observed.items():
         flags = abnormal.get(key) or []
         if flags:
-            print(f"  {spec.indicators()[key]['zh']:<12} 生成 {sum(flags)/len(flags):>6.1%}"
-                  f"   真实 {truth:>6.1%}   n={len(flags)}")
+            print(f"  {spec.indicators()[key]['zh']:<12} generated {sum(flags)/len(flags):>6.1%}"
+                  f"   reference {truth:>6.1%}   n={len(flags)}")
 
-    print("\n注：真实语料那一列来自**住院与门诊混合**的人群，异常率天然偏高；"
-          "我们的队列是按人群患病率配的。两者不该一致，但数量级差太远就说明配比错了。")
+    print("\nnote: the reference column is a hospital-plus-clinic population, so its abnormal rate runs "
+          "naturally high; our cohort is weighted by population prevalence. They should not match, but an "
+          "order-of-magnitude gap means the weighting is wrong.")
 
 
 if __name__ == "__main__":

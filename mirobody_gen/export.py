@@ -1,14 +1,14 @@
 """Transposed export tables: one person's results over the years, indicators in columns, one row per visit.
 
-转置导出表：一个人多年的检验结果，指标在列上，每行是一次就诊。
+A large family in the real corpus (column group `meta_checkup / meta_report_time / meta_facility /
+meta_filename / indicators...`, dozens of files in total), produced by a health app's "export my
+records" feature. It tests what lab slips cannot:
 
-真实语料里这是一类大家族（列组 `体检标记 / 报告时间 / 机构名称 / 文件名 / 指标…`，
-合计几十份），来自健康类应用的"导出我的档案"。它考的东西检验单考不到：
-
-* **一份文件、多个日期**。mirobody 的 `resolve_report_date` 给整份文件一个日期——
-  demo/README 里实测过"7 行进、1 行出"。这里每个读数的 `observed` 是它那一行的报告时间；
-* **指标在列上**：按行读的抽取器会把整行当成一个指标；
-* **没有参考范围、没有标记**：`is_abnormal` 对数值项一律是无法判定（`""`）。
+* **one file, many dates**. mirobody's `resolve_report_date` assigns the whole file a single
+  date — the demo/README measured "7 rows in, 1 row out". Here each reading's `observed` is its
+  own row's report time;
+* **indicators in columns**: a row-based extractor will read an entire row as one indicator;
+* **no reference range, no flag**: `is_abnormal` is always indeterminate (`""`) for numeric items.
 """
 
 from __future__ import annotations
@@ -44,7 +44,8 @@ def build_export(rng: random.Random, doc_id: str, person: Person, all_encounters
     en = f.language == "en"
     catalogue = spec.indicators()
     order = {k: i for i, k in enumerate(catalogue)}
-    # 真实导出表的指标列在 4–37 之间（spec 的列组），只收体检，每份表抽一个固定子集。
+    # Real export tables have 4-37 indicator columns (per spec's column groups); only checkups are
+    # included, and each table draws a fixed subset.
     encounters = [e for e in all_encounters if e.exam_type == "routine"]
     facilities = [fa for e, fa in zip(all_encounters, facilities) if e.exam_type == "routine"]
     filenames = [fn for e, fn in zip(all_encounters, filenames) if e.exam_type == "routine"]

@@ -1,22 +1,27 @@
-"""Shape fidelity report: synthetic corpus versus reference-set aggregates, item by item.
-
-形态保真度：合成语料 vs 真实语料，逐项对账（docs/zh-CN/paper.md E1，docs/zh-CN/plan.md §5）。
+"""Shape fidelity report: synthetic corpus versus reference-set aggregates, item by item
+(docs/zh-CN/paper.md E1, docs/zh-CN/plan.md section 5).
 
     mirobody-gen audit-fidelity out/p2/files.jsonl
     mirobody-gen audit-fidelity out/p2/files.jsonl --write out/p2/FIDELITY.md
 
-真实侧只读聚合量：`resources/*.json`（过闸后的分布）与 `resources/numbers.json`（版式指纹）。
-这里**只报告，不调参**——对不上时要改的是产生分布的机制（机构数、抖动率、版式参数的来源），
-不是回头去拧一个让数字好看的系数（docs/zh-CN/plan.md 旧教训第 5 条）。
+The reference side is read only as aggregates: `resources/*.json` (post-gate distributions) and
+`resources/numbers.json` (layout fingerprint). This module **only reports, it never tunes** -- a
+mismatch means fixing the mechanism that produces the distribution (institution count, jitter rate,
+where layout parameters come from), not dialing a coefficient until the number looks right
+(docs/zh-CN/plan.md, old lesson #5).
 
-有几项两边量的**不是同一个东西**，表里照实标出：
+A few rows compare quantities that **aren't quite the same thing**, flagged as such in the table:
 
-* 陷阱：真实侧是分析模型在 627 份文档上**注意到并写下来**的陷阱（自由文本聚类），
-  合成侧是我们**逐条认定**的（版式与内容上确实存在的每一类）。后者必然更全，
-  每份文档的陷阱数会系统性偏高——这是量法不同，不是生成器太难。
-  可比的是**各类的相对频率**（排序相关），不是绝对条数。
-* 行数：真实侧是分析器看到的表格行，含受检者字段行等非读数行；合成侧是印刷真值行。
-* 通道类陷阱（OCR 认错字等）文本层不造，对账时两边都剔除。
+* Hazards: the reference side is what the analysis model **noticed and wrote down** across 627
+  documents (free-text clustering); the synthetic side is what we **determined exhaustively** (every
+  class that is actually present in the layout or content). The latter is necessarily more complete, so
+  the per-document hazard count is systematically higher on the synthetic side -- that's a difference in
+  measurement method, not the generator overdoing it. What's comparable is the **relative frequency of
+  each class** (rank correlation), not the absolute counts.
+* Row counts: the reference side counts table rows as seen by the analyzer, including non-reading rows
+  such as subject-info fields; the synthetic side counts printed truth rows.
+* Channel-layer hazards (e.g. OCR misreads) aren't produced at the text layer, and are excluded from
+  both sides of the comparison.
 """
 
 from __future__ import annotations
@@ -29,7 +34,8 @@ import pathlib
 
 PACKAGE = pathlib.Path(__file__).resolve().parents[1]
 RESOURCES = PACKAGE / "resources"
-#: 源码检出的根目录。只有需要检出才有的东西（参考集、缓存、产物）才用它；安装后的包里没有这些。
+#: Root of the source checkout. Used only for things that exist only in a checkout (reference set,
+#: cache, build output) -- an installed package has none of these.
 REPO = PACKAGE.parent
 
 from mirobody_gen.audit import fingerprint as fp  # noqa: E402
@@ -40,7 +46,7 @@ def _spec(name: str) -> dict:
 
 
 def js_divergence(p: dict, q: dict) -> float:
-    """Jensen–Shannon 散度（以 2 为底，取值 0–1）。输入是未归一化的计数。"""
+    """Jensen-Shannon divergence (base 2, range 0-1). Input is unnormalized counts."""
     keys = set(p) | set(q)
     sp, sq = sum(p.values()) or 1, sum(q.values()) or 1
     out = 0.0
@@ -55,7 +61,8 @@ def js_divergence(p: dict, q: dict) -> float:
 
 
 def ks_discrete(sample: list[int], reference: dict[int, int]) -> tuple[float, float]:
-    """离散分布的 KS 统计量 D 与渐近 p 值（Kolmogorov 分布，保守）。"""
+    """KS statistic D and asymptotic p-value for a discrete distribution (Kolmogorov distribution,
+    conservative)."""
     n = len(sample)
     m = sum(reference.values())
     support = sorted(set(sample) | set(reference))
@@ -102,10 +109,13 @@ def report(records: list[dict]) -> list[str]:
     hz = _spec("hazards.json")
     numbers = json.loads((RESOURCES / "numbers.json").read_text(encoding="utf-8"))
     n = len(records)
-    out = [f"# 形态保真度（合成 {n} 份 vs 真实 {numbers['fingerprint']['primary']['documents']} 份）", ""]
+    out = [f"# Shape fidelity (synthetic {n} documents vs reference "
+           f"{numbers['fingerprint']['primary']['documents']} documents)", ""]
 
-    # ── 版式指纹：同一个定义 ──
-    out += ["## 版式指纹", "", "| 粒度 | 真实 种数比 | 合成 种数比 | 真实 单次占文档 | 合成 单次占文档 | 真实 最大家族 | 合成 最大家族 |",
+    # ── Layout fingerprint: same definition on both sides ──
+    out += ["## Layout fingerprint", "",
+            "| granularity | real ratio | synthetic ratio | real singleton share | "
+            "synthetic singleton share | real largest family | synthetic largest family |",
             "|---|---|---|---|---|---|---|"]
     summaries = [r["layout"] for r in records]
     for name, fn in fp.SENSITIVITY.items():
@@ -114,79 +124,88 @@ def report(records: list[dict]) -> list[str]:
         out.append(f"| {name} | {real['ratio']:.3f} | {syn['ratio']:.3f} | "
                    f"{real['singleton_share_of_documents']:.1%} | {syn['singleton_share_of_documents']:.1%} | "
                    f"{real['largest_families']} | {syn['largest_families']} |")
-    # 纵向队列的结构性重复：同一个人每年去同一家体检中心，版式本来就会重复。
-    # 真实语料是一款应用的用户上传，以单次上传为主。把"同人同机构"的重复去掉再比一次，
-    # 两者的差就是纵向结构贡献的那一部分，而不是版式机制本身的不足。
+    # A longitudinal cohort has structural repetition: the same person visits the same screening center
+    # every year, so layouts repeat by construction. The reference corpus is mostly single uploads from
+    # an app's users. Comparing again after deduplicating "same person, same institution" isolates how
+    # much of the gap is contributed by longitudinal structure rather than a shortfall in the layout
+    # mechanism itself.
     first: dict[tuple, dict] = {}
     for r in records:
         first.setdefault((r["person_id"], r["family"]), r["layout"])
     dedup = fp.summarize(list(first.values()))
     real = numbers["fingerprint"]["primary"]
-    out.append(f"| primary（去掉同人同机构重复，{dedup['documents']} 份） | {real['ratio']:.3f} | "
-               f"{dedup['ratio']:.3f} | {real['singleton_share_of_documents']:.1%} | "
+    out.append(f"| primary (same person/institution dedup'd, {dedup['documents']} docs) | "
+               f"{real['ratio']:.3f} | {dedup['ratio']:.3f} | {real['singleton_share_of_documents']:.1%} | "
                f"{dedup['singleton_share_of_documents']:.1%} | {real['largest_families']} | "
                f"{dedup['largest_families']} |")
 
-    # ── 陷阱：各类相对频率 ──
+    # ── Hazards: relative frequency by class ──
     classes = [c for c in hz["classes"] if c["generate"]]
-    from mirobody_gen.hazards import STATUS  # 只为知道哪些是通道类
+    from mirobody_gen.hazards import STATUS  # only to tell which classes are channel-layer
+
     comparable = [c for c in classes if STATUS.get(c["name"], ("?",))[0] in ("layout", "content", "injected")]
     syn_rate = collections.Counter(h["name"] for r in records for h in r["hazards"])
     xs = [c["document_rate"] for c in comparable]
     ys = [syn_rate.get(c["name"], 0) / n for c in comparable]
     rho = spearman(xs, ys)
-    out += ["", "## 陷阱（只比文本层可造的类）", "",
-            f"可比类 {len(comparable)} 个；各类文档率的 Spearman ρ = **{rho:.2f}**。",
-            "真实侧是分析模型注意到的，合成侧是逐条认定的，绝对值不可直接比（见模块说明）。", "",
-            "| 类 | 真实文档率 | 合成文档率 | 来源 |", "|---|---:|---:|---|"]
+    out += ["", "## Hazards (classes the text layer can produce only)", "",
+            f"{len(comparable)} comparable classes; Spearman rho of per-class document rate = **{rho:.2f}**.",
+            "The reference side is what the analysis model noticed; the synthetic side is determined "
+            "exhaustively. Absolute values aren't directly comparable (see the module docstring).", "",
+            "| class | real document rate | synthetic document rate | layer |", "|---|---:|---:|---|"]
     for c in sorted(comparable, key=lambda c: -c["document_rate"]):
         out.append(f"| {c['name']} | {c['document_rate']:.1%} | {syn_rate.get(c['name'], 0) / n:.1%} | "
                    f"{STATUS[c['name']][0]} |")
     never = [c["name"] for c in comparable if not syn_rate.get(c["name"])]
     if never:
-        out.append(f"\n本批语料里一次都没出现的可造类：{', '.join(never)}")
+        out.append(f"\nComparable classes that never occurred in this batch: {', '.join(never)}")
 
     counts = [r["hazard_count"] for r in records]
     real_hist = {int(k): v for k, v in hz["per_document_count"]["histogram"].items()}
     d, p = ks_discrete(counts, real_hist)
-    out += ["", "## 每份文件的陷阱类数", "",
-            f"合成 p50={pct(counts, .5)} p75={pct(counts, .75)} p95={pct(counts, .95)} max={max(counts)} · "
-            f"真实 p50={hz['per_document_count']['p50']} p75={hz['per_document_count']['p75']} "
+    out += ["", "## Hazard classes per document", "",
+            f"synthetic p50={pct(counts, .5)} p75={pct(counts, .75)} p95={pct(counts, .95)} max={max(counts)} · "
+            f"real p50={hz['per_document_count']['p50']} p75={hz['per_document_count']['p75']} "
             f"p95={hz['per_document_count']['p95']} max={hz['per_document_count']['max']}",
-            f"KS D={d:.3f}（p={p:.3g}）。stress 分层（超过真实 p95）{sum(r['split'] == 'stress' for r in records)} 份。"]
+            f"KS D={d:.3f} (p={p:.3g}). stress tier (above the real p95): "
+            f"{sum(r['split'] == 'stress' for r in records)} docs."]
 
-    # ── 行数 ──
+    # ── Row counts ──
     rows = [len(r["printed_rows"]) for r in records]
     real_rows = {int(k): v for k, v in numbers["rows_per_document"]}
     d, p = ks_discrete(rows, real_rows)
     rr = [k for k, v in numbers["rows_per_document"] for _ in range(v)]
-    out += ["", "## 每份文件的行数", "",
-            f"合成 p25={pct(rows, .25)} p50={pct(rows, .5)} p75={pct(rows, .75)} p95={pct(rows, .95)} max={max(rows)} · "
-            f"真实 p25={pct(rr, .25)} p50={pct(rr, .5)} p75={pct(rr, .75)} p95={pct(rr, .95)} max={max(rr)}",
-            f"KS D={d:.3f}（p={p:.3g}）。真实侧含 22.5% 零行文档（纯叙述报告，本层不造），"
-            "且分析器对 62 份长文档做过截断——体检报告书的行数两边不可比。按类型分："]
+    out += ["", "## Rows per document", "",
+            f"synthetic p25={pct(rows, .25)} p50={pct(rows, .5)} p75={pct(rows, .75)} p95={pct(rows, .95)} "
+            f"max={max(rows)} · real p25={pct(rr, .25)} p50={pct(rr, .5)} p75={pct(rr, .75)} "
+            f"p95={pct(rr, .95)} max={max(rr)}",
+            f"KS D={d:.3f} (p={p:.3g}). The reference side has 22.5% zero-row documents (narrative-only "
+            "reports, not produced at this layer), and the analyzer truncated 62 long documents -- "
+            "comprehensive health-exam report row counts aren't comparable between the two sides. By kind:"]
     for kind in sorted({r["kind"] for r in records}):
         ks = [len(r["printed_rows"]) for r in records if r["kind"] == kind]
-        out.append(f"- {kind}（{len(ks)} 份）：p25={pct(ks, .25)} p50={pct(ks, .5)} p75={pct(ks, .75)} "
+        out.append(f"- {kind} ({len(ks)} docs): p25={pct(ks, .25)} p50={pct(ks, .5)} p75={pct(ks, .75)} "
                    f"p95={pct(ks, .95)} max={max(ks)}")
 
-    # ── 方言与单位位置 ──
+    # ── Wording and unit placement ──
     syn_ref = collections.Counter(t for r in records for t in set(r["layout"]["reference_templates"]))
     real_ref = {x["value"]: x["documents"] for x in layout["reference_dialects"]}
     syn_flag = collections.Counter(t for r in records for t in set(r["layout"]["flag_markers"]))
     real_flag = {x["value"]: x["documents"] for x in layout["flag_markers"]}
-    out += ["", "## 写法分布（按文档计，JS 散度，0 = 相同，1 = 不相交）", "",
-            f"- 参考范围写法：JS = {js_divergence(syn_ref, real_ref):.3f}（合成 {len(syn_ref)} 种 / 真实 {len(real_ref)} 种）",
-            f"- 异常标记写法：JS = {js_divergence(syn_flag, real_flag):.3f}（合成 {len(syn_flag)} 种 / 真实 {len(real_flag)} 种）"]
+    out += ["", "## Wording distribution (per document, JS divergence: 0 = identical, 1 = disjoint)", "",
+            f"- reference-range wording: JS = {js_divergence(syn_ref, real_ref):.3f} "
+            f"(synthetic {len(syn_ref)} forms / real {len(real_ref)} forms)",
+            f"- flag wording: JS = {js_divergence(syn_flag, real_flag):.3f} "
+            f"(synthetic {len(syn_flag)} forms / real {len(real_flag)} forms)"]
 
-    # ── 语言与格式 ──
+    # ── Composition ──
     langs = collections.Counter(r["language"] for r in records)
     fmts = collections.Counter(r["format"] for r in records)
     kinds = collections.Counter(r["kind"] for r in records)
-    out += ["", "## 构成", "",
-            f"- 主语言：{dict(langs)}（约定：中英各半，按文档主语言计）",
-            f"- 格式：{dict(fmts)}（真实文本来源：OCR 377 / xlsx 157 / 文本层 pdf 86）",
-            f"- 类型：{dict(kinds)}"]
+    out += ["", "## Composition", "",
+            f"- primary language: {dict(langs)} (target: half Chinese, half English, by document)",
+            f"- format: {dict(fmts)} (real-corpus text source: OCR 377 / xlsx 157 / text-layer PDF 86)",
+            f"- kind: {dict(kinds)}"]
     return out
 
 

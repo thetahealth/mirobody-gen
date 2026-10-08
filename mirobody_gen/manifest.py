@@ -1,19 +1,21 @@
 """Write the truth manifest (manifest.jsonl, people.jsonl) in the contract the clinical audit checks.
 
-真值清单。契约由 `audit/clinical.py` 定死，这里只负责填。
+The contract is fixed by `audit/clinical.py`; this module only fills it in.
 
-一条记录 = 一次就诊。渲染成文件之后（`corpus.py`），一次就诊会拆成一到几份文件，
-每份文件一条记录、带自己的版式指纹与注入的陷阱——**记录的形状不变**，
-只是 `file` 从占位符变成真实路径、`rows` 变成那份文件上真正印出来的子集。
+One record = one encounter. After rendering to files (`corpus.py`), an encounter splits into one or
+several files, each with its own record, layout fingerprint and injected hazards — **the record's
+shape never changes**, only `file` turns from a placeholder into a real path and `rows` narrows to
+the subset actually printed on that file.
 
-字段分两类：
-* 与 mirobody 提取契约同名的（`original_indicator / value / unit / reference_range /
-  status / detection_method`）——评分时逐字段比对；
-* 评分才用、不印在纸上的（`key / canonical_value / loinc / ref_low / ref_high /
-  expect_resolvable / readable`）。
+Fields fall into two groups:
+* named the same as mirobody's extraction contract (`original_indicator / value / unit /
+  reference_range / status / detection_method`) — compared field by field when scoring;
+* scoring-only, never printed (`key / canonical_value / loinc / ref_low / ref_high /
+  expect_resolvable / readable`).
 
-`readable` 是召回分母的开关：注入的陷阱让某一行读不出来时，它移出分母、
-进入"必须弃权"集合。**一条读不出来还要求答对的题，测的是幻觉倾向，不是提取能力。**
+`readable` gates the recall denominator: when an injected hazard makes a row unreadable, it drops
+out of the denominator and into the "must abstain" set. **Scoring a row that cannot be read measures
+a tendency to hallucinate, not extraction ability.**
 """
 
 from __future__ import annotations
@@ -27,18 +29,22 @@ from .model import Encounter, Person
 
 
 def _conditions_of(person: Person, encounters: list[Encounter] | None = None) -> list[dict]:
-    """这个人的诊断集合 = 原型自带的 + **由数值推出来的**。
+    """This person's diagnosis set = the archetype's own + **anything inferred from the values**.
 
-    第二项是一个反馈回路：一个人的血压连续三次 ≥140/90，纸面上他就是高血压病人，
-    不管队列当初把他归成什么原型。没有这一环，生成的档案里会出现"值达到诊断标准
-    却没有诊断"的病历——审计会（正确地）判它漏诊。
+    The second part is a feedback loop: three consecutive blood-pressure readings >=140/90 make
+    someone hypertensive on paper, whatever archetype the cohort originally assigned them. Without
+    this loop, a generated record could show values that meet a diagnostic threshold with no
+    matching diagnosis — which a clinical audit would (correctly) flag as a missed diagnosis.
 
-    实测：ESL-Bench 公开数据的 20 个用户里，值连续达标 7 次、本人慢病列表里
-    没有对应诊断 2 次（都是高血压）。他们的管线是自上而下的（画像 → 事件 → 数值），
-    数值漂进诊断区间不会回流到画像。我们这里补上回流。
+    Measured on the public ESL-Bench dataset: of 20 users, values met a diagnostic threshold for 7
+    consecutive readings with no matching entry in that person's chronic-disease list in 2 cases
+    (both hypertension). Their pipeline is top-down (profile -> events -> values), so values
+    drifting into a diagnostic range never flows back into the profile. This function adds that
+    feedback.
 
-    真实世界里"未诊断的高血压"当然大量存在——所以这不是说那样就错。
-    但对一个要考归因的基准来说，真值里该有的东西不能靠推断补，得写下来。
+    "Undiagnosed hypertension" certainly exists in the real world, so this is not claiming that
+    pattern is wrong in general. But a benchmark meant to test attribution needs this written into
+    the truth, not left to be inferred.
     """
     base = list(spec.cohort().get("archetype_conditions", {}).get(person.archetype, []))
     if not encounters:
@@ -71,9 +77,10 @@ def _meets(value, op: str, threshold: float) -> bool:
 
 def encounter_record(person: Person, encounter: Encounter, file: str | None = None,
                      index: int = 0, conditions: list[dict] | None = None) -> dict:
-    # 占位 id 用就诊序号，不要把医嘱名拼进去：`vitals+inflammation` 归一化之后是
-    # `vitalsinflammation`，正好落在真实语料的某个 12 字窗口里，隐私闸门会报一条
-    # 并不存在的"逐字搬运"。文件层（`corpus.record`）会把它换成真实文件路径。
+    # The placeholder id uses the encounter index, not the concatenated order names: normalising
+    # `vitals+inflammation` gives `vitalsinflammation`, which happens to fall inside a 12-character
+    # window of the reference corpus and would make the privacy gate report a verbatim copy that
+    # isn't there. The file layer (`corpus.record`) replaces this with a real file path.
     return {
         "file": file or f"{person.person_id}/{encounter.exam_date}/e{index:02d}",
         "synthetic": True,
@@ -85,8 +92,8 @@ def encounter_record(person: Person, encounter: Encounter, file: str | None = No
             "height_cm": person.height_cm,
             "archetype": person.archetype,
             "region": person.region,
-            # 诊断集合。现在由原型查表得到；接入 PySynthea 之后直接来自它的
-            # Condition 资源，这一行就是那个接缝。
+            # Diagnosis set. Currently looked up from the archetype; once PySynthea is wired in,
+            # this would read directly from its Condition resource — this line is that seam.
             "conditions": conditions if conditions is not None else _conditions_of(person),
         },
         "collected": encounter.exam_date.isoformat(),
@@ -95,13 +102,13 @@ def encounter_record(person: Person, encounter: Encounter, file: str | None = No
         "panels": list(encounter.panels),
         "package": encounter.package,
         "events_since_previous": list(encounter.events_since_previous),
-        # 主诉（mirobody 症状轴的期望码）与具名所见（诊断轴的期望码）。
+        # Chief complaints (expected symptom-axis code) and named findings (expected diagnosis-axis code).
         "complaints": [{"text": c.text, "symptom_id": c.symptom_id, "icpc3": c.icpc3, "expect": c.expect,
                         "duration": c.duration} for c in encounter.complaints],
         "findings": [{"id": x.id, "where": x.where, "item": x.item, "surface": x.surface, "icpc3": x.icpc3,
                       "severity": x.severity, "since": x.since.isoformat() if x.since else None}
                      for x in encounter.findings],
-        # 文件层填：版式指纹、注入的陷阱、文件格式与难度层。
+        # Filled in by the file layer: layout fingerprint, injected hazards, file format and difficulty tier.
         "layout_fingerprint": None,
         "hazards": [],
         "tier": None,
@@ -128,7 +135,8 @@ def person_record(person: Person, conditions: list[dict] | None = None) -> dict:
                 "duration_days": e.duration_days,
                 "health_effect": e.health_effect,
                 "impact_level": e.impact_level,
-                # 归因问题的可判定答案就在这里：哪个事件、对哪些指标、多大幅度、多久起效。
+                # The decidable answer to an attribution question lives here: which event, which
+                # indicators, how large an effect, and how long it takes to kick in.
                 "affected_indicators": sorted(e.effects),
                 "effects": {k: {"magnitude": m, "onset_days": o, "half_life_days": d}
                             for k, (m, o, d) in e.effects.items()},
@@ -143,7 +151,7 @@ def write(out_dir: pathlib.Path, people: list[Person],
     out_dir.mkdir(parents=True, exist_ok=True)
     by_person = {p.person_id: p for p in people}
 
-    # 诊断集合按人算一次（要看完整条时间线），再发给每一份记录。
+    # Computed once per person (needs the full timeline), then handed to every one of their records.
     conditions = {pid: _conditions_of(by_person[pid], items)
                   for pid, items in encounters.items()}
 

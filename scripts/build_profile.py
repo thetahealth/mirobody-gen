@@ -1,24 +1,33 @@
-"""手写的"档案层"设计 → `resources/narratives.json`、`resources/complaints.json`、`resources/genomics.json`。
+"""Hand-authored "profile layer" design -> `resources/narratives.json`,
+`resources/complaints.json`, `resources/genomics.json`.
 
     python3 scripts/build_profile.py --write
 
-检验表格之外的部分——真实的体检报告书（参考集里最大的一类文档）
-是**科室键值对 + 辅助检查叙述 + 检验表格 + 总检结论与建议**四部分，而且科室部分占了
-63/76 份（旧 HANDOFF 实测）。这里手写的是那三部分的**词汇与规则**：
+Everything outside the lab table -- a real check-up report (the largest single document
+class in the reference set) has four parts: **department key-value pairs + imaging/other
+investigation narrative + lab table + overall conclusion and recommendations**, and the
+department part alone accounts for 63 of 76 reports (measured in the old HANDOFF). What's
+hand-authored here is the **vocabulary and rules** for the first, second and fourth parts:
 
-* `narratives.json`：套餐档次（基础/标准/深度）各含哪些科室与辅助检查；每个科室有哪些条目、
-  正常时怎么印；具名的异常所见（脂肪肝、甲状腺结节、龋齿……）印什么、按什么率出现、
-  对应哪个 ICPC-3 诊断码（mirobody 的 D 轴，`res/icpc3/conditions_zh.tsv` 里有的才给码，
-  没有的填 null——那是考弃权的素材）、总检里怎么写结论与建议。
-* `complaints.json`：主诉与日记的症状词表。**每个中文表面都逐条对照过 mirobody 的
-  `symptoms_zh.tsv`**（2026-09-29 版），给了码的就是那边精确匹配得到的 S 轴码；
-  `frontier` 里的表面是刻意不在词表里的（考"该弃权时弃权"）。
-* `genomics.json`：药物基因组位点。41 个带基因标注的位点来自 mirobody 的
-  `genotype_sites.sqlite3`（dbSNP b155 common ∩ CPIC），坐标与等位基因照抄；
-  等位基因频率是**手写的近似值**（按公开人群数据的量级，东亚/欧洲两列），
-  只为让生成的基因型看起来像人，mirobody 不读它们。
+* `narratives.json`: which departments and investigations each package tier
+  (basic/standard/comprehensive) includes; each department's items and how they're printed
+  when normal; named abnormal findings (fatty liver, thyroid nodule, dental caries...), what
+  gets printed, at what rate, and which ICPC-3 diagnosis code applies (mirobody's D-axis --
+  coded only if `res/icpc3/conditions_zh.tsv` has an entry, null otherwise, which is material
+  for abstention); how the overall conclusion and recommendations are worded.
+* `complaints.json`: the symptom vocabulary for complaints and journal entries. **Every
+  Chinese surface form was checked one by one against mirobody's `symptoms_zh.tsv`**
+  (2026-09-29 version); a code means it's an exact match on mirobody's S-axis; the surfaces
+  under `frontier` are deliberately absent from that vocabulary (to test "abstain when you
+  should").
+* `genomics.json`: pharmacogenomic sites. The 41 gene-annotated sites come from mirobody's
+  `genotype_sites.sqlite3` (dbSNP b155 common ∩ CPIC), with coordinates and alleles copied
+  directly; allele frequencies are **hand-written approximations** (at the right order of
+  magnitude for public population data, East Asian and European columns) purely so generated
+  genotypes look human -- mirobody never reads them.
 
-全部手写，不含任何来自真实语料的内容。所有印在纸上的句子都是教科书式的通用医学表述。
+All hand-authored, none of it drawn from the real corpus. Every sentence printed on the page
+is a generic, textbook-style medical statement.
 """
 
 from __future__ import annotations
@@ -31,11 +40,12 @@ REPO = pathlib.Path(__file__).resolve().parent.parent
 RESOURCES = REPO / "mirobody_gen" / "resources"
 
 # ═══════════════════════════════════════════════════════════════════
-# 1. 体检报告书
+# 1. Check-up report
 # ═══════════════════════════════════════════════════════════════════
 
-#: 套餐档次。检验部分在 cohort.json 的 `checkup_packages`（同名）；这里是科室与辅助检查。
-#: 档次不是随便分的：基础套餐对应单位福利体检的常见配置，深度套餐对应自费高端体检。
+#: Package tiers. The lab portion is `checkup_packages` in cohort.json (same names); this is
+#: departments and investigations. The tiers aren't arbitrary: the basic package matches a
+#: typical employer-benefit exam, the comprehensive package a self-pay premium exam.
 PACKAGES = {
     "entry": {
         "zh": "入职体检", "en": "Pre-employment examination",
@@ -66,21 +76,24 @@ PACKAGES = {
     },
 }
 
-#: 机构类型 → 档次权重。体检中心卖套餐，医院体检科多半是基础/标准。
+#: Institution type -> tier weights. A check-up center sells packages; a hospital's check-up
+#: department is mostly basic/standard.
 PACKAGE_WEIGHTS = {
     "checkup_center": {"basic": 0.35, "standard": 0.45, "premium": 0.20},
     "hospital": {"basic": 0.55, "standard": 0.40, "premium": 0.05},
 }
 
-#: 正常条目怎么印。一家机构选一种写法，全本一致（LIS 只有一份字典）。
+#: How a normal item gets printed. One institution picks one wording and is consistent
+#: throughout the report (its LIS has only one dictionary).
 NORMAL_DIALECTS = {
     "zh": ["未见异常", "正常", "未见明显异常", "(-)", "未见明显异常。"],
     "en": ["Normal", "Unremarkable", "NAD", "Within normal limits"],
 }
 NOT_DONE = {"zh": ["未查", "弃检", "拒查"], "en": ["Not examined", "Declined"]}
 
-#: 科室：条目顺序即印刷顺序。`normal` 是条目自己的正常写法（没有就用机构方言）。
-#: `sex` 限制性别；`optional` 的条目按概率印（不是每家都查）。
+#: Departments: item order is print order. `normal` is the item's own normal wording (falls
+#: back to the institution's dialect if absent). `sex` restricts to a sex; an `optional` item
+#: is printed probabilistically (not every institution checks it).
 SECTIONS = {
     "internal": {
         "zh": "内科", "en": "Internal Medicine",
@@ -180,8 +193,9 @@ SECTIONS = {
     },
 }
 
-#: 辅助检查。`organs` 的每一项有正常所见；`impression_normal` 是无异常时的提示。
-#: `parameters` 引用指标键（心电图的数值会印成一张小表）。
+#: Investigations. Each entry in `organs` has a normal finding; `impression_normal` is the
+#: impression text when nothing is abnormal. `parameters` references indicator keys (e.g. an
+#: ECG's values get printed as a small table).
 AUX = {
     "ecg": {
         "zh": "心电图", "en": "Electrocardiogram", "kind": "ecg",
@@ -272,7 +286,8 @@ AUX = {
         "labels": {"zh": {"finding": "检查结果", "impression": "结论"}, "en": {"finding": "Result", "impression": "Conclusion"}},
         "impression_normal": {"zh": ["骨量正常"], "en": ["Normal bone density."]},
     },
-    # 参数型（kind=params）：一张小表 + 结论，读数计入印刷真值；报告书里不再进检验表
+    # Parameter type (kind=params): a small table plus a conclusion; its readings count toward
+    # the printed ground truth and are not duplicated in the lab table
     "spirometry": {
         "zh": "肺功能检查", "en": "Spirometry", "kind": "params",
         "parameters": ["fvc", "fvc_pct", "fev1", "fev1_pct", "fev1_fvc"],
@@ -320,16 +335,21 @@ AUX = {
     },
 }
 
-#: 具名异常所见。
+#: Named abnormal findings.
 #:
-#: * `where`：印在哪个科室条目或哪个辅助检查器官上；
-#: * `rate`：基础率（成人），`age` 每岁的增量，`archetype`/`sex` 的倍数；
-#:   这些数只求量级对（真实体检里脂肪肝、甲状腺结节、龋齿是最常见的三类异常），不是流行病学估计；
-#: * `sticky`：一旦出现，之后每年都在（囊肿、结节、结石不会自己消失）；
-#: * `surface`：mirobody 会拿去编码的诊断表面；`icpc3` 是它 `conditions_zh.tsv` 里的答案，
-#:   没有的填 null——那正是"该弃权"的素材，与检验层的 9 个刻意解析不出的指标同一用意；
-#: * `severity`：可升级的所见（脂肪肝轻→中），按年份推进；
-#: * `advice`：总检建议的模板 id。
+#: * `where`: which department item or which investigation organ this prints on.
+#: * `rate`: base rate (adult), `age` is the per-year increment, `archetype`/`sex` are
+#:   multipliers. These numbers only aim to be the right order of magnitude (fatty liver,
+#:   thyroid nodules and dental caries are the three most common findings in real check-ups);
+#:   they are not an epidemiological estimate.
+#: * `sticky`: once present, stays present every subsequent year (a cyst, nodule or stone
+#:   doesn't resolve on its own).
+#: * `surface`: the diagnosis surface mirobody would code; `icpc3` is the answer from its
+#:   `conditions_zh.tsv` -- null where there is none, which is exactly the material for
+#:   testing abstention, the same purpose as the 9 deliberately unresolvable indicators in the
+#:   lab layer.
+#: * `severity`: a finding that can escalate (fatty liver mild -> moderate), advancing by year.
+#: * `advice`: the template id for the overall recommendation.
 FINDINGS = {
     "fatty_liver": {
         "where": ("abd_us", "liver"), "sticky": True, "severity": ["mild", "moderate"],
@@ -626,7 +646,7 @@ FINDINGS = {
         "summary": {"zh": "宫颈糜烂样改变", "en": "Cervical ectropion"}, "advice": "gyn",
         "rate": {"base": 0.15},
     },
-    # ── 2026-09-29 扩充：参数型辅助检查、眼底照相、钼靶、中医体质 ──
+    # ── 2026-09-29 addition: parameter-type investigations, fundus photography, mammography, TCM constitution ──
     "airflow_limitation": {
         "where": ("spirometry", None), "sticky": False, "condition": {"fev1_fvc": "<70"},
         "impression": {"zh": "轻度阻塞性通气功能障碍", "en": "Mild obstructive ventilatory defect"},
@@ -758,7 +778,7 @@ FINDINGS = {
     },
 }
 
-#: 总检建议模板。`{items}` 会替换成异常项目的名字。
+#: Overall recommendation templates. `{items}` gets replaced with the names of the abnormal items.
 ADVICE = {
     "fatty_liver": {"zh": "脂肪肝：建议控制饮食、加强运动、控制体重，限制饮酒，定期复查肝功能及肝脏超声。",
                     "en": "Fatty liver: dietary control, regular exercise and weight management; limit alcohol; repeat liver function tests and ultrasound periodically."},
@@ -814,7 +834,7 @@ ADVICE = {
                  "en": "Raised body fat / visceral fat: reduce energy intake, add aerobic and resistance exercise, reduce waist circumference."},
     "tcm": {"zh": "中医体质偏颇：建议根据体质类型调整饮食起居，规律作息，必要时中医科就诊调理。",
             "en": "TCM constitutional imbalance: adjust diet and daily routine according to constitution type; TCM consultation if desired."},
-    # 检验异常的建议，按指标组
+    # Recommendations for abnormal lab results, grouped by indicator group
     "lab_hepatitis": {"zh": "肝炎病毒标志物阳性（{items}）：建议感染科或肝病科就诊，复查肝功能、HBV-DNA 及肝脏超声，家人建议筛查并接种疫苗。",
                       "en": "Positive hepatitis serology ({items}): hepatology review with liver function tests, HBV DNA and ultrasound; screen and vaccinate household contacts."},
     "lab_coag": {"zh": "凝血功能异常（{items}）：建议排除采血因素后复查凝血功能，必要时血液科就诊。",
@@ -865,8 +885,9 @@ ADVICE = {
                 "en": ["These recommendations are for guidance only; seek medical care if symptomatic."]},
 }
 
-#: 指标键 → 总检建议组。没列的走 lab_other。带方向的（`键:low` / `键:high`）优先于不带的：
-#: 血红蛋白偏低是贫血，偏高不是。
+#: Indicator key -> overall recommendation group. Anything not listed falls back to
+#: lab_other. A directional key (`key:low` / `key:high`) takes priority over the undirected
+#: one: low hemoglobin is anemia, high hemoglobin is not.
 LAB_GROUPS = {
     "hgb:high": "lab_cbc", "rbc:high": "lab_cbc", "hct:high": "lab_cbc", "mcv:high": "lab_cbc", "mch:high": "lab_cbc",
     "mchc:high": "lab_cbc", "ferritin:high": "lab_other", "serum_iron:high": "lab_other",
@@ -887,7 +908,7 @@ LAB_GROUPS = {
     "urine_pro": "lab_urine", "urine_glu": "lab_urine", "urine_bld": "lab_urine", "urine_ket": "lab_urine",
     "urine_nit": "lab_urine", "urine_rbc": "lab_urine", "urine_wbc": "lab_urine",
     "sbp": "lab_bp", "dbp": "lab_bp", "bmi": "lab_bmi", "waist": "lab_bmi",
-    # 2026-09-29 扩充
+    # 2026-09-29 addition
     "hbsag": "lab_hepatitis", "hbeag": "lab_hepatitis", "hbeab": "lab_hepatitis", "hbcab": "lab_hepatitis", "hcvab": "lab_hepatitis",
     "pt": "lab_coag", "inr": "lab_coag", "aptt": "lab_coag", "tt": "lab_coag", "fib": "lab_coag", "ddimer": "lab_coag",
     "ldh": "lab_cardiac", "ck": "lab_cardiac", "ckmb": "lab_cardiac", "hstni": "lab_cardiac", "ntprobnp": "lab_cardiac",
@@ -903,15 +924,17 @@ LAB_GROUPS = {
     "scc": "lab_tumor", "fpsa": "lab_tumor", "fpsa_ratio": "lab_tumor", "pg1": "lab_tumor", "pg2": "lab_tumor", "pgr": "lab_tumor",
     "body_fat": "lab_bmi", "visceral_fat": "lab_bmi",
 }
-#: 总检里不值得单列的异常（分类计数、指数类的轻微越界），只在表格里带标记。
+#: Abnormalities not worth a separate line in the overall conclusion (differential counts,
+#: minor out-of-range index values) -- flagged only in the table.
 LAB_IGNORE = {"mono_pct", "eos_pct", "baso_pct", "neut_abs", "lymph_abs", "mono_abs", "eos_abs", "baso_abs",
               "mpv", "pdw", "pct", "rdw", "urine_sg", "urine_ph", "ag_ratio", "glb", "resp", "pulse",
               "pr_interval", "qrs_duration", "qtc", "qrs_axis", "height", "weight",
-              # 参数型辅助检查的读数：异常由具名所见表达，总检里不再按指标重复
+              # Readings from parameter-type investigations: the abnormality is expressed by a
+              # named finding instead, and isn't repeated per-indicator in the overall conclusion
               "fvc", "fvc_pct", "fev1", "fev1_pct", "fev1_fvc", "bapwv_l", "bapwv_r", "abi_l", "abi_r",
               "lvef", "lvedd", "ivs", "la", "ea", "muscle_mass", "bmr", "spo2", "abo", "rh"}
 
-#: 总检页的固定文字与标题。
+#: Fixed text and headings for the overall-conclusion page.
 SUMMARY = {
     "zh": {"titles": ["总检结论", "终检结论", "体检结论与建议", "综合报告单", "健康体检总结"],
            "conclusion": "主要结论", "advice": "健康建议", "abnormal_lead": "本次体检发现以下异常：",
@@ -929,13 +952,18 @@ SUMMARY = {
                               "fatty_liver": "Fatty liver"}},
 }
 
-#: 分级判定（A–E）与重要异常结果。
+#: Grade (A-E) and critical-result determination.
 #:
-#: * 分段出处：日本人間ドック学会《判定区分》（2026 年 4 月 1 日改定），原表以 mg/dL 计，这里换成 SI
-#:   （血糖 ×0.0555、胆固醇 ×0.0259、甘油三酯 ×0.0113、尿酸 ×59.5、肌酐 ×88.4）；血压按中国高血压指南；
-#: * 所见的级别是编者按各所见的临床处置意义定的（囊肿 B、结节要随访 C、骨质疏松 D）；
-#: * 重要异常结果阈值出自《健康体检重要异常结果管理专家共识》的 A 类（需立即处置）。
-#: 分段格式：[级别, 下限(含), 上限(不含)]，null 表示无界；按性别分的用 {"male": [...], "female": [...]}。
+#: * Band source: the Ningen Dock Society of Japan's "Judgement Classification" (revised 2026-
+#:   04-01); the original table is in mg/dL, converted here to SI (glucose x0.0555,
+#:   cholesterol x0.0259, triglycerides x0.0113, uric acid x59.5, creatinine x88.4); blood
+#:   pressure follows the Chinese hypertension guideline.
+#: * A finding's grade was assigned editorially by its clinical significance (a cyst is B, a
+#:   nodule needing follow-up is C, osteoporosis is D).
+#: * Critical-result thresholds come from Class A (requiring immediate action) in the Expert
+#:   Consensus on Managing Critical Results in Health Check-ups.
+#: Band format: [grade, lower bound (inclusive), upper bound (exclusive)], null meaning
+#: unbounded; sex-specific bands use {"male": [...], "female": [...]}.
 JUDGEMENT = {
     "rate": {"zh": 0.3, "en": 0.2},
     "zh": {"label": "分级判定", "critical_label": "重要异常结果提示",
@@ -1025,18 +1053,19 @@ JUDGEMENT = {
                        "lv_hypertrophy": "C", "diastolic_dysfunction": "B", "tr_trivial": "A", "mr_trivial": "A",
                        "fundus_hypertensive": "B", "breast_calcification": "B", "qi_deficiency": "B", "phlegm_damp": "B",
                        "yang_deficiency": "B", "damp_heat": "B"},
-    # 重要异常结果（A 类）：[下限(≤ 触发), 上限(≥ 触发)]，null 无
+    # Critical results (Class A): [lower bound (triggers at <=), upper bound (triggers at >=)], null for none
     "critical": {"sbp": [None, 180], "dbp": [None, 110], "glu": [2.8, 16.7], "hgb": [60, None], "plt": [30, None],
                  "wbc": [1.0, 30.0], "k": [2.5, 6.5], "na": [120, 160], "crea": [None, 707], "alt": [None, 600],
                  "ast": [None, 600], "hstni": [None, 500], "tbil": [None, 171]},
 }
 
-#: 视力：两种记法各占一半（5 分记录法 / 小数记录法），这是真实体检报告里的一个方言。
+#: Visual acuity: split evenly between two notations (the 5-point scale and the decimal
+#: scale), a genuine dialect found in real check-up reports.
 ACUITY = {"five_point": ["5.2", "5.1", "5.0", "4.9", "4.8", "4.7", "4.6", "4.5", "4.3", "4.0"],
           "decimal": ["1.5", "1.2", "1.0", "0.8", "0.6", "0.5", "0.4", "0.3", "0.2", "0.1"],
           "normal_index": [0, 1, 2], "low_index": [3, 4, 5, 6, 7, 8, 9]}
 
-#: 页面构件与标签。
+#: Page furniture and labels.
 BOOK = {
     "zh": {"cover_titles": ["健康体检报告", "体检报告书", "个人健康体检报告", "健康体检报告书"],
            "basic_info": "基本信息", "checkup_no": ["体检编号", "体检号", "档案号"], "package": "体检套餐",
@@ -1058,7 +1087,7 @@ BOOK = {
 }
 
 # ═══════════════════════════════════════════════════════════════════
-# 2. 门诊病历、心电图报告、超声报告、居家记录
+# 2. Clinic notes, ECG reports, ultrasound reports, home logs
 # ═══════════════════════════════════════════════════════════════════
 
 OUTPATIENT = {
@@ -1126,12 +1155,13 @@ HOME_LOG = {
 }
 
 # ═══════════════════════════════════════════════════════════════════
-# 3. 主诉与日记
+# 3. Complaints and journal entries
 # ═══════════════════════════════════════════════════════════════════
 
-#: 症状词表。`zh`/`en` 是**mirobody 词表里精确存在的表面**（2026-09-29 核对 `symptoms_zh.tsv`、
-#: `symptoms_en.tsv`；英文另可命中 ICPC-3 的英文优选词，见 `en_preferred`）。
-#: `icpc3` 是那边给出的 S 轴码。
+#: Symptom vocabulary. `zh`/`en` are **surfaces that exist exactly as-is in mirobody's
+#: vocabulary** (checked against `symptoms_zh.tsv` and `symptoms_en.tsv` on 2026-09-29;
+#: English can also hit ICPC-3's preferred English term, see `en_preferred`).
+#: `icpc3` is the S-axis code mirobody gives for it.
 SYMPTOMS = {
     "fatigue": {"zh": ["乏力", "疲劳", "疲倦", "没力气"], "en": ["tired all the time", "no energy", "exhausted"],
                 "en_preferred": "General weakness or tiredness", "icpc3": "AS04"},
@@ -1188,7 +1218,8 @@ SYMPTOMS = {
     "stress": {"zh": ["压力大"], "en": [], "en_preferred": None, "icpc3": "PS02"},
 }
 
-#: 刻意**不在** mirobody 词表里的表面：考"该弃权就弃权"。`expect` 写明那边应给的结果。
+#: Surfaces deliberately **absent** from mirobody's vocabulary: tests "abstain when you
+#: should." `expect` states what mirobody should return for it.
 FRONTIER = {
     "polyuria": {"zh": ["多尿", "夜尿多", "起夜多"], "en": ["peeing a lot at night"], "expect": "no-match"},
     "pale": {"zh": ["面色苍白", "脸色差"], "en": ["look pale"], "expect": "no-match"},
@@ -1199,7 +1230,8 @@ FRONTIER = {
     "cramps": {"zh": ["腿抽筋", "小腿抽筋"], "en": ["leg cramps"], "expect": "no-match"},
 }
 
-#: 原型 → 干预前/后的主诉池（id 引用 SYMPTOMS 或 FRONTIER），以及事件 → 主诉池。
+#: Archetype -> complaint pools before/after intervention (ids reference SYMPTOMS or
+#: FRONTIER), and incident -> complaint pool.
 COMPLAINT_POOLS = {
     "archetype": {
         "prediabetes_to_t2dm": {"before": ["thirst", "dry_mouth", "polyuria", "fatigue", "weight_loss", "blurred_vision"],
@@ -1223,14 +1255,15 @@ COMPLAINT_POOLS = {
         "春节假期饮食": ["bloating", "reflux", "weight_gain", "diarrhea"],
         "开始规律跑步": ["knee_pain", "cramps"],
     },
-    #: 日常背景主诉（谁都可能记一笔），每人每月的期望条数。
+    #: Everyday background complaints (anyone might jot one down), expected entries per person per month.
     "background": {"insomnia": 0.05, "headache": 0.05, "low_back_pain": 0.05, "neck_pain": 0.04, "dry_eye": 0.03,
                    "shoulder_pain": 0.03, "bloating": 0.03, "constipation": 0.02, "toothache": 0.02, "rash": 0.02,
                    "anxiety": 0.02, "irritable": 0.01, "snoring": 0.01, "hiccup": 0.005, "pain_generic": 0.005,
                    "abdominal_pain": 0.02, "nausea": 0.01, "itch": 0.02, "tremor": 0.005, "frequency": 0.01},
 }
 
-#: 主诉的写法（门诊病历）与日记句子（口语）。`{s}` 症状表面，`{dur}` 时长，`{s2}` 第二症状。
+#: Complaint wording (clinic note) and journal sentences (colloquial). `{s}` is the symptom
+#: surface, `{dur}` the duration, `{s2}` a second symptom.
 PHRASING = {
     "zh": {"durations": ["3天", "5天", "1周", "2周", "半月", "1月余", "2月余", "3月余", "半年余", "1年"],
            "cc": ["{s}{dur}", "反复{s}{dur}", "{s}伴{s2}{dur}", "间断{s}{dur}，加重3天", "{s}{dur}，{s2}1周"],
@@ -1250,13 +1283,15 @@ PHRASING = {
 }
 
 # ═══════════════════════════════════════════════════════════════════
-# 4. 基因位点
+# 4. Genetic sites
 # ═══════════════════════════════════════════════════════════════════
 
-#: 41 个带基因标注的位点，坐标/等位基因来自 mirobody `genotype_sites.sqlite3`（dbSNP b155 common ∩ CPIC）。
-#: `alt` 只取第一个替代等位基因（多等位位点在芯片上通常只测一个）。
-#: `eas`/`eur` 是替代等位基因频率的**手写近似**（公开人群数据的量级；给生成用，mirobody 不读）。
-#: `label` 是该位点常见的星号等位/临床标签，仅作注释。
+#: 41 gene-annotated sites; coordinates/alleles come from mirobody's `genotype_sites.sqlite3`
+#: (dbSNP b155 common ∩ CPIC). `alt` takes only the first alternate allele (a multiallelic
+#: site is usually genotyped as one allele on an array anyway). `eas`/`eur` are **hand-written
+#: approximations** of the alternate-allele frequency (at the right order of magnitude for
+#: public population data; for generation only, mirobody never reads them). `label` is the
+#: site's common star-allele or clinical label, for annotation only.
 PGX_SITES = [
     ("rs28399499", "19", 41518221, 41012316, "T", "C", "CYP2B6", 0.00, 0.00, "*18"),
     ("rs3211371", "19", 41522715, 41016810, "C", "A", "CYP2B6", 0.01, 0.10, "*5"),
@@ -1301,9 +1336,11 @@ PGX_SITES = [
     ("rs9923231", "16", 31107689, 31096368, "C", "T", "VKORC1", 0.90, 0.40, "-1639G>A"),
 ]
 
-#: 位点表之外的几个常见"消费级基因检测"位点：mirobody 的位点表里**没有**它们，
-#: 上传后应落成 `unresolved`——这是考"表外位点不乱猜"的素材。坐标按公开 dbSNP 手写，
-#: 只求形状对（mirobody 不会拿它们做任何匹配）。
+#: A handful of common "consumer genetic testing" sites outside the site table: mirobody's
+#: site table **does not have** them, and uploading them should resolve to `unresolved` --
+#: this is material for testing "don't guess at a site that's off the table." Coordinates are
+#: hand-written from public dbSNP, aiming only for the right shape (mirobody never matches
+#: against them at all).
 OFF_CATALOG_SITES = [
     ("rs671", "12", 112241766, 111803962, "G", "A", "ALDH2", 0.24, 0.00, "ALDH2*2 (酒精代谢)"),
     ("rs1801133", "1", 11856378, 11796321, "G", "A", "MTHFR", 0.35, 0.33, "C677T"),
@@ -1337,8 +1374,10 @@ GENOMICS_VENDORS = {
 
 
 def catalog_sites() -> list[list]:
-    """mirobody 位点表里**没有**基因标注的其余位点（489 − 41 = 448 个）：rsid/chrom/pos37/pos38/ref/alt。
-    有那个 sqlite 时从它读（坐标是公开的 dbSNP 记录）；没有时沿用 spec 里已有的一份，避免漂移。"""
+    """The remaining sites (489 - 41 = 448) that mirobody's site table has **no** gene
+    annotation for: rsid/chrom/pos37/pos38/ref/alt. Read from the sqlite file when it's
+    available (coordinates are public dbSNP records); otherwise reuse what's already in the
+    spec, to avoid drift."""
     import sqlite3
 
     db = REPO.parent / "mirobody" / "mirobody" / "res" / "genomics" / "genotype_sites.sqlite3"
@@ -1353,9 +1392,11 @@ def catalog_sites() -> list[list]:
     return []
 
 
-#: 交付形态的权重。数值的校准依据是参考集图像的聚合统计（resources/numbers_images.json）：
-#: 图像占文件的一半；其中白底（扫描/App 增强/截图）占 51%，深底照片约 25%，灰度 42%，
-#: 长边中位数 1262、p90 3072，JPEG 质量 p50=93。所以扫描类与屏幕类合起来要比"手机糊照"多。
+#: Delivery-format weights. Calibrated against the reference set's aggregate image statistics
+#: (resources/numbers_images.json): images are half of all files; of those, white-background
+#: (scan/app-enhanced/screenshot) is 51%, dark-background photos about 25%, grayscale 42%,
+#: long-edge median 1262 with p90 3072, JPEG quality p50=93. So scan-like and screen-like
+#: formats combined should outnumber "blurry phone photos."
 DELIVERY = {
     "tier_weights": {"T0": 0.28, "T2": 0.22, "T3": 0.24, "T4": 0.06, "T6": 0.20},
     "scene_weights": {
@@ -1367,17 +1408,21 @@ DELIVERY = {
         "T6": {"screenshot": 50, "desktop_screenshot": 38, "screen_photo": 12},
     },
     "severity_weights": {"mild": 0.45, "moderate": 0.40, "severe": 0.15},
-    #: 栅格化分辨率：扫描仪 200 dpi；手机相机原图约 3000 px 长边，按 A4 折合 260 dpi；屏幕 150 dpi。
+    #: Rasterization resolution: a scanner at 200 dpi; a phone camera original at roughly a
+    #: 3000 px long edge, equivalent to about 260 dpi on A4; a screen at 150 dpi.
     "dpi_of_tier": {"T2": 200, "T3": 260, "T4": 200, "T6": 150},
-    #: 笔圈异常值的文档率（真实报告上医生/本人圈出的常是异常项）。
+    #: Document rate for pen-circled outlier values (on a real report, what's circled by hand by a doctor or the person is usually an abnormal item).
     "annotate_rate": 0.15,
 }
 
 
 def machine_vocab() -> dict:
-    """生成物里出现的机器标识符（厂商字段名、场景名、算子名、文档种类、分层……）。
-    它们不是从语料来的，但隐私闸门只认 spec 里声明过的公共词汇——不声明就会被当成来历不明的串。
-    从生成器的常量表里收集，这样代码加一个场景、spec 就多一个词，两处不会漂移。"""
+    """Machine identifiers that appear in generated output (vendor field names, scene names,
+    operator names, document kinds, tiers, ...). They don't come from the corpus, but the
+    privacy gate only recognizes public vocabulary declared in the spec -- undeclared, they'd
+    be flagged as strings of unknown origin. Collected from the generator's own constant
+    tables, so adding a scene in code adds a word to the spec automatically, with no risk of
+    the two drifting apart."""
     import sys
     sys.path.insert(0, str(REPO))
     from mirobody_gen import devices, genomics, journal
@@ -1426,7 +1471,8 @@ def main() -> None:
                   "异常所见的发生率只求量级对，不是流行病学估计。"),
         "_provenance": {"script": "scripts/build_profile.py", "sections": len(SECTIONS), "findings": len(FINDINGS),
                         "aux": len(AUX), "packages": len(PACKAGES)},
-        # 印在纸上的每一句都要能被审、都过隐私闸门：这些键下的字符串是公共词汇。
+        # Every sentence printed on the page must be auditable and pass the privacy gate: the
+        # strings under these keys are public vocabulary.
         "_vocabulary_fields": ["zh", "en", "normal", "finding", "impression", "text", "summary", "surface",
                                "titles", "cover_titles", "checkup_no", "guide_text", "closing", "cc", "journal",
                                "causes", "measure", "durations", "hpi_templates", "followup_cc", "plan_templates",
@@ -1435,7 +1481,8 @@ def main() -> None:
                                "vitals_line", "strip", "params", "sinus", "rhythm", "mild", "moderate",
                                "five_point", "decimal", "bp_titles", "weight_titles", "label", "critical_label",
                                "critical_text", "grade_labels", "areas"],
-        # 叙述模板的槽位可以填什么（隐私闸门据此把模板展开成公共词汇；没列的槽视为空）
+        # What each narrative-template slot may be filled with (the privacy gate expands
+        # templates into public vocabulary from this; an unlisted slot is treated as empty)
         "_placeholders": {"side": ["左", "右"], "side_en": ["left", "right", "Left", "Right"], "lobe": ["左", "右"],
                           "lobe_en": ["left", "right"], "lobe_lung": ["上", "中", "下"], "lobe_lung_en": ["upper", "middle", "lower"],
                           "echo": ["低", "等", "囊实性混合"], "echo_en": ["hypoechoic", "isoechoic", "mixed cystic-solid"],
@@ -1472,8 +1519,9 @@ def main() -> None:
         "off_catalog": [list(s) for s in OFF_CATALOG_SITES],
         "vendors": GENOMICS_VENDORS,
     }
-    print(f"科室 {len(SECTIONS)} · 辅助检查 {len(AUX)} · 具名所见 {len(FINDINGS)} · 建议 {len(ADVICE)} · "
-          f"症状 {len(SYMPTOMS)}+{len(FRONTIER)} · 位点 {len(PGX_SITES)}+{len(OFF_CATALOG_SITES)}")
+    print(f"{len(SECTIONS)} departments · {len(AUX)} investigations · {len(FINDINGS)} named findings · "
+          f"{len(ADVICE)} recommendations · {len(SYMPTOMS)}+{len(FRONTIER)} symptoms · "
+          f"{len(PGX_SITES)}+{len(OFF_CATALOG_SITES)} sites")
     if args.write:
         vocab_payload = {
             "_source": "hand-authored",
@@ -1496,7 +1544,7 @@ def main() -> None:
                               ("vocab.json", vocab_payload), ("delivery.json", delivery_payload)):
             out = RESOURCES / name
             out.write_text(json.dumps(payload, ensure_ascii=False, indent=1) + "\n", encoding="utf-8")
-            print(f"写入 {out}")
+            print(f"Wrote {out}")
 
 
 if __name__ == "__main__":

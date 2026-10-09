@@ -102,8 +102,7 @@ def writer(rng: random.Random, lang: str, digit_px: float, tier: str | None = No
 # ── Values ────────────────────────────────────────────────────────────
 def _expected(person: Person, key: str, day: date) -> float:
     """A person's indicator on a day without measurement noise (the centre `physiology.measure` draws around)."""
-    base = physiology.center_of(key, person.sex) * person.baseline.get(key, 1.0)
-    return base * physiology.trend_factor(person, key, day) * physiology.event_factor(person, key, day)[0]
+    return physiology.expected(person, key, day)
 
 
 def glucose_day(seed: int, person: Person, day: date, meals: list[str]) -> dict[str, float]:

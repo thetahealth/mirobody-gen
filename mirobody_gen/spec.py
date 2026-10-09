@@ -141,6 +141,11 @@ def vocab() -> dict:
     return _load("vocab.json")
 
 
+def streams() -> dict:
+    """Continuous-stream devices and their export shapes, each with its source. See `scripts/build_streams.py`."""
+    return _load("streams.json")
+
+
 def genomics() -> dict:
     """Pharmacogenomic sites and vendor export formats. See `scripts/build_profile.py`."""
     return _load("genomics.json")

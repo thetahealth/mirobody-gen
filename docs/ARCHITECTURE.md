@@ -15,6 +15,7 @@ fiction.json     │   genomics.py   raw genotype exports        render/     pdf
 vocab.json       │   synthid.py    checksummed synthetic ids   pairs.py    minimal-contrast pairs          harness/ scoring
 delivery.json    │   manifest.py   manifest.jsonl, people.jsonl
 handwriting.json │   vendor_signals.py vendor-cloud payloads   handwriting.py handwritten files (opt-in)
+streams.json     │   continuous.py CGM and heart-rate curves   continuous_formats.py device exports (opt-in)
 numbers*.json    │                                             render/hand.py pen, paper, legibility
 llm_prompts.json ┘   llm/          optional: offline paraphrase enrichment (contract, cache, CLI)
 ```
@@ -65,6 +66,18 @@ go through the same scene from the same seed, and the difference measures every 
 ink contrast on the delivered image, replaying the scene's logged geometry to find it. A capture below the
 floor falls back to a milder one.
 
+**Continuous streams** (opt-in, `build --continuous`). `continuous.py` plans each of a person's days once
+(sleep from the store's sleep record, meals, a run, walking bouts that add up to the store's step count) and
+draws two curves from it minute by minute: blood glucose, whose daily mean is the eAG of the person's
+expected HbA1c so a sensor's GMI follows the laboratory's HbA1c, and heart rate around the store's own
+resting rate. A sensor session reads the glucose through interstitial lag, calibration gain and drift,
+correlated noise at the device's published accuracy, compression lows, warm-up, outages it may backfill and,
+for scan-based sensors, history lost between scans; a wearable samples heart rate at its own cadence and is
+off the body to charge. `continuous_formats.py` writes each device's export byte for byte (Dexcom Clarity CSV
+and Web API, LibreView CSV, Sibionics hospital CSV and app workbook, Apple Health `export.xml`, Oura API,
+Zepp Life CSV, the `/api/data` batch); every device fact and format token, with its source, is in
+`resources/streams.json` (`scripts/build_streams.py`), and the URLs are in `docs/DEVICE_FORMATS.md`.
+
 **Gates** (`mirobody_gen/audit/`) do not import the generator. They re-derive identities from
 laboratory definitions, re-extract text from the produced files, and re-implement the PII predicates,
 so they cannot share the generator's blind spots. `harness/` scores predictions in the MedRepBench
@@ -96,7 +109,9 @@ pattern; see `docs/zh-CN/llm-integration-2026-09-29.md`.
   the must-abstain set; a value extracted for it counts as a hallucination.
 - **Options do not disturb what they do not touch.** Handwriting draws only from streams of its own and
   appends its records after the printed ones: with it off a build is byte-identical to one made without
-  the feature; with it on, every printed file and record is unchanged (`tests/test_handwriting.py`).
+  the feature; with it on, every printed file and record is unchanged (`tests/test_handwriting.py`). The
+  continuous streams likewise read the device series without re-drawing it and write only under
+  `continuous/` (`tests/test_continuous.py`).
 
 ## Extending
 
@@ -113,6 +128,10 @@ pattern; see `docs/zh-CN/llm-integration-2026-09-29.md`.
   the result before using it.
 - A new degradation scene: `render/degrade.py` (`_scene(...)`) plus a weight in
   `scripts/build_profile.py::DELIVERY`; the scene name becomes vocabulary automatically.
+- A new CGM, wearable or export shape: the device facts and format tokens with their sources in
+  `scripts/build_streams.py`, the writer in `continuous_formats.py` (dispatched by the device's `family` in
+  `continuous.FORMATS`), the evidence in `docs/DEVICE_FORMATS.md`, and a check in `tests/test_continuous.py`
+  that the file agrees with its truth record.
 - New handwritten wording, a writing tier or a face: `scripts/build_handwriting.py`. A string with a
   character outside the font subsets fails the coverage test until the subsets are rebuilt from the pinned
   upstream files (`--fonts DIR --write`, see `render/fonts/README.md`). A scene a tier may use must move

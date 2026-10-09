@@ -181,6 +181,18 @@ def extract_text(path: pathlib.Path) -> list[str] | None:
                 for cell in row if cell]
     if suffix in (".txt", ".md", ".py", ".yaml", ".yml"):
         return path.read_text(encoding="utf-8", errors="ignore").splitlines()
+    if suffix == ".xml":
+        # Cut per attribute value and text node (an Apple Health export is all attributes): joining the
+        # attributes of one element would run a source name into a date the way JSON keys once did.
+        from xml.etree import ElementTree as _ET
+
+        units = []
+        for _, elem in _ET.iterparse(path, events=("end",)):
+            units += [v for v in elem.attrib.values() if v.strip()]
+            if elem.text and elem.text.strip():
+                units.append(elem.text.strip())
+            elem.clear()
+        return units
     if suffix == ".pdf":
         try:
             import fitz

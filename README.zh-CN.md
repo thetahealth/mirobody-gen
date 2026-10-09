@@ -120,6 +120,48 @@ mirobody-gen build --seed 7 --out out/p3 --render --handwriting
 按 sha256 固定、许可文本随附，见 [mirobody_gen/render/fonts/README.md](mirobody_gen/render/fonts/README.md)。
 即使逐字抖动，字体也比人手规整：这些页面是手写的近似，不能替代真实手写。
 
+## 连续数据流
+
+```bash
+mirobody-gen build --seed 7 --out out/p3 --continuous
+```
+
+`--continuous` 加上佩戴者手里真正有的曲线：
+
+- **CGM 传感器周期。** Dexcom G7/G6、FreeStyle Libre 2/3、硅基动感 GS1、三诺爱看 i3，每 1–15 分钟
+  一个读数，连续 10–15 天。
+- **日内心率。** 来自本人的 Apple Watch、华为或安卓手表、小米手环或 Oura 戒指。
+
+两者都来自同一个人、同一个模型。血糖曲线的日均值等于本人当天预期 HbA1c 对应的 eAG，所以传感器的 GMI
+跟着化验单上的 HbA1c 走，二甲双胍会同时改变两者。心率围绕手机健康库自己的静息心率与睡眠记录。
+两条数据流读同一份「一天的安排」（三餐、一次跑步、加起来等于健康库步数的步行片段），所以傍晚的一次
+跑步在同一分钟既是心率峰也是血糖谷。
+
+传感器层再加上：
+
+- 组织间液滞后；
+- 校准漂移；
+- 按厂商公布 MARD 的噪声；
+- 夜间压迫性低值；
+- 预热期；
+- 可回填与回填不了的断连；
+- Libre 2 超过 8 小时未扫描而丢失的历史。
+
+每种设备写出它自己的导出格式，依据是公开的原始导出文件与厂商文档：
+
+- Dexcom Clarity CSV（BOM、全字段加引号、行长不齐、`Low`/`High`）与 Web API v3（`39`/`401`、UTC 与
+  本地时间并存）。
+- LibreView CSV（按记录类型分组而非按时间、账户日期格式、超量程写成量程边界）。
+- 硅基动感医院端 CSV（中文表头、最新在前）与 App 导出工作簿（`.xls` 文件名、OOXML 内容）。
+- Apple Health `export.xml`、Oura API、Zepp Life CSV，以及 mirobody 的 `/api/data` 批次。
+
+真值（`continuous.jsonl`）为每个读数保留其背后的真实血糖或心率，记录缺口及原因、共识 CGM 指标和命名的
+`stream.*` 陷阱。每条设备事实与格式细节在 `resources/streams.json` 里都带来源。
+[docs/DEVICE_FORMATS.md](docs/DEVICE_FORMATS.md) 逐条列出网址、各自证实了什么、把握有多大，以及尚未
+建模的格式：Medtronic CareLink、Nightscout、Tidepool、Garmin 真实的心率映射结构、Fitbit API 的继任者。
+
+默认关闭；不加它的构建与之前逐字节一致。
+
 ## 一次构建产出什么
 
 | 路径 | 内容 | 真值 |
@@ -132,6 +174,7 @@ mirobody-gen build --seed 7 --out out/p3 --render --handwriting
 | `vendor_signals/` + `vendor_signals.jsonl` | 厂商云推送（见上） | 每条记录预期落到的 catalog 指标 |
 | `journal.jsonl` | 以本人口吻写的一句话日记 | 一句话应切分出的条目，带 ICPC-3 码 |
 | `genomics/` + `genomics.jsonl` | 消费级基因导出 | 逐位点基因型、call 状态、catalog 归属 |
+| `continuous/` + `continuous.jsonl`（`--continuous`） | CGM 导出、Apple Health `export.xml`、可穿戴心率文件与批次 | 每个读数背后的真实值、缺口、CGM 指标、`stream.*` 陷阱 |
 
 逐字段定义见 [docs/SCHEMA.md](docs/SCHEMA.md)。
 

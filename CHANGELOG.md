@@ -76,6 +76,32 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); ver
 - `mirobody-gen build --lang-mix 'zh:0.45,en:0.4,ja:0.15'`: the cohort's language groups as a build parameter.
   A group other than zh/en has its own device time zone, brand shares and allele-frequency column; its
   documents use the English templates.
+- Continuous device streams, opt-in (`mirobody-gen build --continuous`; `continuous/`, `continuous.jsonl`):
+  - **CGM sensor sessions.**
+    - Devices: Dexcom G7/G6, FreeStyle Libre 2/3, Sibionics GS1, iCan i3.
+    - Glucose minute by minute from the physiology model. The daily mean is the eAG of the expected
+      HbA1c, so a sensor's GMI follows the laboratory's HbA1c and the metformin course.
+    - The sensor adds interstitial lag, calibration drift, noise at the device's published MARD,
+      compression lows, warm-up, backfilled and lost outages, and 8-hour scan memory.
+  - **Intraday heart rate.**
+    - Devices: Apple Watch, Huawei and Android watches, Xiaomi band, Oura ring.
+    - Built around the store's own resting heart rate and sleep record. A run is a heart-rate peak and a
+      glucose dip at the same minutes, because both streams read one day plan.
+  - **Files, in each device's own shape** (`continuous_formats.py`):
+    - Dexcom Clarity CSV and Web API v3 `egvs`; LibreView CSV.
+    - Sibionics hospital CSV and app workbook.
+    - Apple Health `export.xml`, including the store's daily records; Oura API v2 `heartrate`.
+    - Zepp Life `HEARTRATE_AUTO`; mirobody `/api/data` batches.
+  - **Truth and sources.**
+    - The truth holds every reading with the glucose or heart rate behind it, gaps and their causes,
+      consensus metrics (TIR/TBR/TAR, CV, GMI) and named `stream.*` hazards.
+    - Device facts and format tokens are in `resources/streams.json` (`scripts/build_streams.py`), each
+      with sources and a confidence. `docs/DEVICE_FORMATS.md` is the URL ledger, including the formats
+      not modelled yet.
+  - A build without the option is byte-identical to before. Tests: `tests/test_continuous.py`.
+- `physiology.expected`: an indicator's level on a day without measurement noise (shared by the
+  handwritten glucose logs and the CGM).
+- `audit-privacy` reads `.xml` files (an Apple Health export), one attribute value or text node per unit.
 
 ### Fixed
 - The default language draw is 0.3.0's again (`--lang-mix` had reversed it, so every person of a seed

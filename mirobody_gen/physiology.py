@@ -144,6 +144,13 @@ def weight_at(person, when: date) -> float:
     return anchors[-1][1]
 
 
+def expected(person, key: str, when: date) -> float:
+    """A person's indicator on a day without measurement noise: the centre `measure` draws around.
+    Home glucose logs and the CGM read it, so a meter, a sensor and a laboratory share one level."""
+    base = center_of(key, person.sex) * person.baseline.get(key, 1.0)
+    return base * trend_factor(person, key, when) * event_factor(person, key, when)[0]
+
+
 def measure(rng: random.Random, person, key: str, when: date) -> float:
     """One measurement."""
     if key == "height":

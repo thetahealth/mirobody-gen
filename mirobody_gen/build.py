@@ -3,6 +3,7 @@
     mirobody-gen build --seed 7 --out out/p3
     mirobody-gen build --seed 7 --people 8 --out out/smoke --stats
     mirobody-gen build --seed 7 --out out/p3 --render --pairs 12
+    mirobody-gen build --seed 7 --out out/p3 --continuous      # + CGM sessions, intraday heart rate
 
 The same seed always yields the same people, timeline and values: that is the whole meaning of
 "reproducible" here. `out/` can be deleted at any time; the generator plus the seed is the source of
@@ -35,6 +36,10 @@ def main() -> None:
     ap.add_argument("--handwriting", action="store_true",
                     help="with --render: also write handwritten files (notebook logs, doctor's notes, forms filled "
                          "in by hand), after the printed ones; off by default so existing seeds keep their bytes")
+    ap.add_argument("--continuous", action="store_true",
+                    help="also write continuous device streams: CGM sensor sessions and intraday heart rate in "
+                         "each device's export shapes (continuous.jsonl); off by default so existing seeds keep "
+                         "their bytes")
     ap.add_argument("--no-banner", action="store_true",
                     help="omit the SYNTHETIC banner (realism stress test; the synthetic metadata mark is always kept)")
     ap.add_argument("--lang-mix", default=None,
@@ -73,6 +78,13 @@ def main() -> None:
 
     n_vsig = vendor_signals.write_all(out_dir, people, args.seed, langs)
     print(f"vendor pushes {n_vsig} (vendor_signals.jsonl)")
+
+    if args.continuous:
+        from . import continuous
+
+        counts = continuous.write_all(out_dir, people, args.seed, langs)
+        print(f"continuous streams: {counts['cgm']} CGM sessions, {counts['heart_rate']} heart-rate windows, "
+              f"{counts['files']} files (continuous.jsonl)")
 
     if args.stats:
         _stats(people, encounters)

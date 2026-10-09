@@ -24,8 +24,8 @@ jobs:
         run: ruff check mirobody_gen scripts tests
       - name: Contract tests
         run: python -m pytest tests -q
-      - name: Small build with rendering and pairs
-        run: mirobody-gen build --seed 7 --people 6 --out out/ci --render --pairs 2
+      - name: Small build with rendering, pairs and continuous streams
+        run: mirobody-gen build --seed 7 --people 6 --out out/ci --render --pairs 2 --continuous
       - name: Readability audit
         run: mirobody-gen audit-readability out/ci/files.jsonl out/ci/pairs.jsonl
       - name: Privacy gate (PII, allow-lists, provenance; no replay index in CI)

@@ -109,6 +109,41 @@ acceptance records in mirobody's `kernel/decoders/samples/<vendor>/`. Per file, 
 `person_id`, `synthetic`, `vendor`, `file`, `n_records`, and `records[]` with `data_type` (the HealthKit type
 for `apple`), `input` (the payload) and `expected_metrics` (the catalogue metrics the decoder should produce).
 
+## `continuous.jsonl` and `continuous/<person>/…` (`build --continuous`)
+
+One record per stream: a CGM sensor session or a heart-rate window. Every file it names is written under
+`continuous/<person>/` in the device's own export shape; `docs/DEVICE_FORMATS.md` says what each shape rests
+on.
+
+| Field | Meaning |
+| --- | --- |
+| `person_id`, `synthetic`, `stream`, `tz` | `stream` ∈ `cgm` · `heart_rate`; `tz` the device clock's offset |
+| `days[]` | the day plans the curve was drawn from: `day`, `wake`, `bed` (local, no offset), `meals[]` (`time`, `kind` ∈ `breakfast` · `lunch` · `dinner` · `snack`, `load` relative to lunch), `run` (`start`, `minutes`) or `null`, `walk_minutes`, `steps` (the store's daily total), `rhr` (the store's resting heart rate) |
+| `hazards[]` | `name`, `count`; names from `resources/streams.json` `hazard_classes` (`stream.*`) |
+| `exports[]` | the person's `apple_health_export/export.xml`, when they have one: it holds this stream's records among everything else in the store |
+
+A CGM session adds:
+
+| Field | Meaning |
+| --- | --- |
+| `session`, `device`, `maker`, `model` | `device` is a key of `streams.json` `devices` (`dexcom_g7` · `dexcom_g6` · `libre_2` · `libre_3` · `sibionics_gs1` · `ican_i3`) |
+| `unit`, `interval_min`, `start`, `end`, `ended` | display unit (`mg/dL` · `mmol/L`); `ended` ∈ `wear_period` · `sensor_failed` |
+| `files[]` | `file`, `format` (`dexcom_clarity_csv` · `dexcom_api_v3_egvs` · `libreview_csv` · `sibionics_clinic_csv` · `sibionics_app_xlsx` · `api_data_batch`), `channel` (`file_upload` · `vendor_api` · `phone_store`), `unit` of the values in that file, `loinc` mirobody's resolver should give them (`2339-0` for mg/dL, `15074-8` for mmol/L), `indicator` for a phone-store batch. Empty when the device has no export (`stream.no_export`) |
+| `expected` | `metric` (`bloodGlucoses`), `specimen` (`interstitial fluid`: a CGM reads tissue fluid, the catalogue code is blood's) |
+| `readings[]` | `time` (local with offset), `kind` (`historic` · `scan`), `mgdl` and `mmol` as the device reported them (`null` past its range), `flag` (`low` · `high` · `null`), `true_mmol` (the blood glucose behind the reading), `artifact` (`compression_low` · `null`) |
+| `gaps[]` | `start`, `end`, `cause` (`warmup` · `signal_loss` · `not_scanned`), `filled` (an outage the receiver backfilled: readings present) |
+| `compressions[]` | `start`, `minutes`, `depth` (the fraction a reading fell) |
+| `summary` | from the delivered historic readings (Low/High at the range limit): `n_readings`, `coverage_pct`, `mean_mmol`, `mean_mgdl`, `sd_mmol`, `cv_pct`, `gmi_pct`, `tbr_lt_3_0_pct`, `tbr_3_0_3_8_pct`, `tir_3_9_10_0_pct`, `tar_10_1_13_9_pct`, `tar_gt_13_9_pct`; and from the model, `hba1c_expected_pct` and `eag_mmol` on the first day |
+
+A heart-rate window adds:
+
+| Field | Meaning |
+| --- | --- |
+| `window`, `reason`, `start`, `end` | `reason` ∈ `cgm` (the days of the first sensor) · `infection` (around a cold) · `routine`; dates |
+| `expected` | `metric` (`heartRates`), `loinc` (`8867-4`) |
+| `multi_source` | the person wears two devices (a watch and a ring) recording the same minutes |
+| `devices[]` | `wearable` (`apple_watch` · `huawei_watch` · `mi_band` · `android_watch` · `oura_ring`), `files[]` (`format` ∈ `api_data_batch` · `oura_api_v2_heartrate` · `zepp_life_heartrate_auto_csv`), `hazards[]`, `off_body[]` (`start`, `end`, `cause` ∈ `charging` · `off_overnight`), `samples[]` (`time`, `bpm` as recorded, `true_bpm`, `state` ∈ `sleep` · `rest` · `walk` · `run`) |
+
 ## `journal.jsonl`
 
 `person_id`, `date`, `lang`, `text`, `expected[]`: either `{kind: "symptom", name, symptom_id, icpc3,

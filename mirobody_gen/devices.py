@@ -142,8 +142,11 @@ def series_for(person: Person, seed: int, lang: str) -> dict:
                 records.append(_rec("dbp", fields, int(round(dbp)), t))
                 records.append(_rec("hr", fields, int(round(base_rhr * 1.08 + r.gauss(0, 3))), t))
         day += timedelta(days=1)
+    # `baseline` is never written out: the continuous streams (`continuous.py`) read it for the days and
+    # vendors that carry no daily record (Xiaomi has no resting-heart-rate field).
     return {"vendor": vendor, "source": VENDORS[vendor]["source"], "records": records,
-            "habits": {"weigh_rate": weigh_rate, "wearable": wearable, "cuff": cuff}}
+            "habits": {"weigh_rate": weigh_rate, "wearable": wearable, "cuff": cuff},
+            "baseline": {"rhr": base_rhr, "steps": base_steps, "sleep_min": base_sleep, "tz": tz}}
 
 
 #: When a vendor has no field for a metric (Xiaomi Health has no blood-pressure type), a cuff app

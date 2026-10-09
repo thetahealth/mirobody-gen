@@ -152,6 +152,50 @@ Nanum Pen Script, Indie Flower), pinned by sha256, licences alongside: see
 [mirobody_gen/render/fonts/README.md](mirobody_gen/render/fonts/README.md). A font is more regular than a
 hand, even with per-glyph jitter: these pages approximate handwriting, they do not stand in for it.
 
+## Continuous streams
+
+```bash
+mirobody-gen build --seed 7 --out out/p3 --continuous
+```
+
+`--continuous` adds the curves a wearer actually holds:
+
+- **CGM sensor sessions.** A Dexcom G7/G6, FreeStyle Libre 2/3, Sibionics GS1 or iCan i3 reading every
+  1–15 minutes for 10–15 days.
+- **Intraday heart rate.** From the person's Apple Watch, Huawei or Android watch, Xiaomi band or Oura ring.
+
+Both come from the same person and the same model as everything else. The glucose curve's daily mean is
+the eAG of the person's expected HbA1c, so a sensor's GMI tracks the HbA1c on their lab slips, and
+metformin moves both. Heart rate sits on the phone store's own resting rate and sleep record. Both streams
+read one plan of the day (meals, a run, walking bouts that add up to the store's step count), so an
+evening run is a heart-rate peak and a glucose dip at the same minute.
+
+The sensor layer adds:
+
+- interstitial lag;
+- calibration drift;
+- noise at the device's published accuracy;
+- compression lows at night;
+- warm-up;
+- outages, which may be backfilled;
+- for Libre 2, history lost when the sensor was not scanned within 8 hours.
+
+Each device writes its own export shape, measured against public raw exports and vendor documentation:
+
+- Dexcom Clarity CSV (BOM, all fields quoted, ragged rows, `Low`/`High`) and the Web API v3 (`39`/`401`,
+  UTC beside local time).
+- LibreView CSV (rows grouped by record type, account date format, out-of-range written as the limit).
+- The Sibionics hospital CSV (Chinese header, newest first) and app workbook (`.xls` name over OOXML bytes).
+- Apple Health `export.xml`, Oura API, Zepp Life CSV, and mirobody's `/api/data` batches.
+
+The truth (`continuous.jsonl`) keeps, for every reading, the glucose or heart rate behind it, the gaps
+and their causes, consensus CGM metrics and named `stream.*` hazards. Every device fact and format token
+carries its source in `resources/streams.json`. [docs/DEVICE_FORMATS.md](docs/DEVICE_FORMATS.md) lists
+the URLs, what each one established and how sure we are, and the formats not modelled yet: Medtronic
+CareLink, Nightscout, Tidepool, Garmin's real heart-rate map, the Fitbit API's successor.
+
+Off by default; a build without it is byte-identical to before.
+
 ## What a build produces
 
 | Path | Content | Truth |
@@ -164,6 +208,7 @@ hand, even with per-glyph jitter: these pages approximate handwriting, they do n
 | `vendor_signals/` + `vendor_signals.jsonl` | vendor cloud payloads (see above) | expected catalogue metrics per record |
 | `journal.jsonl` | one-sentence diaries in the person's words | entries a sentence should split into, with ICPC-3 codes |
 | `genomics/` + `genomics.jsonl` | consumer-genomics exports | per-site genotype, call status, catalogue membership |
+| `continuous/` + `continuous.jsonl` (`--continuous`) | CGM exports, Apple Health `export.xml`, wearable heart-rate files and batches | every reading with the true value behind it, gaps, CGM metrics, `stream.*` hazards |
 
 Field-by-field definitions: [docs/SCHEMA.md](docs/SCHEMA.md).
 

@@ -11,6 +11,10 @@ units, reference ranges and flags with regexes. Its point isn't to be competitiv
 and fully reproducible, so it confirms that a hazard actually costs score, which category it costs,
 and that the scoring pipeline works end to end. It never reads any answer from the manifest, only
 from the files themselves.
+
+`rules` reads text, not pixels: a file delivered as an image (a scan, photo, screenshot or handwritten
+page, jpg/png) gets an empty prediction, so its readable rows count as misses. That is the honest score
+of an extractor without OCR, and it is what `audit-readability` does with the same files.
 """
 
 from __future__ import annotations
@@ -32,6 +36,9 @@ _UNIT = re.compile(r"^(?:[×x]?10[\^*E]?\d+/[Ll]|[GT]/L|%|fL|fl|pg|g/L|g/l|mg/L|
                    r"U/L|U/l|IU/L|ng/mL|ng/ml|pg/mL|mIU/L|uIU/mL|μIU/mL|pmol/L|nmol/L|cm|kg|kg/m²|mmHg|"
                    r"次/分|/min|ms|°|mm/h|mL/min/1\.73m²|s)$")
 _QUAL = {"阴性", "阳性", "弱阳性", "+", "++", "+++", "-", "Negative", "Positive"}
+#: Delivered formats with text to read. `--render` builds also deliver image tiers (jpg, png), and
+#: decoding a JPEG as CSV crashed the whole run on the first one (UnicodeDecodeError on byte 0xff).
+TEXT_SUFFIXES = {".pdf", ".xlsx", ".csv"}
 
 
 def _cells_from_pdf(path: pathlib.Path) -> list[list[str]]:
@@ -68,8 +75,11 @@ def _cells(path: pathlib.Path) -> list[list[str]]:
 
         book = openpyxl.load_workbook(path, read_only=True, data_only=True)
         return [["" if c is None else str(c) for c in row] for s in book.worksheets for row in s.iter_rows(values_only=True)]
-    raw = path.read_bytes().decode("utf-8-sig")
-    return list(csv.reader(io.StringIO(raw)))
+    if suffix == ".csv":
+        raw = path.read_bytes().decode("utf-8-sig")
+        return list(csv.reader(io.StringIO(raw)))
+    # Anything else is a format nobody taught this function: fail loudly rather than score it as empty.
+    raise ValueError(f"{path.name}: not a text format the rules baseline reads ({sorted(TEXT_SUFFIXES)})")
 
 
 def rules_extract(path: pathlib.Path) -> list[dict]:
@@ -127,16 +137,21 @@ def main() -> None:
     args = ap.parse_args()
     manifest = pathlib.Path(args.manifest)
     base = manifest.parent
+    abstained = 0
     with open(args.out, "w", encoding="utf-8") as fh:
         for line in manifest.read_text(encoding="utf-8").splitlines():
             rec = json.loads(line)
             if args.which == "oracle":
                 items = [{k: r[k] for k in ("item_name", "item_value", "item_unit", "item_range", "is_abnormal")}
                          for r in rec["printed_rows"] if r["readable"]]
+            elif pathlib.PurePath(rec["file"]).suffix.lower() not in TEXT_SUFFIXES:
+                items = []
+                abstained += 1
             else:
                 items = rules_extract(base / rec["file"])
             fh.write(json.dumps({"image": rec["file"], "items": items}, ensure_ascii=False) + "\n")
-    print(f"→ {args.out}")
+    note = f" ({abstained} image files: no text to read, empty predictions)" if abstained else ""
+    print(f"→ {args.out}{note}")
 
 
 if __name__ == "__main__":

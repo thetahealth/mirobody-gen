@@ -69,26 +69,76 @@ def percentile(sorted_values: list[float], p: float) -> float:
     return sorted_values[lo] + (sorted_values[hi] - sorted_values[lo]) * (k - lo)
 
 
-def profile(points: list[tuple[datetime, float]], bin_min: int = 15, smooth: int = 1) -> list[dict]:
-    """The AGP: for each `bin_min`-minute bin of the day, the 5/25/50/75/95th percentiles of all readings
-    in it across days, then a circular moving average over ±`smooth` bins so the bands read as curves."""
+def profile(points: list[tuple[datetime, float]], bin_min: int = 15, smooth: int = 1,
+            percentiles: tuple[int, ...] = PERCENTILES) -> list[dict]:
+    """The AGP: for each `bin_min`-minute bin of the day, the given percentiles (5/25/50/75/95 by default;
+    some apps draw 10/90) of all readings in it across days, then a circular moving average over ±`smooth`
+    bins so the bands read as curves."""
     bins: list[list[float]] = [[] for _ in range(1440 // bin_min)]
     for t, v in points:
         bins[(t.hour * 60 + t.minute) // bin_min].append(v)
     raw = []
     for b in bins:
         s = sorted(b)
-        raw.append([percentile(s, p) if s else math.nan for p in PERCENTILES])
+        raw.append([percentile(s, p) if s else math.nan for p in percentiles])
     n = len(raw)
     out = []
     for i in range(n):
         row = []
-        for j in range(len(PERCENTILES)):
+        for j in range(len(percentiles)):
             window = [raw[(i + k) % n][j] for k in range(-smooth, smooth + 1)]
             window = [w for w in window if not math.isnan(w)]
             row.append(sum(window) / len(window) if window else math.nan)
-        out.append({"minute": i * bin_min, **{f"p{p}": round(row[j], 2) for j, p in enumerate(PERCENTILES)}})
+        out.append({"minute": i * bin_min, **{f"p{p}": round(row[j], 2) for j, p in enumerate(percentiles)}})
     return out
+
+
+def share(values: list[float], lo: float | None, hi: float | None, lo_incl: bool = True, hi_incl: bool = True) -> float:
+    """Percent of readings between `lo` and `hi` (None: unbounded), each end inclusive or not, unrounded."""
+    def inside(v: float) -> bool:
+        return ((lo is None or (v >= lo if lo_incl else v > lo)) and (hi is None or (v <= hi if hi_incl else v < hi)))
+
+    return 100 * sum(1 for v in values if inside(v)) / max(len(values), 1)
+
+
+def events(points: list[tuple[datetime, float]], threshold: float, below: bool, interval_min: int,
+           min_minutes: int = 15) -> list[float]:
+    """Durations (minutes) of glucose events: at least `min_minutes` beyond the threshold, ending after at
+    least `min_minutes` back (the consensus definition of a CGM event). A gap longer than two readings breaks
+    a run."""
+    beyond = (lambda v: v < threshold) if below else (lambda v: v > threshold)
+    runs: list[list[datetime]] = []
+    last = None
+    for t, v in sorted(points):
+        if beyond(v):
+            if runs and last is not None and (t - last).total_seconds() <= 2 * interval_min * 60 and runs[-1][1] == last:
+                runs[-1][1] = t
+            else:
+                runs.append([t, t])
+        last = t
+    merged: list[list[datetime]] = []
+    for a, b in runs:
+        if merged and (a - merged[-1][1]).total_seconds() < min_minutes * 60:
+            merged[-1][1] = b                          # back for less than 15 min: the same event
+        else:
+            merged.append([a, b])
+    out = []
+    for a, b in merged:
+        minutes = (b - a).total_seconds() / 60 + interval_min
+        if minutes >= min_minutes:
+            out.append(minutes)
+    return out
+
+
+def lbgi(values: list[float]) -> float:
+    """Low blood glucose index (Kovatchev et al., Diabetes Care 1998;21:1870): the mean of 10·f² over readings
+    with f < 0, f = 1.509 · ((ln mg/dL)^1.084 − 5.381)."""
+    total = 0.0
+    for v in values:
+        f = 1.509 * (math.log(max(v * MGDL_PER_MMOL, 1.0)) ** 1.084 - 5.381)
+        if f < 0:
+            total += 10 * f * f
+    return total / max(len(values), 1)
 
 
 def by_day(points: list[tuple[datetime, float]]) -> dict[date, list[tuple[datetime, float]]]:

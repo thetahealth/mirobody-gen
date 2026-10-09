@@ -101,8 +101,13 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); ver
   - A build without the option is byte-identical to before. Tests: `tests/test_continuous.py`.
 - CGM reports, for sensors whose app gives no readings file (`cgm_report_pdf`; `cgm_metrics.py`, `cgm_reports.py`,
   `render/agp.py`):
-  - Four styles: the IDC AGP Report v5 (English); the 2023 Chinese AGP consensus template; the core pages of
-    Sibionics' Chinese report; the 2017 Chinese guideline's hospital CGM report sheet.
+  - Styles:
+    - each vendor's own: iCan (from its report portal's strings: events, postprandial table, multi-day details),
+      Yuwell (TIR达标情况, time-of-day shares) and AiDEX (three bands cut at 13.3 mmol/L, 10–90% AGP, LBGI);
+    - the core pages of Sibionics' Chinese report;
+    - the IDC AGP Report v5 (English);
+    - the 2017 Chinese guideline's hospital CGM report sheet;
+    - the 2023 Chinese AGP consensus template, kept for an app whose layout is unknown.
   - Metrics by the consensus (ranges, GMI, CV) and the Chinese guideline (SD, MAGE per 24 h, MODD, LAGE).
   - Every printed value is recorded as `printed_rows` in the MedRepBench fields, with the goal printed beside it.
   - New devices: Yuwell Anytime CT3 and MicroTech AiDEX, which, like iCan i3, deliver only reports.

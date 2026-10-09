@@ -215,7 +215,7 @@ def _agp_page(page: fitz.Page, report: dict) -> None:
     _text(page, lx + 5, 67, st["tir_title"], 9)
     _text(page, w / 2 - 12, 67, st["tir_goals"], 6.5, GREY, "right")
     bar = fitz.Rect(lx + 34, 86, lx + 58, max(top_end - 30, 250))
-    order = ["very_high", "high", "target", "low", "very_low"]
+    order = report.get("band_order", ["very_high", "high", "target", "low", "very_low"])
     heights = {k: max(report["ranges"][k], 1.0) for k in order}
     total = sum(heights.values())
     yb, spans = bar.y0, {}
@@ -303,11 +303,13 @@ def _agp_chart(page: fitz.Page, rect: fitz.Rect, report: dict) -> None:
     _text(page, rect.x0 + 3, rect.y0 + 9, unit, 6.5, GREY)
     for i, label in enumerate(report["x_labels"]):
         _text(page, xm(i * 180), rect.y1 + 10, label, 6.5, INK, "center")
-    pts = [(p["minute"] + 7.5, p) for p in report["profile"] if not math.isnan(p["p50"])]
+    pk = report.get("pkeys", ("p5", "p25", "p50", "p75", "p95"))
+    t_lo, t_hi = report.get("target_band", (3.9, 10.0))
+    pts = [(p["minute"] + 7.5, p) for p in report["profile"] if not math.isnan(p[pk[2]])]
     if not pts:
         return
     bounds = [(name, yv(hi), yv(lo)) for name, lo, hi in ZONES]
-    for lo_key, hi_key, shade in (("p5", "p95", "outer"), ("p25", "p75", "inner")):
+    for lo_key, hi_key, shade in ((pk[0], pk[4], "outer"), (pk[1], pk[3], "inner")):
         poly = [(xm(m), yv(p[hi_key])) for m, p in pts] + [(xm(m), yv(p[lo_key])) for m, p in reversed(pts)]
         for name, top, bottom in bounds:
             part = _clip_strip(poly, top, bottom)
@@ -316,18 +318,18 @@ def _agp_chart(page: fitz.Page, rect: fitz.Rect, report: dict) -> None:
                 shape.draw_polyline(part)
                 shape.finish(color=None, fill=_rgb(pal[shade][name]), closePath=True)
                 shape.commit()
-    for v in (3.9, 10.0):
+    for v in (t_lo, t_hi):
         _line(page, (rect.x0, yv(v)), (rect.x1, yv(v)), color=_rgb(pal["target_line"]), width=0.9)
-    for zone, seg in _zoned_polyline([(xm(m), yv(p["p50"])) for m, p in pts], bounds):
+    for zone, seg in _zoned_polyline([(xm(m), yv(p[pk[2]])) for m, p in pts], bounds):
         if len(seg) > 1:
             shape = page.new_shape()
             shape.draw_polyline(seg)
             shape.finish(color=_rgb(pal["median"][zone]), width=1.8, closePath=False)   # paths close by default
             shape.commit()
-    _text(page, rect.x0 + 3, (yv(3.9) + yv(10.0)) / 2 + 3, report["labels"]["target_range"], 6.5,
+    _text(page, rect.x0 + 3, (yv(t_lo) + yv(t_hi)) / 2 + 3, report["labels"]["target_range"], 6.5,
           _rgb(pal["target_line"]))
     last = pts[-1][1]
-    keys = ("p95", "p75", "p50", "p25", "p5")
+    keys = tuple(reversed(pk))
     for key, y in zip(keys, _spread([yv(last[k]) + 2.5 for k in keys], 7, rect.y0 + 4, rect.y1)):
         _text(page, rect.x1 + 3, y, key[1:] + "%", 6, GREY)
 
@@ -348,12 +350,13 @@ def _daily(page: fitz.Page, area: fitz.Rect, report: dict) -> None:
         def yv(mmol: float, rect=rect) -> float:
             return rect.y1 - rect.height * min(mmol * factor, ceiling) / ceiling
 
-        _rect(page, fitz.Rect(rect.x0, yv(10.0), rect.x1, yv(3.9)), fill=(0.91, 0.91, 0.90))
+        t_lo, t_hi = report.get("target_band", (3.9, 10.0))
+        _rect(page, fitz.Rect(rect.x0, yv(t_hi), rect.x1, yv(t_lo)), fill=(0.91, 0.91, 0.90))
         _rect(page, rect, color=RULE, width=0.4)
         _text(page, rect.x0 + 2, rect.y0 + 7, number, 6, GREY)
         _text(page, (rect.x0 + rect.x1) / 2, rect.y1 + 7, report["noon"], 5, GREY, "center")
         if c == 0:
-            for v in (3.9, 10.0):
+            for v in (t_lo, t_hi):
                 tick = f"{v * factor:.0f}" if unit == "mg/dL" else f"{v:.1f}"
                 _text(page, rect.x0 - 2, yv(v) + 2, tick, 5, GREY, "right")
         segment, prev = [], None
@@ -408,14 +411,77 @@ def _table(page: fitz.Page, y: float, first_w: float, second_w: float | None, he
     return y
 
 
-def _table_page(page: fitz.Page, spec_: dict) -> None:
-    w = page.rect.width
-    _text(page, MARGIN, 46, spec_["title"], 12)
-    for i, line in enumerate(spec_.get("header_lines", [])):
-        _text(page, w - MARGIN, 46 + 12 * i, line, 7.5, GREY, "right")
-    y = _table(page, 70, 118, None, spec_["columns"], spec_["rows"], spec_.get("bands"), size=6)
-    for i, note in enumerate(spec_.get("footnotes", [])):
-        _text(page, MARGIN, y + 14 + 10 * i, note, 6.5, GREY)
+class _Pager:
+    """Lays blocks down landscape pages, opening a new page when the next piece does not fit; a table that
+    crosses a page break repeats its header row."""
+
+    BOTTOM = 34
+
+    def __init__(self, doc: fitz.Document, title: str, header: str):
+        self.doc, self.title, self.header = doc, title, header
+        self.pages: list[fitz.Page] = []
+        self.new_page()
+
+    def new_page(self) -> None:
+        self.page = self.doc.new_page(width=A4L.width, height=A4L.height)
+        self.page.insert_font(fontname="cjk", fontbuffer=_font().buffer)
+        self.pages.append(self.page)
+        _text(self.page, MARGIN, 46, self.title, 12)
+        if self.header:
+            _text(self.page, A4L.width - MARGIN, 46, self.header, 7.5, GREY, "right")
+        self.y = 62
+
+    def room(self, height: float) -> None:
+        if self.y + height > A4L.height - self.BOTTOM:
+            self.new_page()
+
+    def heading(self, text: str) -> None:
+        self.room(40)
+        _rect(self.page, fitz.Rect(MARGIN, self.y, A4L.width - MARGIN, self.y + 15), fill=PANEL)
+        _text(self.page, MARGIN + 5, self.y + 11, text, 9)
+        self.y += 22
+
+    def lines(self, lines: list[str]) -> None:
+        for line in lines:
+            self.room(13)
+            _text(self.page, MARGIN + 4, self.y + 8, line, 8)
+            self.y += 13
+        self.y += 4
+
+    def table(self, block: dict) -> None:
+        rows, bands = block["rows"], block.get("bands") or {}
+        i = 0
+        while i < len(rows):
+            self.room(16 * 3)
+            fit = max(1, int((A4L.height - self.BOTTOM - self.y) // 16) - 1 - sum(1 for k in bands if k >= i))
+            part = rows[i:i + fit]
+            part_bands = {k - i: v for k, v in bands.items() if i <= k < i + len(part)}
+            self.y = _table(self.page, self.y, block.get("first_w", 118), None, block["columns"], part, part_bands,
+                            size=6)
+            i += len(part)
+            if i < len(rows):
+                self.new_page()
+        for note in block.get("footnotes", []):
+            self.room(12)
+            _text(self.page, MARGIN, self.y + 12, note, 6.5, GREY)
+            self.y += 10
+        self.y += 16
+
+
+def _table_pages(doc: fitz.Document, spec_: dict) -> list[fitz.Page]:
+    """Statistics pages: a title, the report's header on one line at the right, then blocks in order —
+    headings, lines of text, and tables (`columns`, `rows`, optional section `bands`, `footnotes`)."""
+    pager = _Pager(doc, spec_["title"], "   ".join(spec_.get("header_lines", [])))
+    blocks = spec_.get("blocks") or [{"kind": "table", **{k: spec_[k] for k in ("columns", "rows")},
+                                      "bands": spec_.get("bands"), "footnotes": spec_.get("footnotes", [])}]
+    for block in blocks:
+        if block["kind"] == "heading":
+            pager.heading(block["text"])
+        elif block["kind"] == "lines":
+            pager.lines(block["lines"])
+        else:
+            pager.table(block)
+    return pager.pages
 
 
 # ── The hospital's CGM report sheet ──────────────────────────────────────────
@@ -443,18 +509,19 @@ def render(report: dict) -> bytes:
     """`report` from `cgm_reports.build`. Returns the PDF bytes."""
     doc = fitz.open()
     box = A4L if report["layout"] == "sheet" else A4P
-    pages = [(box, (_sheet_page if report["layout"] == "sheet" else _agp_page), report)]
-    pages += [(A4L, _table_page, extra) for extra in report.get("extra_pages", [])]
-    for n, (rect, draw, data) in enumerate(pages, start=1):
-        page = doc.new_page(width=rect.width, height=rect.height)
-        page.insert_font(fontname="cjk", fontbuffer=_font().buffer)
+    page = doc.new_page(width=box.width, height=box.height)
+    page.insert_font(fontname="cjk", fontbuffer=_font().buffer)
+    (_sheet_page if report["layout"] == "sheet" else _agp_page)(page, report)
+    for extra in report.get("extra_pages", []):
+        _table_pages(doc, extra)
+    n = doc.page_count
+    for i, page in enumerate(doc, start=1):           # furniture last, once the page count is known
         if report["banner"]:
             _text(page, MARGIN, 14, BANNER, 6, GREY)
         if report.get("page_label"):
-            _text(page, rect.width - MARGIN, 14, report["page_label"].format(i=n, n=len(pages)), 7, GREY, "right")
-        draw(page, data)
-        for i, line in enumerate(report["footer"]):
-            _text(page, MARGIN, rect.height - 16 + 8 * i, line, 6, GREY)
+            _text(page, page.rect.width - MARGIN, 14, report["page_label"].format(i=i, n=n), 7, GREY, "right")
+        for j, line in enumerate(report["footer"]):
+            _text(page, MARGIN, page.rect.height - 16 + 8 * j, line, 6, GREY)
     stamp = report["created"].strftime("%Y%m%d%H%M%S")
     doc.set_metadata({"title": report["title"], "author": report["author"], "subject": "SYNTHETIC",
                       "keywords": "synthetic; mirobody-gen", "creator": "mirobody-gen", "producer": "mirobody-gen",

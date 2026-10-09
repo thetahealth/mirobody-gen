@@ -804,6 +804,20 @@ def _report(life: Life, sess: dict, dev: dict, out: _Out, lang: str, banner: boo
     name = f"{first} {last}" if group == "en" else f"{last}{first}"
     created = min(cgm_reports.created_at(sess, life.seed, life.person.person_id),
                   datetime.combine(CORPUS_END, time(23, 0)))
+    # What the report prints beside the curve: the meals the wearer logged in the app (a share of the day
+    # plan's meals) and the device's serial in the vendor's format.
+    r = random.Random(f"report-extra:{life.seed}:{life.person.person_id}:{sess['n']}")
+    sess["meals"] = [when for d in window_days(sess["start"].date(), sess["end"].date())
+                     for when, _, _ in life.plan(d).meals if sess["start"] <= when <= sess["end"] and r.random() < 0.4]
+    sn = rep.get("sn")
+    if sn == "alnum12":
+        from .continuous_formats import _clean
+
+        while not _clean(sn := "".join(r.choice("0123456789ABCDEFGHJKLMNPQRSTUVWXYZ") for _ in range(12))):
+            pass
+        sess["report_sn"] = sn
+    elif sn == "letter10":
+        sess["report_sn"] = r.choice("ABCDEFGHJKLMNPQRSTUVWXYZ") + "".join(str(r.randrange(10)) for _ in range(10))
     report, rows, file_name = cgm_reports.build(sess, dev, style, group, life.person, name, banner, created,
                                                 institution=_clinic(life.person), seed=life.seed)
     entry = out.write(f"cgm/{sess['n']:02d}_{sess['device']}/{file_name}", agp.render(report), format="cgm_report_pdf",

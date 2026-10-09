@@ -442,9 +442,10 @@
    "no_export": "AGP and history reports (PDF, shared by e-mail) and screenshots; no readings file",
    "report": {
     "styles": {
-     "zh": "agp_cn2023",
-     "en": "agp_v5"
-    }
+     "zh": "ican",
+     "en": "ican"
+    },
+    "sn": "alnum12"
    },
    "confidence": "verbatim (every 3 min, 15 days, 2-hour warm-up, 2.0-25.0 mmol/L, MARD 8.71%; the Chinese app reads from Apple Health and Huawei Health rather than writing to them); inferred (no raw export: reviewers ask for one)",
    "sources": [
@@ -479,9 +480,10 @@
    "no_export": "daily, weekly and monthly reports in the app and shared through its follower app; no readings file",
    "report": {
     "styles": {
-     "zh": "agp_cn2023",
+     "zh": "yuwell_cn",
      "en": "agp_v5"
-    }
+    },
+    "sn": "letter10"
    },
    "confidence": "verbatim (every 3 min, 14 days, MARD 9.1%); inferred (60-minute warm-up, reports only); unsure (1.7-27.8 mmol/L, from a search snippet of the CE manual)",
    "sources": [
@@ -516,8 +518,8 @@
    "no_export": "reports in the app and a WeChat mini-program; reviewers ask for a CSV export",
    "report": {
     "styles": {
-     "zh": "agp_cn2023",
-     "en": "agp_v5"
+     "zh": "aidex",
+     "en": "aidex"
     }
    },
    "confidence": "verbatim (every 5 min, 14 days, 2.0-25.0 mmol/L); inferred (60-minute warm-up, MARD 9.08%, reports only)",
@@ -2125,6 +2127,1365 @@
     "_confidence": "verbatim (title, header fields, item rows and normal values, summary sentence, signature line: Table 5 of the 2017 guideline); inferred (department and diagnosis wording, one column per day of a 14-day sensor where the template shows four)",
     "_sources": [
      "https://seleguide.yiigle.com/uploads/guide_html/%E4%B8%AD%E5%9B%BD%E6%8C%81%E7%BB%AD%E8%91%A1%E8%90%84%E7%B3%96%E7%9B%91%E6%B5%8B%E4%B8%B4%E5%BA%8A%E5%BA%94%E7%94%A8%E6%8C%87%E5%8D%97%EF%BC%882017%E5%B9%B4%E7%89%88%EF%BC%89.html"
+    ]
+   }
+  },
+  "ican": {
+   "zh": {
+    "layout": "agp",
+    "title": "葡萄糖监测报告",
+    "header": [
+     "基本信息",
+     "佩戴人:{name}",
+     "设备激活码{colon}{sn}",
+     "报告周期{colon}{start} - {end}",
+     "监测天数{colon}{days}天",
+     "CGM激活时间{colon}{active}%",
+     "探头值数量{colon}{count}"
+    ],
+    "date_start": "%Y/%m/%d",
+    "date_end": "%Y/%m/%d",
+    "page_label": "页码{i}/{n}",
+    "labels": {
+     "metrics_title": "葡萄糖统计参数",
+     "tir_title": "葡萄糖目标范围内时间TIR、TAR、TBR",
+     "tir_goals": "1型和2型糖尿病的目标",
+     "agp_title": "动态葡萄糖图谱(AGP)",
+     "agp_note": "AGP 图谱是对报告期内葡萄糖值的一个总结，模拟显示在单天内葡萄糖值的中位数(50%)和其他百分位数。",
+     "daily_title": "每日葡萄糖概况",
+     "daily_note": "每个每日图谱代表一个午夜到午夜的时段",
+     "target_range": "葡萄糖目标范围"
+    },
+    "metrics": [
+     {
+      "key": "mean",
+      "label": "平均葡萄糖值(MG)"
+     },
+     {
+      "key": "gmi",
+      "label": "葡萄糖管理指标(GMI)"
+     },
+     {
+      "key": "cv",
+      "label": "变异系数(CV)",
+      "notes": [
+       "定义为变异系数百分比形式"
+      ]
+     },
+     {
+      "key": "lage",
+      "label": "最大葡萄糖波动"
+     },
+     {
+      "key": "max",
+      "label": "最高值"
+     },
+     {
+      "key": "min",
+      "label": "最低值"
+     }
+    ],
+    "bands_mmol": {
+     "very_high": [
+      "非常高(TAR2)",
+      "TAR2目标<5%"
+     ],
+     "high": [
+      "偏高(TAR1)",
+      ""
+     ],
+     "target": [
+      "目标(TIR)",
+      "TIR目标>70%"
+     ],
+     "low": [
+      "偏低(TBR1)",
+      ""
+     ],
+     "very_low": [
+      "非常低(TBR2)",
+      "TBR2目标<1%"
+     ]
+    },
+    "bands_mgdl": {
+     "very_high": [
+      "非常高(TAR2)",
+      "TAR2目标<5%"
+     ],
+     "high": [
+      "偏高(TAR1)",
+      ""
+     ],
+     "target": [
+      "目标(TIR)",
+      "TIR目标>70%"
+     ],
+     "low": [
+      "偏低(TBR1)",
+      ""
+     ],
+     "very_low": [
+      "非常低(TBR2)",
+      "TBR2目标<1%"
+     ]
+    },
+    "brackets": [
+     {
+      "bands": [
+       "very_high",
+       "high"
+      ],
+      "label": "TAR",
+      "goal": "TAR目标<25%"
+     },
+     {
+      "bands": [
+       "low",
+       "very_low"
+      ],
+      "label": "TBR",
+      "goal": "TBR目标<4%"
+     }
+    ],
+    "tir_notes": [
+     "每增加5%，均会带来临床受益",
+     "范围内每1%的时间 = 约15分钟"
+    ],
+    "tir_ticks_mgdl": {
+     "very_high": "250",
+     "high": "180",
+     "target": "70",
+     "low": "54"
+    },
+    "tir_ticks_mmol": {
+     "very_high": "13.9",
+     "high": "10.0",
+     "target": "3.9",
+     "low": "3.0"
+    },
+    "legend": [
+     "5%-95%区间",
+     "25%-75%区间",
+     "50%中位线",
+     "葡萄糖目标范围"
+    ],
+    "x_labels": [
+     "12am",
+     "3am",
+     "6am",
+     "9am",
+     "12pm",
+     "3pm",
+     "6pm",
+     "9pm",
+     "12am"
+    ],
+    "noon": "12pm",
+    "weekdays": [
+     "周一",
+     "周二",
+     "周三",
+     "周四",
+     "周五",
+     "周六",
+     "周日"
+    ],
+    "daily_number": "{d}",
+    "palette": {
+     "title": "#5A4999",
+     "target_line": "#4B9E53",
+     "daily_line": "#238E44",
+     "bands": {
+      "very_high": "#F68C4A",
+      "high": "#FEC00E",
+      "target": "#54B861",
+      "low": "#EF3D2D",
+      "very_low": "#982B2F"
+     },
+     "outer": {
+      "very_high": "#FEDFC8",
+      "high": "#FFECC5",
+      "target": "#D4E9D2",
+      "low": "#F9C4B8",
+      "very_low": "#E8B7B3"
+     },
+     "inner": {
+      "very_high": "#F9B197",
+      "high": "#FFD67D",
+      "target": "#9BD09B",
+      "low": "#F37455",
+      "very_low": "#C2575C"
+     },
+     "median": {
+      "very_high": "#E0662C",
+      "high": "#E5A50A",
+      "target": "#238E44",
+      "low": "#D7261E",
+      "very_low": "#7E262F"
+     }
+    },
+    "axis": {
+     "ceiling_mgdl": 360,
+     "ticks_mgdl": [
+      54,
+      70,
+      180,
+      250,
+      360
+     ],
+     "ceiling_mmol": 20.0,
+     "ticks_mmol": [
+      3.0,
+      3.9,
+      10.0,
+      13.9,
+      20.0
+     ]
+    },
+    "details_page": {
+     "title": "葡萄糖总览",
+     "blocks": [
+      {
+       "kind": "heading",
+       "text": "低葡萄糖情况"
+      },
+      {
+       "kind": "events",
+       "events": [
+        {
+         "key": "hypo",
+         "threshold": 3.9,
+         "below": true,
+         "text": "低葡萄糖事件 (＜{v0}{v1}){v2}{v3}次"
+        },
+        {
+         "key": "serious_hypo",
+         "threshold": 3.0,
+         "below": true,
+         "text": "严重低葡萄糖事件 (＜{v0}{v1}){v2}{v3}次"
+        }
+       ],
+       "duration": "平均持续{v0}分钟",
+       "sep": "："
+      },
+      {
+       "kind": "heading",
+       "text": "高葡萄糖情况"
+      },
+      {
+       "kind": "events",
+       "events": [
+        {
+         "key": "hyper",
+         "threshold": 10.0,
+         "below": false,
+         "text": "高葡萄糖事件 (＞{v0}{v1}){v2}{v3}次"
+        },
+        {
+         "key": "serious_hyper",
+         "threshold": 13.9,
+         "below": false,
+         "text": "严重高葡萄糖事件 (＞{v0}{v1}){v2}{v3}次"
+        }
+       ],
+       "duration": "平均持续{v0}分钟",
+       "sep": "："
+      },
+      {
+       "kind": "heading",
+       "text": "餐后葡萄糖数据"
+      },
+      {
+       "kind": "postprandial",
+       "time_format": "%m/%d %H:%M",
+       "intro": "监测周期内（{v0}）共记录了{v1}次饮食事件，以下为每次餐后葡萄糖数据情况。",
+       "columns": [
+        "日期",
+        "餐前葡萄糖",
+        "餐后1h葡萄糖",
+        "餐后2h葡萄糖",
+        "餐后峰值",
+        "达峰时间",
+        "波动幅度"
+       ],
+       "keys": [
+        "pre",
+        "pg1h",
+        "pg2h",
+        "peak",
+        "tpeak",
+        "ppge"
+       ]
+      },
+      {
+       "kind": "heading",
+       "text": "多日葡萄糖详情"
+      },
+      {
+       "kind": "per_day",
+       "title": "",
+       "date_label": "日期",
+       "date_format": "%m/%d",
+       "rows": {
+        "count": "探头值数量",
+        "mean": "平均葡萄糖值",
+        "max": "最高值",
+        "min": "最低值",
+        "lage": "最大葡萄糖波动",
+        "cv": "变异系数(CV)",
+        "tir": "TIR",
+        "tar": "TAR",
+        "tbr": "TBR"
+       },
+       "sections": [
+        [
+         "",
+         [
+          "count",
+          "mean",
+          "max",
+          "min",
+          "lage",
+          "cv",
+          "tir",
+          "tar",
+          "tbr"
+         ]
+        ]
+       ],
+       "footnotes": [
+        "*说明：数据不足24h，无法计算。"
+       ]
+      }
+     ]
+    },
+    "footer": [
+     "本报告为测试用合成数据，并非真实病历。"
+    ],
+    "file_name": "葡萄糖监测报告_{start}-{end}.pdf",
+    "_confidence": "verbatim (every label, section, band name, note, event and postprandial template, footnote: the iCan Review portal's report strings, which export the report PDF shared to the patient; the 0-20 mmol/L axis, 12am labels and green/amber/red colouring of Sinocare's own AGP sample); inferred (page order from a user's PDF captions, goals composed as label plus value, the separator in the event templates, the file name); the Sinocare copyright footer is not reproduced",
+    "_sources": [
+     "https://sg.icancgm.com/review/",
+     "http://www.sinocare.com/zh/cgm.html",
+     "https://www.lemon8-app.com/@ladytipnaree/7608814331061223943?region=th",
+     "https://apps.apple.com/cn/app/id1547909127"
+    ]
+   },
+   "en": {
+    "layout": "agp",
+    "title": "Glucose Monitoring Report",
+    "header": [
+     "Basic info",
+     "Name: {name}",
+     "Device SN Code: {sn}",
+     "Reporting period: {start} - {end}",
+     "Monitoring Days: {days}",
+     "Time CGM Active: {active}%",
+     "Number of glucose value: {count}"
+    ],
+    "date_start": "%m/%d/%Y",
+    "date_end": "%m/%d/%Y",
+    "page_label": "Page {i}/{n}",
+    "labels": {
+     "metrics_title": "Glucose Metrics",
+     "tir_title": "Time in Ranges",
+     "tir_goals": "Goals for Type 1 and Type 2 Diabetes",
+     "agp_title": "Ambulatory Glucose Profile (AGP)",
+     "agp_note": "AGP is a summary of glucose values from the report period, with median (50%) and other percentiles shown as if they occurred in a single day.",
+     "daily_title": "Daily Glucose Profiles",
+     "daily_note": "Each daily profile represents a midnight–to–midnight period.",
+     "target_range": "Glucose Target Range"
+    },
+    "metrics": [
+     {
+      "key": "mean",
+      "label": "Mean Glucose (MG)"
+     },
+     {
+      "key": "gmi",
+      "label": "Glucose Management Indicator (GMI)"
+     },
+     {
+      "key": "cv",
+      "label": "Coefficient of variation (CV)",
+      "notes": [
+       "Defined as percent coefficient of variation"
+      ]
+     },
+     {
+      "key": "lage",
+      "label": "LAGE"
+     },
+     {
+      "key": "max",
+      "label": "Highest"
+     },
+     {
+      "key": "min",
+      "label": "Lowest"
+     }
+    ],
+    "bands_mmol": {
+     "very_high": [
+      "Very High",
+      "TAR2 Goal <5%"
+     ],
+     "high": [
+      "High",
+      ""
+     ],
+     "target": [
+      "Target",
+      "TIR Goal >70%"
+     ],
+     "low": [
+      "Low",
+      ""
+     ],
+     "very_low": [
+      "Very Low",
+      "TBR2 Goal <1%"
+     ]
+    },
+    "bands_mgdl": {
+     "very_high": [
+      "Very High",
+      "TAR2 Goal <5%"
+     ],
+     "high": [
+      "High",
+      ""
+     ],
+     "target": [
+      "Target",
+      "TIR Goal >70%"
+     ],
+     "low": [
+      "Low",
+      ""
+     ],
+     "very_low": [
+      "Very Low",
+      "TBR2 Goal <1%"
+     ]
+    },
+    "brackets": [
+     {
+      "bands": [
+       "very_high",
+       "high"
+      ],
+      "label": "TAR",
+      "goal": "TAR Goal <25%"
+     },
+     {
+      "bands": [
+       "low",
+       "very_low"
+      ],
+      "label": "TBR",
+      "goal": "TBR Goal <4%"
+     }
+    ],
+    "tir_notes": [
+     "Each 5% increase is clinically beneficial",
+     "Each 1% time in range = about 15 minutes"
+    ],
+    "tir_ticks_mgdl": {
+     "very_high": "250",
+     "high": "180",
+     "target": "70",
+     "low": "54"
+    },
+    "tir_ticks_mmol": {
+     "very_high": "13.9",
+     "high": "10.0",
+     "target": "3.9",
+     "low": "3.0"
+    },
+    "legend": [
+     "5%–95% range",
+     "25%–75% range",
+     "Median line",
+     "Glucose Target Range"
+    ],
+    "x_labels": [
+     "12am",
+     "3am",
+     "6am",
+     "9am",
+     "12pm",
+     "3pm",
+     "6pm",
+     "9pm",
+     "12am"
+    ],
+    "noon": "12pm",
+    "weekdays": [
+     "Monday",
+     "Tuesday",
+     "Wednesday",
+     "Thursday",
+     "Friday",
+     "Saturday",
+     "Sunday"
+    ],
+    "daily_number": "{d}",
+    "palette": {
+     "title": "#5A4999",
+     "target_line": "#4B9E53",
+     "daily_line": "#238E44",
+     "bands": {
+      "very_high": "#F68C4A",
+      "high": "#FEC00E",
+      "target": "#54B861",
+      "low": "#EF3D2D",
+      "very_low": "#982B2F"
+     },
+     "outer": {
+      "very_high": "#FEDFC8",
+      "high": "#FFECC5",
+      "target": "#D4E9D2",
+      "low": "#F9C4B8",
+      "very_low": "#E8B7B3"
+     },
+     "inner": {
+      "very_high": "#F9B197",
+      "high": "#FFD67D",
+      "target": "#9BD09B",
+      "low": "#F37455",
+      "very_low": "#C2575C"
+     },
+     "median": {
+      "very_high": "#E0662C",
+      "high": "#E5A50A",
+      "target": "#238E44",
+      "low": "#D7261E",
+      "very_low": "#7E262F"
+     }
+    },
+    "axis": {
+     "ceiling_mgdl": 360,
+     "ticks_mgdl": [
+      54,
+      70,
+      180,
+      250,
+      360
+     ],
+     "ceiling_mmol": 20.0,
+     "ticks_mmol": [
+      3.0,
+      3.9,
+      10.0,
+      13.9,
+      20.0
+     ]
+    },
+    "details_page": {
+     "title": "Glucose Overview",
+     "blocks": [
+      {
+       "kind": "heading",
+       "text": "Low Glucose Condition"
+      },
+      {
+       "kind": "events",
+       "events": [
+        {
+         "key": "hypo",
+         "threshold": 3.9,
+         "below": true,
+         "text": "Hypoglycemia event(＜{v0}{v1}){v2} {v3} times"
+        },
+        {
+         "key": "serious_hypo",
+         "threshold": 3.0,
+         "below": true,
+         "text": "Serious hypoglycaemia event(＜{v0}{v1}){v2} {v3} times"
+        }
+       ],
+       "duration": "Average Duration {v0} minute(s)",
+       "sep": ":"
+      },
+      {
+       "kind": "heading",
+       "text": "High Glucose Condition"
+      },
+      {
+       "kind": "events",
+       "events": [
+        {
+         "key": "hyper",
+         "threshold": 10.0,
+         "below": false,
+         "text": "Hyperglycaemia Event (＞{v0}{v1}){v2} {v3} time(s)"
+        },
+        {
+         "key": "serious_hyper",
+         "threshold": 13.9,
+         "below": false,
+         "text": "Serious Hyperglycaemia Event (＞{v0}{v1}){v2} {v3} times"
+        }
+       ],
+       "duration": "Average Duration {v0} minute(s)",
+       "sep": ":"
+      },
+      {
+       "kind": "heading",
+       "text": "Postprandial Glucose Data"
+      },
+      {
+       "kind": "postprandial",
+       "time_format": "%m/%d %H:%M",
+       "intro": "A total of {v1} dietary events were recorded during the monitoring period ({v0}). The following is the postprandial glucose data.",
+       "columns": [
+        "Date",
+        "Pre-meal glucose",
+        "1h-PG",
+        "2h-PG",
+        "Highest-PG",
+        "Tpeak",
+        "PPGE"
+       ],
+       "keys": [
+        "pre",
+        "pg1h",
+        "pg2h",
+        "peak",
+        "tpeak",
+        "ppge"
+       ]
+      },
+      {
+       "kind": "heading",
+       "text": "Multi-day Glucose Details"
+      },
+      {
+       "kind": "per_day",
+       "title": "",
+       "date_label": "Date",
+       "date_format": "%m/%d",
+       "rows": {
+        "count": "Number of glucose value",
+        "mean": "Mean Glucose",
+        "max": "Highest",
+        "min": "Lowest",
+        "lage": "LAGE",
+        "cv": "Coefficient of variation (CV)",
+        "tir": "TIR",
+        "tar": "TAR",
+        "tbr": "TBR"
+       },
+       "sections": [
+        [
+         "",
+         [
+          "count",
+          "mean",
+          "max",
+          "min",
+          "lage",
+          "cv",
+          "tir",
+          "tar",
+          "tbr"
+         ]
+        ]
+       ],
+       "footnotes": [
+        "* The data is less than 24 h and cannot be calculated."
+       ]
+      }
+     ]
+    },
+    "footer": [
+     "Synthetic report generated for testing; not a medical record."
+    ],
+    "file_name": "Glucose_Monitoring_Report_{start}-{end}.pdf",
+    "_confidence": "verbatim (every label, section, band name, note, event and postprandial template, footnote: the iCan Review portal's report strings, which export the report PDF shared to the patient; the 0-20 mmol/L axis, 12am labels and green/amber/red colouring of Sinocare's own AGP sample); inferred (page order from a user's PDF captions, goals composed as label plus value, the separator in the event templates, the file name); the Sinocare copyright footer is not reproduced",
+    "_sources": [
+     "https://sg.icancgm.com/review/",
+     "http://www.sinocare.com/zh/cgm.html",
+     "https://www.lemon8-app.com/@ladytipnaree/7608814331061223943?region=th",
+     "https://apps.apple.com/cn/app/id1547909127"
+    ]
+   }
+  },
+  "yuwell_cn": {
+   "zh": {
+    "layout": "agp",
+    "title": "血糖报告",
+    "metrics_mode": "table",
+    "header": [
+     "SN{colon}{sn}",
+     "监测时间{colon}{start} - {end}"
+    ],
+    "date_start": "%Y/%m/%d",
+    "date_end": "%Y/%m/%d",
+    "labels": {
+     "metrics_title": "每日概览",
+     "metrics_cols": [
+      "指标",
+      "数值",
+      "目标"
+     ],
+     "tir_title": "TIR达标情况",
+     "tir_goals": "",
+     "agp_title": "AGP图谱",
+     "agp_note": "",
+     "daily_title": "每日图谱",
+     "daily_note": "",
+     "target_range": "目标范围"
+    },
+    "metrics": [
+     {
+      "key": "mean",
+      "label": "平均值",
+      "goal": "目标<6.6mmol/L",
+      "goal_mgdl": "目标<119mg/dL"
+     },
+     {
+      "key": "sd",
+      "label": "血糖标准差 (SD)",
+      "goal": "目标<1.4",
+      "goal_mgdl": "目标<25"
+     },
+     {
+      "key": "cv",
+      "label": "血糖变异系数 (CV)",
+      "goal": "目标<33%",
+      "goal_mgdl": "目标<33%"
+     },
+     {
+      "key": "max",
+      "label": "最高值"
+     },
+     {
+      "key": "min",
+      "label": "最低值"
+     },
+     {
+      "key": "lage",
+      "label": "最大血糖波动"
+     }
+    ],
+    "bands_mmol": {
+     "very_high": [
+      "非常高 (>13.9mmol/L)",
+      "建议目标<5%"
+     ],
+     "high": [
+      "偏高 (10.1~13.9mmol/L)",
+      "建议目标<25%"
+     ],
+     "target": [
+      "正常 (3.9~10.0mmol/L)",
+      "建议目标>70%"
+     ],
+     "low": [
+      "偏低 (3.0~3.8mmol/L)",
+      "建议目标<4%"
+     ],
+     "very_low": [
+      "非常低 (<3.0mmol/L)",
+      "建议目标<1%"
+     ]
+    },
+    "bands_mgdl": {
+     "very_high": [
+      "非常高 (>250mg/dL)",
+      "建议目标<5%"
+     ],
+     "high": [
+      "偏高 (181~250mg/dL)",
+      "建议目标<25%"
+     ],
+     "target": [
+      "正常 (70~180mg/dL)",
+      "建议目标>70%"
+     ],
+     "low": [
+      "偏低 (54~69mg/dL)",
+      "建议目标<4%"
+     ],
+     "very_low": [
+      "非常低 (<54mg/dL)",
+      "建议目标<1%"
+     ]
+    },
+    "brackets": [],
+    "tir_notes": [],
+    "tir_ticks_mgdl": {
+     "very_high": "250",
+     "high": "180",
+     "target": "70",
+     "low": "54"
+    },
+    "tir_ticks_mmol": {
+     "very_high": "13.9",
+     "high": "10.0",
+     "target": "3.9",
+     "low": "3.0"
+    },
+    "x_labels": [
+     "12am",
+     "3am",
+     "6am",
+     "9am",
+     "12pm",
+     "3pm",
+     "6pm",
+     "9pm",
+     "12am"
+    ],
+    "noon": "12pm",
+    "weekdays": [
+     "周一",
+     "周二",
+     "周三",
+     "周四",
+     "周五",
+     "周六",
+     "周日"
+    ],
+    "daily_number": "{d}",
+    "palette": {
+     "title": "#5A4999",
+     "target_line": "#4B9E53",
+     "daily_line": "#238E44",
+     "bands": {
+      "very_high": "#F68C4A",
+      "high": "#FEC00E",
+      "target": "#54B861",
+      "low": "#EF3D2D",
+      "very_low": "#982B2F"
+     },
+     "outer": {
+      "very_high": "#FEDFC8",
+      "high": "#FFECC5",
+      "target": "#D4E9D2",
+      "low": "#F9C4B8",
+      "very_low": "#E8B7B3"
+     },
+     "inner": {
+      "very_high": "#F9B197",
+      "high": "#FFD67D",
+      "target": "#9BD09B",
+      "low": "#F37455",
+      "very_low": "#C2575C"
+     },
+     "median": {
+      "very_high": "#E0662C",
+      "high": "#E5A50A",
+      "target": "#238E44",
+      "low": "#D7261E",
+      "very_low": "#7E262F"
+     }
+    },
+    "axis": {
+     "ceiling_mgdl": 350,
+     "ticks_mgdl": [
+      54,
+      70,
+      180,
+      250,
+      350
+     ],
+     "ceiling_mmol": 21.0,
+     "ticks_mmol": [
+      3.0,
+      3.9,
+      10.0,
+      13.9,
+      21.0
+     ]
+    },
+    "details_page": {
+     "title": "高低血糖时间占比图",
+     "blocks": [
+      {
+       "kind": "time_slots",
+       "columns": [
+        "时段",
+        "低血糖",
+        "正常",
+        "高血糖"
+       ],
+       "slots": [
+        [
+         "全天",
+         0,
+         0
+        ],
+        [
+         "夜间",
+         0,
+         3
+        ],
+        [
+         "凌晨",
+         3,
+         6
+        ],
+        [
+         "早餐前",
+         6,
+         8
+        ],
+        [
+         "早餐后",
+         8,
+         10
+        ],
+        [
+         "午餐前",
+         10,
+         12
+        ],
+        [
+         "午餐后",
+         12,
+         14
+        ],
+        [
+         "晚餐前",
+         16,
+         18
+        ],
+        [
+         "晚餐后",
+         18,
+         20
+        ],
+        [
+         "睡前",
+         21,
+         24
+        ]
+       ]
+      }
+     ]
+    },
+    "footer": [
+     "本报告为测试用合成数据，并非真实病历。"
+    ],
+    "file_name": "血糖报告_{start}-{end}.pdf",
+    "_confidence": "verbatim (TIR达标情况 with its five bands and 建议目标, AGP图谱, the daily-overview metrics and their goals, the time-slot names, the SN format of one letter and ten digits: the 2025 app's screens); inferred (the time slots' clock boundaries, the metrics table's column names, the shared report's file and page format)",
+    "_sources": [
+     "https://post.smzdm.com/p/a5pxk94x/",
+     "https://apps.apple.com/cn/app/id1570370714",
+     "https://www.poctechcorp.com/en/contents/268/A4-CGM14-004%20CT3%20Series%20Continuous%20Glucose%20Monitoring%20System%20User%20manual.pdf"
+    ]
+   }
+  },
+  "aidex": {
+   "zh": {
+    "layout": "agp",
+    "title": "AGP报告",
+    "metrics_mode": "cards",
+    "header": [
+     "{start} - {end}",
+     "CGM使用时间占比{colon}{active}%",
+     "探头读数{colon}{count}"
+    ],
+    "date_start": "%Y/%m/%d",
+    "date_end": "%Y/%m/%d",
+    "labels": {
+     "metrics_title": "血糖分析",
+     "tir_title": "TIR达标率",
+     "tir_goals": "",
+     "agp_title": "动态血糖图谱(AGP)",
+     "agp_note": "",
+     "daily_title": "多日血糖曲线",
+     "daily_note": "",
+     "target_range": "正常"
+    },
+    "metrics": [
+     {
+      "key": "eag_a1c",
+      "label": "预估糖化血红蛋白 eHbA1c"
+     },
+     {
+      "key": "mean",
+      "label": "平均血糖值 MBG"
+     },
+     {
+      "key": "gmi",
+      "label": "GMI"
+     },
+     {
+      "key": "lbgi",
+      "label": "低血糖指数(LBGI)"
+     },
+     {
+      "key": "lbgi_level",
+      "label": "低血糖风险"
+     }
+    ],
+    "lbgi_levels": [
+     "极低",
+     "低",
+     "中",
+     "高"
+    ],
+    "tir_bands": [
+     {
+      "band": "high",
+      "metric": "tar",
+      "lo": 13.3,
+      "lo_incl": false
+     },
+     {
+      "band": "target",
+      "metric": "tir",
+      "lo": 3.9,
+      "hi": 13.3
+     },
+     {
+      "band": "low",
+      "metric": "tbr",
+      "hi": 3.9,
+      "hi_incl": false
+     }
+    ],
+    "bands_mmol": {
+     "high": [
+      "高 >13.3 mmol/L",
+      ""
+     ],
+     "target": [
+      "正常 3.9 - 13.3 mmol/L",
+      ""
+     ],
+     "low": [
+      "低 <3.9 mmol/L",
+      ""
+     ]
+    },
+    "bands_mgdl": {
+     "high": [
+      "高 >240 mg/dL",
+      ""
+     ],
+     "target": [
+      "正常 70 - 240 mg/dL",
+      ""
+     ],
+     "low": [
+      "低 <70 mg/dL",
+      ""
+     ]
+    },
+    "brackets": [],
+    "tir_notes": [],
+    "tir_ticks_mgdl": {
+     "high": "240",
+     "target": "70"
+    },
+    "tir_ticks_mmol": {
+     "high": "13.3",
+     "target": "3.9"
+    },
+    "percentiles": [
+     10,
+     25,
+     50,
+     75,
+     90
+    ],
+    "target_band": [
+     3.9,
+     13.3
+    ],
+    "legend": [
+     "10%-90%区间",
+     "25%-75%区间",
+     "50%中位线",
+     "正常范围"
+    ],
+    "x_labels": [
+     "00:00",
+     "03:00",
+     "06:00",
+     "09:00",
+     "12:00",
+     "15:00",
+     "18:00",
+     "21:00",
+     "00:00"
+    ],
+    "noon": "12:00",
+    "weekdays": [
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     ""
+    ],
+    "daily_number": "%m/%d",
+    "palette": {
+     "title": "#1F4E9A",
+     "target_line": "#3E9B4F",
+     "daily_line": "#2D63B8",
+     "bands": {
+      "high": "#F2A23A",
+      "target": "#55B36B",
+      "low": "#E5483D",
+      "very_high": "#F2A23A",
+      "very_low": "#E5483D"
+     },
+     "outer": {
+      "very_high": "#C9D8F0",
+      "high": "#C9D8F0",
+      "target": "#C9D8F0",
+      "low": "#C9D8F0",
+      "very_low": "#C9D8F0"
+     },
+     "inner": {
+      "very_high": "#7FA2DB",
+      "high": "#7FA2DB",
+      "target": "#7FA2DB",
+      "low": "#7FA2DB",
+      "very_low": "#7FA2DB"
+     },
+     "median": {
+      "very_high": "#1F4E9A",
+      "high": "#1F4E9A",
+      "target": "#1F4E9A",
+      "low": "#1F4E9A",
+      "very_low": "#1F4E9A"
+     }
+    },
+    "axis": {
+     "ceiling_mgdl": 450,
+     "ticks_mgdl": [
+      70,
+      240,
+      450
+     ],
+     "ceiling_mmol": 25.0,
+     "ticks_mmol": [
+      3.9,
+      13.3,
+      25.0
+     ]
+    },
+    "footer": [
+     "本报告为测试用合成数据，并非真实病历。"
+    ],
+    "file_name": "AGP报告_{start}-{end}.pdf",
+    "_confidence": "verbatim for the English labels (CGM coverage time, Sensor reads, eHbA1c, MBG, Time In Range(TIR) with High > 13.3 / Normal 3.9 - 13.3 / Low < 3.9 mmol/L, the 10%-90% AGP legend, Low BG Index with Minimum/Low/Moderate/High at 1.1/2.5/5, Multi-day Blood Glucose Curves: screenshots in the AiDEX and LinX user guides); inferred (the shared AGP report showing the Trends screen's content, every Chinese label except MBG, CGM使用时间占比, 预估糖化血红蛋白 and TIR达标率 from the app's release notes; colours)",
+    "_sources": [
+     "https://www.microtechmd.com/support/download/84/149",
+     "https://www.microtechmd.com/support/download/664/666",
+     "https://apps.apple.com/cn/app/id6460689815"
+    ]
+   },
+   "en": {
+    "layout": "agp",
+    "title": "AGP Report",
+    "metrics_mode": "cards",
+    "header": [
+     "{start} - {end}",
+     "CGM coverage time: {active}%",
+     "Sensor reads: {count}"
+    ],
+    "date_start": "%m/%d/%Y",
+    "date_end": "%m/%d/%Y",
+    "labels": {
+     "metrics_title": "Trends",
+     "tir_title": "Time In Range(TIR)",
+     "tir_goals": "",
+     "agp_title": "Ambulatory Glucose Profile (AGP)",
+     "agp_note": "",
+     "daily_title": "Multi-day Blood Glucose Curves",
+     "daily_note": "",
+     "target_range": "Normal"
+    },
+    "metrics": [
+     {
+      "key": "eag_a1c",
+      "label": "eHbA1c"
+     },
+     {
+      "key": "mean",
+      "label": "MBG"
+     },
+     {
+      "key": "gmi",
+      "label": "GMI"
+     },
+     {
+      "key": "lbgi",
+      "label": "Low BG Index (LBGI)"
+     },
+     {
+      "key": "lbgi_level",
+      "label": "LBGI level"
+     }
+    ],
+    "lbgi_levels": [
+     "Minimum",
+     "Low",
+     "Moderate",
+     "High"
+    ],
+    "tir_bands": [
+     {
+      "band": "high",
+      "metric": "tar",
+      "lo": 13.3,
+      "lo_incl": false
+     },
+     {
+      "band": "target",
+      "metric": "tir",
+      "lo": 3.9,
+      "hi": 13.3
+     },
+     {
+      "band": "low",
+      "metric": "tbr",
+      "hi": 3.9,
+      "hi_incl": false
+     }
+    ],
+    "bands_mmol": {
+     "high": [
+      "High > 13.3 mmol/L",
+      ""
+     ],
+     "target": [
+      "Normal 3.9 - 13.3 mmol/L",
+      ""
+     ],
+     "low": [
+      "Low < 3.9 mmol/L",
+      ""
+     ]
+    },
+    "bands_mgdl": {
+     "high": [
+      "High > 240 mg/dL",
+      ""
+     ],
+     "target": [
+      "Normal 70 - 240 mg/dL",
+      ""
+     ],
+     "low": [
+      "Low < 70 mg/dL",
+      ""
+     ]
+    },
+    "brackets": [],
+    "tir_notes": [],
+    "tir_ticks_mgdl": {
+     "high": "240",
+     "target": "70"
+    },
+    "tir_ticks_mmol": {
+     "high": "13.3",
+     "target": "3.9"
+    },
+    "percentiles": [
+     10,
+     25,
+     50,
+     75,
+     90
+    ],
+    "target_band": [
+     3.9,
+     13.3
+    ],
+    "legend": [
+     "10%-90%interval",
+     "25%-75%interval",
+     "50%Midpoint",
+     "Normal"
+    ],
+    "x_labels": [
+     "00:00",
+     "03:00",
+     "06:00",
+     "09:00",
+     "12:00",
+     "15:00",
+     "18:00",
+     "21:00",
+     "00:00"
+    ],
+    "noon": "12:00",
+    "weekdays": [
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     ""
+    ],
+    "daily_number": "%m/%d",
+    "palette": {
+     "title": "#1F4E9A",
+     "target_line": "#3E9B4F",
+     "daily_line": "#2D63B8",
+     "bands": {
+      "high": "#F2A23A",
+      "target": "#55B36B",
+      "low": "#E5483D",
+      "very_high": "#F2A23A",
+      "very_low": "#E5483D"
+     },
+     "outer": {
+      "very_high": "#C9D8F0",
+      "high": "#C9D8F0",
+      "target": "#C9D8F0",
+      "low": "#C9D8F0",
+      "very_low": "#C9D8F0"
+     },
+     "inner": {
+      "very_high": "#7FA2DB",
+      "high": "#7FA2DB",
+      "target": "#7FA2DB",
+      "low": "#7FA2DB",
+      "very_low": "#7FA2DB"
+     },
+     "median": {
+      "very_high": "#1F4E9A",
+      "high": "#1F4E9A",
+      "target": "#1F4E9A",
+      "low": "#1F4E9A",
+      "very_low": "#1F4E9A"
+     }
+    },
+    "axis": {
+     "ceiling_mgdl": 450,
+     "ticks_mgdl": [
+      70,
+      240,
+      450
+     ],
+     "ceiling_mmol": 25.0,
+     "ticks_mmol": [
+      3.9,
+      13.3,
+      25.0
+     ]
+    },
+    "footer": [
+     "Synthetic report generated for testing; not a medical record."
+    ],
+    "file_name": "AGP_Report_{start}-{end}.pdf",
+    "_confidence": "verbatim for the English labels (CGM coverage time, Sensor reads, eHbA1c, MBG, Time In Range(TIR) with High > 13.3 / Normal 3.9 - 13.3 / Low < 3.9 mmol/L, the 10%-90% AGP legend, Low BG Index with Minimum/Low/Moderate/High at 1.1/2.5/5, Multi-day Blood Glucose Curves: screenshots in the AiDEX and LinX user guides); inferred (the shared AGP report showing the Trends screen's content, every Chinese label except MBG, CGM使用时间占比, 预估糖化血红蛋白 and TIR达标率 from the app's release notes; colours)",
+    "_sources": [
+     "https://www.microtechmd.com/support/download/84/149",
+     "https://www.microtechmd.com/support/download/664/666",
+     "https://apps.apple.com/cn/app/id6460689815"
     ]
    }
   }

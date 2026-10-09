@@ -72,7 +72,7 @@ def metrics(pts: list[tuple[datetime, float]], start: datetime, end: datetime, i
             # a report period counts days of wear, not calendar dates: 14 days from 10:00 touch 15 dates
             "days": max(1, round((end - start).total_seconds() / 86400)),
             "count": len(vals), "mage": M.mage_daily_mean(pts, interval_min=interval_min),
-            "modd": M.modd(pts, interval_min), "lage": M.lage(vals)}
+            "modd": M.modd(pts, interval_min), "lage": M.lage(vals), "lbgi": M.lbgi(vals)}
 
 
 def _glucose(mmol: float, unit: str, decimals: int = 1) -> str:
@@ -124,9 +124,13 @@ def _metric_value(key: str, m: dict, unit: str, item: dict) -> tuple[str, str] |
         return None
     if key in ("mean", "sd", "mage", "modd", "lage", "min", "max"):
         return _glucose(raw, unit, item.get("decimals", 1)), unit
-    if key == "days":
+    if key in ("days", "count"):
         return str(raw), item.get("unit", "")
     if key == "hypo_risk":
+        return raw, ""
+    if key == "lbgi":
+        return f"{raw:.1f}", ""
+    if key == "lbgi_level":
         return raw, ""
     return f"{raw:.1f}", "%"
 
@@ -139,13 +143,18 @@ def _agp(sess: dict, dev: dict, style: dict, name: str, banner: bool, created: d
     m = metrics(pts, start, end, dev["interval_min"])
     m["eag_a1c"] = (m["mean_mgdl"] + 46.7) / 28.7                      # ADAG: HbA1c from mean glucose
     m["hypo_risk"] = _hypo_risk(m, style.get("hypo_levels", ["", "", "", ""]))
+    if style.get("lbgi_levels"):                  # Kovatchev's risk categories: <=1.1, <=2.5, <=5, above
+        levels = style["lbgi_levels"]
+        m["lbgi_level"] = levels[0] if m["lbgi"] <= 1.1 else levels[1] if m["lbgi"] <= 2.5 else \
+            levels[2] if m["lbgi"] <= 5 else levels[3]
     pct = style.get("pct_decimals", 0)
     rows: list[dict] = []
     active = f"{m['active']:.1f}"
     # `{colon}` keeps a name label and its colon apart in the resource (the repository's privacy hook rejects
     # the pair in a tracked file); the page prints them together.
     fields = {"name": name, "days": m["days"], "active": active, "colon": "：", "start": _date(start, style["date_start"]),
-              "end": _date(end, style["date_end"]), "created": _date(created, style["date_end"])}
+              "end": _date(end, style["date_end"]), "created": _date(created, style["date_end"]), "count": m["count"],
+              "sn": sess.get("report_sn", "")}
     header = [line.format(**fields) for line in style["header"]]
     printed = []
     for item in style["metrics"]:
@@ -165,17 +174,25 @@ def _agp(sess: dict, dev: dict, style: dict, name: str, banner: bool, created: d
         notes = list(item.get("notes", [])) + ([goal] if goal and style.get("metrics_mode", "dots") == "dots" else [])
         printed.append({"label": item["label"], "value": shown, "goal": goal, "notes": notes})
     bands = style["bands_mgdl" if unit == "mg/dL" else "bands_mmol"]
-    tir_rows = {}
-    for band, key in (("very_high", "tar_very_high"), ("high", "tar_high"), ("target", "tir"), ("low", "tbr_low"),
-                      ("very_low", "tbr_very_low")):
+    tir_rows, ranges = {}, {}
+    vals = [v for _, v in pts]
+    if style.get("tir_bands"):                        # a device's own bands (AiDEX: three, cut at 13.3)
+        spec_bands = [(b["band"], b["metric"], M.share(vals, b.get("lo"), b.get("hi"), b.get("lo_incl", True),
+                                                       b.get("hi_incl", True))) for b in style["tir_bands"]]
+    else:
+        spec_bands = [(band, key, m[key]) for band, key in (("very_high", "tar_very_high"), ("high", "tar_high"),
+                                                            ("target", "tir"), ("low", "tbr_low"),
+                                                            ("very_low", "tbr_very_low"))]
+    for band, key, value in spec_bands:
         label, goal = bands[band]
-        text = f"{m[key]:.{pct}f}%"
-        shown = f"{text} ({_duration(m[key])})" if style.get("tir_duration") else text
+        ranges[band] = value
+        text = f"{value:.{pct}f}%"
+        shown = f"{text} ({_duration(value)})" if style.get("tir_duration") else text
         tir_rows[band] = (label, shown, goal)
         rule = rule_of(goal, unit, False) if goal else None
         rows.append({"key": key, "item_name": label, "item_value": text[:-1], "item_unit": "%",
                      "item_range": _NUM.search(goal).group(0) + "%" if rule else "",
-                     "is_abnormal": _misses(rule, m[key]) if rule else ""})
+                     "is_abnormal": _misses(rule, value) if rule else ""})
     brackets = []
     for b in style["brackets"]:
         key = "tar_total" if "very_high" in b["bands"] else "tbr_total"
@@ -188,12 +205,13 @@ def _agp(sess: dict, dev: dict, style: dict, name: str, banner: bool, created: d
     for day, day_pts in sorted(M.by_day(pts).items()):
         dt = datetime.combine(day, datetime.min.time())
         daily.append((style["weekdays"][day.weekday()], _date(dt, style["daily_number"]), sorted(day_pts)))
-    profile = M.profile(pts, bin_min=15)
+    percentiles = tuple(style.get("percentiles", M.PERCENTILES))
+    profile = M.profile(pts, bin_min=15, percentiles=percentiles)
     report = {"layout": "agp", "labels": style["labels"], "palette": style["palette"], "axis": style["axis"],
               "unit": unit, "title": style["title"], "header_lines": header, "metrics": printed,
-              "metrics_mode": style.get("metrics_mode", "dots"),
-              "ranges": {"very_high": m["tar_very_high"], "high": m["tar_high"], "target": m["tir"],
-                         "low": m["tbr_low"], "very_low": m["tbr_very_low"]},
+              "metrics_mode": style.get("metrics_mode", "dots"), "ranges": ranges,
+              "band_order": [b for b, _, _ in spec_bands], "pkeys": tuple(f"p{q}" for q in percentiles),
+              "target_band": tuple(style.get("target_band", (3.9, 10.0))),
               "tir_rows": tir_rows, "tir_brackets": brackets, "tir_wide": bool(style.get("tir_duration")),
               "tir_ticks": list(style["tir_ticks_mgdl" if unit == "mg/dL" else "tir_ticks_mmol"].items()),
               "tir_notes": style["tir_notes"], "x_labels": style["x_labels"], "noon": style["noon"],
@@ -212,7 +230,83 @@ def _agp(sess: dict, dev: dict, style: dict, name: str, banner: bool, created: d
         page, more = _daily_table(pts, style["daily_table"], unit, dev["interval_min"], header)
         report["extra_pages"] = [page]
         rows += more
+    if style.get("details_page"):
+        page, more = _details_page(pts, style["details_page"], unit, dev["interval_min"], header, sess.get("meals", []))
+        report["extra_pages"] = report.get("extra_pages", []) + [page]
+        rows += more
     return report, rows
+
+
+def _details_page(pts: list[tuple[datetime, float]], spec_: dict, unit: str, interval_min: int, header: list[str],
+                  meals: list[datetime]) -> tuple[dict, list[dict]]:
+    """A vendor's second page, built from blocks the style lists: low/high glucose events, postprandial glucose
+    for the meals the wearer logged, glucose by time of day, and a per-day table."""
+    blocks, truth = [], []
+    unit_text = unit if unit == "mg/dL" else "mmol/L"
+    for block in spec_["blocks"]:
+        kind = block["kind"]
+        if kind == "heading":
+            blocks.append(block)
+        elif kind == "events":
+            lines = []
+            for ev in block["events"]:
+                found = M.events(pts, ev["threshold"], ev["below"], interval_min)
+                limit = _glucose(ev["threshold"], unit)
+                lines.append(ev["text"].format(v0=limit, v1=unit_text, v2=block.get("sep", ": "), v3=len(found)))
+                truth.append({"key": f"events_{ev['key']}", "item_name": ev["key"], "item_value": str(len(found)),
+                              "item_unit": "", "item_range": "", "is_abnormal": ""})
+                if found:
+                    avg = round(sum(found) / len(found))
+                    lines.append(block["duration"].format(v0=avg))
+                    truth.append({"key": f"events_{ev['key']}_minutes", "item_name": ev["key"], "item_value": str(avg),
+                                  "item_unit": "min", "item_range": "", "is_abnormal": ""})
+            blocks.append({"kind": "lines", "lines": lines})
+        elif kind == "postprandial":
+            rows = []
+            for meal in meals:
+                around = [(t, v) for t, v in pts if timedelta(minutes=-20) <= t - meal <= timedelta(hours=3)]
+                pre = [v for t, v in around if t <= meal]
+                after = [(t, v) for t, v in around if t > meal]
+                if not pre or len(after) < 6:
+                    continue
+
+                def at(minutes: int) -> float:
+                    return min(after, key=lambda tv: abs((tv[0] - meal).total_seconds() / 60 - minutes))[1]
+
+                peak_t, peak = max(after, key=lambda tv: tv[1])
+                cells = [meal.strftime(block["time_format"]), _glucose(pre[-1], unit), _glucose(at(60), unit),
+                         _glucose(at(120), unit), _glucose(peak, unit),
+                         str(round((peak_t - meal).total_seconds() / 60)), _glucose(peak - pre[-1], unit)]
+                rows.append(cells)
+                for col, text in zip(block["keys"], cells[1:]):
+                    truth.append({"key": f"pp_{col}@{meal.isoformat(timespec='minutes')}", "item_name": col,
+                                  "item_value": text, "item_unit": "min" if col == "tpeak" else unit_text,
+                                  "item_range": "", "is_abnormal": ""})
+            if rows:
+                period = f"{pts[0][0]:%Y/%m/%d}-{pts[-1][0]:%Y/%m/%d}"
+                blocks.append({"kind": "lines", "lines": [block["intro"].format(v0=period, v1=len(rows))]})
+                blocks.append({"kind": "table", "columns": block["columns"], "rows": rows, "first_w": 90})
+        elif kind == "time_slots":
+            rows = []
+            for name, h0, h1 in block["slots"]:
+                vals = [v for t, v in pts if h0 <= t.hour + t.minute / 60 < h1] if h1 > h0 else [v for _, v in pts]
+                if not vals:
+                    rows.append([name] + ["--"] * 3)
+                    continue
+                low = M.share(vals, None, 3.9, hi_incl=False)
+                high = M.share(vals, 10.0, None, lo_incl=False)
+                cells = [f"{low:.0f}%", f"{100 - low - high:.0f}%", f"{high:.0f}%"]
+                rows.append([name] + cells)
+                for col, text in zip(("low", "normal", "high"), cells):
+                    truth.append({"key": f"slot_{col}@{name}", "item_name": name, "item_value": text[:-1],
+                                  "item_unit": "%", "item_range": "", "is_abnormal": ""})
+            blocks.append({"kind": "table", "columns": block["columns"], "rows": rows, "first_w": 90})
+        elif kind == "per_day":
+            page, more = _daily_table(pts, block, unit, interval_min, [])
+            blocks.append({"kind": "table", "columns": page["columns"], "rows": page["rows"], "bands": page["bands"],
+                           "footnotes": page["footnotes"]})
+            truth += more
+    return {"title": spec_["title"], "header_lines": header, "blocks": blocks}, truth
 
 
 def _daily_table(pts: list[tuple[datetime, float]], spec_: dict, unit: str, interval_min: int,
@@ -237,8 +331,9 @@ def _daily_table(pts: list[tuple[datetime, float]], spec_: dict, unit: str, inte
         for key in stats:
             text = "--*" if partial and key not in ("count", "max", "min", "mean") else stats[key]
             by_key.setdefault(key, []).append(text)
-            truth.append({"key": f"{key}@{d.isoformat()}", "item_name": spec_["rows"][key], "item_value": text,
-                          "item_unit": "", "item_range": "", "is_abnormal": ""})
+            if key in spec_["rows"]:                  # only what the table prints is truth
+                truth.append({"key": f"{key}@{d.isoformat()}", "item_name": spec_["rows"][key], "item_value": text,
+                              "item_unit": "", "item_range": "", "is_abnormal": ""})
     bands, order = {}, []
     for section, keys in spec_["sections"]:
         if section:

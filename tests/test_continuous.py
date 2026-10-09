@@ -471,18 +471,20 @@ def test_tidepool_export_converts_through_mmol_storage(built, cohort):
 
 
 def test_reports_print_what_the_truth_records(built):
-    """Every printed value of a report is on its page, and the time in range it prints is the share of the
-    session's own readings: in 3.9-10.0 mmol/L over the AGP's last 14 days, or 3.9 < G < 10 over the whole
-    sensor on the hospital sheet."""
+    """Every printed value of a report is on its pages, and the time in range it prints is the share of the
+    session's own readings in the style's target band (3.9-10.0 mmol/L, AiDEX's 3.9-13.3) over the last 14 days,
+    or 3.9 < G < 10 over the whole sensor on the hospital sheet."""
     import fitz
 
     out, truths, *_ = built
     found = _files(truths, "cgm_report_pdf")
     assert {t["device"] for t, _ in found} >= {"ican_i3", "yuwell_ct3", "aidex", "sibionics_gs1"}
-    assert {f["style"] for _, f in found} >= {"agp_cn2023", "sibionics_cn", "cgm_sheet_2017"}
+    assert {f["style"] for _, f in found} >= {"ican", "yuwell_cn", "aidex", "sibionics_cn", "cgm_sheet_2017"}
+    pages = {"sibionics_cn": {2}, "yuwell_cn": {2}, "aidex": {1}, "cgm_sheet_2017": {1}, "ican": {2, 3}}
     for t, f in found:
+        style = spec.streams()["reports"][f["style"]][f["language"]]
         with fitz.open(out / f["file"]) as doc:
-            assert doc.page_count == (2 if f["style"] == "sibionics_cn" else 1)
+            assert doc.page_count in pages[f["style"]], (f["style"], doc.page_count)
             assert doc.metadata["subject"] == "SYNTHETIC"
             text = "\n".join(p.get_text() for p in doc)
         for row in f["printed_rows"]:
@@ -499,11 +501,47 @@ def test_reports_print_what_the_truth_records(built):
             row = next(r for r in f["printed_rows"] if r["key"] == "in_3_9_10")
             assert row["item_value"] == f"{100 * sum(3.9 < v < 10.0 for v in vals) / len(vals):.1f}"
         else:
+            t_lo, t_hi = style.get("target_band", (3.9, 10.0))
             tir = next(r for r in f["printed_rows"] if r["key"] == "tir")
-            share = 100 * sum(3.9 <= v <= 10.0 for v in vals) / len(vals)
+            share = 100 * sum(t_lo <= v <= t_hi for v in vals) / len(vals)
             assert tir["item_value"] == f"{share:.0f}", (t["device"], f["style"], tir, share)
-            assert tir["is_abnormal"] == ("0" if share > 70 else "1")
+            if tir["item_range"]:
+                assert tir["is_abnormal"] == ("0" if share > 70 else "1")
         assert not any(h["name"] == "stream.no_export" for h in t["hazards"])
+
+
+def test_ican_postprandial_rows_follow_the_logged_meals(built):
+    out, truths, *_ = built
+    found = [(t, f) for t, f in _files(truths, "cgm_report_pdf") if f["style"] == "ican"]
+    assert found
+    for t, f in found:
+        meals: dict[str, dict[str, str]] = {}
+        for row in f["printed_rows"]:
+            if row["key"].startswith("pp_"):
+                col, when = row["key"][3:].split("@")
+                meals.setdefault(when, {})[col] = row["item_value"]
+        assert meals
+        for cells in meals.values():
+            pre, peak, ppge = float(cells["pre"]), float(cells["peak"]), float(cells["ppge"])
+            assert pre <= peak + 0.05 and abs((peak - pre) - ppge) <= 0.11 and 0 < int(cells["tpeak"]) <= 180
+
+
+def test_consensus_template_renders(cohort):
+    """The 2023 Chinese consensus template is kept for a Chinese app whose own layout is unknown."""
+    from mirobody_gen import cgm_reports
+    from mirobody_gen.render import agp
+
+    people, langs = cohort
+    person = next(p for p in people if p.archetype == "prediabetes_to_t2dm")
+    start = datetime(2024, 4, 2, 10, 0)
+    sess = C.sensor_readings(_life(person, langs), {"n": 1, "device": "aidex", "unit": "mmol/L", "region": "default",
+                                                    "start": start, "end": start + timedelta(days=14),
+                                                    "ended": "wear_period"}) | {"n": 1}
+    report, rows, _ = cgm_reports.build(sess, spec.streams()["devices"]["aidex"], "agp_cn2023", "zh", person, "韩安磊",
+                                        True, start + timedelta(days=15))
+    text = agp.text_of(agp.render(report))
+    assert "动态葡萄糖评估报告" in text and "每增加5%都是有益的" in text
+    assert all(r["item_value"] in text for r in rows)
 
 
 def test_agp_v5_report_in_mg_dl(cohort):

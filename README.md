@@ -192,9 +192,8 @@ Each device writes its own export shape, measured against public raw exports and
 - Apple Health `export.xml`, Oura API, Zepp Life CSV, and mirobody's `/api/data` batches.
 
 Where an app hands over no readings at all (iCan, Yuwell, AiDEX, Sibionics' Chinese app), the wearer holds
-a report, and so does the corpus. It is a PDF with a text layer, in one of four styles: the IDC AGP Report v5,
-the 2023 Chinese AGP consensus template, Sibionics' Chinese report, or the 2017 guideline's hospital CGM report
-sheet. Its metrics include TIR/TAR/TBR, GMI, CV, and the Chinese guideline's SD, MAGE, MODD and LAGE. Every
+a report, and so does the corpus. It is a PDF with a text layer in the vendor's own wording: iCan's, Yuwell's,
+AiDEX's and Sibionics' reports, the IDC AGP Report v5, or the 2017 guideline's hospital CGM report sheet. Its metrics include TIR/TAR/TBR, GMI, CV, and the Chinese guideline's SD, MAGE, MODD and LAGE. Every
 printed value is truth, so an extractor reading a report can be scored like one reading a lab slip.
 
 The truth (`continuous.jsonl`) keeps, for every reading, the glucose or heart rate behind it, the gaps

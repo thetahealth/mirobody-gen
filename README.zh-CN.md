@@ -159,7 +159,7 @@ mirobody-gen build --seed 7 --out out/p3 --continuous
 - Apple Health `export.xml`、Oura API、Zepp Life CSV，以及 mirobody 的 `/api/data` 批次。
 
 App 根本不交出读数的设备（三诺、鱼跃、微泰、硅基动感国内版），佩戴者手里是一份报告，语料里也是。报告是带文字层的
-PDF，共四种样式：IDC AGP 报告 v5、2023 中国 AGP 共识模板、硅基国内版报告、2017 指南的医院 CGM 报告单。指标包括
+PDF，用各厂商自己的措辞：三诺、鱼跃、微泰、硅基国内版各自的报告，以及 IDC AGP 报告 v5、2017 指南的医院 CGM 报告单。指标包括
 TIR/TAR/TBR、GMI、CV，以及中国指南里的 SD、MAGE、MODD、LAGE。每个印出来的数值都是真值，所以读报告的提取器
 可以像读化验单一样打分。
 

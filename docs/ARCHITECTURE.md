@@ -16,6 +16,7 @@ vocab.json       │   synthid.py    checksummed synthetic ids   pairs.py    min
 delivery.json    │   manifest.py   manifest.jsonl, people.jsonl
 handwriting.json │   vendor_signals.py vendor-cloud payloads   handwriting.py handwritten files (opt-in)
 streams.json     │   continuous.py CGM and heart-rate curves   continuous_formats.py device exports (opt-in)
+                 │   cgm_metrics.py AGP, TIR, MAGE, MODD       cgm_reports.py + render/agp.py CGM report PDFs
 numbers*.json    │                                             render/hand.py pen, paper, legibility
 llm_prompts.json ┘   llm/          optional: offline paraphrase enrichment (contract, cache, CLI)
 ```
@@ -74,9 +75,14 @@ resting rate. A sensor session reads the glucose through interstitial lag, calib
 correlated noise at the device's published accuracy, compression lows, warm-up, outages it may backfill and,
 for scan-based sensors, history lost between scans; a wearable samples heart rate at its own cadence and is
 off the body to charge. `continuous_formats.py` writes each device's export byte for byte (Dexcom Clarity CSV
-and Web API, LibreView CSV, Sibionics hospital CSV and app workbook, Apple Health `export.xml`, Oura API,
-Zepp Life CSV, the `/api/data` batch); every device fact and format token, with its source, is in
-`resources/streams.json` (`scripts/build_streams.py`), and the URLs are in `docs/DEVICE_FORMATS.md`.
+and Web API, LibreView CSV, Sibionics hospital CSV and app workbook, Medtronic CareLink CSV, Apple Health
+`export.xml`, Oura API, Zepp Life CSV, the `/api/data` batch) and what a wearer's own set-up adds (Nightscout
+entries, xDrip+'s SiDiary export, a Tidepool export, a follower's Dexcom Share or LibreLinkUp snapshot). A
+device whose app hands over no readings gives its report instead: `cgm_metrics.py` computes the consensus
+metrics and the ambulatory glucose profile, `cgm_reports.py` formats them in the app's language and records
+every printed value as truth, and `render/agp.py` draws the PDF. Every device fact and format token, with its
+source, is in `resources/streams.json` (`scripts/build_streams.py`), and the URLs are in
+`docs/DEVICE_FORMATS.md`.
 
 **Gates** (`mirobody_gen/audit/`) do not import the generator. They re-derive identities from
 laboratory definitions, re-extract text from the produced files, and re-implement the PII predicates,

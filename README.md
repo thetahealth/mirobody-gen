@@ -186,13 +186,23 @@ Each device writes its own export shape, measured against public raw exports and
   UTC beside local time).
 - LibreView CSV (rows grouped by record type, account date format, out-of-range written as the limit).
 - The Sibionics hospital CSV (Chinese header, newest first) and app workbook (`.xls` name over OOXML bytes).
+- Medtronic CareLink CSV (sections under `-------` separators, newest first).
+- What a wearer's own set-up adds: Nightscout entries as the server stores them, xDrip+'s SiDiary export,
+  Tidepool's Excel or JSON export, a follower's Dexcom Share or LibreLinkUp snapshot.
 - Apple Health `export.xml`, Oura API, Zepp Life CSV, and mirobody's `/api/data` batches.
+
+Where an app hands over no readings at all (iCan, Yuwell, AiDEX, Sibionics' Chinese app), the wearer holds
+a report, and so does the corpus. It is a PDF with a text layer, in one of four styles: the IDC AGP Report v5,
+the 2023 Chinese AGP consensus template, Sibionics' Chinese report, or the 2017 guideline's hospital CGM report
+sheet. Its metrics include TIR/TAR/TBR, GMI, CV, and the Chinese guideline's SD, MAGE, MODD and LAGE. Every
+printed value is truth, so an extractor reading a report can be scored like one reading a lab slip.
 
 The truth (`continuous.jsonl`) keeps, for every reading, the glucose or heart rate behind it, the gaps
 and their causes, consensus CGM metrics and named `stream.*` hazards. Every device fact and format token
 carries its source in `resources/streams.json`. [docs/DEVICE_FORMATS.md](docs/DEVICE_FORMATS.md) lists
-the URLs, what each one established and how sure we are, and the formats not modelled yet: Medtronic
-CareLink, Nightscout, Tidepool, Garmin's real heart-rate map, the Fitbit API's successor.
+the URLs, what each one established and how sure we are, and the formats not modelled yet: Medtronic 780G
+pump exports, Nightscout API v3 and the Loop/Trio/AAPS uploaders, Garmin's real heart-rate map, the Fitbit
+API's successor.
 
 Off by default; a build without it is byte-identical to before.
 

@@ -1,0 +1,177 @@
+"""CGM summary metrics: the numbers an AGP report prints and the curves it draws.
+
+Pure functions over a sensor's readings `[(local time, mmol/L)]`; nothing here draws a value. The report
+renderer (`render/agp.py`) prints what these return, and the truth records the same numbers, so an
+extractor reading a report is scored against the arithmetic, not against the renderer.
+
+- Ranges, mean, SD, CV and GMI follow the International Consensus on Time in Range (Battelino et al.,
+  Diabetes Care 2019;42:1593) and Bergenstal et al. (Diabetes Care 2018;41:2275).
+- The ambulatory glucose profile is the 5th/25th/50th/75th/95th percentile of every reading falling in
+  each time-of-day bin across the days worn, lightly smoothed around the clock (the AGP's own
+  presentation; bin width and smoothing are ours and stated in `profile`).
+- MAGE (mean amplitude of glycaemic excursions; Service et al., Diabetes 1970;19:644): the mean of the
+  peak-to-nadir swings larger than one SD, in the direction of the first such swing. Turning points are
+  found with an SD hysteresis (a swing counts once the trace has moved one SD back from its extreme),
+  the usual automation of Service's hand method.
+- MODD (mean of daily differences; Molnar et al., Diabetologia 1972;8:342): the mean absolute
+  difference between readings 24 hours apart.
+- LAGE (largest amplitude of glycaemic excursions): the highest reading minus the lowest.
+"""
+
+from __future__ import annotations
+
+import math
+from datetime import date, datetime, timedelta
+
+MGDL_PER_MMOL = 18.0156
+#: Consensus bands, mmol/L: very low < 3.0 ≤ low < 3.9 ≤ target ≤ 10.0 < high ≤ 13.9 < very high.
+BANDS = (("very_low", None, 3.0), ("low", 3.0, 3.9), ("target", 3.9, 10.0), ("high", 10.0, 13.9),
+         ("very_high", 13.9, None))
+PERCENTILES = (5, 25, 50, 75, 95)
+
+
+def band_of(v: float) -> str:
+    if v < 3.0:
+        return "very_low"
+    if v < 3.9:
+        return "low"
+    if v <= 10.0:
+        return "target"
+    if v <= 13.9:
+        return "high"
+    return "very_high"
+
+
+def ranges(values: list[float]) -> dict[str, float]:
+    """Percent of readings in each consensus band, unrounded: a report rounds once, when it prints (rounding
+    here first turned a 99.47% time in range into a printed 100%)."""
+    n = max(len(values), 1)
+    counts = {name: 0 for name, _, _ in BANDS}
+    for v in values:
+        counts[band_of(v)] += 1
+    return {k: 100 * c / n for k, c in counts.items()}
+
+
+def basic(values: list[float]) -> dict[str, float]:
+    n = len(values)
+    mean = sum(values) / n
+    sd = math.sqrt(sum((v - mean) ** 2 for v in values) / n)
+    return {"mean_mmol": mean, "sd_mmol": sd, "cv_pct": 100 * sd / mean,
+            "gmi_pct": 3.31 + 0.02392 * mean * MGDL_PER_MMOL, "min_mmol": min(values), "max_mmol": max(values)}
+
+
+def percentile(sorted_values: list[float], p: float) -> float:
+    """Linear interpolation between closest ranks (the definition numpy and most CGM software use)."""
+    if not sorted_values:
+        return math.nan
+    k = (len(sorted_values) - 1) * p / 100
+    lo, hi = math.floor(k), math.ceil(k)
+    return sorted_values[lo] + (sorted_values[hi] - sorted_values[lo]) * (k - lo)
+
+
+def profile(points: list[tuple[datetime, float]], bin_min: int = 15, smooth: int = 1) -> list[dict]:
+    """The AGP: for each `bin_min`-minute bin of the day, the 5/25/50/75/95th percentiles of all readings
+    in it across days, then a circular moving average over ±`smooth` bins so the bands read as curves."""
+    bins: list[list[float]] = [[] for _ in range(1440 // bin_min)]
+    for t, v in points:
+        bins[(t.hour * 60 + t.minute) // bin_min].append(v)
+    raw = []
+    for b in bins:
+        s = sorted(b)
+        raw.append([percentile(s, p) if s else math.nan for p in PERCENTILES])
+    n = len(raw)
+    out = []
+    for i in range(n):
+        row = []
+        for j in range(len(PERCENTILES)):
+            window = [raw[(i + k) % n][j] for k in range(-smooth, smooth + 1)]
+            window = [w for w in window if not math.isnan(w)]
+            row.append(sum(window) / len(window) if window else math.nan)
+        out.append({"minute": i * bin_min, **{f"p{p}": round(row[j], 2) for j, p in enumerate(PERCENTILES)}})
+    return out
+
+
+def by_day(points: list[tuple[datetime, float]]) -> dict[date, list[tuple[datetime, float]]]:
+    out: dict[date, list[tuple[datetime, float]]] = {}
+    for t, v in points:
+        out.setdefault(t.date(), []).append((t, v))
+    return out
+
+
+def mage(values: list[float], sd: float | None = None, smooth: int = 3) -> float | None:
+    """Service's MAGE over one trace (typically a day): swings larger than one SD, averaged in the direction
+    of the first one. None when the trace has no complete swing that large.
+
+    The trace is first smoothed with a `smooth`-point moving average (sensor noise otherwise creates
+    one-reading "excursions"; Baghurst, Diabetes Technol Ther 2011;13:296, automates MAGE the same way).
+    Only swings between two confirmed turning points count: the start and end of a trace are not peaks
+    or nadirs, and counting the half-swings there biased a clean sine wave's MAGE low by 5%."""
+    if len(values) < 3:
+        return None
+    if sd is None:
+        m = sum(values) / len(values)
+        sd = math.sqrt(sum((v - m) ** 2 for v in values) / len(values))
+    if sd <= 0:
+        return None
+    if smooth > 1:
+        h = smooth // 2
+        values = [sum(values[max(0, i - h):i + h + 1]) / len(values[max(0, i - h):i + h + 1])
+                  for i in range(len(values))]
+    swings: list[float] = []          # signed: + a rise (nadir to peak), − a fall (peak to nadir)
+    direction = 0                     # 0 until the first turning point is confirmed
+    lo = hi = values[0]
+    lo_i = hi_i = 0
+    real = False                      # the last confirmed extreme is interior (the first sample is not one)
+    for i, v in enumerate(values[1:], start=1):
+        if direction >= 0 and v > hi:
+            hi, hi_i = v, i
+        if direction <= 0 and v < lo:
+            lo, lo_i = v, i
+        if direction >= 0 and hi - v >= sd:        # a peak at `hi` is confirmed
+            if direction > 0 and real:
+                swings.append(hi - lo)
+            direction, lo, lo_i, real = -1, v, i, hi_i > 0
+        elif direction <= 0 and v - lo >= sd:      # a nadir at `lo` is confirmed
+            if direction < 0 and real:
+                swings.append(-(hi - lo))
+            direction, hi, hi_i, real = 1, v, i, lo_i > 0
+    if not swings:
+        return None
+    first = swings[0] > 0
+    chosen = [abs(s) for s in swings if (s > 0) == first]
+    return sum(chosen) / len(chosen)
+
+
+def mage_daily_mean(points: list[tuple[datetime, float]], min_share: float = 0.7, interval_min: int = 5) -> float | None:
+    """MAGE per complete day (at least `min_share` of its readings present), averaged over days."""
+    per_day = []
+    expected = 1440 / interval_min
+    for _, pts in sorted(by_day(points).items()):
+        if len(pts) >= min_share * expected:
+            m = mage([v for _, v in sorted(pts)])
+            if m is not None:
+                per_day.append(m)
+    return sum(per_day) / len(per_day) if per_day else None
+
+
+def modd(points: list[tuple[datetime, float]], interval_min: int) -> float | None:
+    """Mean absolute difference between each reading and the one 24 h later (within half an interval)."""
+    tol = timedelta(minutes=interval_min / 2)
+    by_minute: dict[int, list[tuple[datetime, float]]] = {}
+    for t, v in points:
+        by_minute.setdefault(int(t.timestamp() // 60), []).append((t, v))
+    diffs = []
+    for t, v in points:
+        target = t + timedelta(days=1)
+        best = None
+        for m in range(int((target - tol).timestamp() // 60), int((target + tol).timestamp() // 60) + 1):
+            for t2, v2 in by_minute.get(m, []):
+                if abs(t2 - target) <= tol and (best is None or abs(t2 - target) < abs(best[0] - target)):
+                    best = (t2, v2)
+        if best is not None:
+            diffs.append(abs(best[1] - v))
+    return sum(diffs) / len(diffs) if diffs else None
+
+
+def lage(values: list[float]) -> float | None:
+    return max(values) - min(values) if values else None

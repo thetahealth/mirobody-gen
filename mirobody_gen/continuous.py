@@ -58,6 +58,7 @@ with it on, every other file is unchanged and the streams are written next to th
 from __future__ import annotations
 
 import dataclasses
+import json
 import math
 import random
 from datetime import date, datetime, time, timedelta
@@ -779,10 +780,40 @@ def _loinc(unit: str) -> str:
     return "2339-0" if unit == "mg/dL" else "15074-8"
 
 
-def write_all(out_dir, people: list[Person], seed: int, langs: dict[str, str]) -> dict:
-    """Write every person's CGM sessions and heart-rate windows and the truth in `continuous.jsonl`."""
-    import json
+def _clinic(person: Person) -> str:
+    """The hospital that placed a clinic sensor: one per person, from the fiction pool."""
+    zh = [i for i in spec.fiction()["institutions"] if i["language"] == "zh" and i["kind"] == "hospital"]
+    return random.Random(f"cgm-clinic:{person.person_id}").choice(zh)["name"]
 
+
+def _report(life: Life, sess: dict, dev: dict, out: _Out, lang: str, banner: bool) -> tuple[list[dict], list[str]]:
+    """The report a wearer holds for a sensor: the app's report at the end of a wear period, or the hospital's
+    CGM report sheet for a sensor it placed. A PDF with a text layer whose printed rows are the truth an
+    extractor is scored against (`cgm_reports`)."""
+    from . import cgm_reports
+    from .render import agp
+
+    rep = dev.get("report")
+    if not rep:
+        return [], []
+    group = "en" if spec.doc_lang(lang) == "en" else "zh"
+    style = rep.get("clinic") if sess.get("setting") == "clinic" and rep.get("clinic") else rep["styles"].get(group)
+    if not style or group not in spec.streams()["reports"][style]:
+        return [], []
+    first, last = _name(life.person, lang)
+    name = f"{first} {last}" if group == "en" else f"{last}{first}"
+    created = min(cgm_reports.created_at(sess, life.seed, life.person.person_id),
+                  datetime.combine(CORPUS_END, time(23, 0)))
+    report, rows, file_name = cgm_reports.build(sess, dev, style, group, life.person, name, banner, created,
+                                                institution=_clinic(life.person), seed=life.seed)
+    entry = out.write(f"cgm/{sess['n']:02d}_{sess['device']}/{file_name}", agp.render(report), format="cgm_report_pdf",
+                      channel="file_upload", unit=sess["unit"], loinc=_loinc(sess["unit"]), style=style,
+                      language=group, created=_iso(created, life.tz), printed_rows=rows)
+    return [entry], ["stream.report_only", "stream.chart_values"]
+
+
+def write_all(out_dir, people: list[Person], seed: int, langs: dict[str, str], banner: bool = True) -> dict:
+    """Write every person's CGM sessions and heart-rate windows and the truth in `continuous.jsonl`."""
     from . import continuous_formats as fmt
     from . import devices
 
@@ -808,6 +839,12 @@ def write_all(out_dir, people: list[Person], seed: int, langs: dict[str, str]) -
                 writer = FORMATS.get(dev["family"])
                 files, hazards = writer(fmt, life, sess, dev, out, platform, lang, fr, apple) if writer else ([], [])
                 files += _store_glucose(fmt, life, sess, dev, out, series, fr)
+                more, hz = _diy(fmt, life, sess, dev, out, platform, lang)
+                files, hazards = files + more, hazards + hz
+                more, hz = _report(life, sess, dev, out, lang, banner)
+                files, hazards = files + more, hazards + hz
+                if files and "stream.no_export" in hazards:
+                    hazards = [h for h in hazards if h != "stream.no_export"]
                 hist = [x for x in sess["readings"] if x["kind"] == "historic"]
                 expected = int((sess["end"] - sess["start"]).total_seconds() // 60 - dev["warmup_min"]) // dev["interval_min"] + 1
                 days = window_days(sess["start"].date(), sess["end"].date())
@@ -999,8 +1036,7 @@ def _sibionics(fmt, life: Life, sess: dict, dev: dict, out: _Out, platform: str,
     folder = f"cgm/{sess['n']:02d}_{sess['device']}"
     files, hazards = [], []
     if sess["setting"] == "clinic":
-        zh = [i for i in spec.fiction()["institutions"] if i["language"] == "zh" and i["kind"] == "hospital"]
-        institution = random.Random(f"cgm-clinic:{person.person_id}").choice(zh)["name"]
+        institution = _clinic(person)
         first, last = _name(person, lang)
         name = f"{last}{first}" if spec.doc_lang(lang) != "en" else f"{first} {last}"
         data, hz = fmt.sibionics_clinic_csv(sess, institution, name, serial)
@@ -1037,7 +1073,136 @@ def _no_export(fmt, life: Life, sess: dict, dev: dict, out: _Out, platform: str,
     return [], ["stream.no_export"]
 
 
-FORMATS = {"dexcom": _dexcom, "libre": _libre, "sibionics": _sibionics, "none": _no_export}
+def _medtronic(fmt, life: Life, sess: dict, dev: dict, out: _Out, platform: str, lang: str,
+               r: random.Random, apple) -> tuple[list[dict], list[str]]:
+    """A Guardian sensor with the Guardian app: CareLink's CSV export. The app's alarms, logbook entries
+    and fingersticks go in the Pump section, the sensor glucose in the Sensor section."""
+    events = {"alarms": [], "markers": [], "fingersticks": []}
+    warm = sess["start"] + timedelta(minutes=dev["warmup_min"])
+    events["alarms"].append((warm + timedelta(seconds=r.randint(5, 50)), "SENSOR CONNECTED"))
+    for g in sess["gaps"]:
+        if g["cause"] == "signal_loss" and not g["filled"] and g["end"] - g["start"] > timedelta(minutes=20):
+            events["alarms"].append((g["start"] + timedelta(minutes=20, seconds=r.randint(0, 59)), "LOST SENSOR SIGNAL"))
+    low_since = None
+    for x in (x for x in sess["readings"] if x["kind"] == "historic"):
+        mgdl = x["mgdl"] if x["mgdl"] is not None else (0 if x["flag"] == "low" else 999)
+        if mgdl < 70 and low_since is None:
+            low_since = x["time"]
+            events["alarms"].append((x["time"] + timedelta(seconds=r.randint(1, 20)),
+                                     "URGENT LOW SENSOR GLUCOSE" if mgdl < 55 else "LOW SG"))
+        elif mgdl >= 80:
+            low_since = None
+    for d in window_days(sess["start"].date(), sess["end"].date()):
+        plan = life.plan(d)
+        for when, _, load in plan.meals:
+            if warm <= when <= sess["end"] and r.random() < 0.1:
+                events["markers"].append((when.replace(second=r.randrange(60)), f"Meal: {load * 45:.2f}grams"))
+        if r.random() < 0.1:
+            at = plan.bed - timedelta(minutes=r.randint(30, 120))
+            if warm <= at <= sess["end"]:
+                events["alarms"].append((at, "MOBILE DEVICE BATTERY LOW"))
+        if r.random() < dev.get("calibrations_per_day", 0):
+            at = plan.wake + timedelta(minutes=r.randint(20, 600), seconds=r.randrange(60))
+            if warm <= at <= sess["end"]:
+                bg = glucose_minutes(life, at.replace(second=0), 1)[0] * math.exp(r.gauss(0, 0.05))
+                events["fingersticks"].append((at, round(bg * MGDL_PER_MMOL)))
+    apps = [fmt.carelink_app_id(r) for _ in range(2 if r.random() < 0.3 else 1)]
+    s = spec.streams()["formats"]["carelink_csv"]
+    account = s["accounts"].get(lang, s["accounts"]["en"])[sess["unit"]]
+    first = datetime.combine(sess["start"].date(), time())
+    selected = (first, first + timedelta(days=dev["wear_days"] + 1))
+    data, hz = fmt.carelink_csv(sess, dev, _name(life.person, lang), account, apps, events, selected)
+    exported = min(sess["end"] + timedelta(days=r.randint(1, 14), minutes=r.randrange(1440)),
+                   datetime.combine(CORPUS_END, time(23, 0)))
+    folder = f"cgm/{sess['n']:02d}_{sess['device']}"
+    entry = out.write(f"{folder}/CareLink-Export-{fmt.epoch_ms(exported, life.tz)}.csv", data, format="carelink_csv",
+                      channel="file_upload", unit=sess["unit"], loinc=_loinc(sess["unit"]))
+    return [entry], hz
+
+
+FORMATS = {"dexcom": _dexcom, "libre": _libre, "sibionics": _sibionics, "medtronic": _medtronic, "none": _no_export}
+
+#: Who goes beyond the vendor's app: a Nightscout site (a share of English-speaking Dexcom and Libre wearers),
+#: fed by the vendor bridge or by xDrip+ on Android; a follower who sees the vendor's share feed.
+NIGHTSCOUT_RATE, XDRIP_SHARE, FOLLOWER_RATE = 0.2, 0.5, 0.3
+#: A Tidepool account (a clinic's or the wearer's own) whose web export the person downloads; Excel is the
+#: dialog's default format.
+TIDEPOOL_RATE, TIDEPOOL_EXCEL = 0.15, 0.7
+#: IANA zone a Tidepool upload records for each of the cohort's device clocks.
+TIMEZONES = {"+08:00": "Asia/Shanghai", "+00:00": "Europe/London", "+09:00": "Asia/Tokyo"}
+
+
+def _diy(fmt, life: Life, sess: dict, dev: dict, out: _Out, platform: str, lang: str) -> tuple[list[dict], list[str]]:
+    """Files beyond the vendor's own export: a Nightscout site's entries (and, for xDrip+ on Android, the
+    SiDiary CSV it exports), and a follower's snapshot of Dexcom Share or LibreLinkUp."""
+    if dev["family"] not in ("dexcom", "libre") or spec.doc_lang(lang) != "en":
+        return [], []
+    r = random.Random(f"diy:{life.seed}:{life.person.person_id}")        # a person's set-up, not a sensor's
+    rs = random.Random(f"diy:{life.seed}:{life.person.person_id}:{sess['n']}")
+    nightscout, follower = r.random() < NIGHTSCOUT_RATE, r.random() < FOLLOWER_RATE
+    tidepool = r.random() < TIDEPOOL_RATE
+    excel = r.random() < TIDEPOOL_EXCEL
+    xdrip = nightscout and platform == "android" and r.random() < XDRIP_SHARE
+    folder = f"cgm/{sess['n']:02d}_{sess['device']}"
+    files, hazards = [], []
+    sess["family"] = dev["family"]
+    if nightscout:
+        uploader = "xdrip" if xdrip else ("share2" if dev["family"] == "dexcom" else "librelinkup")
+        docs, hz = fmt.nightscout_entries(sess, uploader, life.tz, rs)
+        # A client that wants the whole sensor asks with find[date][$gte]: the database path, compact JSON,
+        # no `mills` (only the in-memory cache of the last two days adds it).
+        files.append(out.write(f"{folder}/nightscout_entries.json", json.dumps(docs, separators=(",", ":")).encode("utf-8"),
+                               format="nightscout_entries_json", channel="vendor_api", unit="mg/dL",
+                               loinc=_loinc("mg/dL"), uploader=uploader))
+        files.append(out.write(f"{folder}/nightscout_entries.csv", fmt.nightscout_csv(docs),
+                               format="nightscout_entries_csv", channel="vendor_api", unit="mg/dL", loinc=_loinc("mg/dL"),
+                               uploader=uploader))
+        hazards += hz
+    if xdrip:
+        exported = min(sess["end"] + timedelta(days=rs.randint(1, 10), minutes=rs.randrange(1440)),
+                       datetime.combine(CORPUS_END, time(23, 0)))
+        sess["calibrations_mgdl"] = [(t, int(v) if v.isdigit() else round(float(v) * MGDL_PER_MMOL))
+                                     for t, v in sess.get("calibrations", [])]
+        carbs = [(when, round(load * 45)) for d in window_days(sess["start"].date(), sess["end"].date())
+                 for when, _, load in life.plan(d).meals if sess["start"] <= when <= sess["end"] and rs.random() < 0.08]
+        data, name, hz = fmt.xdrip_sidiary_zip(sess, exported, carbs)
+        files.append(out.write(f"{folder}/{name}", data, format="xdrip_sidiary_csv_zip", channel="file_upload",
+                               unit="mg/dL", loinc=_loinc("mg/dL")))
+        hazards += hz
+    if tidepool:
+        uploaded = min(sess["end"] + timedelta(days=rs.randint(0, 5), minutes=rs.randrange(1440)),
+                       datetime.combine(CORPUS_END, time(22, 0))).replace(microsecond=0)
+        exported = uploaded + timedelta(days=rs.randint(1, 20), minutes=rs.randrange(600))
+        serial = sess.get("transmitter_id") or "".join(rs.choice("0123456789ABCDEFGHJKLMNPQRSTUVWXYZ") for _ in range(10))
+        device = {"id": f"{dev['maker']}{dev['model'].replace(' ', '')}_{fmt.hex_id(rs, 8)}", "maker": dev["maker"],
+                  "model": dev["model"], "serial": serial, "timezone": TIMEZONES.get(life.tz, "UTC"),
+                  "uploader_version": spec.streams()["formats"]["tidepool_export"]["uploader_version"]}
+        records = fmt.tidepool_records(sess, life.tz, sess["unit"], device, rs, uploaded)
+        if excel:
+            data = fmt.tidepool_xlsx(records, sess["unit"], exported - _offset(life.tz))
+            files.append(out.write(f"{folder}/TidepoolExport.xlsx", data, format="tidepool_export_xlsx",
+                                   channel="file_upload", unit=sess["unit"], loinc=_loinc(sess["unit"])))
+        else:
+            files.append(out.write(f"{folder}/TidepoolExport.json", fmt.tidepool_json(records),
+                                   format="tidepool_export_json", channel="file_upload", unit=sess["unit"],
+                                   loinc=_loinc(sess["unit"])))
+        hazards += ["stream.unrounded_conversion", "stream.utc_and_local_pair"]
+    if follower:
+        at = sess["start"] + (sess["end"] - sess["start"]) * rs.uniform(0.3, 1.0)
+        at = at.replace(microsecond=0)
+        if dev["family"] == "dexcom":
+            data, hz = fmt.dexcom_share(sess, at, life.tz)
+            files.append(out.write(f"{folder}/dexcom_share_latest.json", data, format="dexcom_share_json",
+                                   channel="vendor_api", unit="mg/dL", loinc=_loinc("mg/dL"), at=_iso(at, life.tz)))
+        else:
+            sess["llu_sn"] = "".join(rs.choice("0123456789ABCDEFGHJKLMNPQRSTUVWXYZ") for _ in range(10))
+            country = {"zh": "CN", "ja": "JP"}.get(lang, "US" if sess["unit"] == "mg/dL" else "GB")
+            data, hz = fmt.librelinkup_graph(sess, dev, at, life.tz, _name(life.person, lang), sess["unit"], country, rs)
+            files.append(out.write(f"{folder}/librelinkup_graph.json", data, format="librelinkup_graph_json",
+                                   channel="vendor_api", unit=sess["unit"], loinc=_loinc(sess["unit"]),
+                                   at=_iso(at, life.tz)))
+        hazards += hz
+    return files, hazards
 
 
 def _store_glucose(fmt, life: Life, sess: dict, dev: dict, out: _Out, series: dict, r: random.Random) -> list[dict]:

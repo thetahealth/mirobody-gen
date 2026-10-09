@@ -82,7 +82,7 @@ def main() -> None:
     if args.continuous:
         from . import continuous
 
-        counts = continuous.write_all(out_dir, people, args.seed, langs)
+        counts = continuous.write_all(out_dir, people, args.seed, langs, banner=not args.no_banner)
         print(f"continuous streams: {counts['cgm']} CGM sessions, {counts['heart_rate']} heart-rate windows, "
               f"{counts['files']} files (continuous.jsonl)")
 

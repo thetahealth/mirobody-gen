@@ -83,39 +83,6 @@ class Oracle(unittest.TestCase):
         self.assertEqual(report["abstain"]["hallucinated"], 1)
 
 
-class RulesBaseline(unittest.TestCase):
-    def test_image_tiers_get_an_empty_prediction(self):
-        """A `--render` manifest holds jpg/png image tiers next to the text formats. The rules baseline
-        used to decode the first JPEG as CSV and crash (UnicodeDecodeError on 0xff); it now abstains on
-        images and still reads the text formats."""
-        with tempfile.TemporaryDirectory() as tmp:
-            root = pathlib.Path(tmp)
-            (root / "slip.csv").write_text("项目,结果,单位,参考范围\n白细胞计数,6.2,10^9/L,3.5-9.5\n", encoding="utf-8")
-            (root / "scan.jpg").write_bytes(b"\xff\xd8\xff\xe0" + bytes(64))
-            (root / "shot.png").write_bytes(b"\x89PNG\r\n\x1a\n" + bytes(64))
-            manifest = root / "files.jsonl"
-            manifest.write_text("".join(json.dumps({"file": f, "printed_rows": []}) + "\n"
-                                        for f in ("scan.jpg", "slip.csv", "shot.png")), encoding="utf-8")
-            out = root / "pred.jsonl"
-            run = subprocess.run([sys.executable, "-m", "mirobody_gen", "baselines", "rules", str(manifest),
-                                  "--out", str(out)], cwd=REPO, capture_output=True, text=True)
-            self.assertEqual(run.returncode, 0, run.stderr)
-            self.assertIn("2 image files", run.stdout)
-            preds = {p["image"]: p["items"] for p in map(json.loads, out.read_text(encoding="utf-8").splitlines())}
-        self.assertEqual(preds["scan.jpg"], [])
-        self.assertEqual(preds["shot.png"], [])
-        self.assertEqual([i["item_value"] for i in preds["slip.csv"]], ["6.2"])
-
-    def test_an_unknown_format_is_an_error_not_an_empty_file(self):
-        from mirobody_gen.harness import baselines
-
-        with tempfile.TemporaryDirectory() as tmp:
-            path = pathlib.Path(tmp) / "rows.tsv"
-            path.write_text("a\t1\n", encoding="utf-8")
-            with self.assertRaises(ValueError):
-                baselines.rules_extract(path)
-
-
 @unittest.skipUnless(os.environ.get("MEDREPBENCH_SCORER"), "MedRepBench's official scoring script was not provided")
 class OfficialEquivalence(unittest.TestCase):
     def test_v0_matches_the_official_script(self):

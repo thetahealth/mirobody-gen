@@ -28,6 +28,12 @@ jobs:
         run: mirobody-gen build --seed 7 --people 6 --out out/ci --render --pairs 2 --continuous
       - name: Readability audit
         run: mirobody-gen audit-readability out/ci/files.jsonl out/ci/pairs.jsonl
+      - name: Rules baseline and scorer on the render build (the README quickstart path)
+        run: |
+          mirobody-gen baselines rules out/ci/files.jsonl --out out/ci/pred_rules.jsonl
+          mirobody-gen baselines rules out/ci/pairs.jsonl --out out/ci/pred_rules_pairs.jsonl
+          mirobody-gen score out/ci/files.jsonl out/ci/pred_rules.jsonl
+          mirobody-gen score out/ci/pairs.jsonl out/ci/pred_rules_pairs.jsonl --pairs
       - name: Privacy gate (PII, allow-lists, provenance; no replay index in CI)
         run: mirobody-gen audit-privacy --targets mirobody_gen/resources out/ci --skip-replay
       - name: Clinical audit

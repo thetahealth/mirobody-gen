@@ -153,12 +153,21 @@ mirobody-gen build --seed 7 --out out/p3 --continuous
   本地时间并存）。
 - LibreView CSV（按记录类型分组而非按时间、账户日期格式、超量程写成量程边界）。
 - 硅基动感医院端 CSV（中文表头、最新在前）与 App 导出工作簿（`.xls` 文件名、OOXML 内容）。
+- Medtronic CareLink CSV（`-------` 分节、最新在前）。
+- 用户自建工具链带来的文件：Nightscout 服务端存下的 entries、xDrip+ 的 SiDiary 导出、Tidepool 的 Excel 或
+  JSON 导出、亲友关注端看到的 Dexcom Share 或 LibreLinkUp 快照。
 - Apple Health `export.xml`、Oura API、Zepp Life CSV，以及 mirobody 的 `/api/data` 批次。
+
+App 根本不交出读数的设备（三诺、鱼跃、微泰、硅基动感国内版），佩戴者手里是一份报告，语料里也是。报告是带文字层的
+PDF，用各厂商自己的措辞：三诺、鱼跃、微泰、硅基国内版各自的报告，以及 IDC AGP 报告 v5、2017 指南的医院 CGM 报告单。指标包括
+TIR/TAR/TBR、GMI、CV，以及中国指南里的 SD、MAGE、MODD、LAGE。每个印出来的数值都是真值，所以读报告的提取器
+可以像读化验单一样打分。
 
 真值（`continuous.jsonl`）为每个读数保留其背后的真实血糖或心率，记录缺口及原因、共识 CGM 指标和命名的
 `stream.*` 陷阱。每条设备事实与格式细节在 `resources/streams.json` 里都带来源。
 [docs/DEVICE_FORMATS.md](docs/DEVICE_FORMATS.md) 逐条列出网址、各自证实了什么、把握有多大，以及尚未
-建模的格式：Medtronic CareLink、Nightscout、Tidepool、Garmin 真实的心率映射结构、Fitbit API 的继任者。
+建模的格式：Medtronic 780G 泵的导出、Nightscout API v3 及 Loop/Trio/AAPS 上传器、Garmin 真实的心率映射结构、
+Fitbit API 的继任者。
 
 默认关闭；不加它的构建与之前逐字节一致。
 

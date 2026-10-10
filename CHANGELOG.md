@@ -99,6 +99,25 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); ver
       with sources and a confidence. `docs/DEVICE_FORMATS.md` is the URL ledger, including the formats
       not modelled yet.
   - A build without the option is byte-identical to before. Tests: `tests/test_continuous.py`.
+- CGM reports, for sensors whose app gives no readings file (`cgm_report_pdf`; `cgm_metrics.py`, `cgm_reports.py`,
+  `render/agp.py`):
+  - Styles:
+    - each vendor's own: iCan (from its report portal's strings: events, postprandial table, multi-day details),
+      Yuwell (TIR达标情况, time-of-day shares) and AiDEX (three bands cut at 13.3 mmol/L, 10–90% AGP, LBGI);
+    - the core pages of Sibionics' Chinese report;
+    - the IDC AGP Report v5 (English);
+    - the 2017 Chinese guideline's hospital CGM report sheet;
+    - the 2023 Chinese AGP consensus template, kept for an app whose layout is unknown.
+  - Metrics by the consensus (ranges, GMI, CV) and the Chinese guideline (SD, MAGE per 24 h, MODD, LAGE).
+  - Every printed value is recorded as `printed_rows` in the MedRepBench fields, with the goal printed beside it.
+  - New devices: Yuwell Anytime CT3 and MicroTech AiDEX, which, like iCan i3, deliver only reports.
+- More CGM formats:
+  - Medtronic Guardian 4 via CareLink Personal CSV (sectioned, newest first, Index running across sections).
+  - A wearer's own set-up: Nightscout `entries` JSON and CSV as the server normalises them (share2,
+    LibreLink-Up or xDrip+ uploader), xDrip+'s SiDiary CSV zip, Tidepool's Excel and JSON exports (mmol/L storage,
+    unrounded conversion, ExcelJS workbook layout), and a follower's Dexcom Share or LibreLinkUp snapshot.
+  - Sources and confidence for each in `docs/DEVICE_FORMATS.md`.
+- `audit-privacy` reads zip members and OOXML workbooks named `.xls`.
 - `physiology.expected`: an indicator's level on a day without measurement noise (shared by the
   handwritten glucose logs and the CGM).
 - `audit-privacy` reads `.xml` files (an Apple Health export), one attribute value or text node per unit.

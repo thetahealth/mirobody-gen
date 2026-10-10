@@ -67,6 +67,7 @@ separate pass (`audit/readability.py` does this, and gets the text as a side eff
 from __future__ import annotations
 
 import argparse
+import io
 import json
 import pathlib
 import re
@@ -207,12 +208,34 @@ def extract_text(path: pathlib.Path) -> list[str] | None:
                     for line in block.get("lines", []):
                         units += [span["text"] for span in line["spans"] if span["text"].strip()]
         return units
+    if suffix == ".zip":
+        # An export packed in a zip (xDrip+'s SiDiary CSV): each member is scanned as the file it is.
+        import tempfile
+        import zipfile
+
+        units = []
+        with zipfile.ZipFile(path) as archive, tempfile.TemporaryDirectory() as tmp:
+            for name in archive.namelist():
+                member = pathlib.Path(tmp) / pathlib.PurePosixPath(name).name
+                if not member.name:
+                    continue
+                member.write_bytes(archive.read(name))
+                units += extract_text(member) or []
+        return units
+    if suffix == ".xls":
+        # An app that names its OOXML workbook `.xls` (Sibionics' export): read it by content, not by name.
+        import zipfile
+
+        if not zipfile.is_zipfile(path):
+            return None
+        suffix = ".xlsx"
     if suffix in (".xlsx", ".xlsm"):
         try:
             import openpyxl
         except ImportError:
             return None
-        book = openpyxl.load_workbook(path, read_only=True, data_only=True)
+        # From bytes: openpyxl refuses a path by its extension, and an `.xls` here is OOXML by content.
+        book = openpyxl.load_workbook(io.BytesIO(path.read_bytes()), read_only=True, data_only=True)
         return [str(c) for sheet in book.worksheets for row in sheet.iter_rows(values_only=True)
                 for c in row if c not in (None, "")]
     return None

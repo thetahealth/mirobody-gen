@@ -17,6 +17,7 @@ import csv
 import hashlib
 import io
 import json
+import math
 import random
 import re
 import uuid
@@ -32,11 +33,11 @@ _LONG_DIGITS = re.compile(r"\d{8,}")
 
 
 # ── Identifiers ──────────────────────────────────────────────────────────────
-def _clean(text: str) -> bool:
+def _clean(text: str, longest: int = 7) -> bool:
     """A synthetic identifier must not contain a run of digits that reads as a phone or ID number: the
     privacy gate would rightly flag it, and a real export's hashed ids are not about to be mistaken
-    for one either. Such a draw is redrawn."""
-    return not _LONG_DIGITS.search(text)
+    for one either. Such a draw is redrawn. `longest` is the longest digit run allowed."""
+    return not re.search(r"\d{%d,}" % (longest + 1), text)
 
 
 def hex_id(r: random.Random, n: int = 64) -> str:
@@ -533,3 +534,473 @@ def sibionics_app_xlsx(sess: dict, unit: str, tz: str, exported: datetime) -> tu
     raw = io.BytesIO()
     book.save(raw)
     return _normalize_zip(raw.getvalue(), exported), hazards
+
+
+# ── Medtronic CareLink Personal CSV ──────────────────────────────────────────
+def carelink_csv(sess: dict, dev: dict, name: tuple[str, str], account: dict, apps: list[str], events: dict,
+                 selected: tuple[datetime, datetime]) -> tuple[bytes, list[str]]:
+    """CareLink's "Data Export (CSV)" for a standalone sensor: a preamble, then a Pump section (alarms,
+    logbook entries, fingersticks) and a Sensor section per app installation, each under a `-------`
+    separator with a trailing space and the 49-column header; rows newest first; `Index` with five decimals,
+    counted from 0 straight across sections; BOM and CRLF; a blank line closes every section."""
+    f = spec.streams()["formats"]["carelink_csv"]
+    unit = sess["unit"]
+    header = [h if unit == "mg/dL" or h in f["mgdl_only"] else h.replace("(mg/dL)", "(mmol/L)") for h in f["header_49"]]
+    col = {h.split(" (")[0]: i for i, h in enumerate(header)}
+    sep = account["delimiter"]
+    label = dev["carelink"]["system"]
+
+    def date_cell(when: datetime) -> str:
+        if account["preamble_date"] == "US":
+            return f"{when.month}/{when.day}/{when:%y} 12:00:00 AM"
+        return f"{when.day}/{when.month}/{when.year} 00:00:00"
+
+    def glucose(mgdl: int) -> str:
+        return str(mgdl) if unit == "mg/dL" else f"{mgdl / MGDL_PER_MMOL:.1f}".replace(".", account["decimal"])
+
+    lines = [sep.join(f["preamble_keys"] + [label] * len(apps)),
+             sep.join(f'"{v}"' for v in (name[1], name[0], "", "", date_cell(selected[0]), date_cell(selected[1])))
+             + sep + '"Serial Number"' + sep + sep.join(apps),
+             "", f["notice"], ""]
+    index = 0
+
+    def section(kind: str, serial: str, rows: list[dict]) -> None:
+        nonlocal index
+        lines.append(sep.join(["-------", label, kind, serial, "------- "]))
+        lines.append(sep.join(header))
+        for row in sorted(rows, key=lambda x: x["time"], reverse=True):
+            cells = [""] * len(header)
+            cells[0] = f"{index}.00000".replace(".", account["decimal"])
+            cells[1], cells[2] = row["time"].strftime("%Y/%m/%d"), row["time"].strftime("%H:%M:%S")
+            for key, value in row["cells"].items():
+                cells[col[key]] = value
+            lines.append(sep.join(cells))
+            index += 1
+        lines.append("")
+
+    pump = [{"time": t, "cells": {"Alarm": a}} for t, a in events["alarms"]]
+    pump += [{"time": t, "cells": {"Event Marker": m}} for t, m in events["markers"]]
+    pump += [{"time": t, "cells": {"BG Reading": glucose(v)}} for t, v in events["fingersticks"]]
+    sensor = [{"time": x["time"], "cells": {"Sensor Glucose": glucose(x["mgdl"])}}
+              for x in sess["readings"] if x["kind"] == "historic" and not x["flag"]]
+    section("Pump", apps[0], pump)
+    section("Sensor", apps[0], sensor)
+    for other in apps[1:]:
+        section("Pump", other, [])
+    hazards = ["stream.local_time_no_offset", "stream.newest_first", "stream.bom", "stream.sectioned_csv"]
+    if unit == "mmol/L":
+        hazards.append("stream.unit_mmol")
+    return ("\ufeff" + "\r\n".join(lines) + "\r\n").encode("utf-8"), hazards
+
+
+def carelink_app_id(r: random.Random) -> str:
+    """The id CareLink lists under "Serial Number" for a Guardian app installation."""
+    alnum = "0123456789ABCDEFGHJKLMNPQRSTUVWXYZ"
+    while True:
+        out = "GC" + "-".join("".join(r.choice(alnum) for _ in range(4)) for _ in range(4))
+        if _clean(out):
+            return out
+
+
+# ── Nightscout ───────────────────────────────────────────────────────────────
+#: Dexcom trend names (Share / Nightscout), numbered as share2nightscout-bridge numbers them.
+NS_TRENDS = ["NONE", "DoubleUp", "SingleUp", "FortyFiveUp", "Flat", "FortyFiveDown", "SingleDown", "DoubleDown",
+             "NOT COMPUTABLE", "RATE OUT OF RANGE"]
+_SHARE_NAMES = {"NONE": "None", "NOT COMPUTABLE": "NotComputable", "RATE OUT OF RANGE": "RateOutOfRange"}
+
+
+def trend_of(rate: float | None) -> str:
+    """Rate of change in mg/dL/min → Dexcom's arrow, with the API's bands."""
+    name = _trend(rate)
+    return {"doubleUp": "DoubleUp", "singleUp": "SingleUp", "fortyFiveUp": "FortyFiveUp", "flat": "Flat",
+            "fortyFiveDown": "FortyFiveDown", "singleDown": "SingleDown", "doubleDown": "DoubleDown",
+            "notComputable": "NOT COMPUTABLE", "rateOutOfRange": "RATE OUT OF RANGE"}[name]
+
+
+def rates(readings: list[dict]) -> list[float | None]:
+    """mg/dL per minute over the last ~15 minutes before each reading (None without two earlier points)."""
+    out, prev = [], []
+    for x in readings:
+        recent = [(t, v) for t, v in prev if timedelta(0) < x["time"] - t <= timedelta(minutes=16)]
+        rate = None
+        if len(recent) >= 2 and x["mgdl"] is not None:
+            t0, v0 = recent[0]
+            rate = round((x["mgdl"] - v0) / ((x["time"] - t0).total_seconds() / 60), 2)
+        if x["mgdl"] is not None:
+            prev = (prev + [(x["time"], x["mgdl"])])[-4:]
+        out.append(rate)
+    return out
+
+
+def object_id(when: datetime, tz: str, counter: int, machine: str) -> str:
+    """A MongoDB ObjectId: insertion second, five per-process bytes, a counter. An id whose digits run
+    long enough to read as a phone number is moved to the next second (the counter alone cannot clean a
+    run that the timestamp and the process bytes already make)."""
+    second = int(to_utc(when, tz).timestamp())
+    while True:
+        out = f"{second:08x}{machine}{counter % (1 << 24):06x}"
+        if _clean(out, longest=10):
+            return out
+        second += 1
+
+
+def nightscout_entries(sess: dict, uploader: str, tz: str, r: random.Random) -> tuple[list[dict], list[str]]:
+    """Every sgv entry the site holds for the session, as `/api/v1/entries.json` returns them (newest
+    first), after the server's normalisation: `sysTime` in UTC, `dateString` overwritten with it,
+    `utcOffset` taken from the offset the uploader sent (share2 and LibreLink-Up send UTC, so 0)."""
+    u = spec.streams()["formats"]["nightscout_entries"]["uploaders"][uploader]
+    hist = [x for x in sess["readings"] if x["kind"] == "historic" and not x["flag"]]
+    machine = "".join(r.choice("0123456789abcdef") for _ in range(10))
+    docs = []
+    prev = None
+    for k, (x, rate) in enumerate(zip(hist, rates(hist))):
+        utc = to_utc(x["time"], tz)
+        ms = int(utc.timestamp() * 1000)
+        iso_utc = utc.strftime("%Y-%m-%dT%H:%M:%S.") + f"{utc.microsecond // 1000:03d}Z"
+        doc = {"_id": object_id(x["time"] + timedelta(seconds=r.randint(20, 300)), tz, k, machine)}
+        direction = trend_of(rate)
+        if uploader == "share2":
+            doc |= {"sgv": x["mgdl"], "date": ms, "dateString": iso_utc, "trend": NS_TRENDS.index(direction),
+                    "direction": direction, "device": u["device"], "type": "sgv", "utcOffset": 0}
+        elif uploader == "librelinkup":
+            # Only the reading that was current at a poll carries a direction; history items have none.
+            current = r.random() < 0.2
+            doc |= {"type": "sgv", "sgv": x["mgdl"]}
+            if current:
+                doc["direction"] = direction if direction in ("SingleDown", "FortyFiveDown", "Flat", "FortyFiveUp",
+                                                              "SingleUp") else "NOT COMPUTABLE"
+            doc |= {"device": u["device"], "date": ms, "dateString": iso_utc, "utcOffset": 0}
+        else:
+            # xDrip+ sends the phone's millisecond timestamp, local dateString and sysTime (the server
+            # rewrites both to UTC and appends utcOffset after them), a 5-minute delta to three decimals,
+            # raw values times 1000, and "NotComputable" where the Dexcom vocabulary says NOT COMPUTABLE.
+            ms += r.randrange(1000)
+            iso_utc = datetime.fromtimestamp(ms / 1000, timezone.utc).strftime("%Y-%m-%dT%H:%M:%S.") + f"{ms % 1000:03d}Z"
+            delta = round(x["mgdl"] - prev, 3) if prev is not None else 0
+            raw = round(x["mgdl"] * 1000 * math.exp(r.gauss(0, 0.03)), 5)
+            doc |= {"device": u["device"][sess["family"]], "date": ms, "dateString": iso_utc, "sgv": x["mgdl"],
+                    "delta": delta, "direction": direction if direction != "NOT COMPUTABLE" else "NotComputable",
+                    "type": "sgv", "filtered": raw, "unfiltered": raw, "rssi": 100, "noise": 1,
+                    "sysTime": iso_utc, "utcOffset": int(offset_of(tz).total_seconds() // 60)}
+            docs.append(doc)
+            prev = x["mgdl"]
+            continue
+        doc["sysTime"] = iso_utc
+        docs.append(doc)
+        prev = x["mgdl"]
+    docs.reverse()
+    hazards = ["stream.utc_only"] if uploader != "xdrip" else ["stream.utc_and_local_pair"]
+    return docs, hazards
+
+
+def nightscout_csv(docs: list[dict]) -> bytes:
+    """`/api/v1/entries.csv`: no header; dateString, date, sgv, direction, device, each JSON-encoded
+    (strings quoted, a missing value empty), rows joined by CRLF with no newline at the end."""
+    def cell(v) -> str:
+        return "" if v is None else json.dumps(v)
+
+    return "\r\n".join(",".join(cell(d.get(k)) for k in ("dateString", "date", "sgv", "direction", "device"))
+                        for d in docs).encode("utf-8")
+
+
+# ── xDrip+ "Export CSV (SiDiary format)" ─────────────────────────────────────
+def xdrip_sidiary_zip(sess: dict, exported: datetime, carbs: list[tuple[datetime, float]]) -> tuple[bytes, str, list[str]]:
+    """`exportCSV<yyyyMMdd-HHmmss>.zip` holding `export<yyyyMMdd-HHmmss>.csv`: `;`-separated, LF, no BOM,
+    mg/dL rounded, sensor readings, then calibrations, then treatments, each block in time order."""
+    import zipfile
+
+    f = spec.streams()["formats"]["xdrip_sidiary"]
+    stamp = exported.strftime("%Y%m%d-%H%M%S")
+    lines = [f["header"]]
+    for x in sorted((x for x in sess["readings"] if x["kind"] == "historic" and not x["flag"]), key=lambda x: x["time"]):
+        if x["mgdl"] > 13:
+            lines.append(f"{x['time']:%d.%m.%Y;%H:%M;}{x['mgdl']};;;;")
+    for at, value in sorted(sess.get("calibrations_mgdl", [])):
+        lines.append(f"{at:%d.%m.%Y;%H:%M;};{value};;;")
+    for at, grams in sorted(carbs):
+        lines.append(f"{at:%d.%m.%Y;%H:%M;};;{grams:g};;")
+    data = ("\n".join(lines) + "\n").encode("utf-8")
+    buf = io.BytesIO()
+    with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED) as z:
+        info = zipfile.ZipInfo(f"export{stamp}.csv", date_time=exported.timetuple()[:6])
+        info.compress_type = zipfile.ZIP_DEFLATED
+        info.external_attr = 0o600 << 16
+        z.writestr(info, data)
+    return buf.getvalue(), f"exportCSV{stamp}.zip", ["stream.local_time_no_offset", "stream.blocks_not_interleaved"]
+
+
+# ── Follower snapshots: Dexcom Share and LibreLinkUp ─────────────────────────
+def dexcom_share(sess: dict, at: datetime, tz: str) -> tuple[bytes, list[str]]:
+    """`ReadPublisherLatestGlucoseValues?minutes=1440&maxCount=288` as a follower app sees it at `at`:
+    compact JSON, newest first, `Date(ms)` wall/system times and `Date(ms±hhmm)` display time."""
+    hist = [x for x in sess["readings"] if x["kind"] == "historic" and not x["flag"]
+            and at - timedelta(hours=24) < x["time"] <= at]
+    off = offset_of(tz)
+    sign = "+" if off >= timedelta(0) else "-"
+    hhmm = f"{sign}{abs(int(off.total_seconds())) // 3600:02d}{abs(int(off.total_seconds())) % 3600 // 60:02d}"
+    out = []
+    for x, rate in zip(hist, rates(hist)):
+        ms = epoch_ms(x["time"], tz)
+        name = trend_of(rate)
+        out.append({"WT": f"Date({ms})", "ST": f"Date({ms})", "DT": f"Date({ms}{hhmm})", "Value": x["mgdl"],
+                    "Trend": _SHARE_NAMES.get(name, name)})
+    out.reverse()
+    return json.dumps(out[:288], separators=(",", ":")).encode("utf-8"), ["stream.window_24h"]
+
+
+#: A LibreLinkUp ticket's lifetime: 180 days.
+TICKET_S = 180 * 86400
+
+
+def _llu_time(when: datetime) -> str:
+    return f"{when.month}/{when.day}/{when.year} {(when.hour % 12) or 12}:{when:%M:%S} {'AM' if when.hour < 12 else 'PM'}"
+
+
+def librelinkup_graph(sess: dict, dev: dict, at: datetime, tz: str, name: tuple[str, str], unit: str,
+                      country: str, r: random.Random) -> tuple[bytes, list[str]]:
+    """`GET /llu/connections/{patientId}/graph` as a follower sees it at `at`: the current reading with its
+    trend arrow, about twelve hours of history ascending without arrows, UTC `FactoryTimestamp` beside
+    local `Timestamp` in month-first 12-hour form."""
+    f = spec.streams()["formats"]["librelinkup_graph"]
+    hist = [x for x in sess["readings"] if x["kind"] == "historic" and at - timedelta(hours=12) <= x["time"] <= at]
+    uom = 1 if unit == "mg/dL" else 0
+    lo, hi = f["target_mgdl"]
+
+    def item(x: dict, kind: int, rate: float | None = None) -> dict:
+        mgdl = x["mgdl"] if x["mgdl"] is not None else (sess["range"][0] if x["flag"] == "low" else sess["range"][1])
+        value = mgdl if uom else round(mgdl / MGDL_PER_MMOL, 1)
+        if isinstance(value, float) and value.is_integer():
+            value = int(value)
+        color = 1 if lo <= mgdl <= hi else (4 if mgdl < lo else (2 if mgdl <= 250 else 3))
+        out = {"FactoryTimestamp": _llu_time(to_utc(x["time"], tz).replace(tzinfo=None)),
+               "Timestamp": _llu_time(x["time"]), "type": kind, "ValueInMgPerDl": mgdl}
+        if kind == 1:
+            arrow = 3 if rate is None else (5 if rate >= 2 else 4 if rate >= 1 else 3 if rate > -1 else 2 if rate > -2 else 1)
+            out |= {"TrendArrow": arrow, "TrendMessage": None}
+        return out | {"MeasurementColor": color, "GlucoseUnits": uom, "Value": value,
+                      "isHigh": x["flag"] == "high", "isLow": x["flag"] == "low"}
+
+    rs = rates(hist)
+    current = item(hist[-1], 1, rs[-1]) if hist else None
+    activated = int(to_utc(sess["start"], tz).timestamp())
+    sensor = {"deviceId": "", "sn": sess["llu_sn"], "a": activated, "w": 60, "pt": dev["llu"]["pt"], "s": True, "lj": False}
+    connection = {"id": uuid4(r), "patientId": uuid4(r), "country": country, "status": 2, "firstName": name[0],
+                  "lastName": name[1], "targetLow": lo, "targetHigh": hi, "uom": uom, "sensor": sensor,
+                  "alarmRules": f["alarm_rules"], "glucoseMeasurement": current, "glucoseItem": current,
+                  "glucoseAlarm": None,
+                  "patientDevice": {"did": uuid4(r), "dtid": dev["llu"]["dtid"], "v": dev["llu"]["app_version"],
+                                    "ll": 60, "hl": 240, "u": activated - r.randint(86400, 86400 * 300),
+                                    "fixedLowAlarmValues": {"mgdl": 60, "mmoll": 3.3}, "alarms": False,
+                                    "fixedLowThreshold": 60},
+                  "created": activated - r.randint(86400 * 30, 86400 * 900)}
+    body = {"status": 0, "data": {"connection": connection,
+                                  "activeSensors": [{"sensor": sensor, "device": connection["patientDevice"]}],
+                                  "graphData": [item(x, 0) for x in hist[:-1]]},
+            "ticket": {"token": synthetic_jwt(r), "expires": int(to_utc(at, tz).timestamp()) + TICKET_S,
+                       "duration": TICKET_S * 1000}}
+    return json.dumps(body, ensure_ascii=False).encode("utf-8"), ["stream.utc_and_local_pair", "stream.window_12h"]
+
+
+def synthetic_jwt(r: random.Random) -> str:
+    """A token shaped like LibreLinkUp's JWT whose payload says it is synthetic."""
+    import base64
+
+    def b64(obj) -> str:
+        raw = obj if isinstance(obj, bytes) else json.dumps(obj, separators=(",", ":")).encode()
+        return base64.urlsafe_b64encode(raw).rstrip(b"=").decode()
+
+    return ".".join((b64({"alg": "ES256", "typ": "JWT"}), b64({"synthetic": True, "iss": "mirobody-gen"}),
+                     b64(bytes(r.getrandbits(8) for _ in range(64)))))
+
+
+# ── Tidepool export (web app "Export": Excel or JSON) ────────────────────────
+#: Tidepool stores glucose in mmol/L, converting mg/dL with this factor and rounding to five decimals
+#: half away from zero; the export multiplies back without rounding.
+TIDEPOOL_FACTOR = 18.01559
+TIDEPOOL_ERROR = ("Due to the size of your export, Tidepool was unable to retrieve all of your data at one time. "
+                  "If your data appears incomplete, try the export again using a smaller date range.")
+
+
+def _js_number(v: float) -> str:
+    """A double as JavaScript prints it: shortest round-trip digits, integral values without '.0'."""
+    return str(int(v)) if float(v).is_integer() else repr(float(v))
+
+
+def _tidepool_stored(mgdl: float) -> float:
+    q = mgdl / TIDEPOOL_FACTOR * 100000.0
+    return int(q + math.copysign(0.5, q)) / 100000.0
+
+
+def tidepool_records(sess: dict, tz: str, units: str, device: dict, r: random.Random,
+                     uploaded: datetime) -> list[dict]:
+    """The session as the export streams it: cbg records in stored order, then the upload record; only
+    allow-listed keys, alphabetically; payload and annotations as JSON strings; a reading past the range is
+    stored at the threshold with an out-of-range annotation."""
+    lo, hi = sess["range"]
+    upload_id = hex_id(r, 32)
+    off = int(offset_of(tz).total_seconds() // 60)
+    out = []
+    for x in (x for x in sess["readings"] if x["kind"] == "historic"):
+        mgdl = x["mgdl"] if not x["flag"] else (lo if x["flag"] == "low" else hi)
+        stored = _tidepool_stored(mgdl)
+        value = stored if units == "mmol/L" else stored * TIDEPOOL_FACTOR
+        rec = {"clockDriftOffset": 0, "conversionOffset": 0, "deviceId": device["id"],
+               "deviceTime": x["time"].strftime("%Y-%m-%dT%H:%M:%S"), "id": hex_id(r, 32),
+               "time": to_utc(x["time"], tz).strftime("%Y-%m-%dT%H:%M:%SZ"), "timezoneOffset": off, "type": "cbg",
+               "units": units, "uploadId": upload_id, "value": value}
+        if x["flag"]:
+            rec["annotations"] = json.dumps([{"code": "bg/out-of-range", "threshold": mgdl, "value": x["flag"]}],
+                                            separators=(",", ":"))
+        out.append(dict(sorted(rec.items())))
+    up = {"byUser": uuid4(r), "computerTime": uploaded.strftime("%Y-%m-%dT%H:%M:%S"), "conversionOffset": 0,
+          "deviceId": device["id"], "deviceManufacturers": json.dumps([device["maker"]]), "deviceModel": device["model"],
+          "deviceSerialNumber": device["serial"], "deviceTags": json.dumps(["cgm"]),
+          "deviceTime": uploaded.strftime("%Y-%m-%dT%H:%M:%S"), "id": upload_id,
+          "time": to_utc(uploaded, tz).strftime("%Y-%m-%dT%H:%M:%SZ"), "timeProcessing": "utc-bootstrapping",
+          "timezone": device["timezone"], "timezoneOffset": off, "type": "upload", "uploadId": upload_id,
+          "version": device["uploader_version"]}
+    out.append(dict(sorted(up.items())))
+    return out
+
+
+def tidepool_json(records: list[dict]) -> bytes:
+    """`TidepoolExport.json`: one compact array, no whitespace, no trailing newline."""
+    def enc(rec: dict) -> str:
+        return "{" + ",".join(f"{json.dumps(k)}:{_js_number(v) if isinstance(v, float) else json.dumps(v)}"
+                              for k, v in rec.items()) + "}"
+
+    return ("[" + ",".join(enc(rec) for rec in records) + "]").encode("utf-8")
+
+
+_XLSX_NS = ('xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" '
+            'xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" '
+            'xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"')
+
+
+def _serial(when: datetime) -> float:
+    """An Excel date serial (1900 system) for a naive wall-clock time, as ExcelJS computes it."""
+    ms = int((when - datetime(1970, 1, 1)).total_seconds() * 1000)
+    return 25569 + ms / 86400000
+
+
+def _col(i: int) -> str:
+    s = ""
+    i += 1
+    while i:
+        i, rem = divmod(i - 1, 26)
+        s = chr(65 + rem) + s
+    return s
+
+
+def tidepool_xlsx(records: list[dict], units: str, exported_utc: datetime) -> bytes:
+    """`TidepoolExport.xlsx` as ExcelJS writes it for the export service: a very-hidden `EXPORT ERROR`
+    sheet first, then one sheet per data type in order of first appearance (`CGM`, `Upload`); bold, frozen
+    header rows; dates as Excel serials in `yyyy-mm-dd hh:mm:ss`; inline strings; the converted value
+    unrounded, its display format `0` or `0.0`. The Office theme part ExcelJS adds is left out."""
+    import zipfile
+    from xml.sax.saxutils import escape
+
+    f = spec.streams()["formats"]["tidepool_export"]
+    mmol = units == "mmol/L"
+    sheets = [("EXPORT ERROR", None)] + [(name, [rec for rec in records if rec["type"] == t])
+                                         for t, name in (("cbg", "CGM"), ("upload", "Upload"))]
+    head = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+
+    def sheet_xml(name: str, rows: list[dict] | None) -> str:
+        if rows is None:
+            return (head + f'<worksheet {_XLSX_NS} mc:Ignorable="x14ac" xmlns:x14ac="http://schemas.microsoft.com/office/'
+                    'spreadsheetml/2009/9/ac"><sheetFormatPr defaultRowHeight="15" outlineLevelRow="0" outlineLevelCol="0" '
+                    'x14ac:dyDescent="55"/><sheetData><row r="1" spans="1:1" x14ac:dyDescent="0.25"><c r="A1" t="str"><v>'
+                    + escape(TIDEPOOL_ERROR) + '</v></c></row></sheetData>' + f["page_xml"] + '</worksheet>')
+        cols = f["sheets"][name]
+        out = [head + f'<worksheet {_XLSX_NS} mc:Ignorable="x14ac" xmlns:x14ac="http://schemas.microsoft.com/office/'
+               'spreadsheetml/2009/9/ac"><sheetViews><sheetView workbookViewId="0"><pane ySplit="1" topLeftCell="A2" '
+               'activePane="bottomLeft" state="frozen"/><selection pane="bottomLeft" activeCell="A2" sqref="A2"/>'
+               '</sheetView></sheetViews><sheetFormatPr defaultRowHeight="15" outlineLevelRow="0" outlineLevelCol="0" '
+               'x14ac:dyDescent="55"/>' + f["cols_xml"][name] + "<sheetData>"]
+        cells = "".join(f'<c r="{_col(i)}1" s="{4 if c["kind"] == "date" else 5 if c["kind"] == "value" else 3}" '
+                        f't="str"><v>{escape(c["header"])}</v></c>' for i, c in enumerate(cols))
+        out.append(f'<row r="1" spans="1:{len(cols)}" s="3" customFormat="1" x14ac:dyDescent="0.25">{cells}</row>')
+        for n, rec in enumerate(rows, start=2):
+            local = datetime.fromisoformat(rec["time"][:-1]) + timedelta(minutes=rec["timezoneOffset"])
+            values = {"Zulu Time": datetime.fromisoformat(rec["time"][:-1]), "Local Time": local,
+                      "Device Time": datetime.fromisoformat(rec["deviceTime"])}
+            if "computerTime" in rec:
+                values["Computer Time"] = datetime.fromisoformat(rec["computerTime"])
+            parts, last = [], 0
+            for i, c in enumerate(cols):
+                v = values.get(c["header"], rec.get(c["field"]) if c.get("field") else None)
+                if v is None:
+                    continue
+                ref = f"{_col(i)}{n}"
+                if c["kind"] == "date":
+                    parts.append(f'<c r="{ref}" s="1"><v>{_js_number(_serial(v))}</v></c>')
+                elif c["kind"] == "value":
+                    parts.append(f'<c r="{ref}" s="2"><v>{_js_number(v)}</v></c>')
+                elif isinstance(v, (int, float)):
+                    parts.append(f'<c r="{ref}"><v>{_js_number(v)}</v></c>')
+                else:
+                    parts.append(f'<c r="{ref}" t="str"><v>{escape(str(v))}</v></c>')
+                last = i + 1
+            out.append(f'<row r="{n}" spans="1:{last}" x14ac:dyDescent="0.25">' + "".join(parts) + "</row>")
+        out.append("</sheetData>" + f["page_xml"] + "</worksheet>")
+        return "".join(out)
+
+    names = [n for n, _ in sheets]
+    workbook = (head + f'<workbook {_XLSX_NS} mc:Ignorable="x15" xmlns:x15="http://schemas.microsoft.com/office/'
+                'spreadsheetml/2010/11/main"><fileVersion appName="xl" lastEdited="5" lowestEdited="5" rupBuild="9303"/>'
+                '<workbookPr defaultThemeVersion="164011" filterPrivacy="1"/><sheets>'
+                + "".join(f'<sheet sheetId="{i + 1}" name="{escape(n)}" state="{"veryHidden" if i == 0 else "visible"}" '
+                          f'r:id="rId{i + 3}"/>' for i, n in enumerate(names))
+                + '</sheets><calcPr calcId="171027"/></workbook>')
+    rels = (head + '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'
+            '<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" '
+            'Target="styles.xml"/>'
+            + "".join(f'<Relationship Id="rId{i + 3}" Type="http://schemas.openxmlformats.org/officeDocument/2006/'
+                      f'relationships/worksheet" Target="worksheets/sheet{i + 1}.xml"/>' for i in range(len(names)))
+            + "</Relationships>")
+    types = (head + '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" '
+             'ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" '
+             'ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/'
+             'vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/>'
+             + "".join(f'<Override PartName="/xl/worksheets/sheet{i + 1}.xml" ContentType="application/'
+                       'vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>' for i in range(len(names)))
+             + '<Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.'
+             'spreadsheetml.styles+xml"/><Default Extension="vml" ContentType="application/vnd.openxmlformats-'
+             'officedocument.vmlDrawing"/><Override PartName="/docProps/core.xml" ContentType="application/'
+             'vnd.openxmlformats-package.core-properties+xml"/><Override PartName="/docProps/app.xml" ContentType='
+             '"application/vnd.openxmlformats-officedocument.extended-properties+xml"/></Types>')
+    stamp = exported_utc.strftime("%Y-%m-%dT%H:%M:%SZ")
+    core = (head + '<cp:coreProperties xmlns:cp="http://schemas.openxmlformats.org/package/2006/metadata/core-properties" '
+            'xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:dcterms="http://purl.org/dc/terms/" '
+            'xmlns:dcmitype="http://purl.org/dc/dcmitype/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">'
+            '<dc:creator>ExcelJS</dc:creator><cp:lastModifiedBy>ExcelJS</cp:lastModifiedBy>'
+            f'<dcterms:created xsi:type="dcterms:W3CDTF">{stamp}</dcterms:created>'
+            f'<dcterms:modified xsi:type="dcterms:W3CDTF">{stamp}</dcterms:modified></cp:coreProperties>')
+    app = (head + '<Properties xmlns="http://schemas.openxmlformats.org/officeDocument/2006/extended-properties" '
+           'xmlns:vt="http://schemas.openxmlformats.org/officeDocument/2006/docPropsVTypes"><Application>Microsoft Excel'
+           '</Application><DocSecurity>0</DocSecurity><ScaleCrop>false</ScaleCrop><HeadingPairs><vt:vector size="2" '
+           'baseType="variant"><vt:variant><vt:lpstr>Worksheets</vt:lpstr></vt:variant><vt:variant><vt:i4>'
+           f'{len(names)}</vt:i4></vt:variant></vt:vector></HeadingPairs><TitlesOfParts><vt:vector size="{len(names)}" '
+           'baseType="lpstr">' + "".join(f"<vt:lpstr>{escape(n)}</vt:lpstr>" for n in names)
+           + '</vt:vector></TitlesOfParts><Company></Company><LinksUpToDate>false</LinksUpToDate><SharedDoc>false'
+           '</SharedDoc><HyperlinksChanged>false</HyperlinksChanged><AppVersion>16.0300</AppVersion></Properties>')
+    root_rels = (head + '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'
+                 '<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/'
+                 'officeDocument" Target="xl/workbook.xml"/><Relationship Id="rId2" Type="http://schemas.openxmlformats.'
+                 'org/package/2006/relationships/metadata/core-properties" Target="docProps/core.xml"/><Relationship '
+                 'Id="rId3" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/extended-'
+                 'properties" Target="docProps/app.xml"/></Relationships>')
+    styles = f["styles_mmol" if mmol else "styles_mgdl"]
+    parts = [("_rels/.rels", root_rels)]
+    parts += [(f"xl/worksheets/sheet{i + 1}.xml", sheet_xml(n, rows)) for i, (n, rows) in enumerate(sheets)]
+    parts += [("[Content_Types].xml", types), ("docProps/app.xml", app), ("docProps/core.xml", core),
+              ("xl/styles.xml", head + "\n" + styles), ("xl/_rels/workbook.xml.rels", rels),
+              ("xl/workbook.xml", head + "\n" + workbook[len(head):])]
+    buf = io.BytesIO()
+    with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED) as z:
+        for name, text in parts:
+            info = zipfile.ZipInfo(name, date_time=exported_utc.timetuple()[:6])
+            info.compress_type = zipfile.ZIP_DEFLATED
+            z.writestr(info, text.encode("utf-8"))
+    return buf.getvalue()

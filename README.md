@@ -110,7 +110,8 @@ mirobody-gen audit-readability  out/p3/files.jsonl out/p3/pairs.jsonl  # every p
 mirobody-gen audit-privacy      --targets mirobody_gen/resources out/p3 # PII predicates, allow-lists, replay
 mirobody-gen audit-fidelity     out/p3/files.jsonl                     # shape vs the reference aggregates
 
-# Score an extractor against the two truth layers (predictions in MedRepBench format)
+# Score an extractor against the two truth layers (predictions in MedRepBench format).
+# `rules` reads text only: image tiers and scans get empty predictions, so its score is a floor.
 mirobody-gen baselines rules out/p3/files.jsonl --out out/p3/pred_rules.jsonl
 mirobody-gen score     out/p3/files.jsonl out/p3/pred_rules.jsonl
 mirobody-gen score     out/p3/pairs.jsonl out/p3/pred_rules_pairs.jsonl --pairs

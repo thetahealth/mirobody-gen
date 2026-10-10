@@ -12,9 +12,10 @@ and fully reproducible, so it confirms that a hazard actually costs score, which
 and that the scoring pipeline works end to end. It never reads any answer from the manifest, only
 from the files themselves.
 
-`rules` reads text, not pixels: a file delivered as an image (a scan, photo, screenshot or handwritten
-page, jpg/png) gets an empty prediction, so its readable rows count as misses. That is the honest score
-of an extractor without OCR, and it is what `audit-readability` does with the same files.
+`rules` reads text, not pixels: a file with no text to read (an image tier: scan, photo, screenshot or
+handwritten page, jpg/png; or a PDF with no text layer) gets an empty prediction, so its readable rows
+count as misses. That is the honest score of an extractor without OCR, and it is what `audit-readability`
+does with the same files.
 """
 
 from __future__ import annotations
@@ -36,8 +37,9 @@ _UNIT = re.compile(r"^(?:[×x]?10[\^*E]?\d+/[Ll]|[GT]/L|%|fL|fl|pg|g/L|g/l|mg/L|
                    r"U/L|U/l|IU/L|ng/mL|ng/ml|pg/mL|mIU/L|uIU/mL|μIU/mL|pmol/L|nmol/L|cm|kg|kg/m²|mmHg|"
                    r"次/分|/min|ms|°|mm/h|mL/min/1\.73m²|s)$")
 _QUAL = {"阴性", "阳性", "弱阳性", "+", "++", "+++", "-", "Negative", "Positive"}
-#: Delivered formats with text to read. `--render` builds also deliver image tiers (jpg, png), and
-#: decoding a JPEG as CSV crashed the whole run on the first one (UnicodeDecodeError on byte 0xff).
+#: Image tiers have no text to read, so the rules baseline abstains on them (see `_no_text`).
+IMAGE_SUFFIXES = {".jpg", ".jpeg", ".png"}
+#: Formats `_cells` reads. Any other suffix is an error, not an empty prediction.
 TEXT_SUFFIXES = {".pdf", ".xlsx", ".csv"}
 
 
@@ -76,10 +78,28 @@ def _cells(path: pathlib.Path) -> list[list[str]]:
         book = openpyxl.load_workbook(path, read_only=True, data_only=True)
         return [["" if c is None else str(c) for c in row] for s in book.worksheets for row in s.iter_rows(values_only=True)]
     if suffix == ".csv":
-        raw = path.read_bytes().decode("utf-8-sig")
+        try:
+            raw = path.read_bytes().decode("utf-8-sig")
+        except UnicodeDecodeError as exc:
+            raise ValueError(f"{path.name}: CSV is not UTF-8, save it as UTF-8 to score it") from exc
         return list(csv.reader(io.StringIO(raw)))
     # Anything else is a format nobody taught this function: fail loudly rather than score it as empty.
     raise ValueError(f"{path.name}: not a text format the rules baseline reads ({sorted(TEXT_SUFFIXES)})")
+
+
+def _no_text(path: pathlib.Path) -> bool:
+    """True for a file the rules baseline abstains on: an image tier, or a scanned PDF (no text layer).
+
+    Same files that `audit/readability.py:file_text` skips as the image layer, so the two counts agree."""
+    suffix = path.suffix.lower()
+    if suffix in IMAGE_SUFFIXES:
+        return True
+    if suffix == ".pdf":
+        import fitz
+
+        with fitz.open(path) as doc:
+            return not any(page.get_text().strip() for page in doc)
+    return False
 
 
 def rules_extract(path: pathlib.Path) -> list[dict]:
@@ -144,13 +164,13 @@ def main() -> None:
             if args.which == "oracle":
                 items = [{k: r[k] for k in ("item_name", "item_value", "item_unit", "item_range", "is_abnormal")}
                          for r in rec["printed_rows"] if r["readable"]]
-            elif pathlib.PurePath(rec["file"]).suffix.lower() not in TEXT_SUFFIXES:
+            elif _no_text(base / rec["file"]):
                 items = []
                 abstained += 1
             else:
                 items = rules_extract(base / rec["file"])
             fh.write(json.dumps({"image": rec["file"], "items": items}, ensure_ascii=False) + "\n")
-    note = f" ({abstained} image files: no text to read, empty predictions)" if abstained else ""
+    note = f" ({abstained} files with no text to read, empty predictions)" if abstained else ""
     print(f"→ {args.out}{note}")
 
 

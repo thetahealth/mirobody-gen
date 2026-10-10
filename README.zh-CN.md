@@ -88,6 +88,7 @@ mirobody-gen audit-privacy      --targets mirobody_gen/resources out/p3 # PII �
 mirobody-gen audit-fidelity     out/p3/files.jsonl                     # 形态分布对账参考集聚合值
 
 # 用两层真值给提取器评分（预测用 MedRepBench 格式）
+# rules 只读文字：图像档和扫描件给空预测，因此它的分数是下限
 mirobody-gen baselines rules out/p3/files.jsonl --out out/p3/pred_rules.jsonl
 mirobody-gen score     out/p3/files.jsonl out/p3/pred_rules.jsonl
 mirobody-gen score     out/p3/pairs.jsonl out/p3/pred_rules_pairs.jsonl --pairs

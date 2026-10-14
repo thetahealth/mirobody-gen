@@ -250,9 +250,10 @@ def genetics_report_file(person: Person, seed: int, lang: str, habit: dict[str, 
     if profile is None:
         return None
     rows = genomics_report.rows_for(profile)
-    doc_lang = spec.doc_lang(lang)
+    vendor = profile["vendor"]
+    report_lang = pgx_report.VENDOR_LANG[vendor]
     when = person.weight_anchors[0][0]
-    data, pages = pgx_report.render(person.person_id, doc_lang, when.isoformat(), rows)
+    data, pages = pgx_report.render(person.person_id, vendor, when.isoformat(), rows)
     deliv = choose_delivery(rng, habit, pages)
     (files_root / person.person_id).mkdir(parents=True, exist_ok=True)
     rel = f"{person.person_id}/{person.person_id}_pgx_report"
@@ -267,7 +268,7 @@ def genetics_report_file(person: Person, seed: int, lang: str, habit: dict[str, 
         margins = degrade.content_margins(data, dpi)
         out_pages, ops = degrade.apply_scene(pages_img, deliv["scene"], deliv["severity"],
                                              f"{person.person_id}:pgx_report", margins)
-        blob = degrade.encode(out_pages, deliv["container"], pgx_report.TITLE[doc_lang])
+        blob = degrade.encode(out_pages, deliv["container"], pgx_report.TITLE[report_lang])
         ext = {"scanpdf": "pdf", "jpg": "jpg", "png": "png"}[deliv["container"]]
         path = files_root / f"{rel}.{ext}"
         path.write_bytes(blob)
@@ -276,12 +277,12 @@ def genetics_report_file(person: Person, seed: int, lang: str, habit: dict[str, 
         "file": str(path.relative_to(out_dir)), "synthetic": True,
         "doc_id": f"{person.person_id}_pgx_report", "person_id": person.person_id,
         "kind": "genetics_report", "encounter_dates": [], "exam_type": "genomics", "package": None,
-        "family": None, "institution": pgx_report.VENDOR_TITLE[doc_lang], "issuer_kind": "genomics_vendor",
+        "family": None, "institution": pgx_report.VENDOR_BRAND[vendor], "issuer_kind": "genomics_vendor",
         "format": path.suffix.lstrip("."), "source_format": "pdf",
         "tier": deliv["tier"], "scene": deliv.get("scene"), "severity": deliv.get("severity"),
         "ops": deliv.get("ops", []), "annotations": deliv.get("annotations", []),
         "dpi": deliv.get("dpi"), "image_size": deliv.get("image_size"),
-        "language": doc_lang, "page_count": pages, "vendor": profile["vendor"], "pgx_rows": rows,
+        "language": report_lang, "page_count": pages, "vendor": vendor, "pgx_rows": rows,
         "split": "main",
     }
 

@@ -69,16 +69,45 @@ def test_no_invented_polygenic_or_trait_fields():
 def test_render_is_a_valid_one_or_two_page_pdf():
     import fitz
 
-    _, lang, prof = _profiles()[0]
+    _, _, prof = _profiles()[0]
     rows = genomics_report.rows_for(prof)
-    data, pages = pgx_report.render("p_test", spec.doc_lang(lang), "2024-01-01", rows)
+    data, pages = pgx_report.render("p_test", prof["vendor"], "2024-01-01", rows)
     assert 1 <= pages <= 2
     with fitz.open("pdf", data) as doc:
         assert doc.page_count == pages
         assert doc.metadata["subject"] == "SYNTHETIC"
+        assert doc.metadata["author"] == pgx_report.VENDOR_BRAND[prof["vendor"]]
         text = doc[0].get_text()
         for r in rows[:3]:
             assert r["gene"] in text and r["rsid"] in text
+
+
+def test_report_brand_and_language_follow_the_vendor_not_the_person():
+    """Regression: the report's institution/brand and language must come from the vendor that
+    produced the person's raw genotype file (`genomics.jsonl`'s own `vendor`), not from the
+    person's spoken language -- a zh-speaking person whose raw file is a 23andMe export must get
+    an English 23andMe-branded report, not a WeGene one."""
+    people = person_mod.build_cohort(SEED, 20)
+    encounters = {p.person_id: person_mod.encounters_for(p, SEED) for p in people}
+    langs = {p.person_id: person_mod.person_lang(SEED, p.person_id) for p in people}
+    with tempfile.TemporaryDirectory() as tmp:
+        out = pathlib.Path(tmp)
+        from mirobody_gen import manifest
+
+        manifest.write(out, people, encounters)
+        genomics.write_all(out, people, SEED, langs)
+        records = corpus.render_corpus(SEED, people, encounters, out, banner=True)
+        reports = [r for r in records if r["kind"] == "genetics_report"]
+        assert reports, "no genetics_report record produced"
+        mismatches = 0
+        for r in reports:
+            assert r["institution"] == pgx_report.VENDOR_BRAND[r["vendor"]], r
+            assert r["language"] == pgx_report.VENDOR_LANG[r["vendor"]], r
+            if langs[r["person_id"]] != r["language"]:
+                mismatches += 1
+        # confirms this cohort actually exercises the bug scenario (a vendor whose report
+        # language differs from the person's own spoken language), not just the easy cases
+        assert mismatches > 0, "no person in this cohort had a vendor/spoken-language mismatch"
 
 
 def test_genetics_report_appears_in_files_jsonl_consistent_with_genomics_jsonl():

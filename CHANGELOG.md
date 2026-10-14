@@ -133,6 +133,16 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); ver
   sentence; no polygenic score or trait probability is invented.
 
 ### Fixed
+- Mixed `files.jsonl` manifests containing `genetics_report` no longer crash the laboratory scorer,
+  oracle baseline, MedRepBench export, or fidelity audit. PGx records stay outside laboratory
+  metrics; scorer, baselines and fidelity output state the excluded count. A genetics-only
+  fidelity input reports that there are no compatible documents.
+- Diary symptom streaks count secondary symptom mentions too, so a symptom mentioned between
+  primary entries no longer resets from months to days merely because it was the second item.
+- Iron plans no longer invent a 3-6 month stop date independently of the ongoing treatment event
+  and later clinic notes. They remain ongoing throughout the modelled follow-up.
+- SLCO1B1*5 (`rs4149056`) uses CPIC's `no function` allele class in PGx truth and report text;
+  `decreased function` is an individual's diplotype phenotype, not this allele's class.
 - Random incidents now respect age and the calendar: "连续加班一个月" and "献血 400mL" no longer land
   on people past working age or past the legal donation window, and "春节假期饮食" starts within a
   few days of that year's actual Lunar New Year instead of an arbitrary month. A diary symptom

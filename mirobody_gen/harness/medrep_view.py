@@ -43,7 +43,7 @@ def items_of(record: dict) -> tuple[list[dict], int]:
 def export(records: list[dict], kinds: set[str]) -> tuple[list[dict], int]:
     rows, dropped = [], 0
     for r in records:
-        if r["kind"] not in kinds:
+        if r["kind"] == "genetics_report" or r["kind"] not in kinds:
             continue
         items, d = items_of(r)
         dropped += d

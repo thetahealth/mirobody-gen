@@ -74,6 +74,22 @@ def test_lifestyle_intervention_is_not_a_medication():
         assert "生活方式干预（减重 + 戒酒）" not in names
 
 
+def test_iron_has_no_independent_stop_date_without_a_stop_event():
+    """Clinic notes and physiology still model ongoing iron therapy; the plan must agree.
+    Previously p040's plan ended 2026-01-25 but its 2026-03-25 clinic note still said taking iron.
+    """
+    checked = 0
+    for p in _cohort():
+        for event in p.events:
+            if event.name != "开始补铁治疗":
+                continue
+            assert event.duration_days >= (person_mod.CORPUS_END - event.start).days
+            plan = next(plan for plan in medications.plans_for(p, SEED) if plan["reason_event"] == event.name)
+            assert plan["end"] is None, (p.person_id, plan)
+            checked += 1
+    assert checked > 0
+
+
 def test_deterministic_from_seed():
     people = _cohort()
     for p in people[:10]:

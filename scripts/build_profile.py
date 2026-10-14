@@ -1357,7 +1357,10 @@ PGX_FUNCTION: dict[str, dict] = {
     "rs1057910": {"function_en": "no function", "function_zh": "无功能"},            # CYP2C9*3
     "rs10264272": {"function_en": "no function", "function_zh": "无功能"},           # CYP3A5*6
     "rs2108622": {"function_en": "decreased function", "function_zh": "功能降低"},    # CYP4F2*3
-    "rs4149056": {"function_en": "decreased function", "function_zh": "功能降低"},    # SLCO1B1*5
+    # CPIC statin guideline (2022), Genetic test interpretation: *5 is a no-function allele;
+    # decreased function describes the individual's *1/*5 phenotype, not the allele class.
+    # https://files.cpicpgx.org/data/guideline/publication/statins/2022/publication.pdf
+    "rs4149056": {"function_en": "no function", "function_zh": "无功能"},             # SLCO1B1*5
     "rs1142345": {"function_en": "no function", "function_zh": "无功能"},            # TPMT*3C
     "rs1800460": {"function_en": "no function", "function_zh": "无功能"},            # TPMT*3B
     "rs116855232": {"function_en": "no function", "function_zh": "无功能"},          # NUDT15*3

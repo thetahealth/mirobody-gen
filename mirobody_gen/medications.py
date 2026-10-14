@@ -29,8 +29,6 @@ _PLANS: dict[str, dict] = spec.cohort()["medication_plans"]
 _METFORMIN_UPTITRATE_DAYS = (120, 270)
 #: Levothyroxine titration happens every 6-8 weeks per TSH, absent cohort-specific titration dates.
 _LEVO_STEP_DAYS = (42, 56)
-#: Iron treatment runs 3-6 months; the cohort has no explicit anaemia-resolution marker to key off.
-_IRON_COURSE_DAYS = (90, 180)
 _IBUPROFEN_COURSE_DAYS = (3, 5)
 #: Chance a person already on a scripted medication also gets a short prn course for a cold.
 _IBUPROFEN_RATE = 0.35
@@ -48,14 +46,14 @@ def plans_for(person: Person, seed: int) -> list[dict]:
             "generic": drug["generic"], "name_zh": drug["name_zh"], "name_en": drug["name_en"],
             "strength": drug["strength"], "route": drug["route"], "frequency": drug["frequency"],
             "dose_text_zh": drug["dose_text_zh"], "dose_text_en": drug["dose_text_en"],
+            # Scripted treatment remains active throughout follow-up. A stop date needs a
+            # shared stop event; inventing one here contradicts later clinic narratives.
             "start": e.start.isoformat(), "end": None, "reason_event": e.name, "changes": [],
         }
         if e.name == "开始二甲双胍" and rng.random() < 0.5:
             plan["changes"].append(_metformin_uptitration(rng, e.start))
         elif e.name == "左甲状腺素滴定":
             plan["changes"] = _levothyroxine_titration(rng, e.start)
-        elif e.name == "开始补铁治疗":
-            plan["end"] = (e.start + timedelta(days=rng.randint(*_IRON_COURSE_DAYS))).isoformat()
         plans.append(plan)
 
     # An optional short prn course on top of existing treatment, not a reason by itself to create a

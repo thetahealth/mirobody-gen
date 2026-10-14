@@ -62,6 +62,23 @@ class Matching(unittest.TestCase):
 
 
 class Oracle(unittest.TestCase):
+    def test_genetics_reports_are_excluded_from_laboratory_metrics(self):
+        lab = {"file": "lab.pdf", "kind": "lab_slip", "hazards": [], "printed_rows": [
+            {**item("WBC", "6.2"), "readable": True, "unreadable_fields": []}]}
+        genetics = {"file": "pgx.pdf", "kind": "genetics_report", "pgx_rows": []}
+        predictions = {"lab.pdf": [item("WBC", "6.2")], "pgx.pdf": [item("rs4149056", "TC")]}
+        expected = score.score([lab], predictions)
+        got = score.score([lab, genetics], predictions)
+        self.assertEqual(got.pop("skipped_documents"), {"genetics_report": 1})
+        self.assertEqual(got, expected)
+        self.assertIn("genetics_report", score.render({**got, "skipped_documents": {"genetics_report": 1}}, None))
+
+    def test_genetics_only_manifest_has_no_scored_documents(self):
+        report = score.score([{"file": "pgx.pdf", "kind": "genetics_report", "pgx_rows": []}], {})
+        self.assertEqual(report["documents"], 0)
+        self.assertEqual(report["per_document"], {})
+        self.assertEqual(report["skipped_documents"], {"genetics_report": 1})
+
     def test_oracle_scores_one(self):
         rec = {"file": "a.pdf", "kind": "lab_slip", "hazards": [], "printed_rows": [
             {**item("白细胞计数", "6.2", "10^9/L", "3.5-9.5", "0"), "readable": True, "unreadable_fields": [],

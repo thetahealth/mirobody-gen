@@ -1266,6 +1266,10 @@ COMPLAINT_POOLS = {
 #: surface, `{dur}` the duration, `{s2}` a second symptom.
 PHRASING = {
     "zh": {"durations": ["3天", "5天", "1周", "2周", "半月", "1月余", "2月余", "3月余", "半年余", "1年"],
+           # Day-equivalent of each duration phrase above, same order: lets `journal.py` pick the
+           # phrase whose elapsed time best matches a symptom streak's actual age, instead of
+           # drawing a fresh random duration for every entry of the same streak.
+           "duration_days": [3, 5, 7, 14, 15, 35, 65, 95, 185, 365],
            "cc": ["{s}{dur}", "反复{s}{dur}", "{s}伴{s2}{dur}", "间断{s}{dur}，加重3天", "{s}{dur}，{s2}1周"],
            "journal": ["今天{s}，{s2}。", "最近{dur}总是{s}。", "{s}了，可能是{cause}。", "早上起来{s}，{s2}。",
                        "这几天{s}，{s2}，不知道要不要去看看。", "{s}，比昨天好点了。", "晚上{s}，睡得不好。",
@@ -1274,6 +1278,7 @@ PHRASING = {
            "measure": ["量了血压{sbp}/{dbp}", "血压{sbp}/{dbp}，心率{pulse}", "早上体重{weight}公斤",
                        "体温{temp}度", "今天走了{steps}步"]},
     "en": {"durations": ["3 days", "5 days", "a week", "2 weeks", "2 weeks", "a month", "2 months", "3 months", "6 months", "a year"],
+           "duration_days": [3, 5, 7, 14, 14, 30, 60, 90, 180, 365],
            "cc": ["{s} for {dur}", "Recurrent {s} for {dur}", "{s} with {s2} for {dur}", "Intermittent {s} for {dur}, worse for 3 days"],
            "journal": ["{s_cap} today, {s2}.", "Been {s} for {dur}.", "{s_cap}, probably {cause}.", "Woke up {s}, {s2}.",
                        "{s_cap} the last few days, {s2}.", "{s_cap}, better than yesterday.", "{s_cap} tonight, slept badly.",

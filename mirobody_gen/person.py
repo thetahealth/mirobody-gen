@@ -44,6 +44,8 @@ ARCHETYPES: list[dict] = _COHORT["archetypes"]
 SCRIPTS: dict[str, dict] = _COHORT["scripts"]
 INCIDENTS: list[dict] = _COHORT["incidents"]
 REGIONS: list[str] = _COHORT["regions"]
+#: Lunar New Year's Day by year, read from cohort.json (sourced in scripts/build_cohort.py).
+LUNAR_NEW_YEAR: dict[int, date] = {int(y): date.fromisoformat(d) for y, d in _COHORT["lunar_new_year"].items()}
 
 
 def build_cohort(seed: int, size: int | None = None) -> list[Person]:
@@ -99,7 +101,7 @@ def _one_person(rng: random.Random, person_id: str, archetype: dict) -> Person:
     anchors = tuple((start + timedelta(days=365 * y),
                      weight * (1 + drift * y)) for y in range(span_years + 1))
 
-    events = _timeline(rng, archetype, start)
+    events = _timeline(rng, archetype, start, birth_year)
     trend = dict(archetype["trend"])
 
     return Person(person_id=person_id, sex=sex, birth_year=birth_year,
@@ -108,7 +110,27 @@ def _one_person(rng: random.Random, person_id: str, archetype: dict) -> Person:
                   events=events, weight_anchors=anchors)
 
 
-def _timeline(rng: random.Random, archetype: dict, start: date) -> tuple[Event, ...]:
+def _age_at(birth_year: int, when: date) -> int:
+    """Same formula as `Person.age_at`, usable before a `Person` exists."""
+    return when.year - birth_year - ((when.month, when.day) < (7, 1))
+
+
+def _eligible_incidents(birth_year: int, when: date) -> list[dict]:
+    """Incidents whose `age_range` (inclusive) covers this person's age on this date. An incident
+    with no `age_range` is open to anyone."""
+    age = _age_at(birth_year, when)
+    return [i for i in INCIDENTS if i.get("age_range", (0, 200))[0] <= age <= i.get("age_range", (0, 200))[1]]
+
+
+def _spring_festival_near(rng: random.Random, candidate: date, start: date, end: date) -> date:
+    """Snap a candidate date onto the Lunar New Year closest to it, with a few days of jitter for
+    "the feast starts a little before or after New Year's Day" -- not an arbitrary day of the year."""
+    anchor = min(LUNAR_NEW_YEAR.values(), key=lambda d: abs((d - candidate).days))
+    when = anchor + timedelta(days=rng.randint(-2, 4))
+    return max(start, min(end, when))
+
+
+def _timeline(rng: random.Random, archetype: dict, start: date, birth_year: int) -> tuple[Event, ...]:
     """Timeline: the archetype's intervention event plus one to three random incidents."""
     events: list[Event] = []
     script_name = archetype["script"]
@@ -125,8 +147,12 @@ def _timeline(rng: random.Random, archetype: dict, start: date) -> tuple[Event, 
             effects={k: tuple(v) for k, v in script["effects"].items() if k != "weight_kg"},
             note="原型剧本"))
     for _ in range(rng.randint(1, 3)):
-        incident = rng.choice(INCIDENTS)
         when = start + timedelta(days=rng.randint(30, (CORPUS_END - start).days - 30))
+        # Age-gate before drawing, not after: a draw that lands on "献血 400mL" at age 63 should
+        # redraw from what's actually plausible at that age, not silently waive the gate.
+        incident = rng.choice(_eligible_incidents(birth_year, when))
+        if incident["name"] == "春节假期饮食":
+            when = _spring_festival_near(rng, when, start, CORPUS_END)
         events.append(Event(
             name=incident["name"], event_type=incident["type"], start=when,
             duration_days=incident["duration"], health_effect=incident["effect"],

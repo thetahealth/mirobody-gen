@@ -28,8 +28,26 @@ from .profile import complaint_surface
 
 LOINC = {"sbp": "8480-6", "dbp": "8462-4", "pulse": "8867-4", "weight": "29463-7", "temp": "8310-5", "steps": "55423-8"}
 
+#: Gap (days) past which a symptom's next mention starts a fresh streak rather than continuing
+#: the old one -- picked so a monthly-chronic complaint keeps its streak but two unrelated flares
+#: weeks apart don't get stitched into one implausibly long "ongoing" complaint.
+STREAK_GAP_DAYS = 30
 
-def _sentence(rng: random.Random, lang: str, s1: str, s2: str | None, person: Person, when: date) -> tuple[str, list[dict]]:
+
+def _duration_days(ph: dict) -> dict[str, int]:
+    return dict(zip(ph["durations"], ph["duration_days"]))
+
+
+def _nearest_duration(ph: dict, elapsed_days: int) -> str:
+    """The duration phrase whose day-equivalent is closest to `elapsed_days` -- used so a symptom
+    streak's later entries state a duration consistent with when it actually started, instead of
+    each entry drawing its own duration independently (observed: '3天' on day 1, '2周' on day 7)."""
+    days = ph["duration_days"]
+    return ph["durations"][min(range(len(days)), key=lambda i: abs(days[i] - elapsed_days))]
+
+
+def _sentence(rng: random.Random, lang: str, s1: str, s2: str | None, person: Person, when: date,
+             dur: str) -> tuple[str, list[dict]]:
     lang = spec.doc_lang(lang)   # diary wording is the document layer: the ja group writes in English (see spec.doc_lang)
     ph = spec.complaints()["phrasing"][lang]
     templates = [t for t in ph["journal"] if ("{s2}" in t) == (s2 is not None)]
@@ -37,7 +55,7 @@ def _sentence(rng: random.Random, lang: str, s1: str, s2: str | None, person: Pe
     # a diary has no institution: the wording varies entry by entry, from a stream of its own
     pool = spec.phrasings(f"complaints.phrasing.{lang}.journal.{ph['journal'].index(t)}", t)
     t = pool[0] if len(pool) == 1 else random.Random(f"jphr:{person.person_id}:{when}").choice(pool)
-    text = t.format(s=s1, s_cap=s1[:1].upper() + s1[1:], s2=s2 or "", dur=rng.choice(ph["durations"]),
+    text = t.format(s=s1, s_cap=s1[:1].upper() + s1[1:], s2=s2 or "", dur=dur,
                     cause=rng.choice(ph["causes"]))
     measurements: list[dict] = []
     if rng.random() < 0.3:
@@ -67,6 +85,11 @@ def entries_for(person: Person, seed: int, lang: str) -> list[dict]:
     out: list[dict] = []
     day = start
     diligence = rng.choice([0.3, 0.6, 1.0, 1.6])          # some people write daily, some write thrice a year
+    ph = comp["phrasing"][spec.doc_lang(lang)]
+    #: Per symptom_id: when the streak started, and the day it was last mentioned. A streak's
+    #: `dur` is drawn fresh only when it starts; later mentions derive it from elapsed time.
+    streak_onset: dict[str, date] = {}
+    streak_last: dict[str, date] = {}
     while day <= CORPUS_END:
         candidates: list[str] = []
         # background symptoms
@@ -88,7 +111,14 @@ def entries_for(person: Person, seed: int, lang: str) -> list[dict]:
             picked = list(dict.fromkeys(candidates))[:2]
             c1 = complaint_surface(picked[0], lang, rng)
             c2 = complaint_surface(picked[1], lang, rng) if len(picked) > 1 else None
-            text, measurements = _sentence(rng, lang, c1.text, c2.text if c2 else None, person, day)
+            sid = picked[0]
+            if sid in streak_onset and (day - streak_last[sid]).days <= STREAK_GAP_DAYS:
+                dur = _nearest_duration(ph, (day - streak_onset[sid]).days)
+            else:
+                dur = rng.choice(ph["durations"])
+                streak_onset[sid] = day - timedelta(days=_duration_days(ph)[dur])
+            streak_last[sid] = day
+            text, measurements = _sentence(rng, lang, c1.text, c2.text if c2 else None, person, day, dur)
             expected = [{"kind": "symptom", "name": c.text, "symptom_id": c.symptom_id, "icpc3": c.icpc3, "expect": c.expect}
                         for c in (c1, c2) if c] + measurements
             out.append({"person_id": person.person_id, "synthetic": True, "date": day.isoformat(), "lang": lang,

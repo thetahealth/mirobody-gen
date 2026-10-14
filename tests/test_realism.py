@@ -89,3 +89,33 @@ def test_journal_duration_tracks_elapsed_time_since_the_streak_started():
                 last_bucket[sid] = days
                 last_seen[sid] = e["date"]
     assert checked > 0, "no multi-entry symptom streak with a stated duration found to check"
+
+
+def test_secondary_symptom_mentions_keep_the_duration_streak_alive():
+    """Seed 8 p055 mentions epigastric symptoms as a second item between primary mentions.
+    Every mention counts toward the 30-day gap, even when only the primary symptom has a duration.
+    """
+    p = next(p for p in person_mod.build_cohort(8, 60) if p.person_id == "p055")
+    ph = journal.spec.complaints()["phrasing"]["zh"]
+    bucket_days = dict(zip(ph["durations"], ph["duration_days"]))
+    duration = re.compile("|".join(re.escape(d) for d in sorted(bucket_days, key=len, reverse=True)))
+    last_seen = {}
+    last_stated = {}
+    checked = 0
+    for entry in journal.entries_for(p, 8, "zh"):
+        day = date.fromisoformat(entry["date"])
+        symptoms = [item["symptom_id"] for item in entry["expected"] if item["kind"] == "symptom"]
+        for sid in symptoms:
+            if sid in last_seen and (day - last_seen[sid]).days > journal.STREAK_GAP_DAYS:
+                last_stated.pop(sid, None)
+            last_seen[sid] = day
+        match = duration.search(entry["text"])
+        if not match:
+            continue
+        days = bucket_days[match.group()]
+        sid = symptoms[0]
+        if sid in last_stated:
+            assert days >= last_stated[sid], (entry["date"], entry["text"], sid, last_stated[sid])
+            checked += 1
+        last_stated[sid] = days
+    assert checked > 0

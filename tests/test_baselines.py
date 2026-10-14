@@ -55,6 +55,27 @@ def _run_rules(root: pathlib.Path, names: list[str]) -> tuple[subprocess.Complet
 
 
 class RulesBaseline(unittest.TestCase):
+    def test_genetics_reports_are_skipped_by_both_laboratory_baselines(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = pathlib.Path(tmp)
+            (root / "lab.csv").write_text("项目,结果,单位,参考范围\n白细胞计数,6.2,10^9/L,3.5-9.5\n", encoding="utf-8")
+            lab = {"file": "lab.csv", "kind": "lab_slip", "printed_rows": [{
+                "item_name": "白细胞计数", "item_value": "6.2", "item_unit": "10^9/L",
+                "item_range": "3.5-9.5", "is_abnormal": "0", "readable": True}]}
+            # Deliberately no physical file: a laboratory baseline must not read this kind.
+            genetics = {"file": "pgx.pdf", "kind": "genetics_report", "pgx_rows": []}
+            manifest = root / "files.jsonl"
+            manifest.write_text("".join(json.dumps(r, ensure_ascii=False) + "\n" for r in (lab, genetics)), encoding="utf-8")
+            for which in ("oracle", "rules"):
+                out = root / f"{which}.jsonl"
+                run = subprocess.run([sys.executable, "-m", "mirobody_gen", "baselines", which, str(manifest),
+                                      "--out", str(out)], cwd=REPO, capture_output=True, text=True)
+                self.assertEqual(run.returncode, 0, run.stderr)
+                records = [json.loads(line) for line in out.read_text(encoding="utf-8").splitlines()]
+                self.assertEqual([r["image"] for r in records], ["lab.csv"])
+                self.assertEqual(records[0]["items"][0]["item_value"], "6.2")
+                self.assertIn("1 genetics_report", run.stdout)
+
     def test_image_tiers_get_an_empty_prediction(self):
         """A `--render` manifest holds jpg/png image tiers next to the text formats. The rules baseline
         used to decode the first JPEG as CSV and crash (UnicodeDecodeError on 0xff); it now abstains on

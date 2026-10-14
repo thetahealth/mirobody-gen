@@ -158,9 +158,13 @@ def main() -> None:
     manifest = pathlib.Path(args.manifest)
     base = manifest.parent
     abstained = 0
+    skipped = 0
     with open(args.out, "w", encoding="utf-8") as fh:
         for line in manifest.read_text(encoding="utf-8").splitlines():
             rec = json.loads(line)
+            if rec.get("kind") == "genetics_report":
+                skipped += 1
+                continue
             if args.which == "oracle":
                 items = [{k: r[k] for k in ("item_name", "item_value", "item_unit", "item_range", "is_abnormal")}
                          for r in rec["printed_rows"] if r["readable"]]
@@ -171,6 +175,8 @@ def main() -> None:
                 items = rules_extract(base / rec["file"])
             fh.write(json.dumps({"image": rec["file"], "items": items}, ensure_ascii=False) + "\n")
     note = f" ({abstained} files with no text to read, empty predictions)" if abstained else ""
+    if skipped:
+        note += f" (excluded {skipped} genetics_report from laboratory predictions)"
     print(f"→ {args.out}{note}")
 
 

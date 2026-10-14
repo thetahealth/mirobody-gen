@@ -118,6 +118,12 @@ def entries_for(person: Person, seed: int, lang: str) -> list[dict]:
                 dur = rng.choice(ph["durations"])
                 streak_onset[sid] = day - timedelta(days=_duration_days(ph)[dur])
             streak_last[sid] = day
+            # A secondary symptom still keeps its streak alive. Without a stated duration,
+            # date its onset to this first mention rather than inventing an earlier onset.
+            for secondary in picked[1:]:
+                if secondary not in streak_onset or (day - streak_last[secondary]).days > STREAK_GAP_DAYS:
+                    streak_onset[secondary] = day
+                streak_last[secondary] = day
             text, measurements = _sentence(rng, lang, c1.text, c2.text if c2 else None, person, day, dur)
             expected = [{"kind": "symptom", "name": c.text, "symptom_id": c.symptom_id, "icpc3": c.icpc3, "expect": c.expect}
                         for c in (c1, c2) if c] + measurements

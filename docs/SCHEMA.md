@@ -178,6 +178,10 @@ already names, and levothyroxine titrated 25 to 50 to 75 ug. A "lifestyle interv
 event has no drug and so produces no plan. Some people who are already being treated also get a
 short ibuprofen prn course layered onto a cold.
 
+Scripted treatments, including iron, remain ongoing (`end: null`) throughout the modelled
+follow-up, matching the treatment events and clinic-note narratives. The generator has no
+anaemia-resolution or iron-stop event from which to infer an independent finite iron course.
+
 ### A genetics report file (`kind: genetics_report`) adds
 
 One per person with a genomics profile (`genomics.jsonl`'s own coverage, `COVERAGE = 0.4`), a
@@ -197,3 +201,9 @@ names the allele's CPIC/PharmGKB function class for a deliberate subset of sites
 outside that subset prints "no established phenotype" rather than a guess. There is no polygenic
 risk score or trait probability anywhere in this record -- the generator has no basis for one, since
 sites are called independently and never phased into a diplotype.
+
+`score`, the `oracle`/`rules` laboratory baselines, `medrep-view`, and `audit-fidelity` exclude
+`genetics_report` records from their laboratory-row/layout metrics. Scoring reports excluded counts
+as `skipped_documents` (for example, `{"genetics_report": 2}`); baseline and fidelity CLI output
+also states the excluded count. `audit-readability` checks the PGx fields against the rendered
+report through its dedicated genetics branch.

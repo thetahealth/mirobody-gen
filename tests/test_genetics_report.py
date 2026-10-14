@@ -66,6 +66,18 @@ def test_no_invented_polygenic_or_trait_fields():
             assert not (set(r) & DISALLOWED_KEYS)
 
 
+def test_slco1b1_variant_uses_cpic_allele_function_not_diplotype_phenotype():
+    """CPIC 2022 statin guideline, Genetic test interpretation: *5 is a no-function allele;
+    decreased function is the *1/*5 individual's phenotype, not the allele function class.
+    """
+    for a1, a2, copies in (("T", "C", "one"), ("C", "C", "two")):
+        call = {"rsid": "rs4149056", "gene": "SLCO1B1", "in_catalog": True,
+                "label": "*5 (V174A)", "alt": "C", "a1": a1, "a2": a2, "call_status": "called"}
+        row, = genomics_report.rows_for({"calls": [call]})
+        assert f"{copies} no function allele" in row["phenotype_en"]
+        assert "无功能等位基因" in row["phenotype_zh"]
+
+
 def test_render_is_a_valid_one_or_two_page_pdf():
     import fitz
 

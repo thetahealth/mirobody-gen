@@ -105,12 +105,19 @@ def pct(values: list[int], q: float) -> int:
 
 
 def report(records: list[dict]) -> list[str]:
+    # The reference aggregates describe laboratory documents, not consumer PGx pages.
+    skipped = sum(r.get("kind") == "genetics_report" for r in records)
+    records = [r for r in records if r.get("kind") != "genetics_report"]
     layout = _spec("layout.json")
     hz = _spec("hazards.json")
     numbers = json.loads((RESOURCES / "numbers.json").read_text(encoding="utf-8"))
     n = len(records)
     out = [f"# Shape fidelity (synthetic {n} documents vs reference "
            f"{numbers['fingerprint']['primary']['documents']} documents)", ""]
+    if skipped:
+        out.insert(1, f"Excluded {skipped} genetics_report from laboratory fidelity metrics.")
+    if not records:
+        return out + ["No compatible documents to audit."]
 
     # ── Layout fingerprint: same definition on both sides ──
     out += ["## Layout fingerprint", "",

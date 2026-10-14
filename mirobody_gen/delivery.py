@@ -50,7 +50,7 @@ def upload_habit(seed: int, person: Person) -> dict[str, float]:
     return {t: w / total for t, w in raw.items()}
 
 
-def choose_delivery(rng: random.Random, habit: dict[str, float], doc: Doc, pages: int) -> dict:
+def choose_delivery(rng: random.Random, habit: dict[str, float], pages: int) -> dict:
     """What form this PDF-family file is delivered in. A multi-page file can only be scanned whole
     (scanpdf) or kept as a text layer: one phone photo per page would split a file into several
     images, which would require splitting the truth too, and this version does not do that."""
@@ -99,7 +99,7 @@ def render_doc(doc: Doc, out_root: pathlib.Path, rel: str, habit: dict[str, floa
     data, pages = pdf.render(doc, reported)
     page_break_check(doc, data)
     if delivery is None:
-        delivery = choose_delivery(rng, habit, doc, pages) if (habit and rng) else \
+        delivery = choose_delivery(rng, habit, pages) if (habit and rng) else \
             {"tier": "T0", "scene": None, "severity": None, "ops": [], "container": "pdf", "annotations": []}
     if delivery["tier"] == "T0":
         path = out_root / f"{rel}.pdf"

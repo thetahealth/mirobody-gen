@@ -195,22 +195,12 @@ SCRIPTS: dict[str, dict] = {
 }
 
 #: Event name -> first-line drug and starting dose, read by `mirobody_gen.medications`. The drug
-#: itself must match `scripts/build_profile.py`'s `OUTPATIENT["drugs"]` (what a clinic note says
-#: a person is "currently taking"), or a person's clinic note and medication plan would name two
-#: different drugs for the same archetype -- that is exactly the kind of cross-source
-#: inconsistency this generator exists to avoid.
-#:
-#: Starting doses: atorvastatin 20mg qd and amlodipine 5mg qd are the common starting doses in,
-#: respectively, the Chinese Guideline for the Management of Dyslipidemia in Adults (2016) and
-#: the Chinese Guidelines for the Prevention and Treatment of Hypertension (2018 revision);
-#: metformin 500mg bid with meals is the usual start in the Guideline for the Prevention and
-#: Treatment of Type 2 Diabetes in China (2020); levothyroxine 25ug qd titrated by 12.5-25ug
-#: every 6-8 weeks per TSH follows the Chinese Guidelines for Diagnosis and Management of
-#: Hypothyroidism in Adults; ibuprofen 300mg prn is a standard adult OTC dose (label: 200-400mg
-#: q4-6h prn). The iron entry's drug matches OUTPATIENT["drugs"]'s "多糖铁复合物" rather than the
-#: ferrous salts a lab-value-only generator might guess at, because polysaccharide-iron complex
-#: is dosed once daily (less GI upset than a ferrous salt's divided dosing) and is what a Chinese
-#: clinic note already says this archetype is on.
+#: must match `scripts/build_profile.py`'s `OUTPATIENT["drugs"]` (what a clinic note says a person
+#: is "currently taking"), including iron's "多糖铁复合物" over a ferrous salt -- two sources naming
+#: different drugs for one archetype is exactly the inconsistency this generator exists to avoid.
+#: Doses sourced from each drug's Chinese guideline (dyslipidemia 2016, hypertension 2018, T2DM
+#: 2020, hypothyroidism titration q6-8wk by TSH) and, for ibuprofen, a standard OTC label dose
+#: (200-400mg q4-6h prn).
 MEDICATION_PLANS: dict[str, dict] = {
     "开始他汀治疗": {
         "generic": "atorvastatin", "name_zh": "阿托伐他汀钙片", "name_en": "Atorvastatin",

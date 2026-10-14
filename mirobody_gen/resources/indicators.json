@@ -2767,8 +2767,8 @@
         1.03
       ],
       "reference_source": "全国临床检验操作规程（第4版）",
-      "cvi": null,
-      "cvg": null,
+      "cvi": 35.0,
+      "cvg": 25.0,
       "panel": "urinalysis",
       "name_variants": [
         "比重",
@@ -2777,7 +2777,7 @@
       "value_kind": "quantitative",
       "derived_from": null,
       "sex_specific": null,
-      "note": "",
+      "note": "cvi/cvg 作用于 SG−1（physiology.OFFSET），手工设定，不是 EFLM 数据",
       "positive_rate": null,
       "positive_values": null,
       "categories": null,

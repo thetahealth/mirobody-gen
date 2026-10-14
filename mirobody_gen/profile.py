@@ -224,13 +224,14 @@ def complaint_surface(symptom_id: str, lang: str, rng: random.Random) -> Complai
             text = rng.choice(s["zh"])
             code = s.get("zh_codes", {}).get(text, s["icpc3"])
             return Complaint(text=text, symptom_id=symptom_id, icpc3=code, expect="coded")
-        pool = s["en"] or ([s["en_preferred"]] if s.get("en_preferred") else [])
-        if pool:
-            text = rng.choice(pool)
+        if s["en"]:
+            text = rng.choice(s["en"])
             return Complaint(text=text, symptom_id=symptom_id, icpc3=s["icpc3"], expect="coded")
-        # No confirmed English surface form: the Chinese vocabulary entry has no preferred English
-        # wording either — fall back to a made-up no-match surface form.
-        return Complaint(text=symptom_id.replace("_", " "), symptom_id=symptom_id, icpc3=None, expect="no-match")
+        # No English wording the resolver codes. People still write it in plain words, so the truth is
+        # an abstention. The ICPC rubric title once stood in here and printed "Been Neck symptom or
+        # complaint for a year" into 201 diary lines.
+        text = s.get("en_lay") or symptom_id.replace("_", " ")
+        return Complaint(text=text, symptom_id=symptom_id, icpc3=None, expect="no-match")
     f = comp["frontier"][symptom_id]
     pool = f["zh"] if lang == "zh" else (f["en"] or f["zh"])
     return Complaint(text=rng.choice(pool), symptom_id=symptom_id, icpc3=None, expect=f["expect"])

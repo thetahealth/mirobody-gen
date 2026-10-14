@@ -39,7 +39,10 @@ CVA = 3.0
 CVA_OVERRIDE = {"temp": 0.3}
 #: Quantities with a physical ceiling: saturation, ratio percentages, ankle-brachial index.
 #: Lognormal noise can cross the ceiling; real instruments can't.
-CEILING = {"spo2": 100.0, "fev1_fvc": 100.0, "fvc_pct": 140.0, "abi_l": 1.6, "abi_r": 1.6}
+CEILING = {"spo2": 100.0, "fev1_fvc": 100.0, "fvc_pct": 140.0, "abi_l": 1.6, "abi_r": 1.6, "urine_sg": 1.040}
+#: Quantities that vary above a fixed floor. Urine specific gravity is 1 plus the solute load, so
+#: baseline, events and noise act on SG - 1; scaling the whole 1.0xx printed 0.84 and 1.25.
+OFFSET = {"urine_sg": 1.0}
 
 #: Center value for indicators with no reference interval (height and weight are handled separately).
 FALLBACK_CENTER: dict[str, float] = {
@@ -147,8 +150,9 @@ def weight_at(person, when: date) -> float:
 def expected(person, key: str, when: date) -> float:
     """A person's indicator on a day without measurement noise: the centre `measure` draws around.
     Home glucose logs and the CGM read it, so a meter, a sensor and a laboratory share one level."""
-    base = center_of(key, person.sex) * person.baseline.get(key, 1.0)
-    return base * trend_factor(person, key, when) * event_factor(person, key, when)[0]
+    off = OFFSET.get(key, 0.0)
+    base = (center_of(key, person.sex) - off) * person.baseline.get(key, 1.0)
+    return off + base * trend_factor(person, key, when) * event_factor(person, key, when)[0]
 
 
 def measure(rng: random.Random, person, key: str, when: date) -> float:
@@ -159,7 +163,8 @@ def measure(rng: random.Random, person, key: str, when: date) -> float:
         return weight_at(person, when)
 
     item = spec.indicators()[key]
-    base = center_of(key, person.sex) * person.baseline.get(key, 1.0)
+    off = OFFSET.get(key, 0.0)
+    base = (center_of(key, person.sex) - off) * person.baseline.get(key, 1.0)
     base *= trend_factor(person, key, when)
     base *= event_factor(person, key, when)[0]
 
@@ -170,7 +175,7 @@ def measure(rng: random.Random, person, key: str, when: date) -> float:
     # Biological quantities are non-negative and right-skewed, which is the shape multiplicative
     # noise has. Subtracting sigma^2/2 keeps the mean equal to base (otherwise the centre would be
     # systematically inflated).
-    value = base * math.exp(rng.gauss(0, sigma) - sigma ** 2 / 2)
+    value = off + base * math.exp(rng.gauss(0, sigma) - sigma ** 2 / 2)
     return min(max(value, 0.0), CEILING.get(key, math.inf))
 
 

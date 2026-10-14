@@ -123,6 +123,13 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); ver
 - `audit-privacy` reads `.xml` files (an Apple Health export), one attribute value or text node per unit.
 
 ### Fixed
+- Urine specific gravity stays physiological: 79% of values were below 1.000 or above 1.040
+  (0.84–1.25) because noise scaled the whole 1.0xx and the audit exempted the key. Variation now acts
+  on SG − 1 (1.004–1.040, median 1.015) and the audit bounds it to 1.000–1.050.
+- English complaints and diary lines no longer print ICPC-3 rubric titles as a person's words
+  (`Been Neck symptom or complaint for a year`, 201 lines in one corpus). 35 symptoms gained lay
+  English that `resolve_symptom` codes exactly; the three it cannot code yet use plain wording and
+  expect abstention. Corpora built after this differ from earlier ones; pinned-commit benchmarks are unaffected.
 - The default language draw is 0.3.0's again (`--lang-mix` had reversed it, so every person of a seed
   changed language group). `build --seed 7 --people 6 --render` again reproduces the `files.jsonl`
   (sha256 `5bad865b…`) mirobody's OCR evaluation pins at 248df0f; builds made from 2026-10-06 to this fix

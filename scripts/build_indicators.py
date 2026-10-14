@@ -442,8 +442,11 @@ add("ca125", "糖类抗原125", "Cancer antigen 125", "CA125", "U/mL", 1,
     ("upper", 35.0), COMMON, None, None, "tumor", variants=("CA-125",), sex="female")
 
 # ── Urinalysis (mostly qualitative) ───────────────────────────────
+# SG's CVI/CVG act on SG - 1 (physiology.OFFSET) and are hand-set, Westgard has none: a total
+# log-scale sigma of about 0.43 puts 95% of samples in 1.006-1.033 against the printed 1.003-1.030.
 add("urine_sg", "尿比重", "Urine specific gravity", "SG", "", 3,
-    ("range", 1.003, 1.030), COMMON, None, None, "urinalysis", variants=("比重", "SG"))
+    ("range", 1.003, 1.030), COMMON, 35.0, 25.0, "urinalysis", variants=("比重", "SG"),
+    note="cvi/cvg 作用于 SG−1（physiology.OFFSET），手工设定，不是 EFLM 数据")
 add("urine_ph", "尿酸碱度", "Urine pH", "pH", "", 1,
     ("range", 4.5, 8.0), COMMON, None, None, "urinalysis", variants=("酸碱度", "尿PH", "pH"))
 add("urine_pro", "尿蛋白", "Urine protein", "PRO", "", 0,

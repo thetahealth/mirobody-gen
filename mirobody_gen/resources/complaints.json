@@ -1,16 +1,18 @@
 {
  "_source": "hand-authored",
- "_note": "主诉与日记的症状词表。中文表面逐条对照 mirobody res/icpc3/symptoms_zh.tsv（2026-09-29），icpc3 是那边精确匹配给出的 S 轴码；frontier 里的表面刻意不在词表里，考弃权。",
+ "_note": "主诉与日记的症状词表。中文表面逐条对照 mirobody res/icpc3/symptoms_zh.tsv（2026-09-29），英文表面逐条过 resolve_symptom（2026-10-14），icpc3 是那边精确匹配给出的 S 轴码；en_preferred 只是码的显示名，不当用户原话；frontier 和 en_lay 的表面刻意编不上，考弃权。",
  "_provenance": {
   "script": "scripts/build_profile.py",
   "symptoms": 51,
   "frontier": 7,
-  "mirobody_symptoms_zh_checked": "2026-09-29"
+  "mirobody_symptoms_zh_checked": "2026-09-29",
+  "mirobody_symptoms_en_checked": "2026-10-14"
  },
  "_vocabulary_fields": [
   "zh",
   "en",
   "en_preferred",
+  "en_lay",
   "durations",
   "cc",
   "journal",
@@ -53,7 +55,9 @@
     "头痛",
     "头疼"
    ],
-   "en": [],
+   "en": [
+    "headache"
+   ],
    "en_preferred": "Headache",
    "icpc3": "NS01"
   },
@@ -63,7 +67,10 @@
     "心慌",
     "心跳快"
    ],
-   "en": [],
+   "en": [
+    "heart racing",
+    "heart pounding"
+   ],
    "en_preferred": "Palpitations, awareness of heart",
    "icpc3": "KS02"
   },
@@ -71,7 +78,10 @@
    "zh": [
     "口渴"
    ],
-   "en": [],
+   "en": [
+    "always thirsty",
+    "drinking a lot"
+   ],
    "en_preferred": "Excessive thirst",
    "icpc3": "TS01"
   },
@@ -79,7 +89,9 @@
    "zh": [
     "口干"
    ],
-   "en": [],
+   "en": [
+    "dry mouth"
+   ],
    "en_preferred": "Dry mouth",
    "icpc3": "DS20.00"
   },
@@ -88,7 +100,10 @@
     "体重下降",
     "消瘦"
    ],
-   "en": [],
+   "en": [
+    "losing weight",
+    "weight loss"
+   ],
    "en_preferred": "Weight loss",
    "icpc3": "TS07"
   },
@@ -96,7 +111,10 @@
    "zh": [
     "体重增加"
    ],
-   "en": [],
+   "en": [
+    "putting on weight",
+    "weight gain"
+   ],
    "en_preferred": "Weight gain",
    "icpc3": "TS06"
   },
@@ -117,6 +135,7 @@
     "出汗多"
    ],
    "en": [],
+   "en_lay": "sweating a lot",
    "en_preferred": "Sweating problem",
    "icpc3": "AS10"
   },
@@ -126,6 +145,7 @@
     "浮肿"
    ],
    "en": [],
+   "en_lay": "puffy",
    "en_preferred": "Swelling and generalized edema",
    "icpc3": "AS09"
   },
@@ -148,7 +168,12 @@
     "入睡困难",
     "多梦"
    ],
-   "en": [],
+   "en": [
+    "can't sleep",
+    "trouble sleeping",
+    "waking up at night",
+    "insomnia"
+   ],
    "en_preferred": "Sleep disturbance",
    "icpc3": "PS06"
   },
@@ -156,7 +181,11 @@
    "zh": [
     "咳嗽"
    ],
-   "en": [],
+   "en": [
+    "cough",
+    "chesty cough",
+    "tickly cough"
+   ],
    "en_preferred": "Cough",
    "icpc3": "RS07"
   },
@@ -166,6 +195,7 @@
     "咳痰"
    ],
    "en": [],
+   "en_lay": "coughing up phlegm",
    "en_preferred": null,
    "icpc3": "RS15"
   },
@@ -199,7 +229,12 @@
     "流鼻涕",
     "打喷嚏"
    ],
-   "en": [],
+   "en": [
+    "stuffy nose",
+    "blocked up nose",
+    "runny nose",
+    "blocked nose"
+   ],
    "en_preferred": "Sneezing or nasal congestion",
    "icpc3": "RS09"
   },
@@ -220,7 +255,9 @@
     "胃痛",
     "胃胀"
    ],
-   "en": [],
+   "en": [
+    "epigastric pain"
+   ],
    "en_preferred": "Epigastric pain",
    "icpc3": "DS02"
   },
@@ -283,7 +320,9 @@
    "zh": [
     "腰痛"
    ],
-   "en": [],
+   "en": [
+    "lower back pain"
+   ],
    "en_preferred": "Low back symptom or complaint",
    "icpc3": "LS03"
   },
@@ -291,7 +330,9 @@
    "zh": [
     "颈部疼痛"
    ],
-   "en": [],
+   "en": [
+    "stiff neck"
+   ],
    "en_preferred": "Neck symptom or complaint",
    "icpc3": "LS01"
   },
@@ -300,7 +341,9 @@
     "肩膀疼",
     "肩痛"
    ],
-   "en": [],
+   "en": [
+    "sore shoulder"
+   ],
    "en_preferred": null,
    "icpc3": "LS07"
   },
@@ -308,7 +351,9 @@
    "zh": [
     "膝盖疼"
    ],
-   "en": [],
+   "en": [
+    "sore knee"
+   ],
    "en_preferred": null,
    "icpc3": "LS14"
   },
@@ -316,7 +361,10 @@
    "zh": [
     "关节痛"
    ],
-   "en": [],
+   "en": [
+    "achy joints",
+    "stiff joints"
+   ],
    "en_preferred": "Other specified joint symptoms or complaints",
    "icpc3": "LS20"
   },
@@ -324,7 +372,10 @@
    "zh": [
     "胸闷"
    ],
-   "en": [],
+   "en": [
+    "tight chest",
+    "chest tightness"
+   ],
    "en_preferred": null,
    "icpc3": "RS99"
   },
@@ -334,7 +385,12 @@
     "呼吸困难",
     "憋气"
    ],
-   "en": [],
+   "en": [
+    "short of breath",
+    "breathless",
+    "out of breath",
+    "winded"
+   ],
    "en_preferred": "Shortness of breath",
    "icpc3": "RS02"
   },
@@ -342,7 +398,9 @@
    "zh": [
     "胸痛"
    ],
-   "en": [],
+   "en": [
+    "chest pain"
+   ],
    "en_preferred": "Chest pain",
    "icpc3": "AS12"
   },
@@ -351,7 +409,11 @@
     "视物模糊",
     "视力下降"
    ],
-   "en": [],
+   "en": [
+    "blurry vision",
+    "can't see properly",
+    "blurred vision"
+   ],
    "en_preferred": "Decreased visual acuity",
    "icpc3": "FS05"
   },
@@ -360,7 +422,9 @@
     "眼睛干",
     "眼睛干涩"
    ],
-   "en": [],
+   "en": [
+    "gritty eyes"
+   ],
    "en_preferred": "Dry eye or other abnormal eye sensations",
    "icpc3": "FS07"
   },
@@ -368,7 +432,10 @@
    "zh": [
     "手麻"
    ],
-   "en": [],
+   "en": [
+    "pins and needles",
+    "numb fingers"
+   ],
    "en_preferred": "Tingling fingers, feet, toes",
    "icpc3": "NS04"
   },
@@ -376,7 +443,10 @@
    "zh": [
     "手抖"
    ],
-   "en": [],
+   "en": [
+    "shaky hands",
+    "tremor"
+   ],
    "en_preferred": null,
    "icpc3": "NS07"
   },
@@ -384,7 +454,10 @@
    "zh": [
     "脱发"
    ],
-   "en": [],
+   "en": [
+    "losing my hair",
+    "thinning hair"
+   ],
    "en_preferred": "Hair loss or baldness",
    "icpc3": "SS10"
   },
@@ -402,7 +475,10 @@
    "zh": [
     "瘙痒"
    ],
-   "en": [],
+   "en": [
+    "itchy",
+    "itchy skin"
+   ],
    "en_preferred": "Pruritus",
    "icpc3": "SS02"
   },
@@ -411,7 +487,10 @@
     "尿频",
     "尿急"
    ],
-   "en": [],
+   "en": [
+    "peeing a lot",
+    "up all night to pee"
+   ],
    "en_preferred": "Urinary frequency or urgency",
    "icpc3": "US02"
   },
@@ -420,7 +499,10 @@
     "食欲不振",
     "没胃口"
    ],
-   "en": [],
+   "en": [
+    "off my food",
+    "no appetite"
+   ],
    "en_preferred": "Loss of appetite",
    "icpc3": "TS03"
   },
@@ -429,7 +511,11 @@
     "焦虑",
     "紧张"
    ],
-   "en": [],
+   "en": [
+    "on edge",
+    "wound up",
+    "panicky"
+   ],
    "en_preferred": "Feeling anxious or nervous or tense",
    "icpc3": "PS01"
   },
@@ -437,7 +523,10 @@
    "zh": [
     "情绪低落"
    ],
-   "en": [],
+   "en": [
+    "feeling low",
+    "feeling down"
+   ],
    "en_preferred": "Feeling sad",
    "icpc3": "PS03"
   },
@@ -445,7 +534,9 @@
    "zh": [
     "烦躁"
    ],
-   "en": [],
+   "en": [
+    "short fuse"
+   ],
    "en_preferred": "Feeling or being irritable or angry",
    "icpc3": "PS04"
   },
@@ -455,7 +546,11 @@
     "健忘",
     "注意力不集中"
    ],
-   "en": [],
+   "en": [
+    "forgetful",
+    "can't concentrate",
+    "brain fog"
+   ],
    "en_preferred": "Memory or attention problem",
    "icpc3": "PS17"
   },
@@ -463,7 +558,10 @@
    "zh": [
     "耳鸣"
    ],
-   "en": [],
+   "en": [
+    "ringing in my ears",
+    "ears ringing"
+   ],
    "en_preferred": "Tinnitus, ringing or buzzing ear",
    "icpc3": "HS03"
   },
@@ -471,7 +569,9 @@
    "zh": [
     "打鼾"
    ],
-   "en": [],
+   "en": [
+    "snoring"
+   ],
    "en_preferred": "Snoring",
    "icpc3": "RS05"
   },
@@ -480,7 +580,9 @@
     "盗汗",
     "夜间出汗"
    ],
-   "en": [],
+   "en": [
+    "night sweats"
+   ],
    "en_preferred": null,
    "icpc3": "AS10.01"
   },
@@ -489,7 +591,9 @@
     "牙痛",
     "牙龈出血"
    ],
-   "en": [],
+   "en": [
+    "toothache"
+   ],
    "en_preferred": null,
    "icpc3": "DS19"
   },
@@ -497,7 +601,9 @@
    "zh": [
     "压力大"
    ],
-   "en": [],
+   "en": [
+    "stressed"
+   ],
    "en_preferred": null,
    "icpc3": "PS02"
   }

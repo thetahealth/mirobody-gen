@@ -134,6 +134,8 @@ HARD_LIMITS: dict[str, tuple[float, float]] = {
     "body_fat": (3, 60), "visceral_fat": (1, 30), "muscle_mass": (10, 70), "bmr": (700, 3000),
     "lvef": (15, 85), "lvedd": (30, 80), "ivs": (4, 25), "la": (20, 70), "ea": (0.3, 4),
     "pg1": (5, 600), "pg2": (1, 120), "pgr": (0.5, 40), "fpsa_ratio": (0.02, 1.0),
+    # below water is impossible; contrast media can push a sample past 1.040
+    "urine_sg": (1.000, 1.050),
 }
 
 #: Quantitative indicators allowed to have no hard limit, and why.
@@ -155,7 +157,6 @@ NO_HARD_LIMIT: dict[str, str] = {
     "afp": "tumor marker, no upper bound", "cea": "tumor marker, no upper bound",
     "psa": "tumor marker, no upper bound", "ca125": "tumor marker, no upper bound",
     "tpoab": "antibody titer has no upper bound",
-    "urine_sg": "narrow range, already constrained by its reference interval",
     "urine_ph": "narrow range, already constrained by its reference interval",
     "urine_rbc": "microscopy counts have no upper bound", "urine_wbc": "microscopy counts have no upper bound",
     "pr_interval": "ECG values use a dedicated convention", "qrs_duration": "ECG values use a dedicated convention",

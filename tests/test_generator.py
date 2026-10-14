@@ -96,6 +96,22 @@ def test_clinical_audit_is_clean_on_generated_output():
         assert not findings, "\n".join(str(f) for f in findings[:10])
 
 
+def test_urine_specific_gravity_stays_physiological():
+    """SG is 1 plus the solute load. Scaling the whole 1.0xx printed 0.84 and 1.25, and the audit
+    had exempted the key, so nothing caught it. The spread must still allow dilute and concentrated
+    samples."""
+    values = []
+    with tempfile.TemporaryDirectory() as tmp:
+        for seed in (7, 8, 9):
+            out = pathlib.Path(tmp) / str(seed)
+            _build(seed, out)
+            for line in (out / "manifest.jsonl").read_text(encoding="utf-8").splitlines():
+                values += [float(r["value"]) for r in json.loads(line)["rows"] if r["key"] == "urine_sg"]
+    assert values
+    assert all(1.000 <= v <= 1.040 for v in values), (min(values), max(values))
+    assert max(values) - min(values) >= 0.010, (min(values), max(values))
+
+
 def test_cohort_matches_the_spec():
     from mirobody_gen import person as person_mod, spec
 

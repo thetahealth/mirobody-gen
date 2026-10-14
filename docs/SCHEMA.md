@@ -12,7 +12,7 @@ extraction contract (`original_indicator`, `value`, `unit`, `reference_range`, `
 | `exam_type` | `routine` (check-up) · `follow-up` (lab slips only) · `clinic` (outpatient record + lab slips) · `specialty` (single examination) · `home_log` · `export` |
 | `exam_location` | `checkup-center` · `hospital` · `clinic` · `home` |
 | `package` | `entry` (pre-employment) · `senior` (older-adult public-health examination) · `basic` · `standard` · `premium` · `null` |
-| `kind` (document) | `lab_slip` · `checkup_book` · `outpatient_record` · `ecg_report` · `ultrasound_report` · `imaging_report` · `home_log` · `export` |
+| `kind` (document) | `lab_slip` · `checkup_book` · `outpatient_record` · `ecg_report` · `ultrasound_report` · `imaging_report` · `home_log` · `export` · `genetics_report` |
 | `tier` | `T0` text-layer PDF · `T1` XLSX/CSV · `T2` scan · `T3` phone photo · `T4` degraded copy · `T6` screen |
 | `handwriting.tier` | `H1` neat (regular-script Chinese, print-like English) · `H2` running hand · `H3` hard cursive, always a `T3` phone photo |
 | `handwriting.scope` | `page` (everything on the page was written by hand) · `values` (a printed form whose results were filled in by hand) |
@@ -156,3 +156,54 @@ Per person: `vendor` (`wegene` · `23andme` · `ancestry` · `myheritage` · `vc
 `n_sites`, `n_pgx`, `n_off_catalog`, `n_no_call`, `sites[]` with `rsid`, `chrom`, `pos37`, `pos38`,
 `ref`, `alt`, `gene`, `array_gt` (`0/0` · `0/1` · `1/1` · `null`), `vcf_gt`, `call_status`, `zygosity`,
 `in_catalog`, `genotype_raw` (the literal printed in the file).
+
+## `medications.jsonl`
+
+One record per person who has at least one medication plan (a person with no treatment event has no
+line at all). `person_id`, `synthetic`, `plans[]`:
+
+| Field | Meaning |
+| --- | --- |
+| `plan_id` | `<person_id>-m<N>`, 1-based per person |
+| `generic`, `name_zh`, `name_en`, `strength`, `route`, `frequency` | the drug; `frequency` ∈ `qd` · `bid` · `tid` · `qn` · `prn` |
+| `dose_text_zh`, `dose_text_en` | the dose as a person or a label would phrase it |
+| `start`, `end` | `start` is always the triggering event's own start date; `end` is `null` for an ongoing chronic medication |
+| `reason_event` | the `people.jsonl` / manifest event name this plan was started for (`开始他汀治疗` etc., or `急性上呼吸道感染` for a short prn course) |
+| `changes[]` | later dose adjustments: `date`, `strength`, `dose_text_zh`, `dose_text_en`, and `frequency` only on the one change where the frequency itself changes (metformin bid to tid) |
+
+Mapped from the archetype's scripted intervention event (`resources/cohort.json`'s
+`medication_plans`): statin to atorvastatin, antihypertensive to amlodipine, metformin (with an
+optional later uptitration), iron to the same polysaccharide-iron-complex the clinic-note narrative
+already names, and levothyroxine titrated 25 to 50 to 75 ug. A "lifestyle intervention" archetype
+event has no drug and so produces no plan. Some people who are already being treated also get a
+short ibuprofen prn course layered onto a cold.
+
+Scripted treatments, including iron, remain ongoing (`end: null`) throughout the modelled
+follow-up, matching the treatment events and clinic-note narratives. The generator has no
+anaemia-resolution or iron-stop event from which to infer an independent finite iron course.
+
+### A genetics report file (`kind: genetics_report`) adds
+
+One per person with a genomics profile (`genomics.jsonl`'s own coverage, `COVERAGE = 0.4`), a
+rendered summary page in WeGene's style for `zh` and a generic consumer-PGx-report style for `en`
+(23andMe/Ancestry), going through the same per-person upload habit and `tier`/`scene`/`severity`
+delivery fields as every other file -- some people's report is a scan or a phone photo rather than
+a text-layer PDF. `issuer_kind` is `genomics_vendor`, `exam_type` is `genomics`, `family`/`package`
+are `null`.
+
+| Field | Meaning |
+| --- | --- |
+| `vendor` | same vendor as `genomics.jsonl`'s record for this person (`wegene` · `23andme` · `ancestry` · `myheritage` · `vcf`) |
+| `pgx_rows[]` | the printed and truth rows, one per PGx-annotated site (always all 41): `gene`, `rsid`, `label` (star allele or clinical tag), `genotype` (printed two-letter call, or `--` for a no-call), `call_status`, `phenotype_zh`, `phenotype_en` |
+
+A row's phenotype is derived straight from the genotype: `pgx_function` (`resources/genomics.json`)
+names the allele's CPIC/PharmGKB function class for a deliberate subset of sites only, and a site
+outside that subset prints "no established phenotype" rather than a guess. There is no polygenic
+risk score or trait probability anywhere in this record -- the generator has no basis for one, since
+sites are called independently and never phased into a diplotype.
+
+`score`, the `oracle`/`rules` laboratory baselines, `medrep-view`, and `audit-fidelity` exclude
+`genetics_report` records from their laboratory-row/layout metrics. Scoring reports excluded counts
+as `skipped_documents` (for example, `{"genetics_report": 2}`); baseline and fidelity CLI output
+also states the excluded count. `audit-readability` checks the PGx fields against the rendered
+report through its dedicated genetics branch.

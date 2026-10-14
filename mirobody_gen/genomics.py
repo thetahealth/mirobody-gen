@@ -75,6 +75,7 @@ def profile_for(person: Person, seed: int, lang: str) -> dict | None:
     for row, in_catalog in sites:
         rsid, chrom, pos37, pos38, ref, alt = row[:6]
         gene = row[6] if len(row) > 6 else None
+        label = row[9] if len(row) > 9 and row[9] else None
         freq = float(row[freq_col]) if len(row) > freq_col and row[freq_col] is not None else 0.3
         if rng.random() < NO_CALL_RATE:
             a1 = a2 = None
@@ -84,7 +85,8 @@ def profile_for(person: Person, seed: int, lang: str) -> dict | None:
             status = "called" if in_catalog else "unresolved"
             zyg = "homozygous" if a1 == a2 else "heterozygous"
         calls.append({"rsid": rsid, "chrom": str(chrom), "pos37": int(pos37), "pos38": int(pos38), "ref": ref, "alt": alt,
-                      "gene": gene, "a1": a1, "a2": a2, "array_gt": gt, "vcf_gt": gt.replace("/", "|") if gt else None,
+                      "gene": gene, "label": label, "a1": a1, "a2": a2, "array_gt": gt,
+                      "vcf_gt": gt.replace("/", "|") if gt else None,
                       "call_status": status, "zygosity": zyg, "in_catalog": in_catalog})
     order = {str(c): i for i, c in enumerate(list(range(1, 23)) + ["X", "Y", "MT"])}
     calls.sort(key=lambda c: (order.get(c["chrom"], 99), c["pos37"]))

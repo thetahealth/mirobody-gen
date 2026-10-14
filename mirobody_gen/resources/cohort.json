@@ -25,7 +25,15 @@
     "archetype_conditions",
     "condition",
     "display",
-    "source"
+    "source",
+    "medication_plans",
+    "generic",
+    "name_zh",
+    "name_en",
+    "route",
+    "frequency",
+    "dose_text_zh",
+    "dose_text_en"
   ],
   "orders": {
     "cbc": [
@@ -1379,6 +1387,68 @@
       }
     }
   },
+  "medication_plans": {
+    "开始他汀治疗": {
+      "generic": "atorvastatin",
+      "name_zh": "阿托伐他汀钙片",
+      "name_en": "Atorvastatin",
+      "strength": "20 mg",
+      "route": "oral",
+      "frequency": "qd",
+      "dose_text_zh": "每日1次，每次20mg",
+      "dose_text_en": "20 mg once daily"
+    },
+    "开始降压治疗": {
+      "generic": "amlodipine",
+      "name_zh": "苯磺酸氨氯地平片",
+      "name_en": "Amlodipine",
+      "strength": "5 mg",
+      "route": "oral",
+      "frequency": "qd",
+      "dose_text_zh": "每日1次，每次5mg",
+      "dose_text_en": "5 mg once daily"
+    },
+    "开始二甲双胍": {
+      "generic": "metformin",
+      "name_zh": "盐酸二甲双胍片",
+      "name_en": "Metformin",
+      "strength": "500 mg",
+      "route": "oral",
+      "frequency": "bid",
+      "dose_text_zh": "每日2次，每次500mg，随餐服用",
+      "dose_text_en": "500 mg twice daily with meals"
+    },
+    "开始补铁治疗": {
+      "generic": "polysaccharide iron complex",
+      "name_zh": "多糖铁复合物胶囊",
+      "name_en": "Iron Polysaccharide Complex",
+      "strength": "150 mg",
+      "route": "oral",
+      "frequency": "qd",
+      "dose_text_zh": "每日1次，每次150mg",
+      "dose_text_en": "150 mg once daily"
+    },
+    "左甲状腺素滴定": {
+      "generic": "levothyroxine sodium",
+      "name_zh": "左甲状腺素钠片",
+      "name_en": "Levothyroxine Sodium",
+      "strength": "25 ug",
+      "route": "oral",
+      "frequency": "qd",
+      "dose_text_zh": "每日1次，每次25微克，晨起空腹服用",
+      "dose_text_en": "25 mcg once daily on an empty stomach"
+    },
+    "急性上呼吸道感染": {
+      "generic": "ibuprofen",
+      "name_zh": "布洛芬片",
+      "name_en": "Ibuprofen",
+      "strength": "300 mg",
+      "route": "oral",
+      "frequency": "prn",
+      "dose_text_zh": "需要时每次300mg，每日不超过3次",
+      "dose_text_en": "300 mg as needed, up to three times daily"
+    }
+  },
   "incidents": [
     {
       "name": "急性上呼吸道感染",
@@ -1425,6 +1495,10 @@
       "effect": "neutral",
       "impact": "low",
       "duration": 1,
+      "age_range": [
+        18,
+        60
+      ],
       "effects": {
         "rbc": [
           -0.09,
@@ -1444,6 +1518,10 @@
       "effect": "negative",
       "impact": "low",
       "duration": 30,
+      "age_range": [
+        18,
+        61
+      ],
       "effects": {
         "sbp": [
           0.05,
@@ -1521,6 +1599,18 @@
       }
     }
   ],
+  "lunar_new_year": {
+    "2018": "2018-02-16",
+    "2019": "2019-02-05",
+    "2020": "2020-01-25",
+    "2021": "2021-02-12",
+    "2022": "2022-02-01",
+    "2023": "2023-01-22",
+    "2024": "2024-02-10",
+    "2025": "2025-01-29",
+    "2026": "2026-02-17",
+    "2027": "2027-02-06"
+  },
   "regions": [
     "华北",
     "华东",

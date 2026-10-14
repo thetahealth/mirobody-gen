@@ -186,19 +186,37 @@ def audit(manifest: pathlib.Path, ocr: bool = False) -> int:
             # here is that the record is consistent with its own transcript (every truth row was written);
             # the generator's tests check the transcript against the ink on the page.
             text = "\n".join(rec["handwriting"].get("transcript") or [])
+        is_genetics = rec.get("kind") == "genetics_report"
         if text is None:
             skipped += 1
             if ocr and rec.get("scene"):
                 got = _ocr_text(base / rec["file"])
                 if got is not None:
                     blob = _norm(got)
-                    values = [r["item_value"] for r in rec["printed_rows"] if r["readable"] and r["item_value"]]
+                    if is_genetics:
+                        lang = rec.get("language", "zh")
+                        values = [r["phenotype_zh" if lang == "zh" else "phenotype_en"] for r in rec["pgx_rows"]]
+                    else:
+                        values = [r["item_value"] for r in rec["printed_rows"] if r["readable"] and r["item_value"]]
                     hit = sum(_norm(v) in blob for v in values)
                     st = ocr_stats.setdefault(f"{rec['tier']}/{rec['scene']}/{rec['severity']}", [0, 0])
                     st[0] += hit
                     st[1] += len(values)
             continue
         blob = _norm(_strip_furniture(text, tuple(x for x in (rec.get("institution"),) if x)))
+        if is_genetics:
+            # Different truth shape (gene/rsid/genotype/phenotype, not a lab report's
+            # printed_rows/blocks/complaints), checked to the same standard: every printed field
+            # must be found on the page.
+            lang = rec.get("language", "zh")
+            for row in rec["pgx_rows"]:
+                checked += 1
+                phenotype = row["phenotype_zh"] if lang == "zh" else row["phenotype_en"]
+                for want in (row["gene"], row["rsid"], row["genotype"], phenotype):
+                    if want and not _present(want, blob):
+                        problems += 1
+                        print(f"not found on page  {rec['file']} pgx[{row['rsid']}] {want[:40]!r}")
+            continue
         # blocks, summary, complaints, diagnoses -- every printed piece of text must be on the page
         for block in rec.get("blocks") or []:
             for want in block.get("printed") or []:

@@ -1266,6 +1266,10 @@ COMPLAINT_POOLS = {
 #: surface, `{dur}` the duration, `{s2}` a second symptom.
 PHRASING = {
     "zh": {"durations": ["3天", "5天", "1周", "2周", "半月", "1月余", "2月余", "3月余", "半年余", "1年"],
+           # Day-equivalent of each duration phrase above, same order: lets `journal.py` pick the
+           # phrase whose elapsed time best matches a symptom streak's actual age, instead of
+           # drawing a fresh random duration for every entry of the same streak.
+           "duration_days": [3, 5, 7, 14, 15, 35, 65, 95, 185, 365],
            "cc": ["{s}{dur}", "反复{s}{dur}", "{s}伴{s2}{dur}", "间断{s}{dur}，加重3天", "{s}{dur}，{s2}1周"],
            "journal": ["今天{s}，{s2}。", "最近{dur}总是{s}。", "{s}了，可能是{cause}。", "早上起来{s}，{s2}。",
                        "这几天{s}，{s2}，不知道要不要去看看。", "{s}，比昨天好点了。", "晚上{s}，睡得不好。",
@@ -1274,6 +1278,7 @@ PHRASING = {
            "measure": ["量了血压{sbp}/{dbp}", "血压{sbp}/{dbp}，心率{pulse}", "早上体重{weight}公斤",
                        "体温{temp}度", "今天走了{steps}步"]},
     "en": {"durations": ["3 days", "5 days", "a week", "2 weeks", "2 weeks", "a month", "2 months", "3 months", "6 months", "a year"],
+           "duration_days": [3, 5, 7, 14, 14, 30, 60, 90, 180, 365],
            "cc": ["{s} for {dur}", "Recurrent {s} for {dur}", "{s} with {s2} for {dur}", "Intermittent {s} for {dur}, worse for 3 days"],
            "journal": ["{s_cap} today, {s2}.", "Been {s} for {dur}.", "{s_cap}, probably {cause}.", "Woke up {s}, {s2}.",
                        "{s_cap} the last few days, {s2}.", "{s_cap}, better than yesterday.", "{s_cap} tonight, slept badly.",
@@ -1335,6 +1340,41 @@ PGX_SITES = [
     ("rs887829", "2", 234668570, 233759924, "C", "T", "UGT1A1", 0.14, 0.32, "*28 tag"),
     ("rs9923231", "16", 31107689, 31096368, "C", "T", "VKORC1", 0.90, 0.40, "-1639G>A"),
 ]
+
+#: rsid -> the allele's known function class (CPIC allele function tables / PharmGKB, checked
+#: 2026-10-14), in the vendor's own reporting style: one line per variant, not a phased diplotype
+#: metabolizer call. Deliberately a **subset** of PGX_SITES: a star-allele label alone doesn't make
+#: a call honest, so a site with no well-established single-variant function assignment (most of
+#: the "intronic" and ambiguous entries above) is left out here and prints as "no established
+#: phenotype" rather than a guess. DPYD*5/*6 are included as *normal* function on purpose --
+#: CPIC's current guideline does not treat either as a reduced-function allele, and a consumer
+#: report would otherwise mislead by omission on two sites many people expect a flag for.
+PGX_FUNCTION: dict[str, dict] = {
+    "rs4244285": {"function_en": "no function", "function_zh": "无功能"},            # CYP2C19*2
+    "rs4986893": {"function_en": "no function", "function_zh": "无功能"},            # CYP2C19*3
+    "rs12248560": {"function_en": "increased function", "function_zh": "功能增强"},   # CYP2C19*17
+    "rs1799853": {"function_en": "decreased function", "function_zh": "功能降低"},    # CYP2C9*2
+    "rs1057910": {"function_en": "no function", "function_zh": "无功能"},            # CYP2C9*3
+    "rs10264272": {"function_en": "no function", "function_zh": "无功能"},           # CYP3A5*6
+    "rs2108622": {"function_en": "decreased function", "function_zh": "功能降低"},    # CYP4F2*3
+    # CPIC statin guideline (2022), Genetic test interpretation: *5 is a no-function allele;
+    # decreased function describes the individual's *1/*5 phenotype, not the allele class.
+    # https://files.cpicpgx.org/data/guideline/publication/statins/2022/publication.pdf
+    "rs4149056": {"function_en": "no function", "function_zh": "无功能"},             # SLCO1B1*5
+    "rs1142345": {"function_en": "no function", "function_zh": "无功能"},            # TPMT*3C
+    "rs1800460": {"function_en": "no function", "function_zh": "无功能"},            # TPMT*3B
+    "rs116855232": {"function_en": "no function", "function_zh": "无功能"},          # NUDT15*3
+    "rs4148323": {"function_en": "decreased function", "function_zh": "功能降低"},    # UGT1A1*6
+    "rs887829": {"function_en": "decreased function", "function_zh": "功能降低"},     # UGT1A1*28 tag
+    "rs9923231": {"function_en": "increased warfarin sensitivity",
+                  "function_zh": "华法林敏感性增加"},                                  # VKORC1 -1639G>A
+    "rs1801280": {"function_en": "decreased function", "function_zh": "功能降低"},    # NAT2*5
+    "rs1799930": {"function_en": "decreased function", "function_zh": "功能降低"},    # NAT2*6
+    "rs1799931": {"function_en": "decreased function", "function_zh": "功能降低"},    # NAT2*7
+    "rs1801279": {"function_en": "decreased function", "function_zh": "功能降低"},    # NAT2*14
+    "rs1801159": {"function_en": "normal function", "function_zh": "功能正常"},       # DPYD*5
+    "rs1801160": {"function_en": "normal function", "function_zh": "功能正常"},       # DPYD*6
+}
 
 #: A handful of common "consumer genetic testing" sites outside the site table: mirobody's
 #: site table **does not have** them, and uploading them should resolve to `unresolved` --
@@ -1509,13 +1549,17 @@ def main() -> None:
         "_source": "hand-authored",
         "_note": ("药物基因组位点：41 个带基因标注的位点坐标与等位基因照抄 mirobody genotype_sites.sqlite3"
                   "（dbSNP b155 common ∩ CPIC v1.60）；等位基因频率是手写近似（东亚/欧洲），mirobody 不读它们。"
-                  "off_catalog 是位点表之外的常见消费级位点，上传后应为 unresolved。"),
+                  "off_catalog 是位点表之外的常见消费级位点，上传后应为 unresolved。pgx_function 是其中有"
+                  "明确单位点功能结论（CPIC/PharmGKB）的子集，供 genomics_report 渲染供应商风格报告页用；"
+                  "未入选的位点（多数 intronic/含糊标签）故意不给出表型，报告页印'无已知功能解读'。"),
         "_provenance": {"script": "scripts/build_profile.py", "pgx_sites": len(PGX_SITES),
+                        "pgx_function": len(PGX_FUNCTION),
                         "off_catalog": len(OFF_CATALOG_SITES), "site_table": "dbsnp-b155-common-pgx-candidate",
                         "catalog_sites_from": "mirobody genotype_sites.sqlite3 (dbSNP b155 common), gene-unlabelled rows"},
-        "_vocabulary_fields": ["header", "columns", "label", "gene"],
+        "_vocabulary_fields": ["header", "columns", "label", "gene", "function_en", "function_zh"],
         "columns": ["rsid", "chrom", "pos37", "pos38", "ref", "alt", "gene", "alt_freq_eas", "alt_freq_eur", "label"],
         "pgx_sites": [list(s) for s in PGX_SITES],
+        "pgx_function": PGX_FUNCTION,
         "catalog_sites": catalog_sites(),
         "off_catalog": [list(s) for s in OFF_CATALOG_SITES],
         "vendors": GENOMICS_VENDORS,

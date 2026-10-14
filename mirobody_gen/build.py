@@ -63,15 +63,17 @@ def main() -> None:
     n_enc, n_rows = manifest.write(out_dir, people, encounters)
     print(f"{len(people)} people · {n_enc} encounters · {n_rows} readings → {out_dir}")
 
-    # The same people's other three sources: device batches (POST /api/data), diary sentences,
-    # genomics exports.
-    from . import devices, genomics, journal
+    # The same people's other sources: device batches (POST /api/data), diary sentences, genomics
+    # exports, medication plans.
+    from . import devices, genomics, journal, medications
 
     langs = {p.person_id: person_mod.person_lang(args.seed, p.person_id) for p in people}
     n_dev = devices.write_all(out_dir, people, args.seed, langs)
     n_journal = journal.write_all(out_dir, people, args.seed, langs)
     n_gen = genomics.write_all(out_dir, people, args.seed, langs)
-    print(f"devices {n_dev} (devices.jsonl) · journal {n_journal} (journal.jsonl) · genomics {n_gen} (genomics.jsonl)")
+    n_meds = medications.write_all(out_dir, people, args.seed)
+    print(f"devices {n_dev} (devices.jsonl) · journal {n_journal} (journal.jsonl) · genomics {n_gen} (genomics.jsonl) · "
+          f"medications {n_meds} (medications.jsonl)")
 
     # Vendor-cloud payloads: the device series above in Garmin, Oura, WHOOP and HealthKit shapes.
     from . import vendor_signals

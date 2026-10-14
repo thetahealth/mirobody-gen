@@ -33,11 +33,12 @@ import re
 from dataclasses import asdict
 from datetime import date
 
-from . import book, export, hazards, layout, spec
+from . import book, export, genomics, genomics_report, hazards, layout, spec
 from . import person as person_mod
-from .delivery import render_doc, upload_habit
+from .delivery import choose_delivery, render_doc, upload_habit
 from .document import Doc, build_doc, split_encounter
 from .model import Encounter, Person
+from .render import pgx_report
 
 TIER = {"pdf": "T0", "xlsx": "T1", "csv": "T1"}
 KIND_OF_LOCATION = {"checkup-center": "checkup_center", "hospital": "hospital",
@@ -232,6 +233,60 @@ def record(doc: Doc, path: pathlib.Path, out_root: pathlib.Path, pages: int | No
     return out
 
 
+def genetics_report_file(person: Person, seed: int, lang: str, habit: dict[str, float],
+                         rng: random.Random, files_root: pathlib.Path, out_dir: pathlib.Path) -> dict | None:
+    """A vendor-style pharmacogenomics report page for a person with a genomics profile, or `None`.
+    `genomics.profile_for` is deterministic from `(seed, person_id, lang)`, the same inputs
+    `genomics.write_all` already used for the raw export -- so the report and the raw genotype
+    file describe the same 41 PGx calls, and a reader cross-checking the two never finds them
+    disagreeing.
+
+    Not routed through the Doc/hazard pipeline (this isn't a lab report), but still uses the same
+    per-person upload habit and the same `degrade` primitives for the phone-photo/scan tiers, so a
+    genetics report shows up as a scan or a photo exactly as often as everything else this person
+    uploads.
+    """
+    profile = genomics.profile_for(person, seed, lang)
+    if profile is None:
+        return None
+    rows = genomics_report.rows_for(profile)
+    vendor = profile["vendor"]
+    report_lang = pgx_report.VENDOR_LANG[vendor]
+    when = person.weight_anchors[0][0]
+    data, pages = pgx_report.render(person.person_id, vendor, when.isoformat(), rows)
+    deliv = choose_delivery(rng, habit, pages)
+    (files_root / person.person_id).mkdir(parents=True, exist_ok=True)
+    rel = f"{person.person_id}/{person.person_id}_pgx_report"
+    if deliv["tier"] == "T0":
+        path = files_root / f"{rel}.pdf"
+        path.write_bytes(data)
+    else:
+        from .render import degrade
+
+        dpi = spec.delivery()["dpi_of_tier"][deliv["tier"]]
+        pages_img = degrade.rasterize(data, dpi)
+        margins = degrade.content_margins(data, dpi)
+        out_pages, ops = degrade.apply_scene(pages_img, deliv["scene"], deliv["severity"],
+                                             f"{person.person_id}:pgx_report", margins)
+        blob = degrade.encode(out_pages, deliv["container"], pgx_report.TITLE[report_lang])
+        ext = {"scanpdf": "pdf", "jpg": "jpg", "png": "png"}[deliv["container"]]
+        path = files_root / f"{rel}.{ext}"
+        path.write_bytes(blob)
+        deliv = {**deliv, "ops": ops, "annotations": [], "dpi": dpi, "image_size": list(out_pages[0].size)}
+    return {
+        "file": str(path.relative_to(out_dir)), "synthetic": True,
+        "doc_id": f"{person.person_id}_pgx_report", "person_id": person.person_id,
+        "kind": "genetics_report", "encounter_dates": [], "exam_type": "genomics", "package": None,
+        "family": None, "institution": pgx_report.VENDOR_BRAND[vendor], "issuer_kind": "genomics_vendor",
+        "format": path.suffix.lstrip("."), "source_format": "pdf",
+        "tier": deliv["tier"], "scene": deliv.get("scene"), "severity": deliv.get("severity"),
+        "ops": deliv.get("ops", []), "annotations": deliv.get("annotations", []),
+        "dpi": deliv.get("dpi"), "image_size": deliv.get("image_size"),
+        "language": report_lang, "page_count": pages, "vendor": vendor, "pgx_rows": rows,
+        "split": "main",
+    }
+
+
 def render_corpus(seed: int, people: list[Person], encounters: dict[str, list[Encounter]],
                   out_dir: pathlib.Path, banner: bool = True, handwriting: bool = False) -> list[dict]:
     """Render every file and write files.jsonl.
@@ -278,6 +333,9 @@ def render_corpus(seed: int, people: list[Person], encounters: dict[str, list[En
             filenames.append(first_file)
             for r in enc.readings:
                 previous[r.key] = (r.value, enc.exam_date.isoformat())
+        genetics_rec = genetics_report_file(person, seed, group, habit, rng, files_root, out_dir)
+        if genetics_rec is not None:
+            records.append(genetics_rec)
         # Home logs: a person with a cuff gets a blood-pressure diary, a person who weighs themselves
         # regularly gets a weight log (the material comes from the device series, the same physiology line)
         from . import devices as devices_mod

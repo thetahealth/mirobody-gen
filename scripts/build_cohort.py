@@ -194,18 +194,72 @@ SCRIPTS: dict[str, dict] = {
     },
 }
 
-#: One-off events anyone might encounter (independent of archetype).
+#: Event name -> first-line drug and starting dose, read by `mirobody_gen.medications`. The drug
+#: must match `scripts/build_profile.py`'s `OUTPATIENT["drugs"]` (what a clinic note says a person
+#: is "currently taking"), including iron's "多糖铁复合物" over a ferrous salt -- two sources naming
+#: different drugs for one archetype is exactly the inconsistency this generator exists to avoid.
+#: Doses sourced from each drug's Chinese guideline (dyslipidemia 2016, hypertension 2018, T2DM
+#: 2020, hypothyroidism titration q6-8wk by TSH) and, for ibuprofen, a standard OTC label dose
+#: (200-400mg q4-6h prn).
+MEDICATION_PLANS: dict[str, dict] = {
+    "开始他汀治疗": {
+        "generic": "atorvastatin", "name_zh": "阿托伐他汀钙片", "name_en": "Atorvastatin",
+        "strength": "20 mg", "route": "oral", "frequency": "qd",
+        "dose_text_zh": "每日1次，每次20mg", "dose_text_en": "20 mg once daily",
+    },
+    "开始降压治疗": {
+        "generic": "amlodipine", "name_zh": "苯磺酸氨氯地平片", "name_en": "Amlodipine",
+        "strength": "5 mg", "route": "oral", "frequency": "qd",
+        "dose_text_zh": "每日1次，每次5mg", "dose_text_en": "5 mg once daily",
+    },
+    "开始二甲双胍": {
+        "generic": "metformin", "name_zh": "盐酸二甲双胍片", "name_en": "Metformin",
+        "strength": "500 mg", "route": "oral", "frequency": "bid",
+        "dose_text_zh": "每日2次，每次500mg，随餐服用", "dose_text_en": "500 mg twice daily with meals",
+    },
+    "开始补铁治疗": {
+        "generic": "polysaccharide iron complex", "name_zh": "多糖铁复合物胶囊",
+        "name_en": "Iron Polysaccharide Complex",
+        "strength": "150 mg", "route": "oral", "frequency": "qd",
+        "dose_text_zh": "每日1次，每次150mg", "dose_text_en": "150 mg once daily",
+    },
+    "左甲状腺素滴定": {
+        "generic": "levothyroxine sodium", "name_zh": "左甲状腺素钠片", "name_en": "Levothyroxine Sodium",
+        "strength": "25 ug", "route": "oral", "frequency": "qd",
+        "dose_text_zh": "每日1次，每次25微克，晨起空腹服用", "dose_text_en": "25 mcg once daily on an empty stomach",
+    },
+    # Not keyed to an archetype script: an optional short course some people get during the
+    # "急性上呼吸道感染" incident (any archetype, including "healthy").
+    "急性上呼吸道感染": {
+        "generic": "ibuprofen", "name_zh": "布洛芬片", "name_en": "Ibuprofen",
+        "strength": "300 mg", "route": "oral", "frequency": "prn",
+        "dose_text_zh": "需要时每次300mg，每日不超过3次", "dose_text_en": "300 mg as needed, up to three times daily",
+    },
+}
+
+#: One-off events anyone might encounter (independent of archetype). `age_range` (inclusive
+#: min, max), where present, is checked against the person's age on the day the incident falls,
+#: not at cohort build time -- a 58-year-old at cohort start can still age out of "working age"
+#: three years into the record.
 INCIDENTS: list[dict] = [
     {"name": "急性上呼吸道感染", "type": "health_event", "effect": "negative", "impact": "medium",
      "duration": 10,
      "effects": {"wbc": (0.55, 1, 14), "neut_pct": (0.28, 1, 14), "lymph_pct": (-0.22, 1, 14),
                  "crp": (6.0, 1, 12), "hscrp": (5.0, 1, 12), "esr": (1.2, 3, 21)}},
+    # China's Blood Donation Law (《中华人民共和国献血法》) sets 18-55 for a first-time donor, up to
+    # 60 generally and 65 for a repeat donor; since this incident carries no donation history, 60
+    # is the conservative upper bound.
     {"name": "献血 400mL", "type": "health_event", "effect": "neutral", "impact": "low",
-     "duration": 1,
+     "duration": 1, "age_range": (18, 60),
      "effects": {"rbc": (-0.09, 3, 90), "ferritin": (-0.35, 7, 150)}},
+    # Gated to working age: pulling a month of overtime at 70+ isn't plausible. 61 (just under
+    # China's standard retirement ages of 60/55/50) rather than a hard 65, since it should read
+    # as "still working", not "could theoretically still be employed".
     {"name": "连续加班一个月", "type": "long_term_habit", "effect": "negative", "impact": "low",
-     "duration": 30,
+     "duration": 30, "age_range": (18, 61),
      "effects": {"sbp": (0.05, 7, 45), "tg": (0.18, 14, 60), "pulse": (0.06, 7, 30)}},
+    # Scheduled onto the calendar in `person._timeline`, not drawn as an arbitrary day of the
+    # year: see LUNAR_NEW_YEAR below.
     {"name": "春节假期饮食", "type": "diet_change", "effect": "negative", "impact": "low",
      "duration": 7,
      "effects": {"tg": (0.35, 2, 30), "ua": (0.18, 3, 30), "glu": (0.08, 2, 21),
@@ -215,6 +269,15 @@ INCIDENTS: list[dict] = [
      "effects": {"hdl": (0.14, 90, None), "tg": (-0.18, 60, None), "pulse": (-0.10, 60, None),
                  "weight_kg": (-0.05, 120, None)}},
 ]
+
+#: Chinese Lunar New Year's Day, 2018-2027 (public dates, the same ones China's State Council
+#: holiday notices are built around). "春节假期饮食" is anchored to within a few days of this date
+#: for whichever year it falls in, rather than landing on an arbitrary day of the year.
+LUNAR_NEW_YEAR: dict[int, str] = {
+    2018: "2018-02-16", 2019: "2019-02-05", 2020: "2020-01-25", 2021: "2021-02-12",
+    2022: "2022-02-01", 2023: "2023-01-22", 2024: "2024-02-10", 2025: "2025-01-29",
+    2026: "2026-02-17", 2027: "2027-02-06",
+}
 
 #: Archetype -> diagnosis (SNOMED CT).
 #:
@@ -298,14 +361,18 @@ def main() -> None:
         "_vocabulary_fields": ["orders", "checkup_packages", "archetypes", "scripts", "incidents", "regions",
                                "name", "type", "effect", "impact", "followup", "script",
                                "exam_locations", "detection_methods",
-                               "archetype_conditions", "condition", "display", "source"],
+                               "archetype_conditions", "condition", "display", "source",
+                               "medication_plans", "generic", "name_zh", "name_en", "route", "frequency",
+                               "dose_text_zh", "dose_text_en"],
         "orders": ORDERS,
         "checkup_packages": CHECKUP_PACKAGES,
         "archetypes": ARCHETYPES,
         "archetype_conditions": ARCHETYPE_CONDITIONS,
         "diagnostic_criteria": DIAGNOSTIC_CRITERIA,
         "scripts": SCRIPTS,
+        "medication_plans": MEDICATION_PLANS,
         "incidents": INCIDENTS,
+        "lunar_new_year": LUNAR_NEW_YEAR,
         "regions": REGIONS,
         "exam_locations": ["hospital", "clinic", "checkup-center", "lab"],
         "detection_methods": ["laboratory", "Imaging", "Physiological", "Pathological", "wearable"],

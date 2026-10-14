@@ -291,6 +291,9 @@ def load_predictions(path: pathlib.Path) -> dict[str, list[dict]]:
 
 
 def score(records: list[dict], predictions: dict[str, list[dict]]) -> dict:
+    # PGx truth has gene/rsID/genotype rows, outside the laboratory five-field metric.
+    skipped = sum(r.get("kind") == "genetics_report" for r in records)
+    records = [r for r in records if r.get("kind") != "genetics_report"]
     tally, by_hazard, per_doc = Tally(), {}, {}
     for r in records:
         per_doc[r["file"]] = score_document(r, predictions.get(r["file"], []), tally, by_hazard)
@@ -301,6 +304,8 @@ def score(records: list[dict], predictions: dict[str, list[dict]]) -> dict:
                "unit_acc_given_aligned": t.rate("unit_ok", "matched")}
         for name, t in sorted(by_hazard.items())}
     out["per_document"] = per_doc
+    if skipped:
+        out["skipped_documents"] = {"genetics_report": skipped}
     return out
 
 
@@ -350,6 +355,9 @@ def render(report: dict, effects: dict | None) -> str:
         return "—" if x is None else f"{x:.3f}"
     lines = [f"{report['documents']} documents", "",
              "| Metric | Name | Value | Unit | Range | Flag | Average |", "|---|---|---|---|---|---|---|"]
+    if report.get("skipped_documents"):
+        skipped = ", ".join(f"{n} {kind}" for kind, n in report["skipped_documents"].items())
+        lines[1:1] = [f"Excluded {skipped} from laboratory metrics."]
     for tag, label in (("v0", "V0 official (truncated by order)"), ("v1", "V1 untruncated")):
         r = report[tag]
         lines.append(f"| {label} | " + " | ".join(f(r[k]) for k in FIELDS) + f" | {f(r['average'])} |")

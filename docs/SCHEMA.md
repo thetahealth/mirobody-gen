@@ -156,3 +156,24 @@ Per person: `vendor` (`wegene` · `23andme` · `ancestry` · `myheritage` · `vc
 `n_sites`, `n_pgx`, `n_off_catalog`, `n_no_call`, `sites[]` with `rsid`, `chrom`, `pos37`, `pos38`,
 `ref`, `alt`, `gene`, `array_gt` (`0/0` · `0/1` · `1/1` · `null`), `vcf_gt`, `call_status`, `zygosity`,
 `in_catalog`, `genotype_raw` (the literal printed in the file).
+
+## `medications.jsonl`
+
+One record per person who has at least one medication plan (a person with no treatment event has no
+line at all). `person_id`, `synthetic`, `plans[]`:
+
+| Field | Meaning |
+| --- | --- |
+| `plan_id` | `<person_id>-m<N>`, 1-based per person |
+| `generic`, `name_zh`, `name_en`, `strength`, `route`, `frequency` | the drug; `frequency` ∈ `qd` · `bid` · `tid` · `qn` · `prn` |
+| `dose_text_zh`, `dose_text_en` | the dose as a person or a label would phrase it |
+| `start`, `end` | `start` is always the triggering event's own start date; `end` is `null` for an ongoing chronic medication |
+| `reason_event` | the `people.jsonl` / manifest event name this plan was started for (`开始他汀治疗` etc., or `急性上呼吸道感染` for a short prn course) |
+| `changes[]` | later dose adjustments: `date`, `strength`, `dose_text_zh`, `dose_text_en`, and `frequency` only on the one change where the frequency itself changes (metformin bid to tid) |
+
+Mapped from the archetype's scripted intervention event (`resources/cohort.json`'s
+`medication_plans`): statin to atorvastatin, antihypertensive to amlodipine, metformin (with an
+optional later uptitration), iron to the same polysaccharide-iron-complex the clinic-note narrative
+already names, and levothyroxine titrated 25 to 50 to 75 ug. A "lifestyle intervention" archetype
+event has no drug and so produces no plan. Some people who are already being treated also get a
+short ibuprofen prn course layered onto a cold.

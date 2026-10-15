@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import json
 import pathlib
+import re
 import sys
 import tempfile
 
@@ -85,6 +86,30 @@ def test_journal_entries_split_into_coded_or_frontier_surfaces():
                         assert e["icpc3"] is None and (e["name"] in frontier or e["expect"] == "no-match")
                 else:
                     assert e["kind"] == "measurement" and e["loinc"]
+
+
+def test_english_journal_lines_never_fall_back_to_chinese(monkeypatch):
+    """2026-10-15: a FRONTIER id with an empty `en` list (`pain_generic`, `hiccup`) fell back to
+    its `zh` surface for English writers. 9 of 1031 English diary lines in a zh:0.6,en:0.4 build
+    carried a bare Chinese word ("打嗝 for 3 days now"). Both ids now have an English surface and
+    `symptom_has_lang` filters out any id that doesn't, so this must stay clean."""
+    monkeypatch.setattr(person_mod, "_LANG_MIX", person_mod._LANG_MIX)
+    person_mod.set_lang_mix("zh:0.6,en:0.4")
+    seed = 4242
+    people = person_mod.build_cohort(seed, 60)
+    langs = {p.person_id: person_mod.person_lang(seed, p.person_id) for p in people}
+    cjk = re.compile(r"[一-鿿]")
+    with tempfile.TemporaryDirectory() as tmp:
+        out = pathlib.Path(tmp)
+        n = journal.write_all(out, people, seed, langs)
+        assert n > 0
+        en_lines = 0
+        for line in (out / "journal.jsonl").read_text(encoding="utf-8").splitlines():
+            rec = json.loads(line)
+            if rec["lang"] != "zh":
+                en_lines += 1
+                assert not cjk.search(rec["text"]), rec
+        assert en_lines > 0, "the en:0.4 share produced no English diary lines to check"
 
 
 def test_genotype_exports_match_their_truth_and_catalogue():

@@ -216,6 +216,21 @@ def choose_package(person: Person, kind: str, rng: random.Random) -> str:
 
 
 # ── chief complaints ───────────────────────────────────────────
+def symptom_has_lang(symptom_id: str, lang: str) -> bool:
+    """Whether this complaint has real wording for this language, not a silent fallback to the
+    other one. zh is always populated; for anything else a FRONTIER id with an empty `en` used
+    to fall back to its zh surface, printing bare Chinese into English diaries (2026-10-15: 9 of
+    1031 lines in an en:0.4 mix did). Candidates failing this check are filtered out before
+    picking, so an English writer just never gets that complaint that day."""
+    if lang == "zh":
+        return True
+    comp = _comp()
+    if symptom_id in comp["symptoms"]:
+        s = comp["symptoms"][symptom_id]
+        return bool(s["en"]) or bool(s.get("en_lay"))
+    return bool(comp["frontier"][symptom_id]["en"])
+
+
 def complaint_surface(symptom_id: str, lang: str, rng: random.Random) -> Complaint:
     comp = _comp()
     if symptom_id in comp["symptoms"]:
@@ -233,7 +248,8 @@ def complaint_surface(symptom_id: str, lang: str, rng: random.Random) -> Complai
         text = s.get("en_lay") or symptom_id.replace("_", " ")
         return Complaint(text=text, symptom_id=symptom_id, icpc3=None, expect="no-match")
     f = comp["frontier"][symptom_id]
-    pool = f["zh"] if lang == "zh" else (f["en"] or f["zh"])
+    pool = f["zh"] if lang == "zh" else f["en"]
+    assert pool, f"{symptom_id!r} has no {lang} surface -- caller must filter with symptom_has_lang"
     return Complaint(text=rng.choice(pool), symptom_id=symptom_id, icpc3=None, expect=f["expect"])
 
 
@@ -252,6 +268,7 @@ def complaints_for(person: Person, when: date, exam_type: str, lang: str, seed: 
     for e in person.events:
         if e.note == "随机事件" and e.start - timedelta(days=3) <= when <= e.start + timedelta(days=e.duration_days + 7):
             candidates += pools["incident"].get(e.name, [])
+    candidates = [sid for sid in candidates if symptom_has_lang(sid, lang)]
     none_rate = arch["none_rate"] if not candidates else min(arch["none_rate"], 0.5)
     if not candidates or rng.random() < none_rate:
         return []

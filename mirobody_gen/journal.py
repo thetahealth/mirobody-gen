@@ -24,7 +24,7 @@ from datetime import date, timedelta
 from . import physiology, spec
 from .model import Person
 from .person import CORPUS_END
-from .profile import complaint_surface
+from .profile import complaint_surface, symptom_has_lang
 
 LOINC = {"sbp": "8480-6", "dbp": "8462-4", "pulse": "8867-4", "weight": "29463-7", "temp": "8310-5", "steps": "55423-8"}
 
@@ -107,6 +107,7 @@ def entries_for(person: Person, seed: int, lang: str) -> list[dict]:
                 inc = pools["incident"].get(e.name, [])
                 if inc and rng.random() < 0.25 * diligence:
                     candidates.append(rng.choice(inc))
+        candidates = [sid for sid in candidates if symptom_has_lang(sid, lang)]
         if candidates:
             picked = list(dict.fromkeys(candidates))[:2]
             c1 = complaint_surface(picked[0], lang, rng)

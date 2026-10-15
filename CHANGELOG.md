@@ -167,6 +167,13 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); ver
   article's working material (`docs/zh-CN/`, `docs/paper/`) stays local.
 - Links into the untracked `docs/zh-CN/` from `docs/README.md` and `README.zh-CN.md`; links to mirobody's
   decoder samples point at `main` instead of a feature branch.
+- Complaint vocabulary re-checked against mirobody main's #151 lay-English additions: `sweating`,
+  `sputum` and FRONTIER's `cramps` had quietly started coding (AS10, RS15, LS13) while still marked
+  as abstentions. `cramps` moved into SYMPTOMS since LS13 is a genuine ICPC-3 inclusion for it; a
+  wider lay-English sweep added further surfaces across 30 symptoms that now resolve exactly.
+- FRONTIER's `pain_generic` and `hiccup` gained English wording (`ache`, `can't stop hiccuping`) so
+  an English diary no longer falls back to the Chinese surface when `en` is empty: 9 of 1031 English
+  diary lines in a zh:0.6,en:0.4 build carried a bare Chinese word before this fix.
 
 ### Changed
 - Readings are routed to tables by the most complete order group, so basic and premium liver panels

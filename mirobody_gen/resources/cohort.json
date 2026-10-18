@@ -966,7 +966,6 @@
       "name": "dyslipidemia_statin",
       "n": 8,
       "shift": {
-        "chol": 1.35,
         "ldl": 1.45,
         "tg": 1.6,
         "hdl": 0.82,
@@ -1276,11 +1275,6 @@
       "effects": {
         "ldl": [
           -0.38,
-          35,
-          null
-        ],
-        "chol": [
-          -0.26,
           35,
           null
         ],

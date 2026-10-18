@@ -318,6 +318,8 @@ def encounter_for(person: Person, when: date, exam_type: str, orders: list[str],
                for k in ordered_keys if k not in keys]
     primaries = [k for k in keys if not catalogue[k]["derived_from"]
                  and catalogue[k]["value_kind"] == "quantitative"]
+    if "chol" in keys and "ldl" not in keys:
+        primaries.append("ldl")  # the modelled LDL state supports a derived TC even when not printed
     qualitatives = [k for k in keys if catalogue[k]["value_kind"] == "qualitative"]
     categoricals = [k for k in keys if catalogue[k]["value_kind"] == "categorical"]
 
@@ -334,6 +336,12 @@ def encounter_for(person: Person, when: date, exam_type: str, orders: list[str],
     # constructing a tuple of both calls leaves BMI/globulin/free PSA absent from pass two.
     record_derived(derive(values, person, when))
     record_derived(derive_second_pass(values, person))
+    # The laboratory reports LDL as the Friedewald calculation from TC, HDL and TG: without all
+    # three, or above TG 4.5 mmol/L where Friedewald is not used, it is not reported (with its
+    # reason below) even though the modelled LDL still determines TC. A direct assay is not
+    # modelled; no value is invented from missing inputs or an invalid formula.
+    if "ldl" in values and (any(k not in values for k in ("chol", "hdl", "tg")) or values["tg"] > 4.5):
+        del values["ldl"]
 
     readings: list[Reading] = []
     for key in keys:

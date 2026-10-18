@@ -235,15 +235,13 @@ def derive(values: dict[str, float], person, when: date) -> dict[str, float]:
         fraction = min(0.45, max(0.08, 0.25 * person.baseline.get("dbil", 1.0)))
         out["dbil"] = values["tbil"] * fraction
         out["ibil"] = values["tbil"] - out["dbil"]
-    if has("chol", "hdl", "tg"):
-        # Friedewald is not used above TG 4.5 mmol/L. A direct assay is not modelled yet, so LDL
-        # remains unavailable there; do not invent a measured value from an invalid calculation.
-        if values["tg"] <= 4.5:
-            out["ldl"] = max(values["chol"] - values["hdl"] - values["tg"] / 2.2, 0.3)
+    if has("ldl", "hdl", "tg"):
+        # LDL is the modelled lipid state (statins act on it); total cholesterol is LDL + HDL +
+        # VLDL cholesterol, with VLDL-C taken as TG/2.2 mmol/L -- the Friedewald relation read the
+        # other way. Whether the LDL can be *reported* above TG 4.5 is decided in encounter_for.
+        out["chol"] = values["ldl"] + values["hdl"] + values["tg"] / 2.2
     if has("crea"):
         out["egfr"] = ckd_epi_2021(values["crea"], person.age_at(when), person.sex)
-    if has("chol", "hdl"):
-        out["nonhdl"] = values["chol"] - values["hdl"]
     if has("psa"):
         # Free PSA is a fraction of total PSA, fixed per person (0.08-0.45); the fraction runs higher in benign cases
         out["fpsa"] = values["psa"] * _person_factor(person, "fpsa", 0.08, 0.45)
@@ -273,6 +271,8 @@ def derive_second_pass(values: dict[str, float], person=None) -> dict[str, float
         out["waist"] = 2.8 * values["bmi"] + (19 if person.sex == "male" else 13)
     if "alb" in values and values.get("glb"):
         out["ag_ratio"] = values["alb"] / values["glb"]
+    if "chol" in values and "hdl" in values:
+        out["nonhdl"] = values["chol"] - values["hdl"]
     if values.get("psa") and "fpsa" in values:
         out["fpsa_ratio"] = values["fpsa"] / values["psa"]
     if values.get("pg2") and "pg1" in values:

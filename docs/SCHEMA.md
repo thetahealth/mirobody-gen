@@ -123,8 +123,17 @@ without declared orders are explicitly `not_run`, not silently certified.
 Sex-specific exclusions preserve the order with `not_applicable_sex_specific`.
 Other unavailable outputs remain `result_unavailable`, without inventing a clinical cause.
 
-LDL retains the existing Friedewald implementation and its existing `TG <= 4.5`
-mmol/L boundary unchanged. An unavailable LDL records
+LDL cholesterol is the modelled lipid state: treatment effects (the statin's
+-38%) act on it, and total cholesterol is derived as LDL + HDL + TG/2.2, the
+Friedewald relation read the other way (VLDL cholesterol taken as TG/2.2 mmol/L
+for every TG; at high TG this overstates VLDL-C, a known limit of the relation).
+The printed LDL is therefore the Friedewald value of the printed TC, HDL and TG to
+within half a printed digit, and an event's configured LDL magnitude is the
+noise-free LDL change itself; TC carries no separately configured effect. Before
+this, TC was sampled with its own statin effect and LDL computed from it, so the
+configured -38% never reached LDL (seed 7: -31% to -52% by baseline).
+The reported LDL keeps the existing `TG <= 4.5` mmol/L boundary and needs all
+three inputs. An unavailable LDL records
 `tg_above_calculation_limit` (including actual TG, its printed text `tg_text` and the limit), or
 `calculation_inputs_missing` with the missing keys. No direct result is invented.
 Calculated LDL carries `result_method=calculated_friedewald` and

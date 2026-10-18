@@ -192,6 +192,11 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); ver
   calendar order across the cohort from per-visit streams (`institution-assignment-v2`), and the
   genetics report, home logs and export use streams of their own. Deleting p001's visits after
   2023-03-01 had changed 14 earlier files of 10 other people. Rendered bytes change for existing seeds.
+- The configured statin LDL effect (-38%) is now the simulated LDL change: LDL cholesterol is the
+  modelled lipid state and total cholesterol is derived as LDL + HDL + TG/2.2, so the printed values
+  keep the Friedewald identity. Before, LDL was computed from a separately sampled total cholesterol
+  with its own statin effect, giving -31% to -52% by baseline. The TC effect and TC archetype shift
+  are removed rather than left unused; lipid values change for existing seeds.
 - `--people N` now yields exactly N people (largest-remainder apportionment by archetype weight; one
   per archetype once N ≥ the number of archetypes). Previously 61 gave 60, 100 gave 99, and 7–9
   dropped the archetypes last in the table. The full cohort is unchanged; other sizes draw different

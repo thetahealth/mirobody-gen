@@ -1703,7 +1703,7 @@
         "Cholesterol, Total"
       ],
       "value_kind": "quantitative",
-      "derived_from": null,
+      "derived_from": "ldl + hdl + tg/2.2 (VLDL cholesterol taken as TG/2.2 mmol/L, the Friedewald relation)",
       "sex_specific": null,
       "note": "",
       "positive_rate": null,
@@ -1798,9 +1798,9 @@
         "低密度膽固醇"
       ],
       "value_kind": "quantitative",
-      "derived_from": "Friedewald: chol - hdl - tg/2.2",
+      "derived_from": null,
       "sex_specific": null,
-      "note": "",
+      "note": "modelled lipid state; reported as the Friedewald calculation (TC - HDL - TG/2.2), unavailable above TG 4.5 mmol/L",
       "positive_rate": null,
       "positive_values": null,
       "categories": null,

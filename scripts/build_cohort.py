@@ -130,7 +130,8 @@ ARCHETYPES: list[dict] = [
      "trend": {"glu": 0.05, "hba1c": 0.045},
      "followup": ["glucose"], "interval": 6, "script": "metformin"},
     {"name": "dyslipidemia_statin", "n": 8,
-     "shift": {"chol": 1.35, "ldl": 1.45, "tg": 1.6, "hdl": 0.82, "bapwv_l": 1.08},
+     # No TC shift: total cholesterol is derived from LDL, HDL and TG (see build_indicators.py).
+     "shift": {"ldl": 1.45, "tg": 1.6, "hdl": 0.82, "bapwv_l": 1.08},
      "trend": {}, "followup": ["lipid"], "interval": 6, "script": "statin"},
     {"name": "iron_deficiency_anemia", "n": 5,
      # The shift is applied to the **independent variables**: iron deficiency is a
@@ -168,7 +169,9 @@ SCRIPTS: dict[str, dict] = {
         # The LDL step completes over 4-6 weeks -- a pharmacodynamic fact about statins, and
         # the reason the "onset delay" parameter exists at all: a same-day prescription and
         # same-day recheck would show no change.
-        "effects": {"ldl": (-0.38, 35, None), "chol": (-0.26, 35, None),
+        # LDL is the modelled state, so -38% is the LDL change itself; total cholesterol follows
+        # from LDL + HDL + TG/2.2 rather than carrying a separately configured effect.
+        "effects": {"ldl": (-0.38, 35, None),
                     "tg": (-0.12, 35, None), "alt": (0.15, 60, 180)},
     },
     "iron": {

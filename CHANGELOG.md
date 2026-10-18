@@ -188,6 +188,13 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); ver
   sentence; no polygenic score or trait probability is invented.
 
 ### Fixed
+- Measurement noise and the longitudinal RCV audit now share one declared lognormal model
+  (`resources/measurement.json`): the log-scale SD is sqrt(ln(1 + CV^2)), so printed values have the
+  catalogue CV (CV 42% printed as 44% before), and the audit's 95% threshold is
+  1.96 * sqrt(2 s^2 + rounding) on the trend-adjusted log ratio of pairs with no intervening event.
+  The old ln(1 + 2.77 CV) gate was narrower than the model (7.8% in a pre-registered simulation; seed 7
+  printed 10% against a stated ~5%). Seeds 7/11/23 now give 5.3%/4.6%/4.7% (exact binomial p >= 0.12);
+  every excluded pair is counted by reason. Measured values change slightly for existing seeds.
 - Rendered files no longer depend on later visits of other people: institutions are assigned in
   calendar order across the cohort from per-visit streams (`institution-assignment-v2`), and the
   genetics report, home logs and export use streams of their own. Deleting p001's visits after

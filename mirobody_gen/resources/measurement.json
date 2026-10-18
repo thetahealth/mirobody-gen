@@ -1,0 +1,42 @@
+{
+  "_source": "hand-authored",
+  "_provenance": "Measurement-noise model of the generator, declared once so physiology.measure and the independent clinical audit (audit/clinical.py, which never imports the generator) read the same parameters. Per-analyte within-subject CVs (CVI) live in indicators.json, from the EFLM biological-variation database; the entries here are the remaining model choices.",
+  "_vocabulary_fields": [],
+  "distribution": "lognormal: value = offset + centre * exp(e - s^2/2), e ~ N(0, s^2), s = sqrt(ln(1 + c^2)), c^2 = CVI^2 + CVA^2 as fractions, so the printed values' CV is c (Fokkema et al., Clin Chem 2006;52:1602-3, the lognormal reference change value)",
+  "default_cvi_percent": 5.0,
+  "cva_percent": 3.0,
+  "cva_override_percent": {
+    "temp": 0.3
+  },
+  "offset": {
+    "urine_sg": 1.0
+  },
+  "ceiling": {
+    "spo2": 100.0,
+    "fev1_fvc": 100.0,
+    "fvc_pct": 140.0,
+    "abi_l": 1.6,
+    "abi_r": 1.6,
+    "urine_sg": 1.04
+  },
+  "compositional": [
+    "neut_pct",
+    "lymph_pct",
+    "mono_pct",
+    "eos_pct",
+    "baso_pct"
+  ],
+  "noise_free": [
+    "height",
+    "weight"
+  ],
+  "notes": {
+    "default_cvi_percent": "used for an analyte the catalogue gives no CVI",
+    "cva_percent": "one analytical CV for every analyte: it keeps a repeat measurement from being identical, it does not reproduce a particular instrument",
+    "cva_override_percent": "a thermometer reads to about 0.1 degC; 3% of 37 degC would be +/-1 degC",
+    "offset": "noise and effects act on value - offset (urine specific gravity is 1 plus the solute load)",
+    "ceiling": "physical ceilings real instruments cannot cross; values are clamped there",
+    "compositional": "the white-cell differential percentages are rescaled to sum to 100 after sampling",
+    "noise_free": "height is fixed and weight follows the weight trajectory without measurement noise"
+  }
+}

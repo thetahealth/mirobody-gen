@@ -47,6 +47,12 @@ def typical_centers() -> dict[str, float]:
 
 
 @functools.lru_cache(maxsize=None)
+def measurement() -> dict:
+    """The measurement-noise model shared by the generator and the clinical audit."""
+    return _load("measurement.json")
+
+
+@functools.lru_cache(maxsize=None)
 def cohort() -> dict:
     """Cohort design. See `scripts/build_cohort.py`."""
     return _load("cohort.json")

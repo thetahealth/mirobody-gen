@@ -41,9 +41,9 @@ audit report rounding as "errors".
 - **Physiological hard limits**: values like sodium 1141 mmol/L have shown up in reference-corpus
   aggregates (a unit mix-up) but must never leave this generator. Hard limits are set to the extremes a
   living person can reach, much wider than any reference range.
-- **Longitudinal plausibility**: judged by the **rate** of pairs exceeding the reference change value
-  (RCV) -- theoretically about 5% -- not by flagging every pair; individual pairs are only flagged past
-  3×RCV with no event on the timeline to explain them.
+- **Longitudinal plausibility**: between two draws with no intervening event, the declared lognormal
+  model fixes the spread of the log ratio, so about 5% of such pairs exceed its 95% threshold; the
+  pooled rate is tested against 5%, and single pairs are flagged only past 3x their threshold.
 - **Diagnoses and values must explain each other, at each visit's date**: using only visits up to that
   date, a model rule confirmed on enough distinct dates (with any required elapsed time and same-visit
   companion values) but absent from the visit's conditions is a missed diagnosis; a condition derived
@@ -68,10 +68,9 @@ RESOURCES = PACKAGE / "resources"
 #: cache, build output) -- an installed package has none of these.
 REPO = PACKAGE.parent
 
-#: Analytical coefficient of variation. Real labs' CVA varies by assay; this is a single conservative
-#: value, used only to decide via RCV whether a jump needs an explanation -- not to reproduce any
-#: particular instrument's precision.
-CVA_DEFAULT = 3.0
+#: Analytical CV when resources/measurement.json is absent (an incomplete package); the declared
+#: model there is what the longitudinal check normally reads.
+CVA_FALLBACK = 3.0
 
 #: (key, label, keys it depends on, formula, tolerance)
 IDENTITIES: list[tuple[str, str, tuple[str, ...], object, float]] = [
@@ -286,98 +285,130 @@ def check_flags(record: dict) -> list[Finding]:
 
 def check_longitudinal(records: list[dict], cvi: dict[str, float],
                        decimals: dict[str, int] | None = None,
-                       derived: set[str] | None = None) -> list[Finding]:
-    """Longitudinal plausibility. **Judged by the exceedance rate, not by flagging every pair.**
+                       derived: set[str] | None = None,
+                       measurement: dict | None = None,
+                       cohort: dict | None = None) -> list[Finding]:
+    """Longitudinal plausibility, judged on the pairs whose expected spread is known exactly.
 
-    The first version flagged every adjacent pair whose change exceeded the reference change value
-    (RCV): 586 findings across 601 records. That's exactly what the definition of RCV predicts -- RCV =
-    1.96*sqrt(2)*CV is the **95% bound** on a difference, so about 5% of adjacent pairs are expected to
-    exceed it by construction. Listing an expected statistical tail one finding at a time turns the audit
-    into a noise generator that buries the real problems.
+    The declared measurement model (resources/measurement.json) is lognormal: a printed value is
+    round(centre * exp(e - s^2/2)) with e ~ N(0, s^2) independent per draw, s = sqrt(ln(1 + c^2)) and
+    c^2 = CVI^2 + CVA^2 (Fokkema et al., Clin Chem 2006). Between two draws with no change in the
+    person's events, the log ratio minus the archetype trend's drift is therefore
+    N(0, 2 s^2 + q1^2 + q2^2), where q_i = step / (sqrt(12) * value_i) is the printed rounding's share.
+    The two-sided 95% threshold is 1.96 times its square root, and about 5% of such pairs exceed it by
+    construction -- the reference change value read in log space. (The first version gated
+    |ln ratio| with ln(1 + 2.77 c): that is narrower than the model's spread, so its "theoretical ~5%"
+    was really 8% overall and 19% for CV 40%.)
 
-    Replaced with two checks:
-
-    * **Per pair**, flag only the **egregious**: more than 3xRCV with no event on the timeline to
-      explain it. That's no longer biological variation -- it's a generator bug or a unit mix-up.
-    * **Overall**, check the exceedance rate: among adjacent pairs with a short interval (<120 days),
-      the share exceeding RCV should sit near 5%. Much higher means unexplained jumps are being
-      injected; much lower means the jitter is too small and the longitudinal series looks suspiciously
-      like a straight line.
-
-    Long intervals (>=120 days) are reported but not judged: RCV describes short-term repeat testing at
-    steady state, and a year between two draws carries real seasonal, weight and age drift that RCV is
-    the wrong tool to gate.
+    * **Stable stratum, judged**: pairs of adjacent measurements of a key with no event affecting that
+      key in any intervening record's `events_since_previous`. The pooled exceedance rate is tested
+      against 5% (exact two-sided binomial, p < 0.001 is a finding): higher means unexplained jumps,
+      lower means the series is jittered too little. Excluded beforehand, by properties that do not
+      look at the change: derived quantities (their spread is propagated), the rescaled white-cell
+      differential, declared floors/ceilings, noise-free height/weight, and pairs whose rounding
+      share exceeds the model's own spread. Every exclusion is counted and printed.
+    * **Per pair**: a stable pair beyond 3x its threshold is a finding -- a generator bug or a unit
+      mix-up, not biological variation.
+    * Pairs with an event in between are reported, not judged: the event's effect is the point.
     """
     findings: list[Finding] = []
     decimals = decimals or {}
     derived = derived or set()
+    measurement = measurement if measurement is not None else load_measurement()
+    cohort = cohort if cohort is not None else load_cohort()
+    default_cvi = measurement.get("default_cvi_percent")
+    cva = measurement.get("cva_percent", CVA_FALLBACK)
+    cva_override = measurement.get("cva_override_percent", {})
+    excluded_keys = {key: "derived" for key in derived}
+    for reason, keys in (("compositional", measurement.get("compositional", [])),
+                         ("floor_or_ceiling", list(measurement.get("offset", {})) + list(measurement.get("ceiling", {}))),
+                         ("noise_free", measurement.get("noise_free", []))):
+        excluded_keys.update({key: reason for key in keys})
+    affected: dict[str, set[str]] = {}
+    for script in (cohort.get("scripts") or {}).values():
+        affected.setdefault(script["name"], set()).update(script.get("effects", {}))
+    for incident in cohort.get("incidents") or []:
+        affected.setdefault(incident["name"], set()).update(incident.get("effects", {}))
+    trends = {a["name"]: a.get("trend", {}) for a in cohort.get("archetypes") or []}
+
+    counts = {"pairs": 0, "stable": 0, "stable_exceed": 0, "event": 0, "event_exceed": 0}
+    excluded: dict[str, int] = {}
     by_person: dict[str, list[dict]] = {}
     for record in records:
         by_person.setdefault(record.get("person_id", "?"), []).append(record)
 
-    short_pairs = short_exceed = long_pairs = long_exceed = 0
-
     for person_id, items in by_person.items():
         items.sort(key=lambda r: r.get("collected") or "")
         history: dict[str, tuple[str, float]] = {}
+        since: dict[str, set[str]] = {}
+        trend = trends.get((items[0].get("person") or {}).get("archetype"), {})
         for record in items:
-            events = record.get("events_since_previous") or []
+            names = set(record.get("events_since_previous") or [])
+            for key in since:
+                since[key] |= names
             collected = record.get("collected") or ""
             for key, value in numeric_rows(record).items():
                 previous = history.get(key)
+                events, since[key] = since.get(key, set()), set()
                 history[key] = (collected, value)
-                if not previous or previous[1] == 0:
+                if not previous:
                     continue
-                if key in derived:
-                    continue  # a derived quantity's variability is propagated, see load_derived()
-                cv = cvi.get(key)
-                if not cv:
-                    continue
-                # A difference within printed resolution doesn't count. Basophils print to one decimal
-                # place, so a true value of 0.05 can print as 0.0 or 0.1 -- that's rounding, not
-                # biology, yet as a ratio it reads as 100% (or a division by zero).
-                step = 10 ** -decimals.get(key, 2)
-                if abs(value - previous[1]) <= 1.5 * step:
-                    continue
-                # When both values hug zero (basophils 0.1 vs 0.5), the log ratio is dominated by the
-                # quantization step: a printed 0.1 could be anywhere from 0.05 to 0.15, so the ratio
-                # swings 3-10x. Skip anything within 5 steps of zero.
-                if min(value, previous[1]) < 5 * step:
-                    continue
-                rcv = 2.77 * math.sqrt(cv ** 2 + CVA_DEFAULT ** 2) / 100
-                # Compare on a **log scale**, not (new - old) / old: the latter blows up when the old
-                # value is small -- direct bilirubin 0.9->4.6 computes as 411%, while the reverse
-                # 4.6->0.9 is only 80%, so the same pair of values gives a different answer depending on
-                # order. The log ratio is symmetric, and is standard practice in laboratory medicine for
-                # high-variability analytes.
-                change = abs(math.log(max(value, 1e-9) / max(previous[1], 1e-9)))
-                threshold = math.log(1 + rcv)
+                counts["pairs"] += 1
+                cv_percent = cvi.get(key) or default_cvi
+                reason = excluded_keys.get(key) or (None if cv_percent else "no_declared_cv")
+                if reason is None and (value <= 0 or previous[1] <= 0):
+                    reason = "non_positive"
                 gap = _days_between(previous[0], collected)
-                if gap is not None and gap < 120:
-                    short_pairs += 1
-                    short_exceed += change > threshold
-                else:
-                    long_pairs += 1
-                    long_exceed += change > threshold
-                if gap is not None and gap < 120 and change > 3 * threshold and not events:
+                if reason is None and gap is None:
+                    reason = "undated"
+                if reason is not None:
+                    excluded[reason] = excluded.get(reason, 0) + 1
+                    continue
+                c = math.sqrt(cv_percent ** 2 + cva_override.get(key, cva) ** 2) / 100
+                s = math.sqrt(math.log(1 + c * c))
+                step = 10 ** -decimals.get(key, 2)
+                q1, q2 = step / (math.sqrt(12) * previous[1]), step / (math.sqrt(12) * value)
+                if max(q1, q2) > s:
+                    excluded["rounding_dominated"] = excluded.get("rounding_dominated", 0) + 1
+                    continue
+                threshold = 1.96 * math.sqrt(2 * s * s + q1 * q1 + q2 * q2)
+                change = math.log(value / previous[1]) - gap / 365.25 * math.log(1 + trend.get(key, 0.0))
+                if any(key in affected.get(name, {key}) for name in events):  # an unknown event may affect anything
+                    counts["event"] += 1
+                    counts["event_exceed"] += abs(change) > threshold
+                    continue
+                counts["stable"] += 1
+                counts["stable_exceed"] += abs(change) > threshold
+                if abs(change) > 3 * threshold:
                     findings.append(Finding(
                         "纵向", f"{person_id} {previous[0]}→{collected}",
-                        f"{key} changed from {previous[1]:g} to {value:g} "
-                        f"(log ratio {change:.2f}, exceeds 3×ln(1+RCV) {3 * threshold:.2f}), "
-                        f"with no event on the timeline to explain it"))
+                        f"{key} changed from {previous[1]:g} to {value:g} (log change {change:+.2f} after "
+                        f"trend, beyond 3x its 95% threshold {threshold:.2f}) with no event affecting it"))
 
-    if short_pairs >= 50:
-        rate = short_exceed / short_pairs
-        print(f"(longitudinal: {short_pairs} short-interval pairs, {rate:.1%} exceed RCV "
-              f"(theoretical ~5%); {long_pairs} long-interval pairs, "
-              f"{long_exceed / max(long_pairs, 1):.1%} exceed it, reported but not judged)")
-        if not 0.01 <= rate <= 0.15:
+    stable, exceed = counts["stable"], counts["stable_exceed"]
+    if counts["pairs"]:
+        rate = exceed / stable if stable else float("nan")
+        p_value = binomial_two_sided(exceed, stable, 0.05) if stable else float("nan")
+        print(f"(longitudinal: {counts['pairs']} adjacent pairs; stable {stable}, {rate:.1%} beyond the 95% "
+              f"threshold (model 5%, exact binomial p={p_value:.3g}); with an event in between "
+              f"{counts['event']}, {counts['event_exceed'] / max(counts['event'], 1):.1%} beyond it, reported "
+              f"not judged; excluded {sum(excluded.values())} "
+              f"({', '.join(f'{k}:{v}' for k, v in sorted(excluded.items())) or 'none'}))")
+        if stable >= 200 and p_value < 0.001:
             findings.append(Finding(
                 "纵向", "overall",
-                f"short-interval exceedance rate {rate:.1%} is outside [1%, 15%] -- "
-                f"too high means unexplained jumps are being injected, too low means the longitudinal "
-                f"series is jittered too little"))
+                f"stable-pair exceedance {rate:.1%} of {stable} departs from the model's 5% (exact binomial "
+                f"p={p_value:.2g}): higher means unexplained jumps, lower means too little jitter"))
     return findings
+
+
+def binomial_two_sided(k: int, n: int, p: float) -> float:
+    """Exact two-sided binomial p-value: the total probability of outcomes no more likely than k."""
+    def log_pmf(i: int) -> float:
+        return (math.lgamma(n + 1) - math.lgamma(i + 1) - math.lgamma(n - i + 1)
+                + i * math.log(p) + (n - i) * math.log1p(-p))
+    observed = log_pmf(k)
+    return min(1.0, sum(math.exp(log_pmf(i)) for i in range(n + 1) if log_pmf(i) <= observed + 1e-9))
 
 
 def _days_between(a: str, b: str) -> int | None:
@@ -511,6 +542,18 @@ def load_derived() -> set[str]:
         return set()
     spec = json.loads(path.read_text(encoding="utf-8"))
     return {i["key"] for i in spec["indicators"] if i.get("derived_from")}
+
+
+def load_measurement() -> dict:
+    """The declared measurement-noise model (read as data; the generator is never imported)."""
+    path = RESOURCES / "measurement.json"
+    return json.loads(path.read_text(encoding="utf-8")) if path.is_file() else {}
+
+
+def load_cohort() -> dict:
+    """Event scripts, incidents and archetype trends: which keys an event moves, and each trend."""
+    path = RESOURCES / "cohort.json"
+    return json.loads(path.read_text(encoding="utf-8")) if path.is_file() else {}
 
 
 def load_cvi() -> dict[str, float]:

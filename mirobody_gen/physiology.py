@@ -30,19 +30,16 @@ from . import spec
 
 #: Conservative within-subject variation (%) when no CVI is on file. Better to under-jitter than to
 #: invent "disease fluctuation" out of nothing.
-DEFAULT_CVI = 5.0
-#: Analytical variation (%). The same value for every item: its only job here is to keep a repeat
-#: measurement from being identical, not to reproduce any particular instrument's precision.
-CVA = 3.0
-#: Exception: temperature's 3% is +/-1 degC -- a clinic note would then print 35.7 and 38.5 degC for
-#: healthy people. A thermometer's actual precision is on the order of 0.1 degC.
-CVA_OVERRIDE = {"temp": 0.3}
-#: Quantities with a physical ceiling: saturation, ratio percentages, ankle-brachial index.
-#: Lognormal noise can cross the ceiling; real instruments can't.
-CEILING = {"spo2": 100.0, "fev1_fvc": 100.0, "fvc_pct": 140.0, "abi_l": 1.6, "abi_r": 1.6, "urine_sg": 1.040}
-#: Quantities that vary above a fixed floor. Urine specific gravity is 1 plus the solute load, so
-#: baseline, events and noise act on SG - 1; scaling the whole 1.0xx printed 0.84 and 1.25.
-OFFSET = {"urine_sg": 1.0}
+# The measurement-noise model is declared in resources/measurement.json, which the independent
+# clinical audit reads too: a default CVI, one analytical CV (temperature's 3% would be +/-1 degC, so
+# it reads 0.3%), physical ceilings real instruments can't cross, and floors such as urine specific
+# gravity's 1.0 (baseline, events and noise act on SG - 1; scaling the whole 1.0xx printed 0.84).
+_MEASUREMENT = spec.measurement()
+DEFAULT_CVI = _MEASUREMENT["default_cvi_percent"]
+CVA = _MEASUREMENT["cva_percent"]
+CVA_OVERRIDE = _MEASUREMENT["cva_override_percent"]
+CEILING = _MEASUREMENT["ceiling"]
+OFFSET = _MEASUREMENT["offset"]
 
 #: Center value for indicators with no reference interval (height and weight are handled separately).
 FALLBACK_CENTER: dict[str, float] = {
@@ -180,7 +177,11 @@ def measure(rng: random.Random, person, key: str, when: date) -> float:
     base *= event_factor(person, key, when)[0]
 
     cvi = item.get("cvi") or DEFAULT_CVI
-    sigma = math.sqrt(cvi ** 2 + CVA_OVERRIDE.get(key, CVA) ** 2) / 100
+    cv = math.sqrt(cvi ** 2 + CVA_OVERRIDE.get(key, CVA) ** 2) / 100
+    # The log-scale SD whose lognormal has this CV: sqrt(ln(1 + CV^2)) (Fokkema et al. 2006). Using
+    # the CV itself as the log SD overstated the spread (CV 40% printed as 41.7%), and the audit's
+    # reference change value could not match it.
+    sigma = math.sqrt(math.log(1 + cv ** 2))
     # **Lognormal**, not additive normal. Direct bilirubin's CVI is 36.8%; under an additive model
     # `base * (1 + 0.37*eps)` gives 0.04x baseline at eps=-2.6 — a bilirubin collapsing toward zero.
     # Biological quantities are non-negative and right-skewed, which is the shape multiplicative
@@ -306,7 +307,7 @@ def normalize_differential(values: dict[str, float]) -> None:
     catch. After normalising, the residual is folded into neutrophils (the largest share, where it
     goes unnoticed).
     """
-    keys = ["neut_pct", "lymph_pct", "mono_pct", "eos_pct", "baso_pct"]
+    keys = _MEASUREMENT["compositional"]
     if not all(k in values for k in keys):
         return
     total = sum(values[k] for k in keys)

@@ -241,12 +241,36 @@ def person_record(person: Person, conditions: list[dict] | None = None) -> dict:
                 "impact_level": e.impact_level,
                 # The decidable answer to an attribution question lives here: which event, which
                 # indicators, how large an effect, and how long it takes to kick in.
-                "affected_indicators": sorted(e.effects),
+                "affected_indicators": sorted(set(e.effects) | set(_course_keys(e))),
                 "effects": {k: {"magnitude": m, "onset_days": o, "half_life_days": d}
                             for k, (m, o, d) in e.effects.items()},
+                # Dose-dependent effects come from the exposure course: each step's steady state
+                # (sourced response at that dose times adherence), ramped over onset/offset days.
+                **({"course": _course_record(e)} if e.course is not None else {}),
             }
             for e in person.events
         ],
+    }
+
+
+def _course_keys(event) -> list[str]:
+    if event.course is None:
+        return []
+    doses = spec.cohort()["medication_response"][event.course.drug]["doses_mg"]
+    return sorted({k for response in doses.values() for k in response})
+
+
+def _course_record(event) -> dict:
+    course = event.course
+    response = spec.cohort()["medication_response"][course.drug]
+    return {
+        "drug": course.drug,
+        "steps": [{"start": s.start.isoformat(), "dose_mg": s.dose_mg, "adherence": s.adherence,
+                   "steady_state": {k: v * s.adherence for k, v in response["doses_mg"][f"{s.dose_mg:g}"].items()}}
+                  for s in course.steps],
+        "stop": course.stop.isoformat() if course.stop is not None else None,
+        "onset_days": response["onset_days"], "offset_days": response["offset_days"],
+        "source": response["source"], "assumptions": sorted(response["assumptions"]),
     }
 
 

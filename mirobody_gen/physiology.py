@@ -95,6 +95,11 @@ def event_factor(person, key: str, when: date) -> tuple[float, list[str]]:
     factor = 1.0
     names: list[str] = []
     for event in person.events:
+        if event.course is not None:
+            contribution = course_effect(event.course, key, when)
+            if abs(contribution) > 1e-6:
+                factor += contribution
+                names.append(event.name)
         effect = event.effects.get(key)
         if not effect:
             continue
@@ -115,6 +120,36 @@ def event_factor(person, key: str, when: date) -> tuple[float, list[str]]:
             factor += contribution
             names.append(event.name)
     return max(factor, 0.05), names
+
+
+def course_effect(course, key: str, when: date) -> float:
+    """A treatment course's effect on `key` on `when`, from the drug's sourced dose response.
+
+    Each dose step moves the response toward that dose's steady state times the fraction of doses
+    taken, linearly over the onset period; a stop returns it to zero over the offset period. Changes
+    superpose, so a 20 -> 40 mg step adds the difference between the two steady states from its date.
+    """
+    response = spec.cohort()["medication_response"][course.drug]
+
+    def steady(step) -> float:
+        dose = f"{step.dose_mg:g}"
+        if dose not in response["doses_mg"]:
+            raise ValueError(f"no sourced response for {course.drug} {dose} mg "
+                             f"(available: {', '.join(response['doses_mg'])} mg)")
+        return response["doses_mg"][dose].get(key, 0.0) * step.adherence
+
+    def ramp(start: date, days: int) -> float:
+        elapsed = (when - start).days
+        return 0.0 if elapsed < 0 else 1.0 if days <= 0 else min(1.0, elapsed / days)
+
+    total = previous = 0.0
+    for step in course.steps:
+        target = steady(step)
+        total += (target - previous) * ramp(step.start, response["onset_days"])
+        previous = target
+    if course.stop is not None:
+        total -= previous * ramp(course.stop, response["offset_days"])
+    return total
 
 
 def trend_factor(person, key: str, when: date) -> float:

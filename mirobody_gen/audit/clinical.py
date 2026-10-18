@@ -325,8 +325,12 @@ def check_longitudinal(records: list[dict], cvi: dict[str, float],
                          ("noise_free", measurement.get("noise_free", []))):
         excluded_keys.update({key: reason for key in keys})
     affected: dict[str, set[str]] = {}
+    responses = cohort.get("medication_response") or {}
     for script in (cohort.get("scripts") or {}).values():
         affected.setdefault(script["name"], set()).update(script.get("effects", {}))
+        if script.get("course"):  # a dose-dependent treatment also moves its response's keys
+            doses = responses.get(script["course"]["drug"], {}).get("doses_mg", {})
+            affected[script["name"]].update(k for response in doses.values() for k in response)
     for incident in cohort.get("incidents") or []:
         affected.setdefault(incident["name"], set()).update(incident.get("effects", {}))
     trends = {a["name"]: a.get("trend", {}) for a in cohort.get("archetypes") or []}

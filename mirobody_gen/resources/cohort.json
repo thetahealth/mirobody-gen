@@ -33,7 +33,9 @@
     "route",
     "frequency",
     "dose_text_zh",
-    "dose_text_en"
+    "dose_text_en",
+    "dose_text_template_zh",
+    "dose_text_template_en"
   ],
   "orders": {
     "cbc": [
@@ -1273,21 +1275,15 @@
       "effect": "positive",
       "impact": "high",
       "effects": {
-        "ldl": [
-          -0.38,
-          35,
-          null
-        ],
-        "tg": [
-          -0.12,
-          35,
-          null
-        ],
         "alt": [
           0.15,
           60,
           180
         ]
+      },
+      "course": {
+        "drug": "atorvastatin",
+        "dose_mg": 20
       }
     },
     "iron": {
@@ -1402,7 +1398,9 @@
       "route": "oral",
       "frequency": "qd",
       "dose_text_zh": "每日1次，每次20mg",
-      "dose_text_en": "20 mg once daily"
+      "dose_text_en": "20 mg once daily",
+      "dose_text_template_zh": "每日1次，每次{dose}mg",
+      "dose_text_template_en": "{dose} mg once daily"
     },
     "开始降压治疗": {
       "generic": "amlodipine",
@@ -1453,6 +1451,39 @@
       "frequency": "prn",
       "dose_text_zh": "需要时每次300mg，每日不超过3次",
       "dose_text_en": "300 mg as needed, up to three times daily"
+    }
+  },
+  "medication_response": {
+    "atorvastatin": {
+      "doses_mg": {
+        "10": {
+          "ldl": -0.39,
+          "tg": -0.19
+        },
+        "20": {
+          "ldl": -0.43,
+          "tg": -0.26
+        },
+        "40": {
+          "ldl": -0.5,
+          "tg": -0.29
+        },
+        "80": {
+          "ldl": -0.6,
+          "tg": -0.37
+        }
+      },
+      "onset_days": 28,
+      "offset_days": 28,
+      "source": "LIPITOR (atorvastatin calcium) US prescribing information, revised 2024, section 14 Table 8 and its text",
+      "source_url": "https://www.accessdata.fda.gov/drugsatfda_docs/label/2024/020702s081lbl.pdf",
+      "assumptions": {
+        "onset_shape": "linear to the full response at 28 days; the label gives timing, not a curve",
+        "offset": "after a stop the response returns linearly over 28 days, mirroring onset; not sourced",
+        "adherence": "the steady-state response scales linearly with the fraction of doses taken; not validated",
+        "population": "trial means applied to every synthetic user; individual response variation is not modelled",
+        "placebo": "drug-arm values as labelled; the placebo arm's own +4% LDL-C is not subtracted"
+      }
     }
   },
   "incidents": [

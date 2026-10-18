@@ -166,13 +166,12 @@ SCRIPTS: dict[str, dict] = {
     },
     "statin": {
         "name": "开始他汀治疗", "type": "medication", "effect": "positive", "impact": "high",
-        # The LDL step completes over 4-6 weeks -- a pharmacodynamic fact about statins, and
-        # the reason the "onset delay" parameter exists at all: a same-day prescription and
-        # same-day recheck would show no change.
-        # LDL is the modelled state, so -38% is the LDL change itself; total cholesterol follows
-        # from LDL + HDL + TG/2.2 rather than carrying a separately configured effect.
-        "effects": {"ldl": (-0.38, 35, None),
-                    "tg": (-0.12, 35, None), "alt": (0.15, 60, 180)},
+        # The LDL and TG response depends on the dose actually taken, so it comes from the
+        # exposure course and MEDICATION_RESPONSE below, not from a fixed triple here. Total
+        # cholesterol follows from LDL + HDL + TG/2.2. The ALT rise is a hand-set, unvalidated
+        # assumption that does not scale with dose.
+        "effects": {"alt": (0.15, 60, 180)},
+        "course": {"drug": "atorvastatin", "dose_mg": 20},
     },
     "iron": {
         "name": "开始补铁治疗", "type": "medication", "effect": "positive", "impact": "medium",
@@ -197,6 +196,34 @@ SCRIPTS: dict[str, dict] = {
     },
 }
 
+#: Dose-dependent response of a drug, read by `physiology` for every event whose course names it.
+#: Only doses with a sourced response are accepted; nothing is interpolated between them.
+MEDICATION_RESPONSE: dict[str, dict] = {
+    "atorvastatin": {
+        # Adjusted mean % change from baseline after 6 weeks, pooled from two placebo-controlled
+        # dose-response trials in primary hyperlipidaemia (LIPITOR US prescribing information,
+        # section 14, Table 8). HDL-C (+5% to +9%, not dose-related in the label) is not modelled.
+        "doses_mg": {"10": {"ldl": -0.39, "tg": -0.19}, "20": {"ldl": -0.43, "tg": -0.26},
+                     "40": {"ldl": -0.50, "tg": -0.29}, "80": {"ldl": -0.60, "tg": -0.37}},
+        # "Therapeutic response is seen within 2 weeks, and maximum response is usually achieved
+        # within 4 weeks and maintained during chronic therapy" (same label, section 14).
+        "onset_days": 28,
+        "offset_days": 28,
+        "source": "LIPITOR (atorvastatin calcium) US prescribing information, revised 2024, "
+                  "section 14 Table 8 and its text",
+        "source_url": "https://www.accessdata.fda.gov/drugsatfda_docs/label/2024/020702s081lbl.pdf",
+        "assumptions": {
+            "onset_shape": "linear to the full response at 28 days; the label gives timing, not a curve",
+            "offset": "after a stop the response returns linearly over 28 days, mirroring onset; not sourced",
+            "adherence": "the steady-state response scales linearly with the fraction of doses taken; "
+                         "not validated",
+            "population": "trial means applied to every synthetic user; individual response variation "
+                          "is not modelled",
+            "placebo": "drug-arm values as labelled; the placebo arm's own +4% LDL-C is not subtracted",
+        },
+    },
+}
+
 #: Event name -> first-line drug and starting dose, read by `mirobody_gen.medications`. The drug
 #: must match `scripts/build_profile.py`'s `OUTPATIENT["drugs"]` (what a clinic note says a person
 #: is "currently taking"), including iron's "多糖铁复合物" over a ferrous salt -- two sources naming
@@ -209,6 +236,9 @@ MEDICATION_PLANS: dict[str, dict] = {
         "generic": "atorvastatin", "name_zh": "阿托伐他汀钙片", "name_en": "Atorvastatin",
         "strength": "20 mg", "route": "oral", "frequency": "qd",
         "dose_text_zh": "每日1次，每次20mg", "dose_text_en": "20 mg once daily",
+        # A course's later dose steps are written with these; the starting dose above must match
+        # the script's course (checked in medications.plans_for).
+        "dose_text_template_zh": "每日1次，每次{dose}mg", "dose_text_template_en": "{dose} mg once daily",
     },
     "开始降压治疗": {
         "generic": "amlodipine", "name_zh": "苯磺酸氨氯地平片", "name_en": "Amlodipine",
@@ -369,7 +399,7 @@ def main() -> None:
                                "exam_locations", "detection_methods",
                                "archetype_conditions", "condition", "display", "source",
                                "medication_plans", "generic", "name_zh", "name_en", "route", "frequency",
-                               "dose_text_zh", "dose_text_en"],
+                               "dose_text_zh", "dose_text_en", "dose_text_template_zh", "dose_text_template_en"],
         "orders": ORDERS,
         "checkup_packages": CHECKUP_PACKAGES,
         "archetypes": ARCHETYPES,
@@ -377,6 +407,7 @@ def main() -> None:
         "diagnostic_criteria": DIAGNOSTIC_CRITERIA,
         "scripts": SCRIPTS,
         "medication_plans": MEDICATION_PLANS,
+        "medication_response": MEDICATION_RESPONSE,
         "incidents": INCIDENTS,
         "lunar_new_year": LUNAR_NEW_YEAR,
         "regions": REGIONS,

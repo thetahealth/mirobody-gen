@@ -21,12 +21,13 @@ from __future__ import annotations
 
 import math
 import copy
+import dataclasses
 import json
 import random
 from datetime import date, timedelta
 
 from . import profile, spec
-from .model import Encounter, Event, MissingResult, Person, Reading
+from .model import DoseStep, Encounter, Event, MedicationCourse, MissingResult, Person, Reading
 from .physiology import (
     derive, derive_second_pass, measure, normalize_differential,
     categorical_value, person_baseline, qualitative_value,
@@ -174,15 +175,20 @@ def _timeline(rng: random.Random, archetype: dict, start: date, birth_year: int)
         # follow-up points to compare on both sides — an event pushed past the last exam leaves the
         # attribution question with no observable answer.
         offset = rng.randint(200, 420)
+        begin = start + timedelta(days=offset)
+        # A dose-dependent treatment starts as one continuous step at the script's dose, fully taken
+        # and never stopped; titration, stops and adherence are explicit course edits (with_course).
+        course = (MedicationCourse(script["course"]["drug"], (DoseStep(begin, script["course"]["dose_mg"]),))
+                  if script.get("course") else None)
         events.append(Event(
             name=script["name"], event_type=script["type"],
-            start=start + timedelta(days=offset), duration_days=3650,
+            start=begin, duration_days=3650,
             health_effect=script["effect"], impact_level=script["impact"],
             # Cohort resources call this weight_kg; event truth uses the catalogue key so
             # documents, scales and attribution all refer to the same indicator.
             effects={"weight" if k == "weight_kg" else k: tuple(v)
                      for k, v in script["effects"].items()},
-            note="原型剧本"))
+            note="原型剧本", course=course))
     for _ in range(rng.randint(1, 3)):
         when = start + timedelta(days=rng.randint(30, (CORPUS_END - start).days - 30))
         # Age-gate before drawing, not after: a draw that lands on "献血 400mL" at age 63 should
@@ -405,6 +411,58 @@ def encounter_for(person: Person, when: date, exam_type: str, orders: list[str],
     return encounter
 
 
+def _changing(event: Event, previous: date | None, when: date) -> bool:
+    """Whether the event's effect changes between the previous encounter and this one, so it can
+    explain a difference between them: it starts in between; it is still ramping up after the previous
+    visit (a statin takes weeks to kick in, iron supplementation 90 days); it has ended by this visit
+    and is still decaying after the previous one (its effect falls by half-life once it ends); or a
+    treatment course changes dose, adherence or stops in between. An event whose effect is flat across
+    the whole interval -- a treatment years into steady use -- does not explain it. The first visit
+    lists every event that has started by then."""
+    if event.start > when:
+        return False
+    if previous is None or event.start > previous:
+        return True
+    onset = max([o for _, o, _ in event.effects.values()] or [0])
+    if event.start + timedelta(days=onset) > previous:
+        return True
+    end = event.start + timedelta(days=event.duration_days)
+    halves = [h for _, _, h in event.effects.values() if h is not None]  # None: the effect never decays
+    if halves and end <= when and end + timedelta(days=3 * max(halves)) > previous:
+        return True
+    return _course_changing(event, previous, when)
+
+
+def _course_changing(event: Event, previous: date, when: date) -> bool:
+    """A dose change, adherence change or stop after `previous` (or still ramping at it) up to `when`."""
+    if event.course is None:
+        return False
+    response = spec.cohort()["medication_response"][event.course.drug]
+    ramp = timedelta(days=max(response["onset_days"], response["offset_days"]))
+    return any(change <= when and change + ramp > previous for change in event.course.change_dates())
+
+
+def with_course(person: Person, event_name: str, steps: list[DoseStep], stop: date | None = None) -> Person:
+    """`person` with the named treatment's exposure course replaced: dose steps (dose, adherence, from a
+    date on) and an optional stop. The first step must start on the event's own start date. A stop ends
+    the event there, so its fixed effects decay from that day too."""
+    events, found = [], False
+    for event in person.events:
+        if event.name == event_name:
+            found = True
+            if event.course is None:
+                raise ValueError(f"{event_name} has no dose-dependent course")
+            if steps[0].start != event.start:
+                raise ValueError("the first dose step must start on the treatment's start date")
+            course = MedicationCourse(event.course.drug, tuple(steps), stop)
+            duration = (stop - event.start).days if stop is not None else event.duration_days
+            event = dataclasses.replace(event, course=course, duration_days=duration)
+        events.append(event)
+    if not found:
+        raise ValueError(f"{person.person_id} has no event {event_name}")
+    return dataclasses.replace(person, events=tuple(events))
+
+
 def home_stream(seed: int, person_id: str) -> random.Random:
     """The random stream that decides a person's language group and home institutions."""
     return random.Random(f"home:{seed}:{person_id}")
@@ -475,16 +533,7 @@ def encounters_for(person: Person, seed: int) -> list[Encounter]:
         visit_rng = random.Random(json.dumps([ENCOUNTER_STREAM_POLICY, "observation", seed,
                                              person.person_id, identity, occurrence]))
         encounter = encounter_for(person, when, exam_type, orders, visit_rng, package)
-        # Events that **started, or whose effect is still ramping up,** between the previous
-        # encounter and this one: a statin takes 35 days to kick in, iron supplementation 90 — an
-        # event that started before the previous visit but whose effect lands in this window is also
-        # an explanation for the jump. After an event ends its effect decays by half-life: one still
-        # decaying at the previous visit also explains this drop.
-        encounter.events_since_previous = tuple(
-            e.name for e in person.events
-            if e.start <= when and (previous is None or e.start > previous
-                                    or e.start + timedelta(days=max([o for _, o, _ in e.effects.values()] or [0])) > previous
-                                    or e.start + timedelta(days=e.duration_days + 3 * max([h or 0 for _, _, h in e.effects.values()] or [0])) > previous))
+        encounter.events_since_previous = tuple(e.name for e in person.events if _changing(e, previous, when))
         values = {r.key: r.canonical_value for r in encounter.readings if r.canonical_value is not None}
         if exam_type == "routine":
             encounter.findings = profile.encounter_findings(person, when, states, package, values, seed)

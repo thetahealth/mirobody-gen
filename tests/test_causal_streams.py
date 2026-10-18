@@ -29,7 +29,7 @@ def test_original_p035_future_event_counterfactual(change):
     if change == "delete":
         q = replace(p, events=tuple(e for e in p.events if e.start <= CUTOFF))
     elif change == "edit":
-        q = replace(p, events=tuple(replace(e, start=date(2025, 7, 1), duration_days=1, effects={})
+        q = replace(p, events=tuple(replace(e, start=date(2025, 7, 1), duration_days=1, effects={}, course=None)
                                     if e.start > CUTOFF else e for e in p.events))
     else:
         q = replace(p, events=tuple(reversed(p.events)))

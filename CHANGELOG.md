@@ -188,6 +188,16 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); ver
   sentence; no polygenic score or trait probability is invented.
 
 ### Fixed
+- Atorvastatin exposure is one shared state: the statin event's course (dose steps with adherence, an
+  optional stop) drives LDL/TG, the `medications.jsonl` plan and the clinic note. The response per
+  dose is the LIPITOR label's Table 8 (20 mg: LDL-C -43%, TG -26%, previously a hand-set -38%/-12%)
+  with full effect at 4 weeks; curve shape, washout, adherence scaling and population transfer are
+  declared assumptions. `person.with_course` sets titration, adherence or a stop for a scenario. The
+  default course is unchanged: 20 mg daily from the start, never stopped.
+- `events_since_previous` no longer names an event whose effect is flat across the interval: a
+  treatment started years earlier was cited at every later visit (p029's statin at all 12 visits
+  after it started), and so was an ended event whose effects never decay. Attribution answers and
+  the RCV audit's event stratum change accordingly.
 - Measurement noise and the longitudinal RCV audit now share one declared lognormal model
   (`resources/measurement.json`): the log-scale SD is sqrt(ln(1 + CV^2)), so printed values have the
   catalogue CV (CV 42% printed as 44% before), and the audit's 95% threshold is

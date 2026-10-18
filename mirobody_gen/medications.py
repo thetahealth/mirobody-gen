@@ -50,7 +50,12 @@ def plans_for(person: Person, seed: int) -> list[dict]:
             # shared stop event; inventing one here contradicts later clinic narratives.
             "start": e.start.isoformat(), "end": None, "reason_event": e.name, "changes": [],
         }
-        if e.name == "开始二甲双胍" and rng.random() < 0.5:
+        if e.course is not None:
+            # The prescription follows the same exposure course the lab values read: strength from
+            # the first step, a change per later dose step, the last day taken before a stop.
+            # Adherence is the person's behaviour, not part of a prescription.
+            plan.update(_course_plan(drug, e.course))
+        elif e.name == "开始二甲双胍" and rng.random() < 0.5:
             plan["changes"].append(_metformin_uptitration(rng, e.start))
         elif e.name == "左甲状腺素滴定":
             plan["changes"] = _levothyroxine_titration(rng, e.start)
@@ -74,6 +79,23 @@ def plans_for(person: Person, seed: int) -> list[dict]:
                     "reason_event": e.name, "changes": [],
                 })
     return plans
+
+
+def _course_plan(drug: dict, course) -> dict:
+    def dose_fields(step) -> dict:
+        dose = f"{step.dose_mg:g}"
+        return {"strength": f"{dose} mg", "dose_text_zh": drug["dose_text_template_zh"].format(dose=dose),
+                "dose_text_en": drug["dose_text_template_en"].format(dose=dose)}
+
+    first = dose_fields(course.steps[0])
+    changes, current = [], first["strength"]
+    for step in course.steps[1:]:
+        fields = dose_fields(step)
+        if fields["strength"] != current:  # an adherence-only step changes no prescription
+            changes.append({"date": step.start.isoformat(), **fields})
+            current = fields["strength"]
+    end = (course.stop - timedelta(days=1)).isoformat() if course.stop is not None else None
+    return {**first, "changes": changes, "end": end}
 
 
 def _metformin_uptitration(rng: random.Random, start) -> dict:

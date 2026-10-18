@@ -628,6 +628,23 @@ def build_outpatient(rng: random.Random, doc_id: str, person: Person, enc: Encou
     history_clause = (("有用药记录：{drug}。" if lang == "zh" else "Medication recorded: {drug}.").format(
         drug=o["drugs"][person.archetype]) if on_med else
         ("既往诊断未记录。" if lang == "zh" else "Diagnostic history not documented."))
+    course = next((e.course for e in scripted if e.course is not None), None)
+    if on_med and course is not None:
+        # The note states the exposure the lab values were computed from: the dose in force on the
+        # visit date, a stop, and reported adherence.
+        drug, step = o["drugs"][person.archetype], course.step_at(enc.exam_date)
+        if step is None:
+            on_med = False
+            history_clause = (f"有用药记录：{drug}，已于{course.stop.isoformat()}停用。" if lang == "zh" else
+                              f"Medication recorded: {drug}, stopped on {course.stop.isoformat()}.")
+        else:
+            dose = f"{step.dose_mg:g}"
+            history_clause = (f"有用药记录：{drug} {dose}mg 每日1次。" if lang == "zh" else
+                              f"Medication recorded: {drug} {dose} mg once daily.")
+            if step.adherence < 1:
+                pct = round(step.adherence * 100)
+                history_clause += (f"自述约{pct}%的剂量按时服用。" if lang == "zh" else
+                                   f" Reports taking about {pct}% of doses.")
     if enc.complaints:
         c1 = enc.complaints[0]
         c2 = enc.complaints[1] if len(enc.complaints) > 1 else None

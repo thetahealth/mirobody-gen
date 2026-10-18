@@ -25,6 +25,45 @@ import math
 
 
 @dataclass(frozen=True)
+class DoseStep:
+    """From `start` on, `dose_mg` daily of which the fraction `adherence` (0-1) is actually taken."""
+    start: date
+    dose_mg: float
+    adherence: float = 1.0
+
+
+@dataclass(frozen=True)
+class MedicationCourse:
+    """One drug's exposure over time: dose steps (start, increases, decreases, adherence changes) and
+    an optional stop. It is the single state the lab values, the medication plan and the clinic note
+    all read; its response per dose comes from `resources/cohort.json` `medication_response`."""
+    drug: str
+    steps: tuple[DoseStep, ...]
+    stop: date | None = None
+
+    def __post_init__(self):
+        if not self.steps:
+            raise ValueError("a medication course needs at least one dose step")
+        for a, b in zip(self.steps, self.steps[1:]):
+            if not a.start < b.start:
+                raise ValueError("dose steps must have strictly increasing start dates")
+        for step in self.steps:
+            if not step.dose_mg > 0 or not 0.0 <= step.adherence <= 1.0:
+                raise ValueError("a dose step needs a positive dose and adherence in [0, 1]")
+        if self.stop is not None and not self.stop > self.steps[-1].start:
+            raise ValueError("a stop must come after the last dose step")
+
+    def step_at(self, when: date) -> DoseStep | None:
+        """The step in force on `when`, or None before the start and from the stop on."""
+        if when < self.steps[0].start or (self.stop is not None and when >= self.stop):
+            return None
+        return [s for s in self.steps if s.start <= when][-1]
+
+    def change_dates(self) -> list[date]:
+        return [s.start for s in self.steps] + ([self.stop] if self.stop is not None else [])
+
+
+@dataclass(frozen=True)
 class Event:
     """An event on the timeline, and what it did to which indicators.
 
@@ -47,6 +86,12 @@ class Event:
     #: indicator key -> (relative magnitude, onset days, half-life days or None)
     effects: dict[str, tuple[float, int, int | None]] = field(default_factory=dict)
     note: str = ""
+    #: A treatment whose dose-dependent effects come from its exposure course rather than `effects`.
+    course: MedicationCourse | None = None
+
+    def __post_init__(self):
+        if self.course is not None and self.course.steps[0].start != self.start:
+            raise ValueError(f"{self.name}: the exposure course must start on the event's start date")
 
 
 @dataclass(frozen=True)

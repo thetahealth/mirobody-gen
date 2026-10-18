@@ -20,6 +20,12 @@ def statin_people():
     return [p for p in person.build_cohort(7) if any(e.name == STATIN for e in p.events)]
 
 
+def configured_ldl(statin):
+    """The configured LDL response at the course's starting dose (sourced dose table)."""
+    response = spec.cohort()["medication_response"][statin.course.drug]
+    return response["doses_mg"][f"{statin.course.steps[0].dose_mg:g}"]["ldl"]
+
+
 def test_configured_statin_effect_is_the_ldl_change_for_every_baseline():
     people = statin_people()
     assert len(people) == 8
@@ -27,7 +33,7 @@ def test_configured_statin_effect_is_the_ldl_change_for_every_baseline():
         statin = next(e for e in p.events if e.name == STATIN)
         before, after = statin.start - timedelta(days=1), statin.start + timedelta(days=120)
         change = physiology.expected(p, "ldl", after) / physiology.expected(p, "ldl", before) - 1
-        assert change == pytest.approx(statin.effects["ldl"][0], abs=1e-12), p.person_id
+        assert change == pytest.approx(configured_ldl(statin), abs=1e-12), p.person_id
 
 
 def test_removing_or_moving_the_statin_moves_the_change():
@@ -35,16 +41,26 @@ def test_removing_or_moving_the_statin_moves_the_change():
     statin = next(e for e in p.events if e.name == STATIN)
     day = statin.start + timedelta(days=120)
     untreated = dataclasses.replace(p, events=tuple(e for e in p.events if e.name != STATIN))
-    later = dataclasses.replace(p, events=tuple(dataclasses.replace(e, start=e.start + timedelta(days=200))
-                                                if e.name == STATIN else e for e in p.events))
+    shift = timedelta(days=200)
+
+    def moved(e):
+        course = dataclasses.replace(e.course, steps=tuple(dataclasses.replace(s, start=s.start + shift)
+                                                          for s in e.course.steps))
+        return dataclasses.replace(e, start=e.start + shift, course=course)
+
+    later = dataclasses.replace(p, events=tuple(moved(e) if e.name == STATIN else e for e in p.events))
+    with pytest.raises(ValueError, match="must start on the event's start date"):
+        dataclasses.replace(statin, start=statin.start + shift)
     assert physiology.expected(untreated, "ldl", day) == pytest.approx(
-        physiology.expected(p, "ldl", day) / (1 + statin.effects["ldl"][0]))
+        physiology.expected(p, "ldl", day) / (1 + configured_ldl(statin)))
     assert physiology.expected(later, "ldl", day) == pytest.approx(physiology.expected(untreated, "ldl", day))
 
 
 def test_no_configured_parameter_targets_the_derived_total_cholesterol():
     assert spec.indicators()["chol"]["derived_from"] and not spec.indicators()["ldl"]["derived_from"]
     assert "chol" not in person.SCRIPTS["statin"]["effects"]
+    for drug in spec.cohort()["medication_response"].values():
+        assert all("chol" not in response for response in drug["doses_mg"].values())
     for archetype in person.ARCHETYPES:
         assert "chol" not in archetype["shift"] and "chol" not in archetype["trend"]
     for incident in person.INCIDENTS:

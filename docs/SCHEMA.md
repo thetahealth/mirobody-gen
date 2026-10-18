@@ -56,7 +56,7 @@ Whole-source temporal causality still requires separate acceptance; `build --ver
 | `ordered_keys` | explicit unique ordered analyte keys before sex exclusions; `null` only for callers that did not declare orders |
 | `missing_results[]` | ordered analyte with no result: `key`, `unit`, `reason_code`, `details`, `result_method`, `source`; never a numeric or normal result |
 | `person` | `sex`, `age` (at the visit), `birth_year`, `height_cm`, `archetype`, `region`, `conditions[]` (`code`, `display`, optional source/onset; numeric-rule records add `recorded_date`, `evidence_dates`, `policy` and leave biological onset unknown) |
-| `events_since_previous[]` | names of events that started, or were still ramping up, between the previous visit and this one |
+| `events_since_previous[]` | names of events whose effect changes between the previous visit and this one: started in between, still ramping up after the previous visit, ended and still decaying (finite half-life), or a treatment course's dose/adherence change or stop; the first visit lists every event started by then. A treatment in steady use is not listed |
 | `complaints[]` | `text` (surface), `symptom_id`, `icpc3` (expected S-axis code or `null`), `expect`, `duration` |
 | `findings[]` | `id`, `where` (section or auxiliary examination), `item`, `surface` (diagnosis wording), `icpc3` (expected D-axis code or `null`), `severity`, `since` |
 | `rows[]` | one per reading: `key`, `original_indicator`, `value`, `unit`, `reference_range`, `status`, `detection_method`, `canonical_value`, `unit_ucum`, `loinc`, `value_kind`, `expect_resolvable`, `ref_low`, `ref_high`, `readable` |
@@ -159,7 +159,15 @@ captures still need independent OCR; metadata preservation does not prove readab
 with `name`, `event_type` (`medication` · `health_event` · `diet_change` · `exercise_change` ·
 `long_term_habit`), `start_date`, `duration_days`, `health_effect`, `impact_level`,
 `affected_indicators[]`, `effects{key: {magnitude, onset_days, half_life_days}}`. The effect triple is
-the computable answer to attribution questions. `truth_scope` is
+the computable answer to attribution questions. A dose-dependent treatment (atorvastatin) also has
+`course`: `drug`, `steps[]` (`start`, `dose_mg`, `adherence` as the fraction of doses taken, and
+`steady_state{key: relative change}` = the sourced response at that dose times adherence), `stop`,
+`onset_days`, `offset_days`, `source` and the names of its declared `assumptions`; its LDL/TG
+effects come from the course, not from `effects`, and `affected_indicators` lists both. Each step
+moves the response linearly to its steady state over `onset_days`; a stop returns it to zero over
+`offset_days`. The response per dose is the LIPITOR label's Table 8 (20 mg: LDL-C -43%, TG -26%);
+the curve shape, washout, adherence scaling and transfer to every synthetic user are assumptions
+listed in `resources/cohort.json` `medication_response`. `truth_scope` is
 `full_simulation_timeline_not_point_in_time`: conditions and events cover the whole simulated
 timeline, so this file is not a historical answer key for any single visit.
 
@@ -569,6 +577,11 @@ optional later uptitration), iron to the same polysaccharide-iron-complex the cl
 already names, and levothyroxine titrated 25 to 50 to 75 ug. A "lifestyle intervention" archetype
 event has no drug and so produces no plan. Some people who are already being treated also get a
 short ibuprofen prn course layered onto a cold.
+
+An atorvastatin plan is written from the same exposure course the LDL/TG values use: strength from
+the first dose step, one `changes[]` entry per later dose change (an adherence-only change is not a
+prescription change), and `end` the day before a stop. The clinic note prints the dose in force on
+the visit date, a stop with its date, and reported adherence below 100%.
 
 Scripted treatments, including iron, remain ongoing (`end: null`) throughout the modelled
 follow-up, matching the treatment events and clinic-note narratives. The generator has no

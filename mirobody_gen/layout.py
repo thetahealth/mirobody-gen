@@ -32,7 +32,11 @@ from dataclasses import dataclass
 from . import spec
 
 #: Characters exclusive to Traditional Chinese, used to split the header-word pool into simplified and traditional.
-_TRAD = set("項結參單檢驗標誌異範區狀態備註測樣報醫衛價與類統計數據")
+# Every Traditional character that occurs in resources/indicators.json and layout.json (checked by
+# converting each resource character with OpenCC t2s): without the second line, variants such as
+# 身長, 收縮壓 and 乙型肝炎表面抗體 were filed as simplified and printed in simplified documents.
+_TRAD = set("項結參單檢驗標誌異範區狀態備註測樣報醫衛價與類統計數據"
+            "圍壓張時溫澱濕稱穀紅細縮總脈膽見轉長間隱風飯體鹼")
 _CJK = re.compile(r"[一-鿿]")
 
 

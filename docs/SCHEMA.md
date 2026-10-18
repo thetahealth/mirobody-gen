@@ -564,7 +564,7 @@ line at all). `person_id`, `synthetic`, `plans[]`:
 
 | Field | Meaning |
 | --- | --- |
-| `plan_id` | `<person_id>-m<N>`, 1-based per person |
+| `plan_id` | `<person_id>-m<N>`, 1-based per person in start-date order, so a later plan never renumbers an earlier one |
 | `generic`, `name_zh`, `name_en`, `strength`, `route`, `frequency` | the drug; `frequency` ∈ `qd` · `bid` · `tid` · `qn` · `prn` |
 | `dose_text_zh`, `dose_text_en` | the dose as a person or a label would phrase it |
 | `start`, `end` | `start` is always the triggering event's own start date; `end` is `null` for an ongoing chronic medication |
@@ -575,8 +575,9 @@ Mapped from the archetype's scripted intervention event (`resources/cohort.json`
 `medication_plans`): statin to atorvastatin, antihypertensive to amlodipine, metformin (with an
 optional later uptitration), iron to the same polysaccharide-iron-complex the clinic-note narrative
 already names, and levothyroxine titrated 25 to 50 to 75 ug. A "lifestyle intervention" archetype
-event has no drug and so produces no plan. Some people who are already being treated also get a
-short ibuprofen prn course layered onto a cold.
+event has no drug and so produces no plan. Some people whose scripted treatment is already in
+progress on the day of a cold also get a short ibuprofen prn course layered onto it; a treatment
+that starts after the cold plays no part.
 
 An atorvastatin plan is written from the same exposure course the LDL/TG values use: strength from
 the first dose step, one `changes[]` entry per later dose change (an adherence-only change is not a

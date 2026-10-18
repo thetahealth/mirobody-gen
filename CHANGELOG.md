@@ -188,6 +188,17 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); ver
   sentence; no polygenic score or trait probability is invented.
 
 ### Fixed
+- `--continuous` scheduling no longer depends on later events: each heart-rate window and glucose
+  sensor session draws from a stream of its own, overlaps resolve in calendar order and windows are
+  numbered in it, and the baseline sensor of the metformin archetype sits 130-180 days into the
+  window (before the earliest scripted start) instead of 14-40 days before the actual metformin
+  start. Before, adding a future cold moved a past ordinary heart-rate week (seed 7: p021, p029,
+  p058), and deleting a future metformin start changed the past baseline sensor (8 of 8 users).
+  Continuous outputs change for existing seeds. A CGM reading's clock jitter no longer places the
+  last reading after its session's end.
+- A cold's ibuprofen prn course depends on treatment in progress on the day of the cold, each plan
+  draws from its own stream and plans are numbered in date order: deleting a future metformin start
+  used to remove or renumber an earlier course (seed 7, p020).
 - HbA1c now follows glucose history instead of driving it: the glycaemic state (mean glucose as a
   steady-state HbA1c) sets each CGM day's mean and the handwritten logs, and laboratory HbA1c is that
   state's history over the preceding 100 days with a linearly falling weight (Tahara & Shima, Diabetes

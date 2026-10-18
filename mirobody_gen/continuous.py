@@ -523,9 +523,14 @@ def _weighted(r: random.Random, weights: dict) -> str:
 def cgm_plan(seed: int, person: Person, lang: str) -> list[dict]:
     """A person's sensor sessions: device, display unit and start, deterministic in seed and person.
 
-    For prediabetes progressing to diabetes: one sensor in the weeks before metformin starts and one a few
-    months into it (the drug's effect is visible on the curve and in the GMI), sometimes a third later on.
-    Anyone else wears at most one, in the last two years of their timeline."""
+    For prediabetes progressing to diabetes: a baseline sensor 130-180 days into the observation
+    window -- before the earliest scripted metformin start (day 200), decided from the archetype and
+    never from the treatment's date or existence -- and one a few months into metformin (the drug's
+    effect is visible on the curve and in the GMI), sometimes a third later on. Anyone else wears at
+    most one, in the last two years of their timeline. Each session draws from a stream of its own,
+    so a later session (or a treatment after it) never changes an earlier one. (The baseline sensor
+    used to sit 14-40 days before the metformin start, so deleting a future treatment changed a past
+    sensor session.)"""
     r = random.Random(f"cgm:{seed}:{person.person_id}")
     if r.random() >= CGM_RATE.get(person.archetype, CGM_RATE_OTHER):
         return []
@@ -536,17 +541,22 @@ def cgm_plan(seed: int, person: Person, lang: str) -> list[dict]:
     first = person.weight_anchors[0][0]
     last = min(person.weight_anchors[-1][0], CORPUS_END)
     days = []
-    drug = _metformin(person)
-    if drug is not None:
-        days.append(drug.start - timedelta(days=r.randint(14, 40)))
-        days.append(drug.start + timedelta(days=r.randint(120, 200)))
-        if r.random() < 0.4:
-            days.append(drug.start + timedelta(days=r.randint(400, 900)))
+    scripted = next((a["script"] for a in spec.cohort()["archetypes"] if a["name"] == person.archetype), None)
+    if scripted == "metformin":
+        rb = random.Random(f"cgm:{seed}:{person.person_id}:baseline")
+        days.append(first + timedelta(days=rb.randint(130, 180)))
+        drug = _metformin(person)
+        if drug is not None:
+            rt = random.Random(f"cgm:{seed}:{person.person_id}:on-treatment:{drug.start.isoformat()}")
+            days.append(drug.start + timedelta(days=rt.randint(120, 200)))
+            if rt.random() < 0.4:
+                days.append(drug.start + timedelta(days=rt.randint(400, 900)))
     else:
         lo = max(first, last - timedelta(days=730))
         days.append(lo + timedelta(days=r.randrange(max(1, (last - lo).days))))
     out = []
     for n, day in enumerate(sorted(days)):
+        r = random.Random(f"cgm:{seed}:{person.person_id}:session:{day.isoformat()}")
         dev = device if r.random() < 0.85 else _weighted(r, adoption["cgm"])     # most stay with one device
         spec_dev = s["devices"][dev]
         start = datetime.combine(day, time()) + timedelta(minutes=r.randint(8 * 60, 21 * 60), seconds=r.randrange(60))
@@ -559,8 +569,8 @@ def cgm_plan(seed: int, person: Person, lang: str) -> list[dict]:
         # English-speaking wearers who read mg/dL are taken to be in the US, where some sensors are cleared
         # with a narrower range and LibreView defaults to month-first dates.
         region = "us" if lang == "en" and unit == "mg/dL" else "default"
-        # The sensor before metformin is often a clinic's, placed and read out by the hospital.
-        setting = "clinic" if (drug is not None and n == 0 and spec_dev.get("clinic_share", 0)
+        # The baseline sensor before metformin is often a clinic's, placed and read out by the hospital.
+        setting = "clinic" if (scripted == "metformin" and n == 0 and spec_dev.get("clinic_share", 0)
                                and r.random() < spec_dev["clinic_share"]) else "home"
         out.append({"n": n + 1, "device": dev, "unit": unit, "region": region, "setting": setting, "start": start,
                     "end": start + wear, "ended": "sensor_failed" if failed else "wear_period"})
@@ -572,26 +582,30 @@ def hr_windows(seed: int, person: Person, series: dict, sessions: list[dict]) ->
     sensor (so the two streams overlap), the days around a cold, and an ordinary week."""
     if not series["habits"]["wearable"]:
         return []
-    r = random.Random(f"hr:{seed}:{person.person_id}")
     first = date.fromisoformat(min(x["time"][:10] for x in series["records"])) if series["records"] else None
     if first is None:
         return []
     last = min(person.weight_anchors[-1][0], CORPUS_END) - timedelta(days=1)
+    # Each window draws from a stream of its own, so whether or where one window falls never moves
+    # another: with one shared stream, a cold added in the future shifted the ordinary week into the past.
     wanted = []
     if sessions:
         s0 = sessions[0]
         wanted.append((s0["start"].date(), min(s0["end"].date(), s0["start"].date() + timedelta(days=13)), "cgm"))
     cold = next((e for e in person.events if e.name == URI and first <= e.start <= last), None)
-    if cold is not None and r.random() < 0.8:
+    if cold is not None and random.Random(f"hr:{seed}:{person.person_id}:infection:{cold.start.isoformat()}").random() < 0.8:
         wanted.append((cold.start - timedelta(days=2), cold.start + timedelta(days=HR_WINDOW_DAYS + 2), "infection"))
     if (last - first).days > HR_WINDOW_DAYS:
+        r = random.Random(f"hr:{seed}:{person.person_id}:routine")
         d0 = first + timedelta(days=r.randrange((last - first).days - HR_WINDOW_DAYS))
         wanted.append((d0, d0 + timedelta(days=HR_WINDOW_DAYS - 1), "routine"))
+    # Overlaps resolve in calendar order and windows are numbered in it: an earlier window is never
+    # dropped or renumbered because of a later one.
     out: list[dict] = []
-    for d0, d1, why in wanted:
+    for d0, d1, why in sorted(wanted, key=lambda w: w[0]):
         d0, d1 = max(d0, first), min(d1, last)
         if d1 < d0 or any(not (d1 < w["start"] or d0 > w["end"]) for w in out):
-            continue                                                             # overlapping windows merge into the first
+            continue                                                             # an overlapping later window merges into the earlier
         out.append({"start": d0, "end": d1, "reason": why})
     return out
 
@@ -712,7 +726,8 @@ def sensor_readings(life: Life, session: dict) -> dict:
         t = first + k * step
         noise = NOISE_PHI * noise + r.gauss(0, innovation * (FIRST_DAY_NOISE if t - start < timedelta(days=1) else 1))
         if not any(g["start"] <= t < g["end"] for g in lost):
-            x = read(t + timedelta(seconds=r.randint(-jitter, jitter)), "historic")
+            # the reported clock jitters around the nominal time, but never past the session's end
+            x = read(min(t + timedelta(seconds=r.randint(-jitter, jitter)), end), "historic")
             x["ticks"] = int((t - start).total_seconds())          # seconds since the sensor started
             readings.append(x)
         k += 1

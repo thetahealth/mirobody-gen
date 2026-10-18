@@ -35,14 +35,18 @@ _IBUPROFEN_RATE = 0.35
 
 
 def plans_for(person: Person, seed: int) -> list[dict]:
-    """This person's medication plans, or `[]`. Deterministic from `seed` and `person_id`."""
-    rng = random.Random(f"meds:{seed}:{person.person_id}")
+    """This person's medication plans, or `[]`. Deterministic from `seed` and `person_id`.
+
+    Each plan draws from a stream of its own and plans are numbered in date order, so a plan never
+    depends on a later one: the prn course for a cold is decided by the treatment in progress on the
+    day of the cold, and a treatment that starts later neither creates nor renumbers it."""
     scripted = [e for e in person.events if e.note == "原型剧本" and e.name in _PLANS]
     plans: list[dict] = []
     for e in scripted:
+        rng = random.Random(f"meds:{seed}:{person.person_id}:{e.name}:{e.start.isoformat()}")
         drug = _PLANS[e.name]
         plan = {
-            "plan_id": f"{person.person_id}-m{len(plans) + 1}",
+            "plan_id": None,
             "generic": drug["generic"], "name_zh": drug["name_zh"], "name_en": drug["name_en"],
             "strength": drug["strength"], "route": drug["route"], "frequency": drug["frequency"],
             "dose_text_zh": drug["dose_text_zh"], "dose_text_en": drug["dose_text_en"],
@@ -61,16 +65,17 @@ def plans_for(person: Person, seed: int) -> list[dict]:
             plan["changes"] = _levothyroxine_titration(rng, e.start)
         plans.append(plan)
 
-    # An optional short prn course on top of existing treatment, not a reason by itself to create a
-    # medications record: a "healthy" archetype person who happens to catch a cold still has no
-    # treatment events and so gets no medications.jsonl line at all.
-    if scripted:
-        infection = _PLANS["急性上呼吸道感染"]
-        for e in person.events:
-            if e.note == "随机事件" and e.name == "急性上呼吸道感染" and rng.random() < _IBUPROFEN_RATE:
+    # An optional short prn course on top of treatment already in progress on the day of the cold,
+    # not a reason by itself to create a medications record: a "healthy" archetype person who
+    # happens to catch a cold still has no treatment events and so gets no medications.jsonl line.
+    infection = _PLANS["急性上呼吸道感染"]
+    for e in person.events:
+        if e.note == "随机事件" and e.name == "急性上呼吸道感染" and any(_in_progress(s, e.start) for s in scripted):
+            rng = random.Random(f"meds:{seed}:{person.person_id}:prn:{e.start.isoformat()}")
+            if rng.random() < _IBUPROFEN_RATE:
                 days = rng.randint(*_IBUPROFEN_COURSE_DAYS)
                 plans.append({
-                    "plan_id": f"{person.person_id}-m{len(plans) + 1}",
+                    "plan_id": None,
                     "generic": infection["generic"], "name_zh": infection["name_zh"],
                     "name_en": infection["name_en"], "strength": infection["strength"],
                     "route": infection["route"], "frequency": infection["frequency"],
@@ -78,7 +83,16 @@ def plans_for(person: Person, seed: int) -> list[dict]:
                     "start": e.start.isoformat(), "end": (e.start + timedelta(days=days - 1)).isoformat(),
                     "reason_event": e.name, "changes": [],
                 })
+    plans.sort(key=lambda plan: (plan["start"], plan["reason_event"]))
+    for n, plan in enumerate(plans, start=1):
+        plan["plan_id"] = f"{person.person_id}-m{n}"
     return plans
+
+
+def _in_progress(event, day) -> bool:
+    """A scripted treatment has started by `day` and has not been stopped by then."""
+    stop = event.course.stop if event.course is not None else None
+    return event.start <= day and (stop is None or day < stop)
 
 
 def _course_plan(drug: dict, course) -> dict:

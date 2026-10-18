@@ -17,11 +17,12 @@ reconciliation.
 from __future__ import annotations
 
 import json
+import math
 import pathlib
 import random
 from datetime import date, timedelta
 
-from . import physiology, spec
+from . import devices, physiology, spec
 from .model import Person
 from .person import CORPUS_END
 from .profile import complaint_surface, symptom_has_lang
@@ -47,7 +48,7 @@ def _nearest_duration(ph: dict, elapsed_days: int) -> str:
 
 
 def _sentence(rng: random.Random, lang: str, s1: str, s2: str | None, person: Person, when: date,
-             dur: str) -> tuple[str, list[dict]]:
+             dur: str, activity: dict) -> tuple[str, list[dict]]:
     lang = spec.doc_lang(lang)   # diary wording is the document layer: the ja group writes in English (see spec.doc_lang)
     ph = spec.complaints()["phrasing"][lang]
     templates = [t for t in ph["journal"] if ("{s2}" in t) == (s2 is not None)]
@@ -66,7 +67,10 @@ def _sentence(rng: random.Random, lang: str, s1: str, s2: str | None, person: Pe
         pulse = int(round(physiology.measure(r, person, "pulse", when)))
         weight = round(physiology.weight_at(person, when) + r.gauss(0, 0.3), 1)
         temp = round(37.9 + r.random() * 1.2, 1) if s1 in ("发烧", "发热", "低烧", "feverish", "temperature") else round(36.3 + r.random() * 0.6, 1)
-        steps = int(r.gauss(6500, 1800))
+        # The person's own count: the watch's total for the day, else a day around their device baseline.
+        steps = activity["watch"].get(when.isoformat())
+        if steps is None:
+            steps = int(max(0, activity["baseline"]) * math.exp(r.gauss(0, 0.35)))
         text = text.rstrip("。.") + ("，" if lang == "zh" else ", ") + which.format(sbp=sbp, dbp=dbp, pulse=pulse, weight=weight, temp=temp, steps=steps) + ("。" if lang == "zh" else ".")
         for key, val, unit in (("sbp", sbp, "mmHg"), ("dbp", dbp, "mmHg"), ("pulse", pulse, "/min"),
                                ("weight", weight, "kg"), ("temp", temp, "Cel"), ("steps", steps, "count")):
@@ -77,6 +81,10 @@ def _sentence(rng: random.Random, lang: str, s1: str, s2: str | None, person: Pe
 
 def entries_for(person: Person, seed: int, lang: str) -> list[dict]:
     rng = random.Random(f"journal:{seed}:{person.person_id}")
+    # Steps written in the diary are the ones the person's device series counted (`devices.series_for`).
+    series = devices.series_for(person, seed, lang)
+    activity = {"watch": {r["time"][:10]: r["value"] for r in series["records"] if r["_metric"] == "steps"},
+                "baseline": series["baseline"]["steps"]}
     comp = spec.complaints()
     pools = comp["pools"]
     arch = pools["archetype"].get(person.archetype, pools["archetype"]["healthy"])
@@ -125,7 +133,7 @@ def entries_for(person: Person, seed: int, lang: str) -> list[dict]:
                 if secondary not in streak_onset or (day - streak_last[secondary]).days > STREAK_GAP_DAYS:
                     streak_onset[secondary] = day
                 streak_last[secondary] = day
-            text, measurements = _sentence(rng, lang, c1.text, c2.text if c2 else None, person, day, dur)
+            text, measurements = _sentence(rng, lang, c1.text, c2.text if c2 else None, person, day, dur, activity)
             expected = [{"kind": "symptom", "name": c.text, "symptom_id": c.symptom_id, "icpc3": c.icpc3, "expect": c.expect}
                         for c in (c1, c2) if c] + measurements
             out.append({"person_id": person.person_id, "synthetic": True, "date": day.isoformat(), "lang": lang,

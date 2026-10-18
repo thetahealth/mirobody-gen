@@ -33,7 +33,7 @@ import re
 from dataclasses import asdict
 from datetime import date
 
-from . import book, export, genomics, genomics_report, hazards, layout, spec
+from . import book, clinical, export, genomics, genomics_report, hazards, layout, spec
 from . import person as person_mod
 from .delivery import choose_delivery, render_doc, upload_habit
 from .document import Doc, build_doc, split_encounter
@@ -79,6 +79,18 @@ class Institutions:
         self.counts: dict[int, int] = {}
         self.fresh = {key: random.Random(f"pool:{seed}:{key}").sample(pool, len(pool))
                       for key, pool in registry.pools.items()}
+        #: What an unconstrained draw may pick: every institution, or in clinical mode only those whose
+        #: template prints complete tables (`clinical_tables`). A service-constrained draw follows the
+        #: authored profile as declared.
+        self.allowed: frozenset[int] | None = None
+        if clinical.ENABLED:
+            from . import clinical_tables
+
+            self.allowed = clinical_tables.complete_institutions(registry)
+            self.fresh = {key: [i for i in order if i in self.allowed] for key, order in self.fresh.items()}
+
+    def admits(self, index: int) -> bool:
+        return self.allowed is None or index in self.allowed
 
     def draw(self, rng: random.Random, kind: str, group: str, *, required_service: str | None = None) -> int:
         if required_service is not None:
@@ -95,7 +107,8 @@ class Institutions:
             return rng.choice(fresh)
         key = (group, kind) if (group, kind) in self.fresh else (group, "hospital")
         seen = [i for i in self.counts if self.registry.institutions[i]["kind"] == key[1]
-                and ("en" if self.registry.institutions[i]["language"] == "en" else "zh") == group]
+                and ("en" if self.registry.institutions[i]["language"] == "en" else "zh") == group
+                and self.admits(i)]
         total = sum(self.counts[i] for i in seen)
         if seen and rng.random() < total / (total + CRP_ALPHA):
             index = rng.choices(seen, weights=[self.counts[i] for i in seen])[0]
@@ -194,7 +207,7 @@ def home_institutions(seed: int, person: Person, process: Institutions) -> tuple
     doc_group = spec.doc_lang(group)
     home = {}
     for kind in ("checkup_center", "hospital"):
-        if doc_group == "zh" and rng.random() < BIG_CLIENT_SHARE[kind]:
+        if doc_group == "zh" and rng.random() < BIG_CLIENT_SHARE[kind] and process.admits(process.registry.big[kind]):
             home[kind] = process.registry.big[kind]
         else:
             home[kind] = process.draw(rng, kind, doc_group)
@@ -412,6 +425,11 @@ def render_corpus(seed: int, people: list[Person], encounters: dict[str, list[En
     files_root = out_dir / "files"
     records: list[dict] = []
     hand_records: list[dict] = []
+    inject = hazards.inject
+    if clinical.ENABLED:
+        from . import clinical_tables
+
+        inject = clinical_tables.skip_incidents
     for person in people:
         # The document stream is consumed visit by visit in date order; files made after the visits
         # (genetics report, home logs, export) draw from streams of their own, so a later visit
@@ -432,7 +450,7 @@ def render_corpus(seed: int, people: list[Person], encounters: dict[str, list[En
             for doc in documents_for(rng, person, enc, idx, family, previous, banner):
                 doc.jitter = jit
                 if doc.tables:
-                    hazards.inject(doc, rng)
+                    inject(doc, rng)
                 hazards.detect(doc)
                 path, pages, delivery = render_doc(doc, files_root, f"{person.person_id}/{doc.doc_id}", habit, rng)
                 records.append(record(doc, path, out_dir, pages, [enc], delivery=delivery))

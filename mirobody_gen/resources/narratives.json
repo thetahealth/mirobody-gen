@@ -57,7 +57,8 @@
   "critical_label",
   "critical_text",
   "grade_labels",
-  "areas"
+  "areas",
+  "contralateral"
  ],
  "_placeholders": {
   "side": [
@@ -1662,6 +1663,10 @@
     "zh": "{side}肾结石",
     "en": "{side_en} renal calculus"
    },
+   "contralateral": {
+    "zh": "{side}肾形态大小正常，皮髓质分界清，集合系统无分离。",
+    "en": "The {side_en} kidney is normal in size, with no hydronephrosis."
+   },
    "surface": "肾结石",
    "icpc3": "UD67",
    "summary": {
@@ -1699,6 +1704,10 @@
     "zh": "{side}肾囊肿",
     "en": "{side_en} renal cyst"
    },
+   "contralateral": {
+    "zh": "{side}肾形态大小正常，皮髓质分界清，集合系统无分离。",
+    "en": "The {side_en} kidney is normal in size, with no hydronephrosis."
+   },
    "surface": "肾囊肿",
    "icpc3": null,
    "summary": {
@@ -1731,6 +1740,10 @@
    "impression": {
     "zh": "甲状腺{side}叶结节（TI-RADS {tirads}类）",
     "en": "{side_en} thyroid nodule, TI-RADS {tirads}"
+   },
+   "contralateral": {
+    "zh": "甲状腺{side}叶大小形态正常，实质回声均匀，未见明显结节。",
+    "en": "The {side_en} lobe is normal in size and echotexture, with no nodule."
    },
    "surface": "甲状腺结节",
    "icpc3": null,

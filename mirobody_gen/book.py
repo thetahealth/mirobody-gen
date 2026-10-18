@@ -31,7 +31,7 @@ from datetime import date, datetime
 import numpy as np
 from PIL import Image, ImageDraw
 
-from . import spec, synthid
+from . import clinical, spec, synthid
 from .document import Cells, Doc, DocReading, PrintedRow, Table, build_doc, format_date, print_dates, print_value, subject_fields
 from .layout import Family
 from .model import Encounter, Finding, Person
@@ -330,12 +330,19 @@ def aux_blocks(rng: random.Random, doc: Doc, person: Person, enc: Encounter, f: 
                         fdef = n["findings"][x.id]
                         text = _wording(f, f"narratives.findings.{x.id}.finding.{x.severity}.{lang}", fdef["finding"][x.severity][lang]) \
                             if x.severity else _wording(f, f"narratives.findings.{x.id}.finding.{lang}", fdef["finding"][lang])
-                        paras.append(f"{organ[lang]}：{_fill(text, x.params)}" if lang == "zh" else f"{organ[lang]}: {_fill(text, x.params)}")
+                        filled = _fill(text, x.params)
+                        if clinical.ENABLED:
+                            from . import clinical_checkup
+
+                            filled += clinical_checkup.contralateral(x, hits, lang)
+                        paras.append(f"{organ[lang]}：{filled}" if lang == "zh" else f"{organ[lang]}: {filled}")
                     else:
                         normal = _pick(rng, f, f"narratives.aux.{aid}.organs.{organ['id']}.normal.{lang}", organ["normal"][lang])
                         paras.append(f"{organ[lang]}：{normal}" if lang == "zh" else f"{organ[lang]}: {normal}")
                 if rng.random() < 0.5:
-                    image, size = _us_image(rng, rng.randint(0, 2 ** 31 - 1))
+                    image_seed = rng.randint(0, 2 ** 31 - 1)
+                    if not clinical.ENABLED:  # the clinical profile prints the text report only
+                        image, size = _us_image(rng, image_seed)
             else:
                 if found:
                     x = found[0]
@@ -557,6 +564,10 @@ def build_book(rng: random.Random, doc_id: str, person: Person, enc: Encounter, 
     general exam -> departments -> auxiliary exams -> lab tests."""
     n = _n()
     param_groups = {aid for aid, a in n["aux"].items() if a["kind"] == "params"}
+    if clinical.ENABLED:
+        from . import clinical_checkup
+
+        param_groups |= clinical_checkup.OFF_TABLE
     lab_groups = [g for g in groups if g not in param_groups] or groups
     doc = build_doc(rng, doc_id, person, enc, lab_groups, family, previous, banner=banner, book=True)
     doc.kind = "checkup_book"

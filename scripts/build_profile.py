@@ -397,6 +397,9 @@ FINDINGS = {
         "finding": {"zh": "{side}肾集合系统内见一强回声，大小约{mm}mm，后方伴声影。",
                     "en": "A {mm} mm echogenic focus with acoustic shadowing in the {side_en} renal collecting system."},
         "impression": {"zh": "{side}肾结石", "en": "{side_en} renal calculus"},
+        # The other kidney, printed after a one-sided finding in clinical mode (`clinical_checkup`)
+        "contralateral": {"zh": "{side}肾形态大小正常，皮髓质分界清，集合系统无分离。",
+                          "en": "The {side_en} kidney is normal in size, with no hydronephrosis."},
         "surface": "肾结石", "icpc3": "UD67",
         "summary": {"zh": "肾结石", "en": "Kidney stone"}, "advice": "kidney_stone",
         "rate": {"base": 0.04, "age": 0.001, "sex": {"male": 1.4, "female": 0.8}, "archetype": {"ckd_progression": 1.6}},
@@ -406,6 +409,8 @@ FINDINGS = {
         "finding": {"zh": "{side}肾见一无回声区，大小约{mm}mm，壁薄，边界清，后方回声增强。",
                     "en": "A {mm} mm simple cyst in the {side_en} kidney."},
         "impression": {"zh": "{side}肾囊肿", "en": "{side_en} renal cyst"},
+        "contralateral": {"zh": "{side}肾形态大小正常，皮髓质分界清，集合系统无分离。",
+                          "en": "The {side_en} kidney is normal in size, with no hydronephrosis."},
         "surface": "肾囊肿", "icpc3": None,
         "summary": {"zh": "肾囊肿", "en": "Renal cyst"}, "advice": "benign_cyst",
         "rate": {"base": 0.03, "age": 0.003, "archetype": {"ckd_progression": 2.0}},
@@ -415,6 +420,8 @@ FINDINGS = {
         "finding": {"zh": "甲状腺{side}叶见一{echo}回声结节，大小约{mm}mm，边界清，形态规则，内部回声均匀，CDFI：周边见少许血流信号。",
                     "en": "A {mm} mm well-defined {echo_en} nodule in the {side_en} lobe with regular margins and peripheral vascularity."},
         "impression": {"zh": "甲状腺{side}叶结节（TI-RADS {tirads}类）", "en": "{side_en} thyroid nodule, TI-RADS {tirads}"},
+        "contralateral": {"zh": "甲状腺{side}叶大小形态正常，实质回声均匀，未见明显结节。",
+                          "en": "The {side_en} lobe is normal in size and echotexture, with no nodule."},
         "surface": "甲状腺结节", "icpc3": None,
         "summary": {"zh": "甲状腺结节", "en": "Thyroid nodule"}, "advice": "thyroid_nodule",
         "rate": {"base": 0.15, "age": 0.004, "sex": {"female": 1.5, "male": 0.8}, "archetype": {"thyroid_disorder": 2.5}},
@@ -1537,7 +1544,7 @@ def main() -> None:
                                "dx_surfaces", "course_words", "history_clause", "drug_clause", "s2_clause",
                                "vitals_line", "strip", "params", "sinus", "rhythm", "mild", "moderate",
                                "five_point", "decimal", "bp_titles", "weight_titles", "label", "critical_label",
-                               "critical_text", "grade_labels", "areas"],
+                               "critical_text", "grade_labels", "areas", "contralateral"],
         # What each narrative-template slot may be filled with (the privacy gate expands
         # templates into public vocabulary from this; an unlisted slot is treated as empty)
         "_placeholders": {"side": ["左", "右"], "side_en": ["left", "right", "Left", "Right"], "lobe": ["左", "右"],

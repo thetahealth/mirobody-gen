@@ -61,6 +61,10 @@ CRP_ALPHA = 1041.0
 BIG_CLIENT_SHARE = {"checkup_center": 0.30, "hospital": 0.20}
 STICKY_FOLLOWUP = 0.6
 INSTITUTION_POOL_POLICY = "institution-pool-v2"
+#: Visits are assigned institutions in calendar order across the whole cohort, each from a stream
+#: addressed by the visit itself, so no visit's institution depends on any later visit (of the same
+#: person or anyone rendered earlier). v1 drew in person order from the document stream.
+INSTITUTION_ASSIGNMENT_POLICY = "institution-assignment-v2"
 
 
 class Institutions:
@@ -121,6 +125,58 @@ def preflight_services(service_profile, encounters: dict[str, list[Encounter]]) 
         for group in ("zh", "en"):
             if not service_profile.eligible(kind, group, service):
                 raise ValueError(f"No declared facility for service {service!r}, {kind}/{group}")
+
+
+def assign_institutions(seed: int, people: list[Person], encounters: dict[str, list[Encounter]],
+                        process: Institutions, service_profile=None) -> tuple[dict, dict, dict]:
+    """Every visit's institution, decided in calendar order across the cohort.
+
+    Popularity (the reuse probability) accumulates over time, and a person's usual checkup centre and
+    hospital are chosen at their first visit. Each visit draws from its own stream, addressed like the
+    encounter streams by date/type/orders/package and occurrence, so deleting or editing a visit can
+    only change visits after it. Returns `(homes, chosen, service_evidence)`: `homes[pid] = (group,
+    home)`, `chosen[(pid, idx)]` the institution index of the person's idx-th visit (1-based).
+    """
+    registry = process.registry
+    order = {p.person_id: i for i, p in enumerate(people)}
+    visits = []
+    for p in people:
+        occurrences: dict[tuple, int] = {}
+        for idx, enc in enumerate(encounters[p.person_id], start=1):
+            identity = (enc.exam_date.isoformat(), enc.exam_type, tuple(enc.panels), enc.package)
+            occurrence = occurrences.get(identity, 0)
+            occurrences[identity] = occurrence + 1
+            visits.append((enc.exam_date, order[p.person_id], idx, p, enc, identity, occurrence))
+    visits.sort(key=lambda v: (v[0], v[1], v[2]))
+    homes: dict[str, tuple[str, dict[str, int]]] = {}
+    chosen: dict[tuple[str, int], int] = {}
+    evidence: dict[tuple, dict] = {}
+    for _, _, idx, p, enc, identity, occurrence in visits:
+        if p.person_id not in homes:
+            homes[p.person_id] = home_institutions(seed, p, process)
+        group, home = homes[p.person_id]
+        doc_group = spec.doc_lang(group)
+        rng = random.Random(json.dumps([INSTITUTION_ASSIGNMENT_POLICY, seed, p.person_id, list(identity), occurrence]))
+        service = service_profile.required.get(enc.exam_type) if service_profile else None
+        kind = KIND_OF_LOCATION.get(enc.exam_location, "hospital")
+        visit_group = doc_group if rng.random() >= 0.08 else ("zh" if doc_group == "en" else "en")
+        if kind == "checkup_center" and visit_group == doc_group:
+            index = home["checkup_center"]
+        elif kind == "hospital" and visit_group == doc_group and rng.random() < STICKY_FOLLOWUP:
+            index = home["hospital"]
+        else:
+            index = process.draw(rng, kind, visit_group, required_service=service)
+        if service is not None and not service_profile.supports(index, service):
+            index = process.draw(rng, kind, visit_group, required_service=service)
+        if service is not None:
+            evidence[(p.person_id, enc.exam_date.isoformat(), enc.exam_type,
+                      registry.institutions[index]["name"])] = service_profile.evidence(index, service)
+        process.use(index)
+        chosen[(p.person_id, idx)] = index
+    for p in people:  # a person with no visit still has a usual centre for home logs
+        if p.person_id not in homes:
+            homes[p.person_id] = home_institutions(seed, p, process)
+    return homes, chosen, evidence
 
 
 def home_institutions(seed: int, person: Person, process: Institutions) -> tuple[str, dict[str, int]]:
@@ -350,36 +406,24 @@ def render_corpus(seed: int, people: list[Person], encounters: dict[str, list[En
     preflight_services(service_profile, encounters)
     registry = layout.build_registry(seed)
     process = Institutions(registry, seed, service_profile)
-    service_evidence = {}
+    # Institution pools are keyed by document-wording group; a person's group (possibly `ja`) stays
+    # the demographic group for genetics and devices.
+    homes, chosen, service_evidence = assign_institutions(seed, people, encounters, process, service_profile)
     files_root = out_dir / "files"
     records: list[dict] = []
     hand_records: list[dict] = []
     for person in people:
+        # The document stream is consumed visit by visit in date order; files made after the visits
+        # (genetics report, home logs, export) draw from streams of their own, so a later visit
+        # never changes them.
         rng = random.Random(f"docs:{seed}:{person.person_id}")
-        group, home = home_institutions(seed, person, process)
-        # Institution pools are keyed by document-wording group; `group` itself (possibly `ja`)
-        # stays the demographic group for genetics and devices.
-        doc_group = spec.doc_lang(group)
+        group, home = homes[person.person_id]
         habit = upload_habit(seed, person)
         previous: dict[str, tuple[str, str]] = {}
         facilities, filenames = [], []
         visits: list[tuple[int, Encounter, layout.Family]] = []
         for idx, enc in enumerate(encounters[person.person_id], start=1):
-            service = service_profile.required.get(enc.exam_type) if service_profile else None
-            kind = KIND_OF_LOCATION.get(enc.exam_location, "hospital")
-            visit_group = doc_group if rng.random() >= 0.08 else ("zh" if doc_group == "en" else "en")
-            if kind == "checkup_center" and visit_group == doc_group:
-                index = home["checkup_center"]
-            elif kind == "hospital" and visit_group == doc_group and rng.random() < STICKY_FOLLOWUP:
-                index = home["hospital"]
-            else:
-                index = process.draw(rng, kind, visit_group, required_service=service)
-            if service is not None and not service_profile.supports(index, service):
-                index = process.draw(rng, kind, visit_group, required_service=service)
-            if service is not None:
-                service_evidence[(person.person_id, enc.exam_date.isoformat(), enc.exam_type,
-                                  registry.institutions[index]["name"])] = service_profile.evidence(index, service)
-            process.use(index)
+            index = chosen[(person.person_id, idx)]
             family, rev = layout.revised(registry.family(index), enc.exam_date.year)
             family, jit = layout.jitter(rng, family)
             jit = rev + jit
@@ -397,7 +441,8 @@ def render_corpus(seed: int, people: list[Person], encounters: dict[str, list[En
             filenames.append(first_file)
             for r in enc.readings:
                 previous[r.key] = (r.value, enc.exam_date.isoformat())
-        genetics_rec = genetics_report_file(person, seed, group, habit, rng, files_root, out_dir)
+        genetics_rec = genetics_report_file(person, seed, group, habit,
+                                            random.Random(f"genetics-doc:{seed}:{person.person_id}"), files_root, out_dir)
         if genetics_rec is not None:
             records.append(genetics_rec)
         # Home logs: a person with a cuff gets a blood-pressure diary, a person who weighs themselves
@@ -406,33 +451,35 @@ def render_corpus(seed: int, people: list[Person], encounters: dict[str, list[En
         from .person import person_lang
 
         series = devices_mod.series_for(person, seed, person_lang(seed, person.person_id))
+        log_rng = random.Random(f"home-logs:{seed}:{person.person_id}")
         logs = []
         if series["habits"]["cuff"]:
-            logs += [("bp", w) for w in devices_mod.bp_log_windows(series, rng)]
-        if series["habits"]["weigh_rate"] >= 0.5 and rng.random() < 0.5:
+            logs += [("bp", w) for w in devices_mod.bp_log_windows(series, log_rng)]
+        if series["habits"]["weigh_rate"] >= 0.5 and log_rng.random() < 0.5:
             by_day: dict[str, list[dict]] = {}
             for r in series["records"]:
                 if r["_metric"] == "weight":
                     by_day.setdefault(r["time"][:10], []).append(r)
             days = sorted(by_day)
             if len(days) >= 7:
-                start = rng.randint(0, len(days) - 7)
-                logs.append(("weight", [{"day": d, "records": by_day[d]} for d in days[start:start + rng.randint(7, 14)]]))
+                start = log_rng.randint(0, len(days) - 7)
+                logs.append(("weight", [{"day": d, "records": by_day[d]} for d in days[start:start + log_rng.randint(7, 14)]]))
         for k, (log_kind, window) in enumerate(logs):
             fam = registry.family(home["checkup_center"])
-            fam = dataclasses.replace(fam, fmt=rng.choices(["xlsx", "csv", "pdf"], weights=[45, 15, 40])[0],
+            fam = dataclasses.replace(fam, fmt=log_rng.choices(["xlsx", "csv", "pdf"], weights=[45, 15, 40])[0],
                                       furniture=(), watermark=False, signatures=())
-            doc = book.build_home_log(rng, f"{person.person_id}_log{k + 1:02d}", person, window, fam, log_kind, banner)
+            doc = book.build_home_log(log_rng, f"{person.person_id}_log{k + 1:02d}", person, window, fam, log_kind, banner)
             hazards.detect(doc)
-            path, pages, delivery = render_doc(doc, files_root, f"{person.person_id}/{doc.doc_id}", habit, rng)
+            path, pages, delivery = render_doc(doc, files_root, f"{person.person_id}/{doc.doc_id}", habit, log_rng)
             first = date.fromisoformat(window[0]["day"])
             records.append(record(doc, path, out_dir, pages, [Encounter(person_id=person.person_id, exam_date=first,
                                                                           exam_type="home_log", exam_location="home",
                                                                           panels=(log_kind,))], delivery=delivery))
         encs = encounters[person.person_id]
-        if export.eligible(encs) and rng.random() < 0.3:
+        export_rng = random.Random(f"export:{seed}:{person.person_id}")
+        if export.eligible(encs) and export_rng.random() < 0.3:
             doc_id = f"{person.person_id}_export"
-            doc = export.build_export(rng, doc_id, person, encs, facilities, filenames,
+            doc = export.build_export(export_rng, doc_id, person, encs, facilities, filenames,
                                       registry.family(home["checkup_center"]), banner)
             hazards.detect(doc)
             path, pages, delivery = render_doc(doc, files_root, f"{person.person_id}/{doc_id}")

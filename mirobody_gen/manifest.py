@@ -33,12 +33,24 @@ from .model import Encounter, Person
 
 
 DIAGNOSTIC_POLICY = "observed-diagnosis-time-v1"
+CONDITION_KNOWLEDGE_POLICY = "dated-diagnosis-knowledge-v1"
 
 
 def _known_on(condition: dict, as_of: date | None) -> bool:
-    """A declared prior is distinct from a future dated observation/confirmation."""
-    return as_of is None or all(not condition.get(key) or date.fromisoformat(condition[key][:10]) <= as_of
-                                for key in ("onset_date", "recorded_date"))
+    """A source and recorded date establish when a condition became known, not onset."""
+    if not isinstance(condition, dict):
+        raise ValueError("condition must be a source record")
+    days = {}
+    for key in ("recorded_date", "onset_date"):
+        text = condition.get(key)
+        if text is not None:
+            if not isinstance(text, str) or len(text) != 10:
+                raise ValueError(f"{key} must be a calendar date or null")
+            days[key] = date.fromisoformat(text)
+    source = condition.get("source")
+    if "recorded_date" not in days or not isinstance(source, str) or not source.strip():
+        return False
+    return as_of is None or all(day <= as_of for day in days.values())
 
 
 def _predicate(readings: list, criterion: dict) -> bool | None:
@@ -110,10 +122,14 @@ def diagnostic_assessments(encounters: list[Encounter], as_of: date | None = Non
 
 def _conditions_of(person: Person, encounters: list[Encounter] | None = None,
                    as_of: date | None = None) -> list[dict]:
-    # Preserve declared synthetic archetype priors; they are not new diagnoses
-    # inferred from measurements. Clinical calibration of those priors is separate.
-    base = [copy.deepcopy(c) for c in spec.cohort().get("archetype_conditions", {}).get(person.archetype, [])
-            if _known_on(c, as_of)]
+    # An archetype is latent simulation design, not a dated clinical source.
+    # Preserve it separately in the full person archive, never as an early diagnosis.
+    base = []
+    for c in person.diagnosis_history:
+        if not isinstance(c, dict) or any(not isinstance(c.get(k), str) or not c[k].strip() for k in ("code", "display")):
+            raise ValueError("diagnosis history requires code/display")
+        if _known_on(c, as_of):
+            base.append(copy.deepcopy(c))
     have = {c["code"] for c in base}
     rules = {r["condition"]["code"]: r for r in spec.cohort().get("diagnostic_criteria", [])}
     for assessment in diagnostic_assessments(encounters or [], as_of):
@@ -125,6 +141,16 @@ def _conditions_of(person: Person, encounters: list[Encounter] | None = None,
                          "policy": DIAGNOSTIC_POLICY})
             have.add(code)
     return base
+
+
+def conditions_for_encounter(person: Person, encounter: Encounter) -> list[dict]:
+    """Same dated facts for standalone rendering and the longitudinal generator."""
+    known = {c["code"]: copy.deepcopy(c) for c in (encounter.conditions or [])
+             if _known_on(c, encounter.exam_date)}
+    # Explicit current source history remains available to a standalone consumer;
+    # historical numeric confirmations come from the encounter's timeline context.
+    known.update({c["code"]: c for c in _conditions_of(person, [encounter], encounter.exam_date)})
+    return list(known.values())
 
 
 def _meets(value, op: str, threshold: float) -> bool:
@@ -163,10 +189,11 @@ def encounter_record(person: Person, encounter: Encounter, file: str | None = No
             # Diagnosis set. Currently looked up from the archetype; once PySynthea is wired in,
             # this would read directly from its Condition resource — this line is that seam.
             "conditions": [copy.deepcopy(c) for c in conditions if _known_on(c, encounter.exam_date)]
-                          if conditions is not None else _conditions_of(person, [encounter], encounter.exam_date),
+                          if conditions is not None else conditions_for_encounter(person, encounter),
         },
         "collected": encounter.exam_date.isoformat(),
         "knowledge_as_of": encounter.exam_date.isoformat(),
+        "condition_knowledge_policy": CONDITION_KNOWLEDGE_POLICY,
         "diagnostic_assessments": assessments if assessments is not None else diagnostic_assessments([encounter], encounter.exam_date),
         "exam_type": encounter.exam_type,
         "exam_location": encounter.exam_location,
@@ -202,6 +229,8 @@ def person_record(person: Person, conditions: list[dict] | None = None) -> dict:
         "archetype": person.archetype,
         "region": person.region,
         "conditions": conditions if conditions is not None else _conditions_of(person),
+        "archetype_conditions": copy.deepcopy(spec.cohort().get("archetype_conditions", {}).get(person.archetype, [])),
+        "diagnosis_history": copy.deepcopy(list(person.diagnosis_history)),
         "events": [
             {
                 "name": e.name,

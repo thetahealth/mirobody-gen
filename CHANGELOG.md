@@ -5,6 +5,20 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); ver
 
 ## [Unreleased]
 
+- Keep undated archetype conditions as full-simulation design instead of
+  historical diagnoses. Visits and existing clinical documents use dated,
+  sourced diagnosis knowledge (`dated-diagnosis-knowledge-v1`); unknown history
+  remains undocumented, without invented years of illness or a negative history.
+  Future infection/treatment entries no longer choose current symptoms or
+  history-section draws. Full cross-source temporal acceptance remains open.
+
+- Isolate scheduled incident decisions and per-visit measurement randomness
+  (`encounter-streams-v2`), so future event edits no longer select past noise.
+  Builds record the policy in `generation.json`. This intentionally changes
+  legacy seed outputs; archived counterexamples remain explicit regression
+  inputs. Whole-source temporal isolation and undated diagnostic priors remain
+  open and are not certified by this repair.
+
 ### Added
 - `build --verify`: runs the clinical, readability and privacy audits on the build just written and
   writes `verification.json` with passed/failed/skipped/not_run per check. A gating failure exits 1;
@@ -174,6 +188,10 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); ver
   sentence; no polygenic score or trait probability is invented.
 
 ### Fixed
+- Rendered files no longer depend on later visits of other people: institutions are assigned in
+  calendar order across the cohort from per-visit streams (`institution-assignment-v2`), and the
+  genetics report, home logs and export use streams of their own. Deleting p001's visits after
+  2023-03-01 had changed 14 earlier files of 10 other people. Rendered bytes change for existing seeds.
 - `--people N` now yields exactly N people (largest-remainder apportionment by archetype weight; one
   per archetype once N ≥ the number of archetypes). Previously 61 gave 60, 100 gave 99, and 7–9
   dropped the archetypes last in the table. The full cohort is unchanged; other sizes draw different

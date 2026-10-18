@@ -68,6 +68,9 @@ class Person:
     #: Weight changes, unlike height, so it's a set of (date, kg) anchors with linear interpolation
     #: between them.
     weight_anchors: tuple[tuple[date, float], ...] = ()
+    #: Explicit source diagnosis records. Missing time/source remains unplaced,
+    #: never backfilled from the latent archetype or a treatment start.
+    diagnosis_history: tuple[dict, ...] = ()
 
     def age_at(self, when: date) -> int:
         return when.year - self.birth_year - ((when.month, when.day) < (7, 1))
@@ -227,6 +230,8 @@ class Encounter:
     #: None = caller did not declare orders; generated encounters always declare the full set.
     ordered_keys: tuple[str, ...] | None = None
     missing_results: list[MissingResult] = field(default_factory=list)
+    #: Dated knowledge available to this encounter; None means no timeline supplied.
+    conditions: list[dict] | None = None
 
     def validate_order_results(self) -> None:
         if self.ordered_keys is None:

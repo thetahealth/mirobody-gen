@@ -470,6 +470,9 @@ def check_diagnosis_coherence(records: list[dict], criteria: list[dict]) -> list
                 continue
             conditions = (record.get("person") or {}).get("conditions") or []
             for condition in conditions:
+                if not condition.get("recorded_date") or not isinstance(condition.get("source"), str) or not condition["source"].strip():
+                    findings.append(Finding("诊断时序", f"{person_id} {when}",
+                                            f"condition lacks dated/source knowledge: {condition.get('code')}"))
                 if any(condition.get(k) and condition[k][:10] > when[:10] for k in ("recorded_date", "onset_date")):
                     findings.append(Finding("诊断时序", f"{person_id} {when}",
                                             f"future condition exposed: {condition.get('code')}"))

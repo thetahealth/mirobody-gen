@@ -37,6 +37,27 @@ from .layout import Family
 from .model import Encounter, Finding, Person
 
 
+def _known_conditions(person: Person, enc: Encounter) -> list[dict]:
+    from .manifest import conditions_for_encounter
+
+    return conditions_for_encounter(person, enc)
+
+
+def _condition_surface(condition: dict, lang: str) -> str:
+    """Reuse the existing document vocabulary only for an actually known code."""
+    if lang == "zh":
+        return condition["display"]
+    if condition.get("display_en"):
+        return condition["display_en"]
+    if condition["code"] == "271737000":
+        return "anaemia"
+    surfaces = _n()["outpatient"][lang]["dx_surfaces"]
+    for archetype, entries in spec.cohort().get("archetype_conditions", {}).items():
+        if any(c["code"] == condition["code"] for c in entries) and archetype in surfaces:
+            return surfaces[archetype]
+    return condition["display"]
+
+
 @dataclass
 class Block:
     kind: str                       # kv / narrative / params / image / summary / tables / general_table / cover
@@ -125,7 +146,7 @@ def section_blocks(rng: random.Random, doc: Doc, person: Person, enc: Encounter,
     by_slot: dict[tuple[str, str | None], Finding] = {(x.where, x.item): x for x in enc.findings}
     readings = {r.key: r for r in enc.readings}
     blocks: list[Block] = []
-    history_label = n["summary"][lang]["history_labels"].get(person.archetype)
+    known_conditions = _known_conditions(person, enc)
     for sid in pkg["sections"]:
         sec = n["sections"][sid]
         if sec.get("sex") and sec["sex"] != person.sex:
@@ -143,10 +164,17 @@ def section_blocks(rng: random.Random, doc: Doc, person: Person, enc: Encounter,
             fid = None
             measurements = None
             if item["id"] == "history":
-                scripted = [e for e in person.events if e.note == "原型剧本"]
-                has_history = history_label and scripted and scripted[0].start <= enc.exam_date
-                value = history_label if has_history else rng.choice(item["normal"][lang])
-                abnormal = bool(has_history)
+                # Retain the old layout RNG draw count, but never interpret
+                # latent archetype/treatment timing as diagnostic evidence.
+                legacy_label = n["summary"][lang]["history_labels"].get(person.archetype)
+                scripted = [e for e in person.events if e.note == "原型剧本" and e.start <= enc.exam_date]
+                if not (legacy_label and scripted):
+                    rng.choice(item["normal"][lang])
+                value = ("；" if lang == "zh" else "; ").join(
+                    f"{_condition_surface(c, lang)} ({c['recorded_date']})" for c in known_conditions)
+                if not value:
+                    value = "既往诊断未记录" if lang == "zh" else "Diagnostic history not documented"
+                abnormal = True if known_conditions else None
             elif item.get("from_reading"):
                 r = readings.get(item["from_reading"])
                 value = f"{r.value}{r.unit}" if r else normal_word
@@ -181,6 +209,9 @@ def section_blocks(rng: random.Random, doc: Doc, person: Person, enc: Encounter,
             rows.append((label, value))
             entry = {"label": label, "value": value, "abnormal": abnormal, "finding": fid,
                      "detection_method": "Physiological"}
+            if item["id"] == "history":
+                entry.update(history_status="documented" if known_conditions else "not_documented",
+                             knowledge_as_of=enc.exam_date.isoformat())
             if measurements is not None:
                 entry.update(item_id=item["id"], laterality_policy_version=OCULAR_POLICY, measurements=measurements)
             truth.append(entry)
@@ -588,13 +619,15 @@ def build_outpatient(rng: random.Random, doc_id: str, person: Person, enc: Encou
               dates=print_dates(rng, family, enc.exam_date)[:1], tables=[], banner=banner)
     doc.kind = "outpatient_record"
     # Chief complaint
-    dx_key = person.archetype
-    uri = any(e.name == "急性上呼吸道感染" and abs((enc.exam_date - e.start).days) <= 10 for e in person.events)
-    if uri:
-        dx_key = "uri"
-    dx_surface = o["dx_surfaces"].get(dx_key)
-    scripted = [e for e in person.events if e.note == "原型剧本"]
-    on_med = bool(scripted) and scripted[0].start <= enc.exam_date and person.archetype in o["drugs"]
+    conditions = _known_conditions(person, enc)
+    uri = any(e.name == "急性上呼吸道感染" and 0 <= (enc.exam_date - e.start).days <= 10 for e in person.events)
+    dx_surface = o["dx_surfaces"]["uri"] if uri else ("、" if lang == "zh" else "; ").join(
+        _condition_surface(c, lang) for c in conditions)
+    scripted = [e for e in person.events if e.note == "原型剧本" and e.start <= enc.exam_date]
+    on_med = bool(scripted) and person.archetype in o["drugs"]
+    history_clause = (("有用药记录：{drug}。" if lang == "zh" else "Medication recorded: {drug}.").format(
+        drug=o["drugs"][person.archetype]) if on_med else
+        ("既往诊断未记录。" if lang == "zh" else "Diagnostic history not documented."))
     if enc.complaints:
         c1 = enc.complaints[0]
         c2 = enc.complaints[1] if len(enc.complaints) > 1 else None
@@ -603,20 +636,18 @@ def build_outpatient(rng: random.Random, doc_id: str, person: Person, enc: Encou
         template = _wording(family, f"complaints.phrasing.{lang}.cc.{ph['cc'].index(template)}", template)
         cc = template.format(s=c1.text, s2=c2.text if c2 else "", dur=c1.duration or rng.choice(ph["durations"]))
         s2_clause = o["s2_clause"].format(s2=c2.text) if c2 else ""
-        history_clause = o["history_clause"]["medication" if on_med else "none"].format(drug=o["drugs"].get(person.archetype, ""))
         hpi = rng.choice(o["hpi_templates"]).format(
             dur=c1.duration or rng.choice(ph["durations"]), s1=c1.text, s1_cap=c1.text[:1].upper() + c1.text[1:],
             s2_clause=s2_clause, course=rng.choice(o["course_words"]), history_clause=history_clause)
     else:
-        cc = rng.choice(o["followup_cc"]).format(dx=dx_surface or ("复查" if lang == "zh" else "review"))
-        hpi = o["history_clause"]["medication" if on_med else "none"].format(drug=o["drugs"].get(person.archetype, ""))
-    years = max(1, (enc.exam_date - (scripted[0].start if scripted else enc.exam_date)).days // 365 + 1)
-    if person.archetype != "healthy" and not uri:
-        pmh = o["pmh_templates"][0].format(dx=o["dx_surfaces"][person.archetype], years=years,
-                                           drug_clause=o["drug_clause"]["medication" if on_med else "none"].format(
-                                               drug=o["drugs"].get(person.archetype, "")))
-    else:
-        pmh = o["pmh_templates"][1]
+        cc = rng.choice(o["followup_cc"]).format(dx=dx_surface or ("检查结果" if lang == "zh" else "test results"))
+        hpi = history_clause
+    past = [c for c in conditions if c["recorded_date"] < enc.exam_date.isoformat()]
+    pmh = ("；" if lang == "zh" else "; ").join(
+        (f"{_condition_surface(c, lang)}，记录日期{c['recorded_date']}" if lang == "zh" else
+         f"{_condition_surface(c, lang)}, recorded {c['recorded_date']}") for c in past)
+    if not pmh:
+        pmh = "既往诊断未记录。" if lang == "zh" else "Past diagnostic history not documented."
     v = {k: (readings[k].value if k in readings else "-") for k in ("temp", "pulse", "resp", "sbp", "dbp", "weight")}
     vitals_line = o["vitals_line"].format(**v)
     other = [r for r in enc.readings if r.key not in ("temp", "pulse", "resp", "sbp", "dbp", "weight")]
@@ -633,13 +664,20 @@ def build_outpatient(rng: random.Random, doc_id: str, person: Person, enc: Encou
     plan = rng.choice(o["plan_templates"]).format(
         labs=o["monitor"].get(person.archetype, o["monitor"]["healthy"]), interval="3个月" if lang == "zh" else "3 months",
         monitor=o["monitor"].get(person.archetype, o["monitor"]["healthy"]))
+    if not conditions or not on_med:
+        plan = ("核对检查结果，补充既往病史并进一步评估。" if lang == "zh" else
+                "Review the test results, clarify the prior medical history and complete the assessment.")
     department = enc.department if enc.department and enc.department.strip() else None
     # The body remains visible even in families that move subject fields into lab tables.
     rows = [(o["dept"], department)] if department else []
+    # Report/print timestamps may be later; show the actual visit date owning
+    # this snapshot of clinical knowledge rather than implying an update then.
+    rows.append(("就诊日期" if lang == "zh" else "Visit date", enc.exam_date.isoformat()))
     rows += [(o["cc"], cc), (o["hpi"], hpi), (o["pmh"], pmh), (o["pe"], vitals_line)]
     if aux_text:
         rows.append((o["aux"], aux_text))
-    rows += [(o["dx"], "\n".join(f"{i + 1}. {d}" for i, d in enumerate(dx_lines)) if len(dx_lines) > 1 else (dx_lines[0] if dx_lines else "")),
+    rows += [(o["dx"], "\n".join(f"{i + 1}. {d}" for i, d in enumerate(dx_lines)) if len(dx_lines) > 1 else
+              (dx_lines[0] if dx_lines else ("待进一步评估" if lang == "zh" else "Assessment pending"))),
              (o["plan"], plan)]
     doc.blocks = [Block(kind="narrative", title="", rows=rows, section_id="outpatient")]
     # Printed truth: the vital-signs line
@@ -671,8 +709,15 @@ def build_outpatient(rng: random.Random, doc_id: str, person: Person, enc: Encou
     icpc = {"hypertension": "KD73", "prediabetes_to_t2dm": "TD72", "dyslipidemia_statin": "TD75",
             "iron_deficiency_anemia": "BD66", "thyroid_disorder": "TD69", "ckd_progression": "UD66",
             "fatty_liver": "DD81", "uri": "RD02"}
-    doc.diagnoses_truth = [{"text": d, "kind": "condition", "icpc3": icpc.get(dx_key), "expect": "coded" if icpc.get(dx_key) else "no-match"}
-                           for d in dx_lines]
+    code_icpc = {c["code"]: icpc.get(arch) for arch, entries in spec.cohort().get("archetype_conditions", {}).items()
+                 for c in entries}
+    if uri:
+        doc.diagnoses_truth = [{"text": dx_surface, "kind": "condition", "icpc3": icpc["uri"], "expect": "coded"}]
+    else:
+        doc.diagnoses_truth = [{"text": _condition_surface(c, lang), "code": c["code"], "kind": "condition",
+                                "recorded_date": c["recorded_date"], "source": c["source"],
+                                "icpc3": code_icpc.get(c["code"]),
+                                "expect": "coded" if code_icpc.get(c["code"]) else "no-match"} for c in conditions]
     doc.footer = [(o["doctor"], rng.choice(spec.fiction()["person_names_en" if lang == "en" else "person_names_zh"]))]
     return doc
 

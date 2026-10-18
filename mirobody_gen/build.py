@@ -103,6 +103,12 @@ def main(argv: list[str] | None = None) -> None:
 
     out_dir = pathlib.Path(args.out)
     n_enc, n_rows = manifest.write(out_dir, people, encounters)
+    import json
+
+    (out_dir / "generation.json").write_text(json.dumps({
+        "seed": args.seed, "encounter_stream_policy": person_mod.ENCOUNTER_STREAM_POLICY,
+        "scope": "scheduled encounter draws; not a clinical calibration or whole-source cutoff certificate",
+    }, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     print(f"{len(people)} people · {n_enc} encounters · {n_rows} readings → {out_dir}")
 
     # The same people's other sources: device batches (POST /api/data), diary sentences, genomics

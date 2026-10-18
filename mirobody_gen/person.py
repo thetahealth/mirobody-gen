@@ -21,6 +21,7 @@ from __future__ import annotations
 
 import math
 import copy
+import json
 import random
 from datetime import date, timedelta
 
@@ -47,6 +48,8 @@ INCIDENTS: list[dict] = _COHORT["incidents"]
 REGIONS: list[str] = _COHORT["regions"]
 #: Lunar New Year's Day by year, read from cohort.json (sourced in scripts/build_cohort.py).
 LUNAR_NEW_YEAR: dict[int, date] = {int(y): date.fromisoformat(d) for y, d in _COHORT["lunar_new_year"].items()}
+
+ENCOUNTER_STREAM_POLICY = "encounter-streams-v2"
 
 
 def build_cohort(seed: int, size: int | None = None) -> list[Person]:
@@ -208,6 +211,11 @@ def schedule(person: Person, rng: random.Random) -> list[tuple[date, str, list[s
     never printed on a lab report.
     """
     start = person.weight_anchors[0][0]
+    # Clone without consuming the routine stream. The incident root must not
+    # depend on later routine-schedule draw counts (for example the horizon).
+    event_stream = random.Random()
+    event_stream.setstate(rng.getstate())
+    event_root = event_stream.getrandbits(128)
     out: list[tuple[date, str, list[str], str | None]] = []
 
     # Annual check-up: once a year, the date drifting around the same month (real check-ups also
@@ -252,9 +260,20 @@ def schedule(person: Person, rng: random.Random) -> list[tuple[date, str, list[s
         out.append((when, "specialty", [rng.choice(["inflammation", "urinalysis", "ecg", "ultrasound",
                                                     "imaging", "thyroid", "tumor", "cbc"])], None))
     # A cold sends them to a community clinic: CBC + CRP + a clinic note.
+    # An event's list position or an added/deleted future incident must not decide
+    # whether/when an earlier incident gets a visit. Fork once from the stable
+    # initial routine-schedule state, then address each incident independently.
+    occurrences: dict[tuple, int] = {}
     for e in person.events:
-        if e.name == "急性上呼吸道感染" and rng.random() < 0.7:
-            out.append((e.start + timedelta(days=rng.randint(1, 3)), "clinic", ["vitals_clinic", "cbc", "inflammation"], None))
+        if e.name != "急性上呼吸道感染":
+            continue
+        identity = (e.name, e.event_type, e.start.isoformat())
+        occurrence = occurrences.get(identity, 0)
+        occurrences[identity] = occurrence + 1
+        event_rng = random.Random(json.dumps([ENCOUNTER_STREAM_POLICY, "incident", event_root,
+                                             person.person_id, identity, occurrence]))
+        if event_rng.random() < 0.7:
+            out.append((e.start + timedelta(days=event_rng.randint(1, 3)), "clinic", ["vitals_clinic", "cbc", "inflammation"], None))
     return sorted(out, key=lambda x: (x[0], x[1]))
 
 
@@ -426,13 +445,28 @@ def person_lang(seed: int, person_id: str) -> str:
 
 
 def encounters_for(person: Person, seed: int) -> list[Encounter]:
-    rng = random.Random(f"enc:{seed}:{person.person_id}")
+    """Default v2 schedule with independently addressed measurement streams.
+
+    This intentionally changes draws from the legacy shared stream. A seed must
+    always be interpreted with its policy/code version; archived v1 outputs are
+    comparison evidence, not recalibrated/overwritten by this function.
+    """
+    schedule_rng = random.Random(f"enc:{seed}:{person.person_id}")
     states = profile.person_findings(person, seed)
     lang = person_lang(seed, person.person_id)
     out: list[Encounter] = []
     previous: date | None = None
-    for when, exam_type, orders, package in schedule(person, rng):
-        encounter = encounter_for(person, when, exam_type, orders, rng, package)
+    occurrences: dict[tuple, int] = {}
+    for when, exam_type, orders, package in schedule(person, schedule_rng):
+        # Noise is owned by this scheduled visit, not by the full schedule's
+        # future draw count or by earlier visits' order counts. Exact duplicate
+        # slots retain multiplicity through a local occurrence number.
+        identity = (when.isoformat(), exam_type, tuple(orders), package)
+        occurrence = occurrences.get(identity, 0)
+        occurrences[identity] = occurrence + 1
+        visit_rng = random.Random(json.dumps([ENCOUNTER_STREAM_POLICY, "observation", seed,
+                                             person.person_id, identity, occurrence]))
+        encounter = encounter_for(person, when, exam_type, orders, visit_rng, package)
         # Events that **started, or whose effect is still ramping up,** between the previous
         # encounter and this one: a statin takes 35 days to kick in, iron supplementation 90 — an
         # event that started before the previous visit but whose effect lands in this window is also
@@ -454,5 +488,8 @@ def encounters_for(person: Person, seed: int) -> list[Encounter]:
                                   if f.where in ("chest_xray", "chest_ct")]
         encounter.complaints = profile.complaints_for(person, when, exam_type, lang, seed)
         out.append(encounter)
+        from .manifest import _conditions_of
+
+        encounter.conditions = _conditions_of(person, out, when)
         previous = when
     return out

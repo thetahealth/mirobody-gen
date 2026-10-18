@@ -30,10 +30,28 @@ extraction contract (`original_indicator`, `value`, `unit`, `reference_range`, `
 
 ## `manifest.jsonl` — one record per visit
 
+Default builds also write `generation.json` with the seed and
+`encounter_stream_policy=encounter-streams-v2`. Routine scheduling keeps its
+existing seed stream; incident visits use stable event identities, and each
+scheduled visit has its own observation stream keyed by seed, person, date,
+type, ordered panels, package and exact-slot occurrence. Distinct duplicate
+slots retain multiplicity. Editing/deleting a future event or visit no longer
+selects past encounter noise through a shared RNG draw count.
+
+The v2 policy intentionally changes generated visits/values from the legacy
+shared stream. Preserve frozen v1 inputs and outputs when making comparisons;
+seed equality alone does not imply cross-version equality. In particular an
+old high-TG/LDL-missing trigger must remain as an explicit regression input,
+even if a v2 draw no longer triggers it. This is random-stream isolation, not
+physiological calibration or proof that pre-existing clinical findings are fixed.
+Whole-source temporal causality still requires separate acceptance; `build --verify` retains its
+`temporal_counterfactual=not_run` boundary.
+
 | Field | Meaning |
 | --- | --- |
 | `file` | placeholder `person/date/eNN`; the file layer replaces it |
 | `person_id`, `collected`, `exam_type`, `exam_location`, `panels`, `package` | visit identity; `panels` are the order names from `cohort.json` |
+| `condition_knowledge_policy` | `dated-diagnosis-knowledge-v1`: dated source knowledge and rule confirmations; latent archetypes are not clinical history |
 | `department` | explicit source/encounter string, or `null` when unknown; it is not sampled from hospital names or patient demographics |
 | `ordered_keys` | explicit unique ordered analyte keys before sex exclusions; `null` only for callers that did not declare orders |
 | `missing_results[]` | ordered analyte with no result: `key`, `unit`, `reason_code`, `details`, `result_method`, `source`; never a numeric or normal result |
@@ -68,14 +86,35 @@ equal to the first confirmation date and `evidence_dates`; biological
 `onset_date` stays null. A future dated condition/assessment cannot enter an
 earlier record. `people.jsonl` retains full future simulation truth with
 `truth_scope=full_simulation_timeline_not_point_in_time`, and must not serve as
-a historical answer key. Existing declared archetype priors are retained;
-their stage/onset calibration remains separate. Being undated, such a prior is
-listed in every record of that person, including visits before the modelled
-progression (a `prediabetes_to_t2dm` person's type 2 diabetes appears while its
-own rule assessment is still `not_met`); this point-in-time gap is open. This export repair does not
-yet guarantee that regenerating physiology/documents after editing future
-events preserves the past: the shared scheduling/measurement random stream
-has a separately reproduced counterexample, so full point-in-time causality remains open.
+a historical answer key. `dated-diagnosis-knowledge-v1` now keeps undated
+archetype conditions exclusively as `people.jsonl.archetype_conditions`: latent
+simulation design is not a dated diagnosis in an early record. `archetype`
+itself is simulation metadata, not a patient-visible clinical assertion.
+
+Optional `Person.diagnosis_history` source records contain `code`, `display`,
+`recorded_date` and `source` (plus optional original metadata). Only a valid
+calendar date and nonempty source establish time-specific knowledge. Undated
+or unsourced declarations remain in the full `diagnosis_history` archive but
+are not promoted; malformed supplied dates are rejected without truncation.
+Treatment start never supplies a missing diagnosis date or years of illness.
+An explicit, known source diagnosis is retained even when current readings
+are normal. The generator's visit `conditions` context and standalone rendering
+reuse these dated facts; source records are copied rather than overwritten.
+
+Outpatient diagnosis/history and checkup history now use this knowledge scope,
+not the person's archetype label. Unknown history prints "not documented",
+without asserting a negative history; checkup truth sets
+`history_status=not_documented` and `abnormal=null`. A pending assessment is
+not a coded diagnosis. A known history shows its recorded date without
+inventing biological onset. Started medication records are distinct from
+diagnosis evidence. Outpatient bodies show the actual `Visit date` separately
+from the existing report/print timestamps; diagnosis knowledge is scoped to
+that visit, without shifting source times. An infection event cannot provide symptoms/diagnosis
+before its declared start; this does not assert that real prodromes are impossible.
+
+The existing v2 stream repair is validated for the bounded p035 case. Full
+cross-source/multi-person time-specific causality remains open and is not
+certified by these knowledge/export fixes.
 
 Generated encounters partition every `ordered_keys` member into exactly one
 `rows[].key` or `missing_results[].key`. Serialization and `build --verify` reject
@@ -106,7 +145,8 @@ captures still need independent OCR; metadata preservation does not prove readab
 
 ## `people.jsonl` — one record per person
 
-`person_id`, `sex`, `birth_year`, `height_cm`, `archetype`, `region`, `conditions[]`, `events[]`
+`person_id`, `sex`, `birth_year`, `height_cm`, `archetype`, `region`, `conditions[]`,
+`archetype_conditions[]`, `diagnosis_history[]`, `events[]`
 with `name`, `event_type` (`medication` · `health_event` · `diet_change` · `exercise_change` ·
 `long_term_habit`), `start_date`, `duration_days`, `health_effect`, `impact_level`,
 `affected_indicators[]`, `effects{key: {magnitude, onset_days, half_life_days}}`. The effect triple is
@@ -122,6 +162,16 @@ weighted by prior selection counts. Before that formerly failing branch, source
 records and successful draws keep their prior behavior. No extra default output
 field is added solely for this repair; preserve the code/experiment policy
 version with generated corpora. The selector does not certify clinical services.
+
+Under `institution-assignment-v2`, every visit's institution is decided in calendar order across
+the whole cohort, from a stream addressed by the visit (date, type, orders, package, occurrence);
+popularity accumulates over time and a person's usual checkup centre and hospital are chosen at
+their first visit. The genetics report, home logs and export draw from streams of their own. No
+file therefore depends on a later visit of anyone: editing or deleting visits, events or values
+after a cut-off leaves every earlier file byte-identical (checked for seed 7 with a cut-off matrix
+over visits, events, effect sizes, measured values and an added incident, with positive controls).
+v1 drew in person order from the document stream, so deleting one person's later visits changed
+earlier files of people rendered after them.
 
 | Field | Meaning |
 | --- | --- |

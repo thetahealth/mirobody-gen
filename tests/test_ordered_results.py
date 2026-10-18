@@ -44,9 +44,23 @@ def test_ldl_boundary_has_result_or_explicit_reason(monkeypatch, tg, available):
     e.validate_order_results()
 
 
-def test_fixed_longitudinal_original_counterexample_is_not_silent():
+def original_high_tg_encounter(monkeypatch, p):
+    """Retain the historical trigger as explicit input across RNG policy versions.
+
+    The legacy seed7/p035/2023-02-11 trigger is TG=4.53. New stream versions
+    intentionally draw a different value, which must not erase this regression.
+    This is a generator contract fixture, never an extraction prediction.
+    """
+    original = person.measure
+    monkeypatch.setattr(person, "measure", lambda rng, who, key, when:
+                        4.53 if key == "tg" else original(rng, who, key, when))
+    return person.encounter_for(p, date(2023, 2, 11), "routine", ["checkup_standard", "ecg"],
+                                random.Random("historical-p035-trigger"), "standard")
+
+
+def test_fixed_longitudinal_original_counterexample_is_not_silent(monkeypatch):
     p = next(p for p in person.build_cohort(7) if p.person_id == "p035")
-    e = next(e for e in person.encounters_for(p, 7) if e.exam_date == date(2023, 2, 11))
+    e = original_high_tg_encounter(monkeypatch, p)
     assert next(r.value for r in e.readings if r.key == "tg") == "4.53"
     assert "ldl" not in {r.key for r in e.readings}
     missing = next(m for m in e.missing_results if m.key == "ldl")
@@ -174,12 +188,14 @@ def test_tg_in_the_note_matches_its_printed_precision(monkeypatch):
     assert next(r.value for r in e.readings if r.key == "tg") == "4.60" and "TG=4.60 mmol/L" in note
 
 
-def test_export_note_names_the_analyte_not_its_key():
+def test_export_note_names_the_analyte_not_its_key(monkeypatch):
     from mirobody_gen.export import build_export
 
     registry = build_registry(7)
     p = next(x for x in person.build_cohort(7) if x.person_id == "p035")
     encounters = person.encounters_for(p, 7)
+    trigger = original_high_tg_encounter(monkeypatch, p)
+    encounters = [trigger if e.exam_date == trigger.exam_date else e for e in encounters]
     base = registry.family(registry.pools[("zh", "checkup_center")][0])
     for seed in range(200):
         d = build_export(random.Random(seed), "export", p, encounters, [""] * len(encounters),

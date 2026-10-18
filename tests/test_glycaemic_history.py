@@ -8,7 +8,7 @@ falling weight (Tahara & Shima 1995), and GMI is computed from sensor readings a
 
 import dataclasses
 import random
-from datetime import date, datetime, time, timedelta
+from datetime import datetime, time, timedelta
 
 import pytest
 

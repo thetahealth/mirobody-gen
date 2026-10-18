@@ -26,7 +26,7 @@ import random
 from datetime import datetime, timedelta
 
 from . import cgm_metrics as M
-from . import spec, synthid
+from . import clinical, spec, synthid
 
 #: Goals as the consensus states them (Battelino et al., Diabetes Care 2019;42:1593), and the normal values of
 #: the 2017 Chinese guideline (24-hour, adults): metric key -> (comparison, limit).
@@ -404,6 +404,10 @@ def _sheet(sess: dict, dev: dict, style: dict, person, name: str, institution: s
                              (style["labels"]["reviewer"], r.choice(fiction)),
                              (style["labels"]["report_time"], created.strftime("%Y-%m-%d %H:%M"))],
               "footer": style["footer"], "banner": banner, "created": created, "author": institution}
+    if clinical.ENABLED:
+        from . import clinical_names
+
+        report["signatures"] = clinical_names.signatures(report["signatures"], english=False)
     return report, rows_out
 
 

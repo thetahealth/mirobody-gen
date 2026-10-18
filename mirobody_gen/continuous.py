@@ -65,7 +65,7 @@ import math
 import random
 from datetime import date, datetime, time, timedelta
 
-from . import physiology, spec
+from . import clinical, physiology, spec
 from .model import Person
 from .person import CORPUS_END
 
@@ -837,8 +837,12 @@ def _name(person: Person, lang: str) -> tuple[str, str]:
     """(first, last) of the fictional name the person's own documents print (`document.subject_fields`
     draws it from the same sticky stream), so a CGM export links to the lab slips by name."""
     fiction = spec.fiction()
-    full = random.Random(f"patient:{person.person_id}").choice(
-        fiction["person_names_en" if spec.doc_lang(lang) == "en" else "person_names_zh"])
+    pool = fiction["person_names_en" if spec.doc_lang(lang) == "en" else "person_names_zh"]
+    full = random.Random(f"patient:{person.person_id}").choice(pool)
+    if clinical.ENABLED:
+        from . import clinical_names
+
+        full = clinical_names.patient_name(person, pool, full)
     if " " in full:
         first, last = full.split(" ", 1)
         return first, last

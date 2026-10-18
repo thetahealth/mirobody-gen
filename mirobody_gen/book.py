@@ -31,7 +31,7 @@ from datetime import date, datetime
 import numpy as np
 from PIL import Image, ImageDraw
 
-from . import spec, synthid
+from . import clinical, spec, synthid
 from .document import Cells, Doc, DocReading, PrintedRow, Table, build_doc, format_date, print_dates, print_value, subject_fields
 from .layout import Family
 from .model import Encounter, Finding, Person
@@ -736,6 +736,10 @@ def build_outpatient(rng: random.Random, doc_id: str, person: Person, enc: Encou
                                 "icpc3": code_icpc.get(c["code"]),
                                 "expect": "coded" if code_icpc.get(c["code"]) else "no-match"} for c in conditions]
     doc.footer = [(o["doctor"], rng.choice(spec.fiction()["person_names_en" if lang == "en" else "person_names_zh"]))]
+    if clinical.ENABLED:
+        from . import clinical_names
+
+        doc.footer = clinical_names.signatures(doc.footer, lang == "en")
     return doc
 
 
@@ -772,6 +776,10 @@ def build_ultrasound_report(rng: random.Random, doc_id: str, person: Person, enc
     doc.findings_truth = [_finding_truth(x, lang) for x in enc.findings if x.where == "abd_us"]
     doc.footer = [(role, rng.choice(spec.fiction()["person_names_en" if lang == "en" else "person_names_zh"]))
                   for role in (family.signatures or (("检查者",) if lang == "zh" else ("Examiner",)))]
+    if clinical.ENABLED:
+        from . import clinical_names
+
+        doc.footer = clinical_names.signatures(doc.footer, lang == "en")
     return doc
 
 
@@ -863,4 +871,8 @@ def build_imaging_report(rng: random.Random, doc_id: str, person: Person, enc: E
     doc.findings_truth = [_finding_truth(x, lang) for x in enc.findings if x.where == which]
     doc.footer = [(role, rng.choice(spec.fiction()["person_names_en" if lang == "en" else "person_names_zh"]))
                   for role in (family.signatures or (("报告医师",) if lang == "zh" else ("Radiologist",)))]
+    if clinical.ENABLED:
+        from . import clinical_names
+
+        doc.footer = clinical_names.signatures(doc.footer, lang == "en")
     return doc

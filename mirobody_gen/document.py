@@ -45,7 +45,7 @@ import re
 from dataclasses import asdict, dataclass, field
 from datetime import date, datetime, timedelta
 
-from . import spec, synthid
+from . import clinical, spec, synthid
 from .layout import Family, date_role, script_of
 from .model import Encounter, Person, Reading
 
@@ -302,6 +302,11 @@ def subject_fields(rng: random.Random, person: Person, f: Family, collected: dat
     t, labels = _t(), _t()["subject_labels"][lang]
     name = sticky.choice(fiction["person_names_en" if en else "person_names_zh"])
     doctor = rng.choice(fiction["person_names_en" if en else "person_names_zh"])
+    if clinical.ENABLED:
+        from . import clinical_names
+
+        pool = fiction["person_names_en" if en else "person_names_zh"]
+        name, doctor = clinical_names.patient_name(person, pool, name), clinical_names.staff_name(doctor, pool)
     sex = t["sex_words"][lang][person.sex]
     age = t["age_format"][lang].format(n=person.age_at(collected))
     pid = synthid.make(random.Random(f"pid:{f.family_id}:{person.person_id}"), 10)
@@ -472,6 +477,10 @@ def build_doc(rng: random.Random, doc_id: str, person: Person, encounter: Encoun
 
     doc.footer = [(role, rng.choice(spec.fiction()["person_names_en" if en else "person_names_zh"]))
                   for role in f.signatures]
+    if clinical.ENABLED:
+        from . import clinical_names
+
+        doc.footer = clinical_names.signatures(doc.footer, en)
     if "disclaimer" in f.furniture:
         doc.footer.append(("", rng.choice(t["disclaimers"][lang])))
     return doc

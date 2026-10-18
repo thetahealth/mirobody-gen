@@ -11,6 +11,16 @@ layers are for.
 
 Aligned views (`view:<scene>`) bring PureDocBench's Clean / Digital Degraded / Real Degraded triplet
 here: the same base, only the delivery form changes, truth unchanged.
+
+`views="ordinary"` exports only the clean controls. Their records and
+files match the bases in the default full set; this is a presentation choice, not
+clinical validation. The full set keeps all named stressors and acquisition views.
+
+`scope="checkup"` selects routine visits and builds a full report book once. Only
+incident and capture variants are applied to copies: rebuilding a book under a
+different layout could resample its non-table examinations. The default table
+scope retains its layout variants; multi-page captures follow the all-pages
+delivery policy.
 """
 
 from __future__ import annotations
@@ -21,12 +31,17 @@ import json
 import pathlib
 import random
 
-from . import hazards, layout, spec
+from . import book, hazards, layout, spec
 from .corpus import Institutions, home_institutions, record
 from .delivery import render_doc
 from .document import Doc, build_doc, split_encounter
 from .model import Encounter, Person
 from .render import degrade
+
+PRESENTATION_POLICY = "paired-table-v2"
+CHECKUP_PRESENTATION_POLICY = "paired-checkup-v1"
+PAIR_VIEWS = ("all", "ordinary")
+PAIR_SCOPES = ("tables", "checkup")
 
 
 def clean_family(f: layout.Family) -> layout.Family:
@@ -84,19 +99,27 @@ TOGGLES = {
 
 
 def render_pairs(seed: int, people: list[Person], encounters: dict[str, list[Encounter]],
-                 out_dir: pathlib.Path, n_pairs: int, banner: bool = True) -> list[dict]:
+                 out_dir: pathlib.Path, n_pairs: int, banner: bool = True, *, views: str = "all",
+                 scope: str = "tables") -> list[dict]:
+    if views not in PAIR_VIEWS:
+        raise ValueError(f"Unknown pair views {views!r}; choose from {PAIR_VIEWS}")
+    if scope not in PAIR_SCOPES:
+        raise ValueError(f"Unknown pair scope {scope!r}; choose from {PAIR_SCOPES}")
+    checkup = scope == "checkup"
+    policy = CHECKUP_PRESENTATION_POLICY if checkup else PRESENTATION_POLICY
+    presentation_scope = "checkup_document" if checkup else "table_extraction"
     registry = layout.build_registry(seed)
     process = Institutions(registry, seed)
     pool = [(p, e) for p in people for e in encounters[p.person_id]
-            if e.exam_type != "routine" and len(e.readings) >= 5]
+            if (e.exam_type == "routine" if checkup else e.exam_type != "routine") and len(e.readings) >= 5]
     pick = random.Random(f"pairs:{seed}")
     chosen = pick.sample(pool, min(n_pairs, len(pool)))
     root = out_dir / "pairs"
     records: list[dict] = []
     for k, (person, enc) in enumerate(chosen):
         _, home = home_institutions(seed, person, process)
-        base_family = clean_family(registry.family(home["hospital"]))
-        pair_id = f"pair{k:03d}"
+        base_family = clean_family(registry.family(home["checkup_center" if checkup else "hospital"]))
+        pair_id = f"checkup{k:03d}" if checkup else f"pair{k:03d}"
         groups = [g for s in split_encounter(random.Random(f"{pair_id}:split"), enc) for g in s]
         # The previous visit's values: only the "previous result" column variant prints them; they're
         # absent from every other variant.
@@ -104,22 +127,25 @@ def render_pairs(seed: int, people: list[Person], encounters: dict[str, list[Enc
         previous = {r.key: (r.value, e.exam_date.isoformat()) for e in earlier for r in e.readings}
 
         def build(family: layout.Family) -> Doc:
-            doc = build_doc(random.Random(f"{pair_id}:doc"), f"{pair_id}", person, enc, groups,
-                            family, previous, banner=banner)
+            builder = book.build_book if checkup else build_doc
+            doc = builder(random.Random(f"{pair_id}:doc"), f"{pair_id}", person, enc, groups,
+                          family, previous, banner=banner)
             return doc
 
         base = build(base_family)
         variants: list[tuple[str, Doc]] = [("base", base)]
-        for name, toggle in TOGGLES.items():
-            fam = dataclasses.replace(base_family, **toggle(base_family))
-            if fam == base_family:
-                continue
-            variants.append((name, build(fam)))
-        for name in sorted(hazards.INCIDENTS):
-            doc = copy.deepcopy(base)
-            hazards.inject(doc, random.Random(f"{pair_id}:{name}"), only=[name])
-            if name in doc.hazards:
-                variants.append((name, doc))
+        if views == "all":
+            if not checkup:
+                for name, toggle in TOGGLES.items():
+                    fam = dataclasses.replace(base_family, **toggle(base_family))
+                    if fam == base_family:
+                        continue
+                    variants.append((name, build(fam)))
+            for name in sorted(hazards.INCIDENTS):
+                doc = copy.deepcopy(base)
+                hazards.inject(doc, random.Random(f"{pair_id}:{name}"), only=[name])
+                if name in doc.hazards:
+                    variants.append((name, doc))
         for name, doc in variants:
             doc.doc_id = f"{pair_id}_{name}"
             hazards.detect(doc)
@@ -127,7 +153,13 @@ def render_pairs(seed: int, people: list[Person], encounters: dict[str, list[Enc
                 continue                                   # this content gives that hazard class nothing to act on
             path, pages, delivery = render_doc(doc, root, f"{pair_id}/{name}")
             records.append(record(doc, path, out_dir, pages, [enc],
-                                  {"pair": {"pair_id": pair_id, "variant": name}}, delivery=delivery))
+                                  {"pair": {"pair_id": pair_id, "variant": name},
+                                   "presentation": {"policy_version": policy,
+                                                    "scope": presentation_scope,
+                                                    "purpose": "ordinary" if name == "base" else "stress"}},
+                                  delivery=delivery))
+        if views == "ordinary":
+            continue
         # Aligned views: the same base, only the delivery form changes. Truth is unchanged down to the
         # last character; only the pixels differ — PureDocBench's Clean / Digital Degraded / Real
         # Degraded triplet, brought here.
@@ -135,11 +167,17 @@ def render_pairs(seed: int, people: list[Person], encounters: dict[str, list[Enc
             doc = copy.deepcopy(base)
             doc.doc_id = f"{pair_id}_view_{scene}"
             hazards.detect(doc)
+            # A book has multiple pages. Single-image encoders retain only page one;
+            # use an image PDF for checkup captures, including screenshot scenes.
+            container = "scanpdf" if checkup else ("png" if scene == "screenshot" else "jpg")
             delivery = {"tier": degrade.TIER_OF_SCENE[scene], "scene": scene, "severity": "moderate", "ops": [],
-                        "container": "png" if scene == "screenshot" else "jpg", "annotations": []}
+                        "container": container, "annotations": []}
             path, pages, delivery = render_doc(doc, root, f"{pair_id}/view_{scene}", delivery=delivery)
             records.append(record(doc, path, out_dir, pages, [enc],
-                                  {"pair": {"pair_id": pair_id, "variant": f"view:{scene}"}}, delivery=delivery))
+                                  {"pair": {"pair_id": pair_id, "variant": f"view:{scene}"},
+                                   "presentation": {"policy_version": policy,
+                                                    "scope": presentation_scope, "purpose": "stress"}},
+                                  delivery=delivery))
     with (out_dir / "pairs.jsonl").open("w", encoding="utf-8") as fh:
         for r in records:
             fh.write(json.dumps(r, ensure_ascii=False) + "\n")

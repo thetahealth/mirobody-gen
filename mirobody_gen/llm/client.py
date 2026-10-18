@@ -12,6 +12,7 @@ import json
 import os
 import pathlib
 import ssl
+from urllib.parse import urlsplit
 from datetime import datetime, timezone
 
 PACKAGE = pathlib.Path(__file__).resolve().parents[1]
@@ -38,9 +39,44 @@ def _dotenv() -> dict[str, str]:
 
 
 def endpoint() -> tuple[str | None, str | None]:
-    """(base url, api key) from the environment, then .env; LLM_API_KEY falls back to OPENROUTER_API_KEY."""
-    env = {**_dotenv(), **{k: v for k, v in os.environ.items() if k in ("LLM_BASE_URL", "LLM_API_KEY", "OPENROUTER_API_KEY")}}
-    return env.get("LLM_BASE_URL"), env.get("LLM_API_KEY") or env.get("OPENROUTER_API_KEY")
+    """Explicit generic credentials take priority; a DeepSeek key uses its official endpoint.
+
+    Never send the provider-specific key to an unrelated generic LLM_BASE_URL.
+    Reading credentials is local; callers still have to explicitly opt into a network request.
+    """
+    names = ("LLM_BASE_URL", "LLM_API_KEY", "OPENROUTER_API_KEY", "DEEPSEEK_API_KEY")
+    # strip: a CRLF .env sourced into the shell leaves a trailing "\r" on the exported value
+    env = {**_dotenv(), **{k: v.strip() for k, v in os.environ.items() if k in names}}
+    token = env.get("LLM_API_KEY") or env.get("OPENROUTER_API_KEY")
+    if token:
+        return env.get("LLM_BASE_URL"), token
+    if env.get("DEEPSEEK_API_KEY"):
+        return "https://api.deepseek.com/v1", env["DEEPSEEK_API_KEY"]
+    return env.get("LLM_BASE_URL"), None
+
+
+def post_chat(base: str, token: str, body: bytes, timeout: int) -> dict:
+    """POST an OpenAI-compatible chat request without following redirects.
+
+    urllib would re-send the Authorization header to any redirect target, so a redirect is refused.
+    A credential with whitespace or control characters is refused before a request is built: the
+    header error would otherwise quote it.
+    """
+    import urllib.error
+    import urllib.request
+
+    if not token or any(c.isspace() or not c.isprintable() for c in token):
+        raise SystemExit("LLM_API_KEY contains whitespace or control characters; refusing to send it")
+
+    class NoRedirect(urllib.request.HTTPRedirectHandler):
+        def redirect_request(self, req, fp, code, msg, headers, newurl):
+            raise urllib.error.URLError("authenticated model requests must not follow redirects")
+
+    request = urllib.request.Request(f"{base.rstrip('/')}/chat/completions", data=body,
+                                     headers={"Authorization": f"Bearer {token}", "Content-Type": "application/json"})
+    opener = urllib.request.build_opener(urllib.request.HTTPSHandler(context=_ssl_context()), NoRedirect())
+    with opener.open(request, timeout=timeout) as response:
+        return json.loads(response.read())
 
 
 def _ssl_context() -> ssl.SSLContext:
@@ -72,14 +108,15 @@ def complete(model: str, system: str, user: str, temperature: float = 0.7, timeo
     if not (base and token):
         raise SystemExit("LLM_BASE_URL and LLM_API_KEY are required to call a model; "
                          "use --dry-run to write the request bundle without sending anything.")
-    import urllib.request
+    if urlsplit(base).hostname == "api.deepseek.com":
+        from .review_client import complete_json
 
+        result = complete_json(model, system, user, temperature=temperature, json_mode=False)
+        return {"model": result["model"], "text": result["answer"]["text"], "cached": result["cached"],
+                "time": result["time"], "prompt_sha256": result["request_hash"], "usage": result["usage"]}
     body = json.dumps({"model": model, "temperature": temperature,
                        "messages": [{"role": "system", "content": system}, {"role": "user", "content": user}]}).encode()
-    request = urllib.request.Request(f"{base.rstrip('/')}/chat/completions", data=body,
-                                     headers={"Authorization": f"Bearer {token}", "Content-Type": "application/json"})
-    with urllib.request.urlopen(request, timeout=timeout, context=_ssl_context()) as response:
-        payload = json.loads(response.read())
+    payload = post_chat(base, token, body, timeout)
     text = payload["choices"][0]["message"]["content"]
     result = {"model": model, "text": text, "cached": False,
               "time": datetime.now(timezone.utc).isoformat(timespec="seconds"),

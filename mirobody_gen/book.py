@@ -87,17 +87,31 @@ def _dialect(f: Family) -> str:
     return _sticky(f, "dialect").choice(_n()["normal_dialects"][lang])
 
 
+OCULAR_POLICY = "ocular-laterality-v1"
+OCULAR_ITEMS = ("va", "va_corrected", "iop")
+
+
+def _acuity_notation(f: Family) -> str:
+    return "five_point" if _sticky(f, "acuity").random() < 0.5 else "decimal"
+
+
+def _eye_measurements(left: str, right: str, *, unit=None, notation=None) -> list[dict]:
+    return [{"laterality": side, "status": "measured", "value": value,
+             "unit": unit, "notation": notation, "authority": "synthetic_model"}
+            for side, value in (("left", left), ("right", right))]
+
+
 def _acuity_pair(rng: random.Random, low: bool, f: Family) -> tuple[str, str, str]:
-    """(printed text, left, right). The two notations split evenly; printing both eyes in one cell is
-    how real checkups always write it."""
+    """(printed text, left, right), retaining both existing draws and declaring their notation."""
     ac = _n()["acuity"]
-    style = "five_point" if _sticky(f, "acuity").random() < 0.5 else "decimal"
+    style = _acuity_notation(f)
     scale = ac[style]
     pool = ac["low_index"] if low else ac["normal_index"]
     left, right = scale[rng.choice(pool)], scale[rng.choice(pool)]
     b = _n()["book"][_lang(f)]
     sep = rng.choice(["/", " / ", "  "])
-    style_text = rng.choice([f"{b['left']}{left}{sep}{b['right']}{right}", f"{left}{sep}{right}",
+    style_text = rng.choice([f"{b['left']}{left}{sep}{b['right']}{right}",
+                             f"{b['left_eye']} {left}{sep}{b['right_eye']} {right}",
                              f"{b['left_eye']} {left}  {b['right_eye']} {right}"])
     return style_text, left, right
 
@@ -127,6 +141,7 @@ def section_blocks(rng: random.Random, doc: Doc, person: Person, enc: Encounter,
             finding = by_slot.get((sid, item["id"]))
             abnormal = False
             fid = None
+            measurements = None
             if item["id"] == "history":
                 scripted = [e for e in person.events if e.note == "原型剧本"]
                 has_history = history_label and scripted and scripted[0].start <= enc.exam_date
@@ -140,6 +155,7 @@ def section_blocks(rng: random.Random, doc: Doc, person: Person, enc: Encounter,
                 if item["id"] == "va_corrected":
                     low = False
                 value, left, right = _acuity_pair(rng, low, f)
+                measurements = _eye_measurements(left, right, notation=_acuity_notation(f))
                 abnormal = low
                 fid = finding.id if low else None
                 if finding is not None and finding.id == "presbyopia_note":
@@ -147,7 +163,11 @@ def section_blocks(rng: random.Random, doc: Doc, person: Person, enc: Encounter,
                         else f"{value} ({n['findings']['presbyopia_note']['text'][lang]})"
                     abnormal, fid = True, finding.id
             elif item.get("kind") == "iop":
-                value = f"{rng.randint(11, 20)}/{rng.randint(11, 20)} mmHg"
+                # Preserve the two existing draws; v1 assigns their synthetic sides explicitly.
+                left, right = str(rng.randint(11, 20)), str(rng.randint(11, 20))
+                b = n["book"][lang]
+                value = f"{b['left']}{left}/{b['right']}{right} mmHg"
+                measurements = _eye_measurements(left, right, unit="mmHg")
             elif finding is not None:
                 fdef = n["findings"][finding.id]
                 value = _fill(_wording(f, f"narratives.findings.{finding.id}.text.{lang}", fdef["text"][lang]), finding.params) \
@@ -159,8 +179,11 @@ def section_blocks(rng: random.Random, doc: Doc, person: Person, enc: Encounter,
                 # only print their own normal value
                 value = rng.choice(pool) if pool and (item.get("own_normal") or rng.random() < 0.7) else normal_word
             rows.append((label, value))
-            truth.append({"label": label, "value": value, "abnormal": abnormal, "finding": fid,
-                          "detection_method": "Physiological"})
+            entry = {"label": label, "value": value, "abnormal": abnormal, "finding": fid,
+                     "detection_method": "Physiological"}
+            if measurements is not None:
+                entry.update(item_id=item["id"], laterality_policy_version=OCULAR_POLICY, measurements=measurements)
+            truth.append(entry)
         blocks.append(Block(kind="kv", title=sec[lang], rows=rows, columns=columns, truth=truth, section_id=sid))
     return blocks
 
@@ -327,7 +350,7 @@ def aux_blocks(rng: random.Random, doc: Doc, person: Person, enc: Encounter, f: 
                 doc.readings.append(DocReading(key=key, loinc=r.loinc, canonical_value=r.canonical_value, value_text=r.value,
                                                unit_ucum=r.unit_ucum, value_kind=r.value_kind, status=r.status,
                                                observed=enc.exam_date.isoformat(), expect_resolvable=r.expect_resolvable,
-                                               printed_row=p_index))
+                                               printed_row=p_index, result_method=r.result_method, source=r.source))
             if aux.get("finding_normal"):
                 rows.append((labels["finding"], _pick(rng, f, f"narratives.aux.{aid}.finding_normal.{lang}", aux["finding_normal"][lang])))
             impressions = [_fill(n["findings"][x.id]["impression"][lang], x.params) for x in found] \
@@ -544,6 +567,9 @@ def _finding_truth(x: Finding, lang: str) -> dict:
 
 
 # ── Outpatient record ──
+OUTPATIENT_CONTEXT_POLICY = "outpatient-department-v1"
+
+
 def build_outpatient(rng: random.Random, doc_id: str, person: Person, enc: Encounter, family: Family,
                      banner: bool = True) -> Doc:
     """Outpatient record: chief complaint / history of present illness / past history / physical exam /
@@ -554,6 +580,8 @@ def build_outpatient(rng: random.Random, doc_id: str, person: Person, enc: Encou
     o = n["outpatient"][lang]
     t = spec.templates()
     readings = {r.key: r for r in enc.readings}
+    # Keep the legacy random draw/slice for identity-layout reproducibility. Its discarded
+    # department is not a clinical fact; only the explicit encounter field is printed below.
     doc = Doc(doc_id=doc_id, person_id=person.person_id, family=family,
               title=_sticky(family, "op_title").choice(o["titles"]),
               subject=subject_fields(rng, person, family, enc.exam_date, rng.choice(t["departments"][family.lang_group]), "")[:4],
@@ -605,7 +633,10 @@ def build_outpatient(rng: random.Random, doc_id: str, person: Person, enc: Encou
     plan = rng.choice(o["plan_templates"]).format(
         labs=o["monitor"].get(person.archetype, o["monitor"]["healthy"]), interval="3个月" if lang == "zh" else "3 months",
         monitor=o["monitor"].get(person.archetype, o["monitor"]["healthy"]))
-    rows = [(o["cc"], cc), (o["hpi"], hpi), (o["pmh"], pmh), (o["pe"], vitals_line)]
+    department = enc.department if enc.department and enc.department.strip() else None
+    # The body remains visible even in families that move subject fields into lab tables.
+    rows = [(o["dept"], department)] if department else []
+    rows += [(o["cc"], cc), (o["hpi"], hpi), (o["pmh"], pmh), (o["pe"], vitals_line)]
     if aux_text:
         rows.append((o["aux"], aux_text))
     rows += [(o["dx"], "\n".join(f"{i + 1}. {d}" for i, d in enumerate(dx_lines)) if len(dx_lines) > 1 else (dx_lines[0] if dx_lines else "")),
@@ -622,7 +653,8 @@ def build_outpatient(rng: random.Random, doc_id: str, person: Person, enc: Encou
         doc.printed[p_index].readings.append(len(doc.readings))
         doc.readings.append(DocReading(key=key, loinc=r.loinc, canonical_value=r.canonical_value, value_text=r.value,
                                        unit_ucum=r.unit_ucum, value_kind=r.value_kind, status=r.status,
-                                       observed=enc.exam_date.isoformat(), expect_resolvable=r.expect_resolvable, printed_row=p_index))
+                                       observed=enc.exam_date.isoformat(), expect_resolvable=r.expect_resolvable, printed_row=p_index,
+                                       result_method=r.result_method, source=r.source))
     if "sbp" in readings and "dbp" in readings:
         p_index = len(doc.printed)
         doc.printed.append(PrintedRow(item_name="BP", item_value=f"{readings['sbp'].value}/{readings['dbp'].value}",
@@ -632,7 +664,8 @@ def build_outpatient(rng: random.Random, doc_id: str, person: Person, enc: Encou
             doc.printed[p_index].readings.append(len(doc.readings))
             doc.readings.append(DocReading(key=key, loinc=r.loinc, canonical_value=r.canonical_value, value_text=r.value,
                                            unit_ucum=r.unit_ucum, value_kind=r.value_kind, status=r.status,
-                                           observed=enc.exam_date.isoformat(), expect_resolvable=r.expect_resolvable, printed_row=p_index))
+                                           observed=enc.exam_date.isoformat(), expect_resolvable=r.expect_resolvable, printed_row=p_index,
+                                           result_method=r.result_method, source=r.source))
     doc.complaints_truth = [{"text": c.text, "symptom_id": c.symptom_id, "icpc3": c.icpc3, "expect": c.expect,
                              "duration": c.duration, "kind": "symptom"} for c in enc.complaints]
     icpc = {"hypertension": "KD73", "prediabetes_to_t2dm": "TD72", "dyslipidemia_statin": "TD75",

@@ -76,8 +76,12 @@ def choose_delivery(rng: random.Random, habit: dict[str, float], pages: int) -> 
 def render_doc(doc: Doc, out_root: pathlib.Path, rel: str, habit: dict[str, float] | None = None,
                rng: random.Random | None = None, delivery: dict | None = None
                ) -> tuple[pathlib.Path, int | None, dict]:
-    """Render one file. Returns (path, page count, delivery record). When `delivery` is given, it is used
-    as-is (for contrast pairs)."""
+    """Render one file. Returns (path, page count, delivery record).
+
+    Explicit contrast requests keep their scene and severity, but a multi-page
+    JPG/PNG request uses an image PDF so the one-file truth retains every page.
+    The returned record declares this container fallback; the request is unchanged.
+    """
     reported = next((d["iso"] for d in doc.dates if d["role"] == "reported"),
                     doc.dates[0]["iso"] if doc.dates else "2026-01-01T00:00:00")
     fmt = doc.family.fmt
@@ -105,6 +109,11 @@ def render_doc(doc: Doc, out_root: pathlib.Path, rel: str, habit: dict[str, floa
         path = out_root / f"{rel}.pdf"
         path.write_bytes(data)
         return path, pages, delivery
+
+    if pages > 1 and delivery["container"] in ("jpg", "png"):
+        delivery = {**delivery, "container": "scanpdf", "container_fallback": {
+            "policy_version": "all-pages-v1", "requested": delivery["container"],
+            "actual": "scanpdf", "reason": "multiple_pages"}}
 
     # Image layer: optionally circle abnormal values in pen first, then rasterize, run the scene's
     # operator chain, and encode.

@@ -125,31 +125,42 @@ def trend_factor(person, key: str, when: date) -> float:
     rate = person.trend.get(key)
     if not rate:
         return 1.0
-    # Measured from the year this person entered the cohort, not their birth year: chronic-disease
-    # progression starts at some point in time, not at birth.
-    years = max(0.0, (when - person.events[0].start).days / 365.25) if person.events else 0.0
+    # The first anchor records entry into the observation window. An unrelated incident must
+    # not reset progression; removing all events must not remove the underlying disease trend.
+    years = max(0.0, (when - person.weight_anchors[0][0]).days / 365.25) if person.weight_anchors else 0.0
     return (1.0 + rate) ** years
 
 
 def weight_at(person, when: date) -> float:
-    """Weight linearly interpolated between anchors. Weight feeds BMI, so it must exist before BMI does."""
+    """Interpolate the untreated weight baseline, then apply the shared timeline's event effects.
+
+    These anchors contain natural drift only. Documents, scales, diaries and BMI all use this
+    function, so a weight intervention changes every channel exactly once.
+    """
     anchors = person.weight_anchors
     if not anchors:
-        return FALLBACK_CENTER["weight"]
-    if when <= anchors[0][0]:
-        return anchors[0][1]
-    if when >= anchors[-1][0]:
-        return anchors[-1][1]
-    for (d0, w0), (d1, w1) in zip(anchors, anchors[1:]):
-        if d0 <= when <= d1:
-            span = max((d1 - d0).days, 1)
-            return w0 + (w1 - w0) * ((when - d0).days / span)
-    return anchors[-1][1]
+        baseline = FALLBACK_CENTER["weight"]
+    elif when <= anchors[0][0]:
+        baseline = anchors[0][1]
+    elif when >= anchors[-1][0]:
+        baseline = anchors[-1][1]
+    else:
+        baseline = anchors[-1][1]
+        for (d0, w0), (d1, w1) in zip(anchors, anchors[1:]):
+            if d0 <= when <= d1:
+                span = max((d1 - d0).days, 1)
+                baseline = w0 + (w1 - w0) * ((when - d0).days / span)
+                break
+    return baseline * event_factor(person, "weight", when)[0]
 
 
 def expected(person, key: str, when: date) -> float:
     """A person's indicator on a day without measurement noise: the centre `measure` draws around.
     Home glucose logs and the CGM read it, so a meter, a sensor and a laboratory share one level."""
+    if key == "height":
+        return person.height_cm
+    if key == "weight":
+        return weight_at(person, when)
     off = OFFSET.get(key, 0.0)
     base = (center_of(key, person.sex) - off) * person.baseline.get(key, 1.0)
     return off + base * trend_factor(person, key, when) * event_factor(person, key, when)[0]
@@ -225,9 +236,8 @@ def derive(values: dict[str, float], person, when: date) -> dict[str, float]:
         out["dbil"] = values["tbil"] * fraction
         out["ibil"] = values["tbil"] - out["dbil"]
     if has("chol", "hdl", "tg"):
-        # Friedewald. The formula breaks down above a triglyceride level of 4.5 mmol/L, where a real
-        # lab would switch to a direct assay — so this does too, rather than carrying the identity
-        # through to a negative LDL.
+        # Friedewald is not used above TG 4.5 mmol/L. A direct assay is not modelled yet, so LDL
+        # remains unavailable there; do not invent a measured value from an invalid calculation.
         if values["tg"] <= 4.5:
             out["ldl"] = max(values["chol"] - values["hdl"] - values["tg"] / 2.2, 0.3)
     if has("crea"):

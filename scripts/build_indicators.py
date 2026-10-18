@@ -487,7 +487,7 @@ add("spo2", "血氧饱和度", "Oxygen saturation", "SpO2", "%", 0, ("range", 95
     variants=("血氧", "SpO₂", "指脉氧"))
 # Hepatitis B panel / hepatitis C (qualitative; positive rate by population)
 add("hbsag", "乙肝表面抗原", "Hepatitis B surface antigen", "HBsAg", "", 0, ("qualitative", "阴性"), COMMON, None, None,
-    "hepatitis", variants=("HBsAg", "乙型肝炎表面抗原", "乙型肝炎表面抗原(HK)"), kind="qualitative",
+    "hepatitis", variants=("HBsAg", "乙型肝炎表面抗原"), kind="qualitative",
     positive_rate=0.06, positive_values=[["阳性", 1]])
 add("hbsab", "乙肝表面抗体", "Hepatitis B surface antibody", "HBsAb", "", 0, ("qualitative", "阴性"), COMMON, None, None,
     "hepatitis", variants=("Anti-HBs", "乙型肝炎表面抗體"), kind="qualitative",

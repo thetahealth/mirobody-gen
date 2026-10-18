@@ -30,7 +30,7 @@ def test_every_scene_runs_and_is_deterministic():
         a, log = degrade.apply_scene(pages, scene, "moderate", "doc", {0: (30, 40, 270, 380), 1: (30, 40, 270, 380)})
         b, _ = degrade.apply_scene(pages, scene, "moderate", "doc", {0: (30, 40, 270, 380), 1: (30, 40, 270, 380)})
         assert len(a) == 2 and [o["op"] for o in log] == [op for op, _ in degrade.SCENES[scene]["stages"]]
-        assert degrade.encode(a, "jpg", "t") == degrade.encode(b, "jpg", "t"), scene
+        assert degrade.encode(a, "scanpdf", "t") == degrade.encode(b, "scanpdf", "t"), scene
 
 
 def test_scenes_and_ops_are_declared_vocabulary():

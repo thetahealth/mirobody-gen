@@ -34,12 +34,75 @@ extraction contract (`original_indicator`, `value`, `unit`, `reference_range`, `
 | --- | --- |
 | `file` | placeholder `person/date/eNN`; the file layer replaces it |
 | `person_id`, `collected`, `exam_type`, `exam_location`, `panels`, `package` | visit identity; `panels` are the order names from `cohort.json` |
-| `person` | `sex`, `age` (at the visit), `birth_year`, `height_cm`, `archetype`, `region`, `conditions[]` (`code` SNOMED CT, `display`, optional `onset_date` and `source` when inferred from values) |
+| `department` | explicit source/encounter string, or `null` when unknown; it is not sampled from hospital names or patient demographics |
+| `ordered_keys` | explicit unique ordered analyte keys before sex exclusions; `null` only for callers that did not declare orders |
+| `missing_results[]` | ordered analyte with no result: `key`, `unit`, `reason_code`, `details`, `result_method`, `source`; never a numeric or normal result |
+| `person` | `sex`, `age` (at the visit), `birth_year`, `height_cm`, `archetype`, `region`, `conditions[]` (`code`, `display`, optional source/onset; numeric-rule records add `recorded_date`, `evidence_dates`, `policy` and leave biological onset unknown) |
 | `events_since_previous[]` | names of events that started, or were still ramping up, between the previous visit and this one |
 | `complaints[]` | `text` (surface), `symptom_id`, `icpc3` (expected S-axis code or `null`), `expect`, `duration` |
 | `findings[]` | `id`, `where` (section or auxiliary examination), `item`, `surface` (diagnosis wording), `icpc3` (expected D-axis code or `null`), `severity`, `since` |
 | `rows[]` | one per reading: `key`, `original_indicator`, `value`, `unit`, `reference_range`, `status`, `detection_method`, `canonical_value`, `unit_ucum`, `loinc`, `value_kind`, `expect_resolvable`, `ref_low`, `ref_high`, `readable` |
 | `layout_fingerprint`, `hazards`, `tier`, `format`, `language` | `null`/empty at this layer |
+
+Diagnosis evidence is evaluated with `observed-diagnosis-time-v1` using only
+encounters at or before `knowledge_as_of` (the current visit date).
+`diagnostic_assessments[]` reports `met`, `pending_confirmation`, `not_assessable`
+or `not_met`, the positive evidence dates and unknown/conflicting dates. These
+are model-rule states, not independent clinical labels. Same-day repeats count
+once. Unmeasured visits are unknown; measured negatives or conflicting days
+reset the evidence run. Companion predicates must be met within the same
+encounter, not joined from unrelated samples.
+
+The existing low-eGFR branch requires repeat evidence spanning more than 90 days,
+following KDIGO 2024 section 1.1.3's explicit duration definition; other CKD causes
+and AKI exclusion are not covered. The overt-primary-thyroid branch retains the
+existing TSH>=10 model condition and additionally requires FT4 below that result's
+own `ref_low`, in compatible pmol/L. Missing FT4/reference/unit is not a normal
+FT4 or a confirmed diagnosis. Source URLs are stored with the authored rules.
+The existing low-Hb screening threshold now yields generic anemia (`271737000`),
+never an inferred iron-deficiency cause (`87522002`). The 110 g/L threshold remains an
+unvalidated model screen, not a complete WHO sex/population diagnostic rule.
+
+Numeric-rule conditions have `source=synthetic_numeric_rule`, `recorded_date`
+equal to the first confirmation date and `evidence_dates`; biological
+`onset_date` stays null. A future dated condition/assessment cannot enter an
+earlier record. `people.jsonl` retains full future simulation truth with
+`truth_scope=full_simulation_timeline_not_point_in_time`, and must not serve as
+a historical answer key. Existing declared archetype priors are retained;
+their stage/onset calibration remains separate. Being undated, such a prior is
+listed in every record of that person, including visits before the modelled
+progression (a `prediabetes_to_t2dm` person's type 2 diabetes appears while its
+own rule assessment is still `not_met`); this point-in-time gap is open. This export repair does not
+yet guarantee that regenerating physiology/documents after editing future
+events preserves the past: the shared scheduling/measurement random stream
+has a separately reproduced counterexample, so full point-in-time causality remains open.
+
+Generated encounters partition every `ordered_keys` member into exactly one
+`rows[].key` or `missing_results[].key`. Serialization and `build --verify` reject
+omissions, duplicates, double outcomes and undeclared outcomes. Legacy inputs
+without declared orders are explicitly `not_run`, not silently certified.
+Sex-specific exclusions preserve the order with `not_applicable_sex_specific`.
+Other unavailable outputs remain `result_unavailable`, without inventing a clinical cause.
+
+LDL retains the existing Friedewald implementation and its existing `TG <= 4.5`
+mmol/L boundary unchanged. An unavailable LDL records
+`tg_above_calculation_limit` (including actual TG, its printed text `tg_text` and the limit), or
+`calculation_inputs_missing` with the missing keys. No direct result is invented.
+Calculated LDL carries `result_method=calculated_friedewald` and
+`source=synthetic_calculation`, distinct from the `detection_method` channel.
+An explicit `encounter_for(..., direct_ldl=Reading(...))` input must name
+`direct_assay`, supply a nonempty source and consistent finite value/text in
+mmol/L. It is copied unchanged, even when a calculated value is available.
+Other units are rejected rather than converted. This input is not a model of
+a direct assay, nor proof that the upstream engine produced such a result.
+
+File manifests carry the rendered subset as `missing_results[]` with
+`printed_text`; existing PDF/CSV/XLSX narratives show the explanation, and the
+text-readability audit checks it. Non-results are excluded from numeric reading
+truth, without removing the corresponding order from the encounter ledger.
+Current numeric table rows/readings also retain `result_method` and `source`;
+previous-value columns do not infer a method from the current result. Image-only
+captures still need independent OCR; metadata preservation does not prove readability.
 
 ## `people.jsonl` — one record per person
 
@@ -47,9 +110,18 @@ extraction contract (`original_indicator`, `value`, `unit`, `reference_range`, `
 with `name`, `event_type` (`medication` · `health_event` · `diet_change` · `exercise_change` ·
 `long_term_habit`), `start_date`, `duration_days`, `health_effect`, `impact_level`,
 `affected_indicators[]`, `effects{key: {magnitude, onset_days, half_life_days}}`. The effect triple is
-the computable answer to attribution questions.
+the computable answer to attribution questions. `truth_scope` is
+`full_simulation_timeline_not_point_in_time`: conditions and events cover the whole simulated
+timeline, so this file is not a historical answer key for any single visit.
 
 ## `files.jsonl` — one record per file
+
+The corpus selector's `institution-pool-v2` reuses a previously selected
+institution of the same language/type when its fresh pool is exhausted,
+weighted by prior selection counts. Before that formerly failing branch, source
+records and successful draws keep their prior behavior. No extra default output
+field is added solely for this repair; preserve the code/experiment policy
+version with generated corpora. The selector does not certify clinical services.
 
 | Field | Meaning |
 | --- | --- |
@@ -57,6 +129,7 @@ the computable answer to attribution questions.
 | `family`, `institution`, `issuer_kind`, `language` | layout family and fictional issuer; `language` ∈ `zh-Hans` · `zh-Hant` · `en`. A handwritten notebook page has family `hand:<person_id>`, no institution and `issuer_kind` `home` |
 | `format`, `source_format` | file extension as delivered (`pdf`, `xlsx`, `csv`, `jpg`, `png`) and the family's native format (`handwriting` for a page written by hand) |
 | `tier`, `scene`, `severity`, `ops[]`, `annotations[]`, `dpi`, `image_size` | delivery: scene name, sampled operator parameters in order, values circled by pen, rasterisation dpi |
+| `container_fallback` (optional) | `policy_version=all-pages-v1`, `requested` (`jpg`/`png`), `actual=scanpdf`, `reason=multiple_pages`; records an explicit image request promoted to a multi-page image PDF |
 | `page_count`, `layout` | pages; `layout` = `columns[]` (roles: `name`, `abbr`, `result`, `result_in`/`result_out` for the two-column US dialect, `reference`, `unit`, `flag`, `previous`, `category`, `note`, `method`, `lab`, `seq`), `reference_templates[]`, `flag_markers[]`, `page_count`, `languages[]` (the fingerprint input) |
 | `jitter[]`, `dates[]`, `subject{}`, `cover{}` | family drift applied to this file; printed dates (`label`, `role` ∈ `collected`·`received`·`tested`·`verified`·`reported`·`printed`, `printed`, `iso`); subject fields; cover fields of a book |
 | `hazards[]`, `hazard_count`, `split` | `name`, `source`, `rows[]` (indices into `printed_rows`) |
@@ -67,9 +140,84 @@ the computable answer to attribution questions.
 | `findings[]` | as in the manifest plus `expect` and `summary` (the wording used in the conclusion) |
 | `summary[]` | conclusion, advice, judgement and critical-result lines: `kind` (`conclusion` · `advice` · `grade` · `critical`), `index`, `text`, `source` (`finding:<id>`, `lab:<group>`, `normal`, `judgement`, `critical`), optional `icpc3`, `surface`, `keys[]`, `template`; a `grade` line carries `area` and `grade` (`A`–`E`, after the Ningen Dock categories) |
 | `complaints[]`, `diagnoses[]` | outpatient records: the surfaces printed under chief complaint and diagnosis with their expected ICPC-3 outcome (`kind` ∈ `symptom` · `condition`) |
+| `care_context` (outpatient records) | `policy_version=outpatient-department-v1`, `department` (source text or `null`), `department_source` (`encounter` or `unknown`) |
+| `facility_service` (optional) | constrained visit files only: `policy_version=facility-services-v1`, `profile_id`, `profile_sha256`, `catalog_sha256`, `authority=authored_synthetic`, `required_service`, `provider` |
+| `ocular_exam` (checkup books with an eye section) | `policy_version=ocular-laterality-v1`, `scope=generated_eye_quantitative_items`, `not_reported[]` with `item_id`, `left_status=unknown`, `right_status=unknown` |
+
+Eye-section quantitative `blocks[].items[]` add `item_id` (`va`, `va_corrected`,
+`iop`), `laterality_policy_version=ocular-laterality-v1` and `measurements[]`.
+Each of the two existing synthetic draws has explicit `laterality` (left/right),
+`status=measured`, source `value` text, `unit` (`mmHg` for IOP, `null` for acuity),
+`notation` (decimal/five_point for acuity, otherwise `null`) and
+`authority=synthetic_model`. Both printed values now name their side; existing
+draws, notation, abnormal/finding fields and random state are retained. IOP v1
+assigns the first existing synthetic draw left, the second right; this is not a
+rule for interpreting the order in historical or imported reports.
+
+An omitted optional item is only `not_reported` with unknown side states. It does
+not establish that either eye was tested, normal or explicitly unmeasured. Books
+without an eye section do not assert ocular coverage. This version covers these
+generated quantitative items only, not source-record replay, an explicit
+`not_measured` input state or bilateral imaging/normal findings.
+
+`--facility-services` requires `--render` and an explicit authored-synthetic JSON
+profile; it affects the corpus, not pair files. The profile maps visit types to
+required service codes and names catalogue institutions that declare those codes.
+Unlisted means unknown support, not implicitly eligible. Selection checks both
+fresh and sticky providers; absent language/location coverage fails before build
+output. `provider` equals the file's selected institution. A support claim is a
+synthetic configuration contract, not clinical validation or a real-provider
+claim. Omitted `facility_service` makes no service-support assertion. Turning the
+option off retains the original selection; it does not resolve all existing
+facility/context realism problems.
+
+An explicitly supplied `Encounter.department` prints verbatim as the first
+outpatient body row, independent of the lab-family subject layout. A missing,
+empty or whitespace-only value stays unknown; blank source text remains in the
+manifest but is not promoted to a printed department. Current synthetic cohorts
+do not invent this field. Default documents remain unchanged. Department presence
+does not certify a facility's services or validate the note's clinical care model.
+Lab slips built from the same encounter also prefer its explicit department over
+their legacy random choice, retaining the random draw for layout reproducibility.
+When no source department is known, their legacy sampling remains. Visibility
+still follows each document's existing subject layout.
 
 `pairs.jsonl` has the same fields plus `pair` (`pair_id`, `variant`); `variant` is `base`, a hazard
-class name, or `view:<scene>` for an aligned view.
+class name, or `view:<scene>` for an aligned view. Paired records also carry
+`presentation`: `policy_version` (`paired-table-v2` or `paired-checkup-v1`),
+`scope` (`table_extraction` or `checkup_document`),
+and `purpose` (`ordinary` for the clean base, `stress` for named hazards and aligned
+acquisition views). Purpose describes presentation intent; it does not certify
+clinical realism. `split` continues to describe hazard-count/severity difficulty
+and is independent of purpose. A stress variant can belong to `main`.
+
+`build --pairs N --pair-views ordinary` writes only the same clean table controls
+as `--pair-views all` (the default). It leaves clinical facts and the full stress
+option available. Use separate output directories for each selection. This option
+affects `pairs.jsonl` and `pairs/`; `--render` still writes the mixed corpus to
+`files.jsonl`. An indicator without a known reference interval keeps that absence.
+
+`paired-table-v2` replaces `paired-table-v1`: multi-page aligned captures use
+an image PDF rather than silently retaining only page one in JPG/PNG. The
+`container_fallback` describes the requested and actual container; scene, severity
+and clinical truth stay the same. Single-page JPG/PNG bytes are unchanged. The
+delivery layer applies this rule to any explicit multi-page JPG/PNG request, and
+the low-level image encoder rejects multi-page single-image input. Retain the
+policy version with historical evaluation results.
+
+`--pair-scope checkup` selects routine encounters and builds full checkup books;
+the default `tables` selects non-routine encounters. Both require at least five
+readings. Checkup IDs use `checkupNNN`, while table IDs retain `pairNNN`. Checkup
+ordinary/all selections share the same complete control document. Checkup stress
+variants clone that frozen document for applicable incidental table corruptions
+and six acquisition scenes. They preserve readings, examination blocks, findings,
+summary, cover and embedded image bytes. Layout toggles that rebuild a document
+are retained only in the table scope. Checkup capture scenes, including screenshot,
+use a multi-page image PDF to retain every page; they do not use single-image
+JPG/PNG containers. A missing table result can still appear in
+the book's summary; the row's missingness does not establish whole-book question
+unanswerability. Illustrations remain the existing synthetic props, without new
+clinical-image truth or validation.
 
 ### `handwriting` (handwritten files only, `build --handwriting`)
 
@@ -92,6 +240,17 @@ Home-log readings have `role` `export` and `status` `""` like the printed home l
 readings are the visit's own (`current`).
 
 ## `devices.jsonl` and `devices/<person>/<vendor>_batchNN.json`
+
+Device truth also carries `pulse_model`: `policy_version=device-pulse-v2`,
+`authority=synthetic_model`, and `contexts` mapping `rhr` to
+`daily_resting_summary` and `hr` to `home_cuff`. This metadata stays out of vendor
+batch payloads. Version 2 applies the existing `pulse` timeline factor to the
+cuff's signal centre, retaining its baseline, 1.08 context multiplier, additive
+noise, timestamps and sampling. Daily resting summaries retain their separate
+noise and infection adjustment; clinic pulse retains its catalogue/person model.
+These contexts do not imply equal numbers or validated clinical effect sizes.
+Imported observations must retain their original authority and values rather
+than pass through this synthetic event adjustment.
 
 Per person: `vendor`, `source` (the `source` value a phone client sends), `files[]`, `habits`
 (`weigh_rate`, `wearable`, `cuff`), `n_records`, `records[]` with `indicator` (the vendor field name),
@@ -118,9 +277,38 @@ on.
 | Field | Meaning |
 | --- | --- |
 | `person_id`, `synthetic`, `stream`, `tz` | `stream` ∈ `cgm` · `heart_rate`; `tz` the device clock's offset |
-| `days[]` | the day plans the curve was drawn from: `day`, `wake`, `bed` (local, no offset), `meals[]` (`time`, `kind` ∈ `breakfast` · `lunch` · `dinner` · `snack`, `load` relative to lunch), `run` (`start`, `minutes`) or `null`, `walk_minutes`, `steps` (the store's daily total), `rhr` (the store's resting heart rate) |
+| `days[]` | the day plans the curve was drawn from: `day`, `wake`, `bed` (local, no offset), `meals[]` (`time`, `kind` ∈ `breakfast` · `lunch` · `dinner` · `snack`, `load` relative to lunch), `run` (`start`, `minutes`) or `null`, `walk_minutes`, `steps` (the store's daily total or model fallback), `rhr` (resting input from the store or model fallback), `rhr_provenance` (see below) |
 | `hazards[]` | `name`, `count`; names from `resources/streams.json` `hazard_classes` (`stream.*`) |
 | `exports[]` | the person's `apple_health_export/export.xml`, when they have one: it holds this stream's records among everything else in the store |
+
+Day plans also declare `activity_policy_version=daily-activity-v3`, `steps_source`
+(`phone_store` or `baseline_model`; manually constructed plans may be
+`unspecified`), and `step_allocation` (`run`, `walk`, `other`, all in steps).
+
+`rhr_provenance` carries `policy_version=resting-hr-provenance-v1`, `source`
+(`phone_store`, `baseline_model`, or `unspecified` for a manual plan), `context`
+(`daily_resting_summary`, `resting_model_expectation`, or `unspecified`), and
+`record_time` (the chosen source record's original offset timestamp, or `null`
+without one). Selection follows the existing local-date and last-record-in-input
+policy; it does not convert the record to UTC or apply event effects again.
+The phone-store records in this synthetic build remain synthetic, not clinical
+observations. A fallback has no fabricated observation time. This additive
+metadata changes neither the resting input nor the generated minute curves.
+
+The synthetic model's fixed cadence (run 160, walk 105 steps/min) allocates run/walk steps within the unchanged
+daily total. Proposed runs are shortened within the existing 25–50 minute model
+range, or omitted when that minimum cannot fit. Exact `walks[]` (`start`,
+`minutes`) are recorded alongside `walk_minutes`. Sampled walking bouts keep their
+durations; conflicting starts are moved to the nearest available whole-bout slot
+inside the local day and waking window, excluding the run and other walks.
+Already feasible proposals retain their times. A sampled run outside its waking
+day is moved without shortening. Placement failure raises an error instead of
+deleting minutes. Day-plan creation, serialization and Apple export validate
+explicit activity intervals and step conservation. Apple export rejects an inconsistent plan
+instead of shrinking cadence after the heart-rate curve has used the longer run.
+Fallback totals are model values, not measurements. This policy does not classify
+low resting heart rate, infer fitness or couple symptoms to the curve. This is a
+constraint on generated activities, not a rule for changing imported observations.
 
 A CGM session adds:
 
@@ -144,6 +332,151 @@ A heart-rate window adds:
 | `expected` | `metric` (`heartRates`), `loinc` (`8867-4`) |
 | `multi_source` | the person wears two devices (a watch and a ring) recording the same minutes |
 | `devices[]` | `wearable` (`apple_watch` · `huawei_watch` · `mi_band` · `android_watch` · `oura_ring`), `files[]` (`format` ∈ `api_data_batch` · `oura_api_v2_heartrate` · `zepp_life_heartrate_auto_csv`), `hazards[]`, `off_body[]` (`start`, `end`, `cause` ∈ `charging` · `off_overnight`), `samples[]` (`time`, `bpm` as recorded, `true_bpm`, `state` ∈ `sleep` · `rest` · `walk` · `run`) |
+
+## `ocular.jsonl` — source-only ocular replay
+
+Separate from generated checkup truth: `replay-ocular INPUT.jsonl --out DIR`
+writes one PDF per source case, `ocular.jsonl` and a derived `audit.json` summary.
+Input root fields are exactly `schema_version=ocular-observations-v1`,
+`synthetic=true`, `case_id` (safe ASCII filename alias), `person_id`, `language`
+(zh/en), `document_date`, `source_system`, and nonempty `observations[]`.
+
+Each observation requires unique `id`, `source_id`, `item_id` (va/va_corrected/iop),
+`laterality` (left/right/unspecified) and `status` (measured/not_measured/unknown).
+Optional `value`, `unit`, `notation`, `effective_time` preserve their source text
+and null/absence. Measured requires a nonblank supported quantitative string;
+other states cannot carry a value. Missing units or observation time are not
+invented. Times accept ISO dates or explicitly offset timestamps, preserved
+without UTC conversion. No source scalar is assigned to both eyes. Repeated
+item/side/time requires an explicit revision policy, which v1 does not supply.
+
+Output keeps every input field and adds `policy_version=ocular-source-v1`,
+`completion_performed=false`, `source_sha256` (canonical JSON source-packet hash),
+`pdf_sha256`, and relative PDF `file`.
+The PDF has source-only observation blocks, with no invented person demographics,
+institution, diagnosis or normal finding. The document date is separate from the
+individual observation times. `audit.json` reports source-state counts,
+`audit_ok` for fidelity and `clinical_accuracy_measured=false`; it is not a clinical
+gold label. `--audit-existing DIR` independently reads original inputs and saved
+records/PDFs, including physical text; it does not trust the stored audit summary.
+Unreferenced files in the output directory are outside that audit's scope.
+
+This narrow packet is not a FHIR adapter. Extra codes, methods/reference intervals,
+qualitative values or unknown fields are rejected, not silently discarded.
+
+## Source-field review questions
+
+`review-scenarios INPUT.jsonl --ocular-source --out OUTPUT.jsonl` reads the same
+source packets without rendering or completing them. The opt-in question policy
+is `ocular-source-questions-v1`. Local review cases retain `source_packet`; facts
+must exactly match its observation fields. Outbound facts contain observation id
+and JSON text of item_id/status/laterality/value/unit/notation/effective_time only,
+with original null/absence. Person/source-system/source-location/document-date
+metadata is excluded from the model packet.
+
+Output adds `question_policy`, `source_packet_sha256` and two deterministic
+`source_question_candidates[]` (status/laterality of the first source record).
+Each candidate contains generated `text`, `fact_ids`, `question_policy`, `scope`,
+`source_query: {fact_id, field}`, and `source_lookup: {field_present, value,
+observation_status}`. A missing field yields false/null; an explicit null yields
+true/null. Recorded unknown/unspecified states retain those literal values.
+
+Optional model `answer.candidate_questions[]` in this mode consists only of at
+most two distinct `{fact_id, field}` selectors. Free prose/extra keys/unknown ids
+or fields fail the review. Valid selectors are materialized separately under
+`llm.source_question_candidates`, preserving the raw model answer. Code owns the
+wording; the model only selects source fields. Clinical criteria and arbitrary
+input-question semantics remain unverified. The default free-text review format
+is unchanged when this mode is off.
+
+## FHIR Observation source snapshots
+
+`snapshot-fhir INPUT.json --synthetic --out NEW_DIR` writes three files under
+`fhir-source-v1`: `source.fhir.json` (original bytes), `observations.jsonl` (one
+record per top-level entry Observation), and derived `snapshot.json`. Input is a
+UTF-8 Bundle; this command does not validate a complete FHIR implementation guide.
+
+Each record uses `schema_version=fhir-observation-source-v1`, `synthetic=true`,
+`source_sha256`, `source_pointer` (`/entry/N/resource`), `entry_index`, source
+`resource_id`/`version_id` (nullable projections), `observation_status`, recognized
+top-level `value_keys`, exact `resource_json` string and `resource_sha256`,
+`completion_performed=false`, and `clinical_use=not_adjudicated` or
+`excluded_entered_in_error`. The raw string is the complete resource, including
+numeric lexical precision and absent/null distinctions that nullable identity
+projections do not expose. The record itself is an index envelope, not an FHIR
+Observation or a completed clinical fact. No side, measurement state, current
+version or unit conversion is inferred.
+
+The summary counts entries, Observations, non-Observation entries, lifecycle
+statuses and repeated resource IDs; it explicitly records no version selection,
+no complete FHIR validation, and no assessed clinical validity. Full entry and
+other-resource context remains in the source archive. References are not resolved;
+modifier extensions are retained without interpretation.
+
+`--audit-existing DIR` requires the original input, compares archived bytes and
+recomputed record contents without writing, and ignores saved summary assertions.
+It checks JSON types and raw resource spelling, not clinical correctness. Existing
+output directories are never overwritten. Original-source snapshots remain
+separate from `ocular-observations-v1` and the synthetic generation path.
+
+`--reference-audit` emits a separate `policy_version=fhir-local-references-v1`
+JSON diagnostic to stdout. It does not create or modify snapshot files. The
+report has `source_sha256`, declared `scope`, `links[]`, `status_counts`,
+`unscanned_resource_boundaries`, `external_requests=0`, no inferred head version,
+and `clinical_validity=not_assessed`.
+
+Each link contains `source_pointer`, escaped JSON `reference_pointer`, the literal
+string `reference` (null for invalid non-string input), `resolution_status`,
+`reason`, `candidate_pointers`, nullable `target_pointer` and
+`target_clinical_use`. States include resolved, unresolved, ambiguous, unsupported,
+type_mismatch and identity_conflict. Only a unique identity-consistent match can
+yield a target pointer; resolved does not mean medically valid. Entered-in-error
+Observation targets remain explicitly excluded. The scan examines reference-named
+fields, including invalid/null ones; it does not resolve identifier-only/canonical
+references or traverse nested Bundle/Parameters scopes.
+
+`--body-patient-audit` emits a separate `policy_version=fhir-body-patient-v1`
+diagnostic with `source_sha256`, declared `scope`, `observations_scanned`,
+`observations_without_body_reference`, `checks[]`, `status_counts`,
+`external_requests=0`, `projection_performed=false` and
+`clinical_validity=not_assessed`. Its scope is the canonical root bodySite
+BodyStructure-reference extension on top-level Observations, not all eye data.
+
+Checks preserve Observation/body-reference pointers and reference diagnostics for
+the body and both patient roles when assessable. `status` is same_patient_record,
+different_patient_records, not_assessable or excluded; `same_patient_record` is
+true/false/null. Successful identity comparison additionally records both identity
+keys and `patient_version_relation` (not_provided/same_explicit_version/
+different_explicit_versions). Every check has `projection_eligible=false` and
+`clinical_error=not_adjudicated`. Same fullUrl across explicit versions is logical
+record identity only; contained pointers do not escape their container. Distinct
+patient records are not biological-person or clinical-error labels. Empty role
+evidence and context exceptions remain unassessed. Existing snapshot/reference
+formats and raw input resources are unchanged.
+
+## FHIR source-field HTML views
+
+`render-fhir-view INPUT.json --synthetic --entry N [--entry M] --out NEW_DIR`
+uses `fhir-source-view-v1`. Three files are written: original-byte
+`source.fhir.json`, self-contained `view.html`, and `view.json`. The entire input
+Bundle is validated by the existing limited source checks before any selection
+is rendered. Duplicate/non-Observation/missing indices fail; no version is sampled
+or merged, and output directories are never overwritten.
+
+The manifest contains `policy_version`, `synthetic`, `source_sha256`,
+`component_policies` (source/references/patient_context), ordered pointer
+`selection[]`, `records[]`, `html_sha256`, `semantic_projection=not_performed`,
+`completion_performed=false` and `clinical_validity=not_assessed`. Each selected
+record retains its full source snapshot record, relevant reference diagnostics,
+patient checks, and linked body-reference target `resource_json`/source pointers.
+Numeric spelling and unknown metadata remain in raw JSON; no lossy ocular schema
+conversion is performed. HTML preserves absent versus null, shows raw source
+fields and expandable originals, and escapes untrusted source markup.
+
+`--audit-existing DIR --entry N` recomputes expected content from the original
+input and explicit selection, comparing archive bytes, complete HTML bytes and
+typed manifest content. Updating a saved HTML hash does not authorize a changed
+value. This is deterministic source fidelity, not browser/OCR or clinical validity.
 
 ## `journal.jsonl`
 

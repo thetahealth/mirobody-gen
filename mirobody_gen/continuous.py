@@ -81,6 +81,9 @@ LOAD_SIGMA, FEAST_FACTOR = 0.25, 1.35
 #: Cadence (steps/min) for brisk walking and easy running, and the share of a day's steps walked in bouts
 #: (the rest is pottering that barely moves heart rate).
 WALK_SPM, RUN_SPM, WALK_SHARE = 105, 160, 0.55
+MIN_RUN_MINUTES, MAX_RUN_MINUTES = 25, 50
+ACTIVITY_POLICY = "daily-activity-v3"
+RHR_PROVENANCE_POLICY = "resting-hr-provenance-v1"
 
 # ── Glucose model (mmol/L, minutes) ─────────────────────────────────────────────
 #: A meal response peaks at `TAU` minutes in normal glucose tolerance and later, and longer, as HbA1c
@@ -137,6 +140,33 @@ def _during(person: Person, name: str, day: date) -> bool:
     return any(e.name == name and 0 <= (day - e.start).days <= e.duration_days for e in person.events)
 
 
+def _schedule_walks(walks, run, lower: datetime, upper: datetime) -> tuple[tuple[datetime, int], ...]:
+    """Keep feasible sampled starts; move collisions into the nearest free whole-bout slot."""
+    busy = [(run[0], run[0] + timedelta(minutes=run[1]))] if run else []
+    placed = []
+    for proposed, minutes in sorted(walks):
+        if minutes <= 0:
+            raise ValueError("Walking duration must be positive")
+        duration = timedelta(minutes=minutes)
+        candidates = []
+        cursor = lower
+        for begin, end in sorted(busy) + [(upper, upper)]:
+            if end <= cursor:
+                continue
+            gap_end = min(begin, upper)
+            if gap_end - cursor >= duration:
+                candidates.append(min(max(proposed, cursor), gap_end - duration))
+            cursor = max(cursor, end)
+            if cursor >= upper:
+                break
+        if not candidates:
+            raise ValueError("Could not place every walking bout in the synthetic activity window")
+        start = min(candidates, key=lambda t: (abs(t - proposed), t))
+        placed.append((start, minutes))
+        busy.append((start, start + duration))
+    return tuple(sorted(placed))
+
+
 @dataclasses.dataclass(frozen=True)
 class DayPlan:
     """What a person did on one local day; every stream reads the same plan."""
@@ -149,12 +179,42 @@ class DayPlan:
     walks: tuple[tuple[datetime, int], ...]              # (start, minutes)
     steps: int
     rhr: float
+    steps_source: str = "unspecified"
+    rhr_source: str = "unspecified"
+    rhr_record_time: str | None = None
+
+    def validate_activity(self) -> None:
+        run_steps = self.run[1] * RUN_SPM if self.run else 0
+        walk_steps = sum(m for _, m in self.walks) * WALK_SPM
+        if self.steps < 0 or run_steps + walk_steps > self.steps:
+            raise ValueError("Activity plan exceeds the daily step budget")
+        lower = max(self.wake, datetime.combine(self.day, time()))
+        upper = min(self.bed, datetime.combine(self.day + timedelta(days=1), time()))
+        bouts = sorted(list(self.walks) + ([self.run] if self.run else []))
+        previous_end = lower
+        for start, minutes in bouts:
+            end = start + timedelta(minutes=minutes)
+            if minutes <= 0 or start < lower or end > upper or start < previous_end:
+                raise ValueError("Invalid activity clock: overlapping or outside the local waking day")
+            previous_end = end
 
     def describe(self) -> dict:
+        self.validate_activity()
+        run_steps = self.run[1] * RUN_SPM if self.run else 0
+        walk_steps = sum(m for _, m in self.walks) * WALK_SPM
         return {"day": self.day.isoformat(), "wake": self.wake.isoformat(), "bed": self.bed.isoformat(),
                 "meals": [{"time": t.isoformat(), "kind": k, "load": round(load, 2)} for t, k, load in self.meals],
                 "run": {"start": self.run[0].isoformat(), "minutes": self.run[1]} if self.run else None,
-                "walk_minutes": sum(m for _, m in self.walks), "steps": self.steps, "rhr": round(self.rhr, 1)}
+                "walks": [{"start": t.isoformat(), "minutes": m} for t, m in self.walks],
+                "walk_minutes": sum(m for _, m in self.walks), "steps": self.steps, "rhr": round(self.rhr, 1),
+                "rhr_provenance": {"policy_version": RHR_PROVENANCE_POLICY, "source": self.rhr_source,
+                                   "context": {"phone_store": "daily_resting_summary",
+                                               "baseline_model": "resting_model_expectation"}.get(
+                                                   self.rhr_source, "unspecified"),
+                                   "record_time": self.rhr_record_time},
+                "activity_policy_version": ACTIVITY_POLICY, "steps_source": self.steps_source,
+                "step_allocation": {"run": run_steps, "walk": walk_steps,
+                                    "other": self.steps - run_steps - walk_steps}}
 
 
 class Life:
@@ -163,15 +223,17 @@ class Life:
     def __init__(self, seed: int, person: Person, series: dict):
         self.seed, self.person, self.series = seed, person, series
         self.tz = series["baseline"]["tz"]
-        rhr, steps, sleep = {}, {}, {}
+        rhr, rhr_times, steps, sleep = {}, {}, {}, {}
         for r in series["records"]:
             if r["_metric"] == "rhr":
                 rhr[r["time"][:10]] = r["value"]
+                rhr_times[r["time"][:10]] = r["time"]
             elif r["_metric"] == "steps":
                 steps[r["time"][:10]] = r["value"]
             elif r["_metric"] == "sleep":
                 sleep[r["end_time"][:10]] = (_local(r["time"]), _local(r["end_time"]))   # keyed by wake day
         self._rhr, self._steps, self._sleep = rhr, steps, sleep
+        self._rhr_times = rhr_times
         h = random.Random(f"habits:{seed}:{person.person_id}")
         self.meal_clock = {k: h.gauss(mu, sd) for k, (mu, sd, _) in MEALS.items()}
         self.skip_breakfast = h.choice([0.03, 0.1, 0.3])
@@ -230,9 +292,23 @@ class Life:
         if _running(self.person, day) and not _during(self.person, URI, day) and r.random() < self.run_rate:
             start = _hours(day, 19.5 + r.gauss(0, 0.5)) if self.run_evening else \
                 max(_hours(day, 6.5 + r.gauss(0, 0.3)), wake + timedelta(minutes=10))
-            run = (start, r.randint(25, 50))
+            run = (start, r.randint(MIN_RUN_MINUTES, MAX_RUN_MINUTES))
 
         steps = int(self._steps.get(day.isoformat(), self.series["baseline"]["steps"]))
+        if run:
+            # This simulator treats the shared daily total as the activity budget.
+            # Keep the existing cadence and minimum bout length; do not inflate the
+            # source steps or silently lower exported cadence to fit a longer run.
+            minutes = min(run[1], steps // RUN_SPM)
+            run = (run[0], minutes) if minutes >= MIN_RUN_MINUTES else None
+        day_start = datetime.combine(day, time())
+        day_end = day_start + timedelta(days=1)
+        if run:
+            lower = max(wake + timedelta(minutes=10), day_start)
+            latest = min(bed, day_end) - timedelta(minutes=run[1])
+            if latest < lower:
+                raise ValueError("Synthetic activity window cannot fit the running bout")
+            run = (min(max(run[0], lower), latest), run[1])
         walk_steps = max(0, steps - (run[1] * RUN_SPM if run else 0))
         walk_min = int(WALK_SHARE * walk_steps / WALK_SPM)
         walks = []
@@ -242,8 +318,13 @@ class Life:
             minutes = min(walk_min, r.randint(5, 25))
             walks.append((lo + timedelta(minutes=r.randrange(span)), minutes))
             walk_min -= minutes
-        walks.sort()
-        return DayPlan(day, wake, bed, tuple(meals), run, tuple(walks), steps, self.resting_hr(day))
+        walks = _schedule_walks(walks, run, max(lo, day_start), min(bed - timedelta(minutes=20), day_end))
+        plan = DayPlan(day, wake, bed, tuple(meals), run, walks, steps, self.resting_hr(day),
+                       steps_source="phone_store" if day.isoformat() in self._steps else "baseline_model",
+                       rhr_source="phone_store" if day.isoformat() in self._rhr else "baseline_model",
+                       rhr_record_time=self._rhr_times.get(day.isoformat()))
+        plan.validate_activity()
+        return plan
 
     def asleep(self, when: datetime) -> bool:
         today = self.plan(when.date())
@@ -1323,14 +1404,14 @@ def _apple_daily(apple, life: Life, series: dict) -> None:
                           created=when + timedelta(seconds=r.randint(20, 240)), metadata={"HKWasUserEntered": "1"})
         if "steps" in group:
             plan = life.plan(when.date())
+            plan.validate_activity()
             total = int(group["steps"]["value"])
             bouts = [(t, m, int(m * WALK_SPM)) for t, m in plan.walks]
             if plan.run:
                 bouts.append((plan.run[0], plan.run[1], plan.run[1] * RUN_SPM))
             walked = sum(n for _, _, n in bouts)
-            if walked > total:                              # scale down to the store's total
-                bouts = [(t, m, n * total // max(walked, 1)) for t, m, n in bouts]
-                walked = sum(n for _, _, n in bouts)
+            if plan.steps != total or walked > total:
+                raise ValueError("Activity plan exceeds or disagrees with the daily step budget")
             # What was not walked in bouts is pottering: three records over the waking day.
             rest = total - walked
             third = (plan.bed - plan.wake) / 3

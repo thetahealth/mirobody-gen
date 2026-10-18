@@ -24,14 +24,33 @@ import pathlib
 from . import spec, manifest, person as person_mod
 
 
-def main() -> None:
+def _positive_int(text: str) -> int:
+    try:
+        value = int(text)
+    except ValueError:
+        raise argparse.ArgumentTypeError(f"expected a positive integer, got {text!r}") from None
+    if value < 1:
+        raise argparse.ArgumentTypeError(f"expected a positive integer, got {text!r}")
+    return value
+
+
+def main(argv: list[str] | None = None) -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--seed", type=int, default=7)
-    ap.add_argument("--people", type=int, default=None, help="generate only the first N people (smoke builds)")
+    ap.add_argument("--people", type=_positive_int, default=None,
+                    help="generate exactly N people, apportioned across archetypes by prevalence (smoke builds)")
     ap.add_argument("--out", default="out/p1")
     ap.add_argument("--stats", action="store_true", help="print distribution statistics for comparison with the reference aggregates")
     ap.add_argument("--render", action="store_true", help="render files (text-layer PDF, XLSX/CSV, scans, photos, screenshots) and write files.jsonl")
+    ap.add_argument("--facility-services", default=None,
+                    help="with --render: explicit authored-synthetic service profile JSON; applies to corpus files, not pairs")
     ap.add_argument("--pairs", type=int, default=0, help="also emit N minimal-contrast pair groups (pairs.jsonl)")
+    ap.add_argument("--pair-views", choices=("all", "ordinary"), default=None,
+                    help="with --pairs: all named stress variants (default), or only the same clean "
+                         "controls for ordinary presentation review; does not change --render files")
+    ap.add_argument("--pair-scope", choices=("tables", "checkup"), default=None,
+                    help="with --pairs: non-routine tables (default), or full routine checkup books with "
+                         "frozen clinical content and incident/capture stress variants")
     ap.add_argument("--paraphrase", action="store_true", help="use resources/paraphrases.json for narrative wording (off by default)")
     ap.add_argument("--handwriting", action="store_true",
                     help="with --render: also write handwritten files (notebook logs, doctor's notes, forms filled "
@@ -42,13 +61,30 @@ def main() -> None:
                          "their bytes")
     ap.add_argument("--no-banner", action="store_true",
                     help="omit the SYNTHETIC banner (realism stress test; the synthetic metadata mark is always kept)")
+    ap.add_argument("--verify", action="store_true",
+                    help="after writing, run the deterministic audits (clinical, readability, privacy) and write "
+                         "verification.json with passed/failed/skipped/not_run per check; exits 1 if a "
+                         "required check fails")
     ap.add_argument("--lang-mix", default=None,
                     help="language-group ratio, e.g. 'zh:0.45,en:0.4,ja:0.15' (default zh:0.5,en:0.5). "
                          "Unknown groups fall back to English document templates; the mix changes "
                          "cohort composition, not dictionary structure.")
-    args = ap.parse_args()
+    args = ap.parse_args(argv)
+    service_profile = None
+    if args.facility_services:
+        if not args.render:
+            ap.error("--facility-services requires --render")
+        from .facility_services import ServiceProfile
+        try:
+            service_profile = ServiceProfile.load(args.facility_services)
+        except (OSError, ValueError, TypeError) as e:
+            ap.error(f"--facility-services: {e}")
     if args.handwriting and not args.render:
         ap.error("--handwriting renders files: use it with --render")
+    if args.pair_views is not None and args.pairs < 1:
+        ap.error("--pair-views selects pair output: use it with --pairs N (N >= 1)")
+    if args.pair_scope is not None and args.pairs < 1:
+        ap.error("--pair-scope selects pair output: use it with --pairs N (N >= 1)")
     spec.set_paraphrases(bool(args.paraphrase))
     if args.lang_mix:
         try:
@@ -58,6 +94,12 @@ def main() -> None:
 
     people = person_mod.build_cohort(args.seed, args.people)
     encounters = {p.person_id: person_mod.encounters_for(p, args.seed) for p in people}
+    if service_profile is not None:
+        from . import corpus
+        try:
+            corpus.preflight_services(service_profile, encounters)
+        except ValueError as e:
+            ap.error(f"--facility-services: {e}")
 
     out_dir = pathlib.Path(args.out)
     n_enc, n_rows = manifest.write(out_dir, people, encounters)
@@ -96,7 +138,7 @@ def main() -> None:
 
         if args.render:
             records = corpus.render_corpus(args.seed, people, encounters, out_dir, banner=not args.no_banner,
-                                           handwriting=args.handwriting)
+                                           handwriting=args.handwriting, service_profile=service_profile)
             by_fmt = collections.Counter(r["format"] for r in records)
             print(f"rendered {len(records)} files {dict(by_fmt)} → {out_dir / 'files'}")
             if args.handwriting:
@@ -105,8 +147,25 @@ def main() -> None:
                 print(f"handwritten {sum(tiers.values())} {dict(sorted(tiers.items()))}")
         if args.pairs:
             records = pairs.render_pairs(args.seed, people, encounters, out_dir, args.pairs,
-                                         banner=not args.no_banner)
-            print(f"{args.pairs} minimal-contrast pair groups, {len(records)} files → {out_dir / 'pairs'}")
+                                         banner=not args.no_banner, views=args.pair_views or "all",
+                                         scope=args.pair_scope or "tables")
+            n_groups = len({r["pair"]["pair_id"] for r in records})
+            print(f"{n_groups} pair groups ({args.pair_scope or 'tables'}, {args.pair_views or 'all'} views), "
+                  f"{len(records)} files → {out_dir / 'pairs'}")
+
+    if args.verify:
+        import sys
+
+        from . import verify
+
+        summary = verify.run(out_dir, requested_people=args.people,
+                             expected_people=args.people if args.people is not None
+                             else sum(a["n"] for a in person_mod.ARCHETYPES),
+                             people=len(people), rendered=args.render, pairs=bool(args.pairs),
+                             continuous=args.continuous)
+        print(verify.render(summary))
+        if summary["overall"] == "failed":
+            sys.exit(1)
 
 
 def _stats(people, encounters) -> None:

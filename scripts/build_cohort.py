@@ -296,18 +296,16 @@ ARCHETYPE_CONDITIONS: dict[str, list[dict]] = {
     "hypertension": [{"code": "38341003", "display": "高血压"}],
 }
 
-#: Diagnostic criteria: **once a value crosses this line, the matching diagnosis must exist**.
+#: Declared model evidence patterns, not an automatic clinical gold standard.
 #:
 #: This backs the clinical audit's fifth check class. It catches an inconsistency both ESL-Bench
 #: and Synthea have independently produced: a chart printing HbA1c 7.2% for a person whose
 #: diagnosis set has no diabetes -- an undiagnosed diabetic on paper. ESL-Bench generates
 #: values with no diagnostic constraint; Synthea's modules sample {low, high} uniformly.
 #:
-#: `persistence` is how many consecutive visits must meet the criterion before it counts.
-#: Setting it to 1 would flood the audit with single-visit noise -- a reference range is
-#: itself a 95% interval, so healthy people occasionally fall outside it; that's normal, not
-#: a missed diagnosis. All thresholds come from their respective diagnostic guidelines, not
-#: from guesswork.
+#: `persistence` counts distinct positive measurement dates; observed negatives reset
+#: the run, unrelated unmeasured visits do not. Clinical duration/companion constraints
+#: are explicit below. Legacy screening thresholds remain model assumptions where noted.
 DIAGNOSTIC_CRITERIA: list[dict] = [
     {"condition": {"code": "44054006", "display": "2型糖尿病"},
      "any_of": [{"key": "hba1c", "op": ">=", "value": 6.5},
@@ -322,15 +320,20 @@ DIAGNOSTIC_CRITERIA: list[dict] = [
     {"condition": {"code": "709044004", "display": "慢性肾脏病"},
      "any_of": [{"key": "egfr", "op": "<", "value": 60}],
      "persistence": 2,
-     "source": "KDIGO：eGFR<60 持续≥3 个月"},
-    {"condition": {"code": "87522002", "display": "贫血"},
+     "minimum_elapsed_days_exclusive": 90,
+     "source_url": "https://kdigo.org/wp-content/uploads/2024/03/KDIGO-2024-CKD-Guideline.pdf",
+     "source": "KDIGO 2024 1.1.3：重复低eGFR的慢性证据，时间超过90天；不涵盖所有CKD病因/AKI排除"},
+    {"condition": {"code": "271737000", "display": "贫血"},
      "any_of": [{"key": "hgb", "op": "<", "value": 110}],
      "persistence": 2,
-     "source": "WHO 贫血标准（成人女性<120、男性<130；此处取更保守的 110 以免误报）"},
+     "source_url": "https://docs.snomed.org/snomed-ct-specifications/snomed-ct-release-file-specification/reference-set-release-file-specification/5.2-reference-set-types/5.2.2.1-language-reference-set",
+     "source": "既有hgb<110模型筛查条件，仅记录贫血模式；不是缺铁病因或完整性别/人群诊断阈值"},
     {"condition": {"code": "40930008", "display": "甲状腺功能减退症"},
      "any_of": [{"key": "tsh", "op": ">=", "value": 10.0}],
+     "all_of": [{"key": "ft4", "op": "<", "reference": "ref_low", "unit": "pmol/L"}],
      "persistence": 2,
-     "source": "临床甲减：TSH≥10 mIU/L 且 FT4 降低"},
+     "source_url": "https://www.thyroid.org/thyroid-function-tests/",
+     "source": "既有TSH≥10模型条件且同次FT4低于该结果的参考下限；FT4正常或未测不判临床甲减"},
     {"condition": {"code": "55822004", "display": "高脂血症"},
      "any_of": [{"key": "chol", "op": ">=", "value": 6.2},
                 {"key": "ldl", "op": ">=", "value": 4.1}],

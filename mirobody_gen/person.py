@@ -20,11 +20,12 @@ distribution matches the measured p50=6 / p95=36.
 from __future__ import annotations
 
 import math
+import copy
 import random
 from datetime import date, timedelta
 
 from . import profile, spec
-from .model import Encounter, Event, Person, Reading
+from .model import Encounter, Event, MissingResult, Person, Reading
 from .physiology import (
     derive, derive_second_pass, measure, normalize_differential,
     categorical_value, person_baseline, qualitative_value,
@@ -51,21 +52,51 @@ LUNAR_NEW_YEAR: dict[int, date] = {int(y): date.fromisoformat(d) for y, d in _CO
 def build_cohort(seed: int, size: int | None = None) -> list[Person]:
     """An entire cohort. Same seed, same result, always."""
     rng = random.Random(f"cohort:{seed}")
-    full = sum(a["n"] for a in ARCHETYPES)
-    # `--people N` must **scale proportionally across archetypes**, not just take the first N: taking
-    # the first N would give an all-healthy cohort, so a smoke test would never see a chronic-disease
-    # trajectory, an intervention event, or an abnormal value — exactly what it's meant to test.
-    scale = 1.0 if size is None else size / full
+    counts = archetype_counts(size)
     people: list[Person] = []
     index = 0
     for archetype in ARCHETYPES:
-        count = archetype["n"] if size is None else max(1, round(archetype["n"] * scale))
-        for _ in range(count):
-            if size is not None and len(people) >= size:
-                return people
+        for _ in range(counts[archetype["name"]]):
             index += 1
             people.append(_one_person(rng, f"p{index:03d}", archetype))
     return people
+
+
+def archetype_counts(size: int | None) -> dict[str, int]:
+    """Exactly `size` seats apportioned across archetypes by their prevalence weight `n`.
+
+    `--people N` must **scale proportionally across archetypes**, not just take the first N: taking
+    the first N would give an all-healthy cohort, so a smoke test would never see a chronic-disease
+    trajectory, an intervention event, or an abnormal value — exactly what it's meant to test. The
+    earlier rule (`max(1, round(n * scale))`, then truncating in table order) returned 60 people for
+    61 and 99 for 100, and for 7/8 dropped whichever archetypes came last in the table.
+
+    Largest-remainder apportionment (ties broken by table order) gives each archetype within one
+    seat of its exact quota and the full table back when `size` equals its total. When there are at
+    least as many seats as archetypes, each archetype gets one, taken from the archetype with the
+    most seats; fewer seats than archetypes cannot cover them all and are not asked to.
+    """
+    weights = {a["name"]: a["n"] for a in ARCHETYPES}
+    full = sum(weights.values())
+    if size is None:
+        return dict(weights)
+    if isinstance(size, bool) or not isinstance(size, int) or size < 1:
+        raise ValueError(f"cohort size must be a positive integer, got {size!r}")
+    quota = {name: n * size / full for name, n in weights.items()}
+    seats = {name: int(q) for name, q in quota.items()}
+    order = list(weights)
+    by_remainder = sorted(order, key=lambda name: (-(quota[name] - seats[name]), order.index(name)))
+    for name in by_remainder[:size - sum(seats.values())]:
+        seats[name] += 1
+    if size >= len(order):
+        for name in order:
+            if seats[name] == 0:
+                # the donor holds the most seats; on a tie, the one furthest above its quota
+                donor = max(order, key=lambda d: (seats[d], seats[d] - quota[d], -order.index(d)))
+                seats[donor] -= 1
+                seats[name] = 1
+    assert sum(seats.values()) == size
+    return seats
 
 
 def _one_person(rng: random.Random, person_id: str, archetype: dict) -> Person:
@@ -144,7 +175,10 @@ def _timeline(rng: random.Random, archetype: dict, start: date, birth_year: int)
             name=script["name"], event_type=script["type"],
             start=start + timedelta(days=offset), duration_days=3650,
             health_effect=script["effect"], impact_level=script["impact"],
-            effects={k: tuple(v) for k, v in script["effects"].items() if k != "weight_kg"},
+            # Cohort resources call this weight_kg; event truth uses the catalogue key so
+            # documents, scales and attribution all refer to the same indicator.
+            effects={"weight" if k == "weight_kg" else k: tuple(v)
+                     for k, v in script["effects"].items()},
             note="原型剧本"))
     for _ in range(rng.randint(1, 3)):
         when = start + timedelta(days=rng.randint(30, (CORPUS_END - start).days - 30))
@@ -157,7 +191,8 @@ def _timeline(rng: random.Random, archetype: dict, start: date, birth_year: int)
             name=incident["name"], event_type=incident["type"], start=when,
             duration_days=incident["duration"], health_effect=incident["effect"],
             impact_level=incident["impact"],
-            effects={k: tuple(v) for k, v in incident["effects"].items() if k != "weight_kg"},
+            effects={"weight" if k == "weight_kg" else k: tuple(v)
+                     for k, v in incident["effects"].items()},
             note="随机事件"))
     return tuple(sorted(events, key=lambda e: e.start))
 
@@ -229,19 +264,39 @@ DETECTION = {"vitals": "Physiological", "ecg": "Physiological", "spirometry": "P
 
 
 def encounter_for(person: Person, when: date, exam_type: str, orders: list[str],
-                  rng: random.Random, package: str | None = None) -> Encounter:
+                  rng: random.Random, package: str | None = None, *, direct_ldl: Reading | None = None) -> Encounter:
     """Turn one encounter into a set of readings."""
     keys: list[str] = []
     for order in orders:
+        # Existing narrative/image procedures intentionally have no analyte list.
+        if order not in ORDERS and order not in ("ultrasound", "imaging"):
+            raise ValueError(f"Unknown order panel: {order}")
         for key in ORDERS.get(order, []):          # an order with no lab items, like "ultrasound", gives an empty list
             if key not in keys:
                 keys.append(key)
-    # Sex-specific items: no CA125 for men, no PSA for women.
+    ordered_keys = tuple(keys)
+    if direct_ldl is not None:
+        if ("ldl" not in keys or direct_ldl.key != "ldl" or direct_ldl.result_method != "direct_assay"
+                or not isinstance(direct_ldl.source, str) or not direct_ldl.source.strip()
+                or direct_ldl.value_kind != "quantitative"
+                or direct_ldl.unit != "mmol/L" or direct_ldl.unit_ucum != "mmol/L"
+                or type(direct_ldl.canonical_value) not in (float, int)
+                or not math.isfinite(direct_ldl.canonical_value) or direct_ldl.canonical_value < 0):
+            raise ValueError("direct_ldl requires an ordered, finite, sourced direct-assay result in mmol/L")
+        try:
+            if float(direct_ldl.value) != direct_ldl.canonical_value:
+                raise ValueError("direct_ldl text and numeric result disagree")
+        except (TypeError, ValueError) as exc:
+            raise ValueError("direct_ldl text and numeric result disagree") from exc
+    # Preserve excluded orders as explicit non-results rather than deleting the orders.
     keys = [k for k in keys
             if not (spec.indicators()[k].get("sex_specific")
                     and spec.indicators()[k]["sex_specific"] != person.sex)]
 
     catalogue = spec.indicators()
+    missing = [MissingResult(k, catalogue[k]["unit"], "not_applicable_sex_specific",
+                             {"sex": person.sex, "applicable_sex": catalogue[k]["sex_specific"]})
+               for k in ordered_keys if k not in keys]
     primaries = [k for k in keys if not catalogue[k]["derived_from"]
                  and catalogue[k]["value_kind"] == "quantitative"]
     qualitatives = [k for k in keys if catalogue[k]["value_kind"] == "qualitative"]
@@ -251,14 +306,22 @@ def encounter_for(person: Person, when: date, exam_type: str, orders: list[str],
     normalize_differential(raw)
     values = {k: float(spec.format_value(k, v)) for k, v in raw.items()}
 
-    for derived in (derive(values, person, when), derive_second_pass(values, person)):
+    def record_derived(derived: dict[str, float]) -> None:
         for key, value in derived.items():
             if key in keys or key in ("glb",):     # globulin feeds the A/G ratio, so compute it even when not printed
                 values[key] = float(spec.format_value(key, value))
 
+    # Evaluate each pass only after recording the preceding pass's rounded results. Eagerly
+    # constructing a tuple of both calls leaves BMI/globulin/free PSA absent from pass two.
+    record_derived(derive(values, person, when))
+    record_derived(derive_second_pass(values, person))
+
     readings: list[Reading] = []
     for key in keys:
         item = catalogue[key]
+        if key == "ldl" and direct_ldl is not None:
+            readings.append(copy.deepcopy(direct_ldl))
+            continue
         if key in qualitatives:
             text = qualitative_value(rng, person, key, when)
             normal_text = spec.reference_text(key, person.sex)
@@ -279,6 +342,18 @@ def encounter_for(person: Person, when: date, exam_type: str, orders: list[str],
             ))
             continue
         if key not in values:
+            details = {"declared_derivation": item.get("derived_from")}
+            reason, method, source = "result_unavailable", "not_modelled", "synthetic_generator"
+            if key == "ldl":
+                method, source = "calculated_friedewald", "synthetic_calculation"
+                absent = [k for k in ("chol", "hdl", "tg") if k not in values]
+                if absent:
+                    reason, details = "calculation_inputs_missing", {"missing_inputs": absent, "direct_result_supplied": False}
+                elif values["tg"] > 4.5:
+                    reason, details = "tg_above_calculation_limit", {
+                        "tg": values["tg"], "tg_text": spec.format_value("tg", values["tg"]), "tg_unit": "mmol/L",
+                        "limit": 4.5, "direct_result_supplied": False}
+            missing.append(MissingResult(key, item["unit"], reason, details, method, source))
             continue
         value = values[key]
         lo, hi = spec.reference_bounds(key, person.sex)
@@ -290,12 +365,17 @@ def encounter_for(person: Person, when: date, exam_type: str, orders: list[str],
             canonical_value=value, unit_ucum=item["unit"], loinc=item.get("loinc"),
             value_kind="quantitative", expect_resolvable=item.get("expect_resolvable", False),
             ref_low=lo, ref_high=hi,
+            result_method="calculated_friedewald" if key == "ldl" else None,
+            source="synthetic_calculation" if key == "ldl" else "synthetic_generator",
         ))
 
     location = {"routine": "checkup-center", "follow-up": "hospital", "clinic": "hospital",
                 "specialty": "clinic"}.get(exam_type, "hospital")
-    return Encounter(person_id=person.person_id, exam_date=when, exam_type=exam_type,
-                     exam_location=location, panels=tuple(orders), readings=readings, package=package)
+    encounter = Encounter(person_id=person.person_id, exam_date=when, exam_type=exam_type,
+                          exam_location=location, panels=tuple(orders), readings=readings, package=package,
+                          ordered_keys=ordered_keys, missing_results=missing)
+    encounter.validate_order_results()
+    return encounter
 
 
 def home_stream(seed: int, person_id: str) -> random.Random:

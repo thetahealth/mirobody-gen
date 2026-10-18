@@ -91,7 +91,15 @@ def build_export(rng: random.Random, doc_id: str, person: Person, all_encounters
                 key=key, loinc=reading.loinc, canonical_value=reading.canonical_value,
                 value_text=reading.value, unit_ucum=reading.unit_ucum, value_kind=reading.value_kind,
                 status=reading.status, observed=e.exam_date.isoformat(), role="export",
-                expect_resolvable=reading.expect_resolvable, printed_row=p_index))
+                expect_resolvable=reading.expect_resolvable, printed_row=p_index,
+                result_method=reading.result_method, source=reading.source))
+        for missing in e.missing_results:
+            if missing.key in keys:
+                name = spec.indicators()[missing.key]["en" if en else "zh"]
+                text = f"{e.exam_date.isoformat()} {name}: {missing.explanation(en)}"
+                doc.narratives.append(("Unresulted order" if en else "未出结果医嘱", text))
+                doc.missing_results.append({**dataclasses.asdict(missing), "observed": e.exam_date.isoformat(),
+                                            "printed_text": text})
         rows.append(Cells(name="", value="", unit="", range="", flag="", raw=raw))
     doc.tables.append(Table(columns=columns, headers=[header], rows=rows))
     return doc

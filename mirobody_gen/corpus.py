@@ -60,19 +60,35 @@ MAIN_CAP = spec.hazards()["per_document_count"]["p95"]
 CRP_ALPHA = 1041.0
 BIG_CLIENT_SHARE = {"checkup_center": 0.30, "hospital": 0.20}
 STICKY_FOLLOWUP = 0.6
+INSTITUTION_POOL_POLICY = "institution-pool-v2"
 
 
 class Institutions:
     """Which institution each person in a corpus went to. State accumulates across people: an
     institution many people have already visited is more likely to be visited again."""
 
-    def __init__(self, registry: layout.Registry, seed: int):
+    def __init__(self, registry: layout.Registry, seed: int, service_profile=None):
         self.registry = registry
+        self.service_profile = service_profile
+        if service_profile is not None:
+            service_profile.assert_catalog(registry.institutions)
         self.counts: dict[int, int] = {}
         self.fresh = {key: random.Random(f"pool:{seed}:{key}").sample(pool, len(pool))
                       for key, pool in registry.pools.items()}
 
-    def draw(self, rng: random.Random, kind: str, group: str) -> int:
+    def draw(self, rng: random.Random, kind: str, group: str, *, required_service: str | None = None) -> int:
+        if required_service is not None:
+            if self.service_profile is None:
+                raise ValueError("Service-constrained selection requires an explicit service profile")
+            eligible = self.service_profile.eligible(kind, group, required_service)
+            if not eligible:
+                raise ValueError(f"No declared facility for service {required_service!r}, {kind}/{group}")
+            seen = [i for i in eligible if i in self.counts]
+            fresh = [i for i in eligible if i not in self.counts]
+            total = sum(self.counts[i] for i in seen)
+            if seen and (not fresh or rng.random() < total / (total + CRP_ALPHA)):
+                return rng.choices(seen, weights=[self.counts[i] for i in seen])[0]
+            return rng.choice(fresh)
         key = (group, kind) if (group, kind) in self.fresh else (group, "hospital")
         seen = [i for i in self.counts if self.registry.institutions[i]["kind"] == key[1]
                 and ("en" if self.registry.institutions[i]["language"] == "en" else "zh") == group]
@@ -80,11 +96,31 @@ class Institutions:
         if seen and rng.random() < total / (total + CRP_ALPHA):
             index = rng.choices(seen, weights=[self.counts[i] for i in seen])[0]
         else:
-            index = next(i for i in self.fresh[key] if i not in self.counts and i not in self.registry.big.values())
+            index = next((i for i in self.fresh[key]
+                          if i not in self.counts and i not in self.registry.big.values()), None)
+            if index is None:
+                if not seen:
+                    raise ValueError(f"No available or reusable institution in {key[1]}/{key[0]}")
+                # A finite fictional catalogue cannot supply a new provider forever. Reuse only
+                # the same pool, preserving every successful legacy draw and its RNG state.
+                index = rng.choices(seen, weights=[self.counts[i] for i in seen])[0]
         return index
 
     def use(self, index: int) -> None:
         self.counts[index] = self.counts.get(index, 0) + 1
+
+
+def preflight_services(service_profile, encounters: dict[str, list[Encounter]]) -> None:
+    """Validate all requested pools before creating corpus files, including cross-language visits."""
+    if service_profile is None:
+        return
+    service_profile.assert_catalog(spec.fiction()["institutions"])
+    requests = {(KIND_OF_LOCATION.get(e.exam_location, "hospital"), service_profile.required[e.exam_type])
+                for visits in encounters.values() for e in visits if e.exam_type in service_profile.required}
+    for kind, service in sorted(requests):
+        for group in ("zh", "en"):
+            if not service_profile.eligible(kind, group, service):
+                raise ValueError(f"No declared facility for service {service!r}, {kind}/{group}")
 
 
 def home_institutions(seed: int, person: Person, process: Institutions) -> tuple[str, dict[str, int]]:
@@ -161,7 +197,7 @@ def documents_for(rng: random.Random, person: Person, enc: Encounter, idx: int, 
         # pressure) is guaranteed to produce a record.
         if not rest.readings or rng.random() < 0.35:
             docs.append(book.build_outpatient(rng, f"{base}a", person, enc, family, banner=banner))
-        if not rest.readings:
+        if not rest.readings and not rest.missing_results:
             return docs
         for j, groups in enumerate(split_encounter(rng, rest), start=1):
             d = build_doc(rng, f"{base}{letters[j]}", person, rest, groups, family, previous, banner=banner)
@@ -217,6 +253,7 @@ def record(doc: Doc, path: pathlib.Path, out_root: pathlib.Path, pages: int | No
         "printed_rows": [asdict(p) for p in doc.printed],
         "readings": [asdict(r) for r in doc.readings],
         "distractors": doc.distractors,
+        "missing_results": doc.missing_results,
         # Truth outside the tables. blocks are key-value/narrative entries (Physiological / Imaging
         # rows); findings is the coded truth for named findings; summary is the overall conclusions and
         # recommendations; complaints/diagnoses come from outpatient records.
@@ -228,6 +265,21 @@ def record(doc: Doc, path: pathlib.Path, out_root: pathlib.Path, pages: int | No
         "complaints": doc.complaints_truth,
         "diagnoses": doc.diagnoses_truth,
     }
+    if delivery.get("container_fallback"):
+        out["container_fallback"] = dict(delivery["container_fallback"])
+    eye = next((b for b in doc.blocks if b.section_id == "eye"), None)
+    if doc.kind == "checkup_book" and eye is not None:
+        present = {t.get("item_id") for t in eye.truth if t.get("measurements")}
+        out["ocular_exam"] = {"policy_version": book.OCULAR_POLICY,
+                              "scope": "generated_eye_quantitative_items",
+                              "not_reported": [{"item_id": item, "left_status": "unknown", "right_status": "unknown"}
+                                               for item in book.OCULAR_ITEMS if item not in present]}
+    if doc.kind == "outpatient_record":
+        raw_department = encounters[0].department if len(encounters) == 1 else None
+        department = raw_department if raw_department and raw_department.strip() else None
+        out["care_context"] = {"policy_version": book.OUTPATIENT_CONTEXT_POLICY,
+                               "department": department,
+                               "department_source": "encounter" if department else "unknown"}
     if extra:
         out.update(extra)
     return out
@@ -288,33 +340,45 @@ def genetics_report_file(person: Person, seed: int, lang: str, habit: dict[str, 
 
 
 def render_corpus(seed: int, people: list[Person], encounters: dict[str, list[Encounter]],
-                  out_dir: pathlib.Path, banner: bool = True, handwriting: bool = False) -> list[dict]:
+                  out_dir: pathlib.Path, banner: bool = True, handwriting: bool = False,
+                  service_profile=None) -> list[dict]:
     """Render every file and write files.jsonl.
 
     `handwriting` adds the handwritten files (`handwriting.py`). They draw only from streams of their own and
     their records are written after all printed ones, so the printed files and the first lines of
     files.jsonl are byte-identical with the option on or off."""
+    preflight_services(service_profile, encounters)
     registry = layout.build_registry(seed)
-    process = Institutions(registry, seed)
+    process = Institutions(registry, seed, service_profile)
+    service_evidence = {}
     files_root = out_dir / "files"
     records: list[dict] = []
     hand_records: list[dict] = []
     for person in people:
         rng = random.Random(f"docs:{seed}:{person.person_id}")
         group, home = home_institutions(seed, person, process)
+        # Institution pools are keyed by document-wording group; `group` itself (possibly `ja`)
+        # stays the demographic group for genetics and devices.
+        doc_group = spec.doc_lang(group)
         habit = upload_habit(seed, person)
         previous: dict[str, tuple[str, str]] = {}
         facilities, filenames = [], []
         visits: list[tuple[int, Encounter, layout.Family]] = []
         for idx, enc in enumerate(encounters[person.person_id], start=1):
+            service = service_profile.required.get(enc.exam_type) if service_profile else None
             kind = KIND_OF_LOCATION.get(enc.exam_location, "hospital")
-            visit_group = group if rng.random() >= 0.08 else ("zh" if group == "en" else "en")
-            if kind == "checkup_center" and visit_group == group:
+            visit_group = doc_group if rng.random() >= 0.08 else ("zh" if doc_group == "en" else "en")
+            if kind == "checkup_center" and visit_group == doc_group:
                 index = home["checkup_center"]
-            elif kind == "hospital" and visit_group == group and rng.random() < STICKY_FOLLOWUP:
+            elif kind == "hospital" and visit_group == doc_group and rng.random() < STICKY_FOLLOWUP:
                 index = home["hospital"]
             else:
-                index = process.draw(rng, kind, visit_group)
+                index = process.draw(rng, kind, visit_group, required_service=service)
+            if service is not None and not service_profile.supports(index, service):
+                index = process.draw(rng, kind, visit_group, required_service=service)
+            if service is not None:
+                service_evidence[(person.person_id, enc.exam_date.isoformat(), enc.exam_type,
+                                  registry.institutions[index]["name"])] = service_profile.evidence(index, service)
             process.use(index)
             family, rev = layout.revised(registry.family(index), enc.exam_date.year)
             family, jit = layout.jitter(rng, family)
@@ -382,6 +446,13 @@ def render_corpus(seed: int, people: list[Person], encounters: dict[str, list[En
                                                                            files_root, banner):
                 hand_records.append(record(doc, path, out_dir, 1, [enc], extra=extra, delivery=delivery))
     records += hand_records
+    if service_profile is not None:
+        for rec in records:
+            if len(rec["encounter_dates"]) == 1:
+                evidence = service_evidence.get((rec["person_id"], rec["encounter_dates"][0],
+                                                 rec["exam_type"], rec["institution"]))
+                if evidence is not None and rec["exam_type"] in service_profile.required:
+                    rec["facility_service"] = dict(evidence)
     with (out_dir / "files.jsonl").open("w", encoding="utf-8") as fh:
         for r in records:
             fh.write(json.dumps(r, ensure_ascii=False) + "\n")

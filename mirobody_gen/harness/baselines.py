@@ -27,13 +27,15 @@ import json
 import pathlib
 import re
 
+RULES_VERSION = "rules-text-v1"
+
 _NUM = re.compile(r"^[<>≤≥]?\s*-?\d+(?:[.,]\d+)?$")
 _NUM_IN = re.compile(r"^([<>≤≥]?\s*-?\d+(?:[.,]\d+)?)(.*)$")
 _RANGE = re.compile(r"^\(?\s*[<>≤≥]?\s*\d+(?:\.\d+)?\s*([-~—–一～]+\s*\d+(?:\.\d+)?)?\s*\)?$")
 _FLAGS = {"↑", "↓", "↑↑", "↓↓", "H", "L", "High", "Low", "偏高", "偏低", "高", "低", "升高", "降低", "A", "N",
           "Normal", "正常"}
 _ABNORMAL = {"↑", "↓", "↑↑", "↓↓", "H", "L", "High", "Low", "偏高", "偏低", "高", "低", "升高", "降低", "A"}
-_UNIT = re.compile(r"^(?:[×x]?10[\^*E]?\d+/[Ll]|[GT]/L|%|fL|fl|pg|g/L|g/l|mg/L|mmol/L|mmol/l|μmol/L|umol/L|"
+_UNIT = re.compile(r"^(?:[×x]?10[\^*E]?\d+/[Ll]|10\*6/uL|[GT]/L|%|fL|fl|pg|g/L|g/l|g/dL|mg/L|mmol/L|mmol/l|μmol/L|umol/L|"
                    r"U/L|U/l|IU/L|ng/mL|ng/ml|pg/mL|mIU/L|uIU/mL|μIU/mL|pmol/L|nmol/L|cm|kg|kg/m²|mmHg|"
                    r"次/分|/min|ms|°|mm/h|mL/min/1\.73m²|s)$")
 _QUAL = {"阴性", "阳性", "弱阳性", "+", "++", "+++", "-", "Negative", "Positive"}

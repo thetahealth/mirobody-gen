@@ -48,6 +48,7 @@ import pathlib
 import random
 import statistics
 import sys
+from urllib.parse import urlsplit
 
 PACKAGE = pathlib.Path(__file__).resolve().parents[1]
 RESOURCES = PACKAGE / "resources"
@@ -139,18 +140,24 @@ def call_model(model: str, prompt: str) -> dict:
     than degrading silently — silent degradation would make "the panel ran" and "the panel never
     ran" indistinguishable.
     """
+    from ..llm.client import endpoint
+    from ..llm.review_client import complete_json
+
+    base, _token = endpoint()
+    if urlsplit(base or "").hostname == "api.deepseek.com":
+        return complete_json(model, SYSTEM, prompt)["answer"]
     key = hashlib.blake2b(f"{model}\n{prompt}".encode(), digest_size=16).hexdigest()
     cached = CACHE / f"{key}.json"
     if cached.is_file():
         return json.loads(cached.read_text(encoding="utf-8"))
 
-    base = os.environ.get("LLM_BASE_URL")
-    token = os.environ.get("LLM_API_KEY")
+    base = (os.environ.get("LLM_BASE_URL") or "").strip()
+    token = (os.environ.get("LLM_API_KEY") or "").strip()
     if not (base and token):
         raise SystemExit("LLM_BASE_URL and LLM_API_KEY are required; omit --models to see what "
                          "would be sent without calling anything (the default is a dry run).")
 
-    import urllib.request
+    from ..llm.client import post_chat
 
     body = json.dumps({
         "model": model,
@@ -158,11 +165,7 @@ def call_model(model: str, prompt: str) -> dict:
                      {"role": "user", "content": prompt}],
         "temperature": 0,
     }).encode()
-    request = urllib.request.Request(
-        f"{base.rstrip('/')}/chat/completions", data=body,
-        headers={"Authorization": f"Bearer {token}", "Content-Type": "application/json"})
-    with urllib.request.urlopen(request, timeout=180) as response:
-        payload = json.loads(response.read())
+    payload = post_chat(base, token, body, 180)
     text = payload["choices"][0]["message"]["content"]
     text = text.strip().removeprefix("```json").removeprefix("```").removesuffix("```")
     result = json.loads(text)

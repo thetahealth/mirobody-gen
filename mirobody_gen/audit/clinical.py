@@ -44,9 +44,13 @@ audit report rounding as "errors".
 - **Longitudinal plausibility**: judged by the **rate** of pairs exceeding the reference change value
   (RCV) -- theoretically about 5% -- not by flagging every pair; individual pairs are only flagged past
   3×RCV with no event on the timeline to explain them.
-- **Diagnoses and values must explain each other**: values that persistently meet diagnostic criteria
-  without a matching diagnosis are a missed diagnosis; the converse (a diagnosis whose indicator is never
-  abnormal) is reported but not judged -- a well-controlled chronic condition looks exactly like that.
+- **Diagnoses and values must explain each other, at each visit's date**: using only visits up to that
+  date, a model rule confirmed on enough distinct dates (with any required elapsed time and same-visit
+  companion values) but absent from the visit's conditions is a missed diagnosis; a condition derived
+  from a numeric rule without confirming evidence by then, or one recorded after the visit, is a
+  finding too (`诊断时序` for the latter). A declared archetype diagnosis whose indicator looks normal is
+  not judged -- a well-controlled chronic condition looks exactly like that. These are consistency
+  checks of the generator's own rules, not clinical diagnostic accuracy.
 """
 
 from __future__ import annotations
@@ -56,6 +60,7 @@ import json
 import math
 import pathlib
 import sys
+from datetime import date
 
 PACKAGE = pathlib.Path(__file__).resolve().parents[1]
 RESOURCES = PACKAGE / "resources"
@@ -401,58 +406,84 @@ def load_criteria() -> list[dict]:
     return json.loads(path.read_text(encoding="utf-8")).get("diagnostic_criteria", [])
 
 
+def _sample_diagnostic_state(record: dict, rule: dict) -> bool | None:
+    """Independent audit implementation; never imports the generator's decision code."""
+    def predicate(c):
+        rows = [r for r in record.get("rows", []) if r.get("key") == c["key"]]
+        if not rows:
+            return None
+        signatures = {(r.get("canonical_value"), r.get("unit_ucum"), r.get("ref_low"), r.get("ref_high"))
+                      for r in rows}
+        if len(signatures) != 1:
+            return None
+        r = rows[0]
+        value = r.get("canonical_value")
+        limit = r.get(c["reference"]) if "reference" in c else c["value"]
+        if any(type(v) not in (float, int) or not math.isfinite(v) for v in (value, limit)):
+            return None
+        if c.get("unit") and r.get("unit_ucum") != c["unit"]:
+            return None
+        return _compare(value, c["op"], limit)
+    options = [predicate(c) for c in rule["any_of"]]
+    supplements = [predicate(c) for c in rule.get("all_of", [])]
+    if False in supplements:
+        return False
+    if not any(v is True for v in options):
+        return None if None in options else False
+    return None if None in supplements else True
+
+
+def _diagnostic_confirmation(items: list[dict], rule: dict, cutoff: str) -> str | None:
+    by_day = {}
+    for record in items:
+        day = (record.get("collected") or "")[:10]
+        if day and day <= cutoff[:10]:
+            by_day.setdefault(day, []).append(_sample_diagnostic_state(record, rule))
+    streak = []
+    for day in sorted(by_day):
+        states = {x for x in by_day[day] if x is not None}
+        if False in states:  # A contradictory date cannot count as a positive date.
+            streak.clear()
+        elif True in states:
+            streak.append(day)
+            elapsed = (date.fromisoformat(day[:10]) - date.fromisoformat(streak[0][:10])).days
+            if len(streak) >= rule["persistence"] and (
+                    "minimum_elapsed_days_exclusive" not in rule or elapsed > rule["minimum_elapsed_days_exclusive"]):
+                return day
+    return None
+
+
 def check_diagnosis_coherence(records: list[dict], criteria: list[dict]) -> list[Finding]:
-    """Values and the diagnosis set must explain each other.
+    """Audit model-rule consistency at each visit's date, not clinical diagnosis accuracy.
 
-    This catches an inconsistency present in two existing benchmark datasets: HbA1c printed at 7.2% with
-    no diabetes in that person's diagnosis set -- on paper, an undiagnosed diabetic. ESL-Bench's values
-    come from an LLM and aren't constrained by diagnoses; Synthea's values are uniform samples from the
-    `{low, high}` in its module JSON, independent of the Condition it assigns. We shouldn't inherit
-    either problem.
-
-    Checked in both directions, but **judged with different severity**:
-
-    * Values meet criteria with no matching diagnosis -> **a finding**. This is a missed diagnosis; it
-      doesn't hold up on paper.
-    * A diagnosis exists but the indicator is never abnormal -> **reported, not judged**. A
-      well-controlled chronic condition can look entirely normal (medicated, blood pressure 128/82);
-      calling that an error would demand that sick people always look sick.
-
-    `persistence` requires several consecutive visits to meet criteria before it counts. Requiring just
-    one would get flooded by single-visit noise -- a reference range is itself a 95% interval, so
-    healthy people occasionally fall outside it as a matter of course, not as a missed diagnosis.
+    Declared archetype priors are retained separately from numeric-rule inference;
+    a treated prior need not be abnormal today. Missing tests are not normal tests.
     """
-    findings: list[Finding] = []
-    by_person: dict[str, list[dict]] = {}
+    findings = []
+    by_person = {}
     for record in records:
         by_person.setdefault(record.get("person_id", "?"), []).append(record)
-
-    missing_the_other_way = 0
     for person_id, items in by_person.items():
-        items.sort(key=lambda r: r.get("collected") or "")
-        have = {c.get("code") for c in ((items[0].get("person") or {}).get("conditions") or [])}
-        for rule in criteria:
-            code = rule["condition"]["code"]
-            hits = 0
-            for record in items:
-                values = numeric_rows(record)
-                met = any(_compare(values.get(c["key"]), c["op"], c["value"])
-                          for c in rule["any_of"])
-                hits = hits + 1 if met else 0
-                if hits >= rule["persistence"] and code not in have:
-                    findings.append(Finding(
-                        "诊断", f"{person_id} 至 {record.get('collected')}",
-                        f"meets the diagnostic criteria for \"{rule['condition']['display']}\" on "
-                        f"{hits} consecutive visits ({rule['source'].split('：')[-1]}), but it's "
-                        f"missing from the diagnosis set"))
-                    break
-            if code in have and hits == 0:
-                missing_the_other_way += 1
-
-    if missing_the_other_way:
-        print(f"(diagnosis: {missing_the_other_way} cases have a diagnosis whose indicator never met "
-              f"criteria -- a well-controlled chronic condition looks exactly like that, reported but "
-              f"not judged)")
+        for record in items:
+            when = record.get("collected")
+            if not when:
+                continue
+            conditions = (record.get("person") or {}).get("conditions") or []
+            for condition in conditions:
+                if any(condition.get(k) and condition[k][:10] > when[:10] for k in ("recorded_date", "onset_date")):
+                    findings.append(Finding("诊断时序", f"{person_id} {when}",
+                                            f"future condition exposed: {condition.get('code')}"))
+            have = {c.get("code") for c in conditions}
+            for rule in criteria:
+                code = rule["condition"]["code"]
+                confirmed = _diagnostic_confirmation(items, rule, when)
+                if confirmed and code not in have:
+                    findings.append(Finding("诊断", f"{person_id} {when}",
+                                            f"model rule for {rule['condition']['display']} confirmed {confirmed}, missing in this visit"))
+                elif not confirmed and any(c.get("code") == code and c.get("source") == "synthetic_numeric_rule"
+                                           for c in conditions):
+                    findings.append(Finding("诊断", f"{person_id} {when}",
+                                            f"numeric-rule condition lacks supporting evidence: {code}"))
     return findings
 
 
@@ -536,7 +567,11 @@ CLEAN = {
 
 BROKEN = {
     "file": "broken.pdf", "person_id": "p2", "collected": "2026-01-01",
-    "person": {"sex": "female", "age": 38}, "hazards": [],
+    # a numeric-rule condition with no confirming values, recorded two months after this visit
+    "person": {"sex": "female", "age": 38, "conditions": [
+        {"code": "44054006", "display": "2型糖尿病", "source": "synthetic_numeric_rule",
+         "recorded_date": "2026-03-01", "evidence_dates": ["2026-02-01", "2026-03-01"]}]},
+    "hazards": [],
     "rows": [
         {"key": "height", "canonical_value": 165.0},
         {"key": "weight", "canonical_value": 60.0},
@@ -569,7 +604,7 @@ def selftest() -> int:
     for f in broken:
         print("   ", f)
 
-    expected = {"恒等式", "生理边界", "人口学", "标记"}
+    expected = {"恒等式", "生理边界", "人口学", "标记", "诊断", "诊断时序"}
     missing = expected - kinds
     ok = not clean and not missing
     print(f"\nself-test {'passed' if ok else 'failed'}"

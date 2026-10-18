@@ -3188,8 +3188,7 @@
       "panel": "hepatitis",
       "name_variants": [
         "HBsAg",
-        "乙型肝炎表面抗原",
-        "乙型肝炎表面抗原(HK)"
+        "乙型肝炎表面抗原"
       ],
       "value_kind": "qualitative",
       "derived_from": null,

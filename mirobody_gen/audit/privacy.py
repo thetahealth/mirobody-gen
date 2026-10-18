@@ -542,7 +542,7 @@ def digitless_terms(vocabulary: list[str]) -> list[str]:
 
 
 def scan(paths: list[pathlib.Path], index: np.ndarray | None,
-         vocabulary: list[str], report_only: bool) -> int:
+         vocabulary: list[str], report_only: bool, stats: dict | None = None) -> int:
     findings = 0
     excused = 0
     excused_samples: list[str] = []
@@ -598,6 +598,9 @@ def scan(paths: list[pathlib.Path], index: np.ndarray | None,
           f"{excused} excused as public vocabulary · {excused_numeric} excused as a digit-stripped "
           f"public term · {synthetic_ids} synthetic IDs (check suffix passed) · "
           f"{len(unreadable)} files with unreadable text")
+    if stats is not None:
+        stats.update(scanned_files=scanned, hits=findings, unreadable_files=len(unreadable),
+                     replay_checked=index is not None and bool(index.size))
     if report_only and excused_samples:
         # The docstring promises exemptions are "counted and printed, never hidden". Printing only a
         # total doesn't count: without seeing which terms prop up that zero-hit result, there's no way

@@ -14,7 +14,8 @@ estimate of any real population.
 
 Truth (`genomics.jsonl`) follows the fields of mirobody's `testing/genomics/canonical.json`:
 `rsid / chrom / pos37 / pos38 / ref / alt / gene / array_gt / vcf_gt / call_status / zygosity`, plus
-`genotype_raw` (the literal text printed in the file) and `in_catalog` (whether it should resolve).
+`genotype_raw` (allele text used by the PGx report; VCF's literal GT is in `vcf_gt`) and
+`in_catalog` (whether it should resolve).
 
 **No real genome can leak through this by construction**: no real genotype enters the generation
 path, and the site coordinates are public dbSNP records.
@@ -86,7 +87,8 @@ def profile_for(person: Person, seed: int, lang: str) -> dict | None:
             zyg = "homozygous" if a1 == a2 else "heterozygous"
         calls.append({"rsid": rsid, "chrom": str(chrom), "pos37": int(pos37), "pos38": int(pos38), "ref": ref, "alt": alt,
                       "gene": gene, "label": label, "a1": a1, "a2": a2, "array_gt": gt,
-                      "vcf_gt": gt.replace("/", "|") if gt else None,
+                      # Independent per-site HWE draws contain no haplotype phase information.
+                      "vcf_gt": gt,
                       "call_status": status, "zygosity": zyg, "in_catalog": in_catalog})
     order = {str(c): i for i, c in enumerate(list(range(1, 23)) + ["X", "Y", "MT"])}
     calls.sort(key=lambda c: (order.get(c["chrom"], 99), c["pos37"]))

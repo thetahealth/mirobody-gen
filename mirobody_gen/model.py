@@ -18,8 +18,10 @@ mapping, and mappings fail silently.
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from collections import Counter
+from dataclasses import asdict, dataclass, field
 from datetime import date
+import math
 
 
 @dataclass(frozen=True)
@@ -99,6 +101,76 @@ class Reading:
     #: Whether this row can be read at all. When an injected hazard makes it unreadable, it drops
     #: out of the recall denominator and into the "must abstain" set.
     readable: bool = True
+    #: Algorithm/assay provenance is separate from the acquisition channel above.
+    result_method: str | None = None
+    source: str = "synthetic_generator"
+
+
+@dataclass
+class MissingResult:
+    """An ordered analyte with no result. Never a numeric/normal Reading."""
+    key: str
+    unit: str
+    reason_code: str
+    details: dict = field(default_factory=dict)
+    result_method: str = "not_modelled"
+    source: str = "synthetic_generator"
+
+    def explanation(self, en: bool) -> str:
+        if self.reason_code == "tg_above_calculation_limit":
+            # the TG as printed in the same document, not the float's own repr (4.60 vs 4.6)
+            tg, limit = self.details.get("tg_text", self.details["tg"]), self.details["limit"]
+            return (f"not resulted: TG={tg} mmol/L exceeds the existing calculation limit {limit} mmol/L; "
+                    "no direct-assay result supplied") if en else (
+                    f"未出结果：TG={tg} mmol/L超过现有计算法界限{limit} mmol/L；未提供直接法结果")
+        if self.reason_code == "calculation_inputs_missing":
+            inputs = ", ".join(self.details["missing_inputs"])
+            return f"not resulted: calculation inputs missing ({inputs}); no direct-assay result supplied" if en else (
+                f"未出结果：缺少计算输入（{inputs}）；未提供直接法结果")
+        if self.reason_code == "not_applicable_sex_specific":
+            return "not resulted: sex-specific order not applicable" if en else "未出结果：该性别限定项目不适用"
+        return "not resulted: generator supplied no result; clinical cause unknown" if en else "未出结果：生成器未提供结果；临床原因未知"
+
+
+def order_result_errors(ordered_keys, rows: list[dict], missing: list[dict]) -> list[str]:
+    """Check the serialized order/result partition, without judging medical values."""
+    errors = []
+    if not isinstance(ordered_keys, (list, tuple)) or any(not isinstance(k, str) or not k for k in ordered_keys):
+        return ["ordered_keys must be an explicit list of analyte keys"]
+    if len(set(ordered_keys)) != len(ordered_keys):
+        errors.append("duplicate ordered key")
+    if not isinstance(rows, list) or not isinstance(missing, list):
+        return errors + ["rows and missing_results must be lists"]
+    counts = Counter()
+    for row in rows:
+        if not isinstance(row, dict) or not isinstance(row.get("key"), str):
+            errors.append("invalid result row")
+            continue
+        counts[row["key"]] += 1
+        if not isinstance(row.get("value"), str) or not row["value"].strip():
+            errors.append(f"{row['key']}: empty result text")
+        if not isinstance(row.get("unit"), str) or not isinstance(row.get("source"), str) or not row["source"].strip():
+            errors.append(f"{row['key']}: missing result unit/source")
+        if row["key"] == "ldl" and row.get("result_method") not in ("calculated_friedewald", "direct_assay"):
+            errors.append("ldl: missing calculation/assay method")
+        if row.get("value_kind") == "quantitative":
+            value = row.get("canonical_value")
+            if type(value) not in (float, int) or not math.isfinite(value):
+                errors.append(f"{row['key']}: non-finite/missing quantitative result")
+    for item in missing:
+        if not isinstance(item, dict) or not isinstance(item.get("key"), str):
+            errors.append("invalid missing-result record")
+            continue
+        counts[item["key"]] += 1
+        if any(not isinstance(item.get(k), str) or not item[k].strip()
+               for k in ("reason_code", "result_method", "source")):
+            errors.append(f"{item['key']}: missing reason/method/source")
+        if not isinstance(item.get("unit"), str) or not isinstance(item.get("details"), dict):
+            errors.append(f"{item['key']}: missing unit/details")
+    errors.extend(f"{key}: expected exactly one result or non-result, got {counts[key]}"
+                  for key in ordered_keys if counts[key] != 1)
+    errors.extend(f"{key}: outcome without order" for key in counts if key not in ordered_keys)
+    return errors
 
 
 @dataclass(frozen=True)
@@ -150,3 +222,18 @@ class Encounter:
     package: str | None = None
     complaints: list[Complaint] = field(default_factory=list)
     findings: list[Finding] = field(default_factory=list)
+    #: Explicit encounter/source fact. Missing is unknown, never inferred from the issuer's name.
+    department: str | None = None
+    #: None = caller did not declare orders; generated encounters always declare the full set.
+    ordered_keys: tuple[str, ...] | None = None
+    missing_results: list[MissingResult] = field(default_factory=list)
+
+    def validate_order_results(self) -> None:
+        if self.ordered_keys is None:
+            if self.missing_results:
+                raise ValueError("Missing results require explicitly declared orders")
+            return
+        errors = order_result_errors(self.ordered_keys, [asdict(r) for r in self.readings],
+                                     [asdict(m) for m in self.missing_results])
+        if errors:
+            raise ValueError("; ".join(errors))

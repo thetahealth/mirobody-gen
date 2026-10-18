@@ -55,6 +55,28 @@ def _run_rules(root: pathlib.Path, names: list[str]) -> tuple[subprocess.Complet
 
 
 class RulesBaseline(unittest.TestCase):
+    def test_explicit_synthea_source_units_are_preserved_without_conversion(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = pathlib.Path(tmp)
+            for unit, value in (("10*6/uL", "4.81"), ("g/dL", "13.549028082446293")):
+                for combined in (False, True):
+                    with self.subTest(unit=unit, combined=combined):
+                        row = f"Source result,{value} {unit}\n" if combined else f"Source result,{value},{unit}\n"
+                        path = root / "source.csv"
+                        path.write_text(row, encoding="utf-8")
+                        result = baselines.rules_extract(path)
+                        self.assertEqual(len(result), 1)
+                        self.assertEqual(result[0]["item_value"], value)
+                        self.assertEqual(result[0]["item_unit"], unit)
+
+    def test_source_unit_support_does_not_fill_missing_or_accept_trailing_text(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = pathlib.Path(tmp) / "source.csv"
+            for unit in ("", "g/dLgarbage", "10*6/uLgarbage"):
+                with self.subTest(unit=unit):
+                    path.write_text(f"Hemoglobin,13.5,{unit}\n", encoding="utf-8")
+                    self.assertEqual(baselines.rules_extract(path)[0]["item_unit"], "")
+
     def test_genetics_reports_are_skipped_by_both_laboratory_baselines(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = pathlib.Path(tmp)

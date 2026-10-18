@@ -47,7 +47,7 @@ import pathlib
 import random
 from datetime import date, timedelta
 
-from . import physiology, spec
+from . import clinical, physiology, spec
 from .document import Cells, Doc, DocReading, PrintedRow, Table, build_doc, group_of
 from .layout import Family
 from .model import Encounter, Person
@@ -413,11 +413,16 @@ def build_note(seed: int, person: Person, enc: Encounter, family: Family, lang: 
     label_font = hand.printed_face(int(round(9 * DPI / 72)))
     field_texts = {"date": _date_text(rng.choice(n["date_formats"]), enc.exam_date),
                    "department": rng.choice(n["departments"])}
+    if clinical.ENABLED:
+        from . import clinical_departments
+
+        field_texts["department"] = clinical_departments.printed(enc, lang)
     fields_line = []
     for role, label in labels.items():
         x = hand.mm(field_x[role], DPI) + label_font.getlength(label) + 8
-        sheet.write(field_texts[role], x, hand.mm(25.0, DPI), pen.sized(0.85), role="date" if role == "date" else "text",
-                    field=role)
+        if field_texts[role]:
+            sheet.write(field_texts[role], x, hand.mm(25.0, DPI), pen.sized(0.85),
+                        role="date" if role == "date" else "text", field=role)
         fields_line.append(f"{label}{field_texts[role]}" if lang == "zh" else f"{label} {field_texts[role]}")
     w.transcript.append(("  " if lang == "zh" else "   ").join(fields_line))
     doc.dates = [{"label": n["fields"]["date"], "role": "collected", "printed": field_texts["date"],

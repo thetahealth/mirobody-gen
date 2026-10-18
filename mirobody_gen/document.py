@@ -45,7 +45,7 @@ import re
 from dataclasses import asdict, dataclass, field
 from datetime import date, datetime, timedelta
 
-from . import spec, synthid
+from . import clinical, spec, synthid
 from .layout import Family, date_role, script_of
 from .model import Encounter, Person, Reading
 
@@ -313,7 +313,8 @@ def subject_fields(rng: random.Random, person: Person, f: Family, collected: dat
         fields.append((labels["department"], department))
     fields += [(labels["specimen"], specimen), (labels["doctor"], doctor)]
     keep = rng.randint(5, len(fields))
-    return fields[:keep]
+    # An unknown department ("" in clinical mode) leaves its field off without changing the draw.
+    return [x for x in fields[:keep] if x != (labels.get("department"), "")]
 
 
 # ── File splitting ──
@@ -361,6 +362,10 @@ def build_doc(rng: random.Random, doc_id: str, person: Person, encounter: Encoun
     specimen = t["specimens"]["urine"][1 if en else 0] if main == "urinalysis" else ""
     sampled_department = rng.choice(t["departments"][lang])
     department = encounter.department if encounter.department and encounter.department.strip() else sampled_department
+    if clinical.ENABLED:
+        from . import clinical_departments
+
+        department = clinical_departments.printed(encounter, lang)
     doc = Doc(doc_id=doc_id, person_id=person.person_id, family=f, title=title,
               subject=subject_fields(rng, person, f, encounter.exam_date, department, specimen),
               dates=print_dates(rng, f, encounter.exam_date), tables=[], banner=banner)

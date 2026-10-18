@@ -7,9 +7,9 @@ frequencies, how each chronic condition progresses, when an intervention takes e
 a visit orders. It lives in the spec rather than buried in `generator/person.py` for two
 reasons:
 
-1. It must be reviewable by someone who doesn't read Python. "A statin drops LDL by 38%,
-   taking effect in 4-6 weeks" is a falsifiable clinical claim; it belongs in a file anyone
-   can point at.
+1. It must be reviewable by someone who doesn't read Python. "Atorvastatin 20 mg lowers LDL-C
+   by 43%, fully within 4 weeks" is a falsifiable clinical claim; it belongs in a file anyone
+   can point at, next to its source.
 2. Names such as `iron_deficiency_anemia` and `checkup-center` show up in generated output,
    and the privacy gate's exemption only recognizes public vocabulary declared in the spec --
    anything undeclared gets flagged as a possible string lifted from the real corpus. That

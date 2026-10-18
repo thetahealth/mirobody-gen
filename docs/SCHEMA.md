@@ -124,7 +124,7 @@ Sex-specific exclusions preserve the order with `not_applicable_sex_specific`.
 Other unavailable outputs remain `result_unavailable`, without inventing a clinical cause.
 
 LDL cholesterol is the modelled lipid state: treatment effects (the statin's
--38%) act on it, and total cholesterol is derived as LDL + HDL + TG/2.2, the
+dose response) act on it, and total cholesterol is derived as LDL + HDL + TG/2.2, the
 Friedewald relation read the other way (VLDL cholesterol taken as TG/2.2 mmol/L
 for every TG; at high TG this overstates VLDL-C, a known limit of the relation).
 The printed LDL is therefore the Friedewald value of the printed TC, HDL and TG to

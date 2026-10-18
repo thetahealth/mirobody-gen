@@ -389,7 +389,7 @@ A CGM session adds:
 | `readings[]` | `time` (local with offset), `kind` (`historic` · `scan`), `mgdl` and `mmol` as the device reported them (`null` past its range), `flag` (`low` · `high` · `null`), `true_mmol` (the blood glucose behind the reading), `artifact` (`compression_low` · `null`) |
 | `gaps[]` | `start`, `end`, `cause` (`warmup` · `signal_loss` · `not_scanned`), `filled` (an outage the receiver backfilled: readings present) |
 | `compressions[]` | `start`, `minutes`, `depth` (the fraction a reading fell) |
-| `summary` | from the delivered historic readings (Low/High at the range limit): `n_readings`, `coverage_pct`, `mean_mmol`, `mean_mgdl`, `sd_mmol`, `cv_pct`, `gmi_pct`, `tbr_lt_3_0_pct`, `tbr_3_0_3_8_pct`, `tir_3_9_10_0_pct`, `tar_10_1_13_9_pct`, `tar_gt_13_9_pct`; and from the model, `hba1c_expected_pct` and `eag_mmol` on the first day |
+| `summary` | from the delivered historic readings (Low/High at the range limit): `n_readings`, `coverage_pct`, `mean_mmol`, `mean_mgdl`, `sd_mmol`, `cv_pct`, `gmi_pct`, `tbr_lt_3_0_pct`, `tbr_3_0_3_8_pct`, `tir_3_9_10_0_pct`, `tar_10_1_13_9_pct`, `tar_gt_13_9_pct`; and from the model on the first day, `glycaemic_state_a1c_pct` (the day's mean glucose as a steady-state HbA1c), `eag_mmol` (its ADAG eAG, the curve's daily mean) and `hba1c_expected_pct` (the laboratory expectation: that state's weighted 100-day history, which lags it after a change; `gmi_pct` is computed from the readings and is not set to it) |
 
 A heart-rate window adds:
 

@@ -161,7 +161,10 @@ ARCHETYPES: list[dict] = [
 SCRIPTS: dict[str, dict] = {
     "metformin": {
         "name": "开始二甲双胍", "type": "medication", "effect": "positive", "impact": "high",
-        "effects": {"glu": (-0.18, 30, None), "hba1c": (-0.14, 90, None),
+        # The hba1c effect acts on the glycaemic state (mean glucose expressed as a steady-state
+        # HbA1c), so it takes effect with glucose (30 days, as glu); the laboratory HbA1c then lags
+        # it through physiology.hba1c_from_history. The earlier 90-day onset stood in for that lag.
+        "effects": {"glu": (-0.18, 30, None), "hba1c": (-0.14, 30, None),
                     "weight_kg": (-0.03, 90, None)},
     },
     "statin": {

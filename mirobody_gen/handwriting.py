@@ -110,7 +110,7 @@ def glucose_day(seed: int, person: Person, day: date, meals: list[str]) -> dict[
     r = random.Random(f"glucose:{seed}:{person.person_id}:{day.isoformat()}")
     out = {"fasting": round(min(max(physiology.measure(r, person, "glu", day), 3.2), 22.0), 1)}
     fasting = _expected(person, "glu", day)
-    eag = 1.59 * _expected(person, "hba1c", day) - 2.59
+    eag = 1.59 * physiology.glycaemic_state(person, day) - 2.59  # the day's glycaemia, not lagging HbA1c
     post = max((4 * eag - fasting) / 3, fasting + 0.8)
     for meal in meals:
         out[meal] = round(min(max(post * math.exp(r.gauss(0, 0.14)), 3.5), 25.0), 1)

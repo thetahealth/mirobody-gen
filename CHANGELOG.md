@@ -188,6 +188,14 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); ver
   sentence; no polygenic score or trait probability is invented.
 
 ### Fixed
+- HbA1c now follows glucose history instead of driving it: the glycaemic state (mean glucose as a
+  steady-state HbA1c) sets each CGM day's mean and the handwritten logs, and laboratory HbA1c is that
+  state's history over the preceding 100 days with a linearly falling weight (Tahara & Shima, Diabetes
+  Care 1995). Before, the CGM mean was solved to the same day's HbA1c, and a 90-day onset on
+  metformin's HbA1c effect stood in for the lag; that effect now acts on the state with glucose's
+  30 days. After metformin starts, sensor mean and GMI fall within weeks while HbA1c follows over
+  months (half-way about 30 days later; the paper measured 34.6 days). Visits in that lag name the
+  treatment. Red-cell lifespan, haemoglobin variants and glycation-rate differences are not modelled.
 - Atorvastatin exposure is one shared state: the statin event's course (dose steps with adherence, an
   optional stop) drives LDL/TG, the `medications.jsonl` plan and the clinic note. The response per
   dose is the LIPITOR label's Table 8 (20 mg: LDL-C -43%, TG -26%, previously a hand-set -38%/-12%)

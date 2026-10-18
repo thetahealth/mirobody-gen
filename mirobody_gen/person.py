@@ -26,7 +26,7 @@ import json
 import random
 from datetime import date, timedelta
 
-from . import profile, spec
+from . import physiology, profile, spec
 from .model import DoseStep, Encounter, Event, MedicationCourse, MissingResult, Person, Reading
 from .physiology import (
     derive, derive_second_pass, measure, normalize_differential,
@@ -423,12 +423,14 @@ def _changing(event: Event, previous: date | None, when: date) -> bool:
         return False
     if previous is None or event.start > previous:
         return True
-    onset = max([o for _, o, _ in event.effects.values()] or [0])
+    # Laboratory HbA1c keeps moving for its history window after the glycaemic state settles.
+    lag = {k: physiology.HBA1C_WINDOW_DAYS if k == "hba1c" else 0 for k in event.effects}
+    onset = max([o + lag[k] for k, (_, o, _) in event.effects.items()] or [0])
     if event.start + timedelta(days=onset) > previous:
         return True
     end = event.start + timedelta(days=event.duration_days)
-    halves = [h for _, _, h in event.effects.values() if h is not None]  # None: the effect never decays
-    if halves and end <= when and end + timedelta(days=3 * max(halves)) > previous:
+    tails = [3 * h + lag[k] for k, (_, _, h) in event.effects.items() if h is not None]  # None: never decays
+    if tails and end <= when and end + timedelta(days=max(tails)) > previous:
         return True
     return _course_changing(event, previous, when)
 

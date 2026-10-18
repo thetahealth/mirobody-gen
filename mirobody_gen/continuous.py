@@ -22,10 +22,12 @@ same minute, and the night's samples fall inside the sleep record the phone stor
 Blood glucose is built minute by minute: a basal level (the physiology model's fasting glucose for that
 day, with the indicator's own within-subject variation), the dawn rise of impaired glucose metabolism, one
 gamma-shaped response per meal, a dip during and after a run, and a slow physiological wander. The meal
-responses are scaled so that the day's mean glucose equals the estimated average glucose of the person's
-expected HbA1c that day (ADAG: eAG mmol/L = 1.59 × HbA1c − 2.59; Nathan et al., Diabetes Care
-2008;31:1473), the same relation the handwritten glucose logs use. A sensor's GMI therefore tracks the
-HbA1c on the person's laboratory slips, and the metformin course moves both.
+responses are scaled so that the day's mean glucose equals the person's glycaemic state that day,
+expressed through ADAG (eAG mmol/L = 1.59 × HbA1c − 2.59; Nathan et al., Diabetes Care 2008;31:1473),
+the same state the handwritten glucose logs read. Laboratory HbA1c is that state's weighted history
+over the preceding ~100 days (`physiology.hba1c_from_history`), so after a change in glycaemia -- the
+metformin course -- the sensor's mean and GMI move within weeks while the HbA1c on the laboratory
+slips follows over months. GMI is computed from the sensor's own readings and is never set to HbA1c.
 
 The sensor reads interstitial glucose, which lags blood glucose by several minutes (a first-order lag),
 through a per-sensor calibration gain that drifts over the session, correlated noise (noisier on day one),
@@ -333,7 +335,8 @@ class Life:
 
 # ── Glucose ──────────────────────────────────────────────────────────────────
 def _eag(person: Person, day: date) -> float:
-    return 1.59 * physiology.expected(person, "hba1c", day) - 2.59
+    """The day's mean glucose: eAG (ADAG) of the glycaemic state, not of the lagging laboratory HbA1c."""
+    return 1.59 * physiology.glycaemic_state(person, day) - 2.59
 
 
 def glucose_minutes(life: Life, start: datetime, minutes: int) -> list[float]:
@@ -374,7 +377,7 @@ def glucose_minutes(life: Life, start: datetime, minutes: int) -> list[float]:
 
     for di, d in enumerate(days):
         base0 = di * 1440
-        if life.dawn and physiology.expected(person, "hba1c", d) >= DAWN_FROM_A1C:
+        if life.dawn and physiology.glycaemic_state(person, d) >= DAWN_FROM_A1C:
             for m in range(270, 510):                    # 04:30-08:30, raised cosine centred 06:30
                 curve[base0 + m] += life.dawn * 0.5 * (1 + math.cos(math.pi * (m - 390) / 120))
         plan = life.plan(d)
@@ -390,7 +393,7 @@ def glucose_minutes(life: Life, start: datetime, minutes: int) -> list[float]:
         plan = life.plan(d)
         if not plan.meals:
             continue
-        a1c = physiology.expected(person, "hba1c", d)
+        a1c = physiology.glycaemic_state(person, d)
         tau = min(TAU_MAX, TAU + TAU_PER_A1C * max(0.0, a1c - 5.6))
         base0 = di * 1440
         need = _eag(person, d) - sum(curve[base0:base0 + 1440]) / 1440
@@ -958,6 +961,7 @@ def write_all(out_dir, people: list[Person], seed: int, langs: dict[str, str], b
                     "expected": {"metric": "bloodGlucoses", "specimen": "interstitial fluid"},
                     "summary": glucose_summary(hist, expected) | {
                         "hba1c_expected_pct": round(physiology.expected(person, "hba1c", sess["start"].date()), 2),
+                        "glycaemic_state_a1c_pct": round(physiology.glycaemic_state(person, sess["start"].date()), 2),
                         "eag_mmol": round(_eag(person, sess["start"].date()), 2)},
                     "readings": [{"time": _iso(x["time"], tz), "kind": x["kind"], "mgdl": x["mgdl"], "mmol": x["mmol"],
                                   "flag": x["flag"], "true_mmol": x["true_mmol"], "artifact": x["artifact"]}

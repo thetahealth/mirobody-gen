@@ -24,7 +24,7 @@ from __future__ import annotations
 
 import math
 import random
-from datetime import date
+from datetime import date, timedelta
 
 from . import spec
 
@@ -186,6 +186,33 @@ def weight_at(person, when: date) -> float:
     return baseline * event_factor(person, "weight", when)[0]
 
 
+#: HbA1c reflects a weighted mean of the preceding plasma glucose, not the current level: the weight
+#: is largest just before the measurement, falls with time and extends back roughly 100 days
+#: (Tahara & Shima, Diabetes Care 1995;18:440, who also measured an HbA1c half-time of 34.6 days
+#: after glycaemic normalisation). Here the weight falls linearly to zero at 100 days, the uniform
+#: red-cell-age form they compare against. Red-cell lifespan changes (anaemia, haemolysis,
+#: transfusion, iron deficiency), haemoglobin variants and individual glycation rates are not modelled.
+HBA1C_WINDOW_DAYS = 100
+
+
+def glycaemic_state(person, when: date) -> float:
+    """Mean plasma glucose on `when`, as the HbA1c (%) it would settle at if held: the `hba1c`
+    centre, baseline, trend and events act here. The CGM day's mean glucose (eAG, ADAG: 1.59 x A1c
+    - 2.59 mmol/L) and the handwritten logs read this state; laboratory HbA1c is its weighted
+    history (`hba1c_from_history`), so it lags a change in glycaemia by weeks."""
+    off = OFFSET.get("hba1c", 0.0)
+    base = (center_of("hba1c", person.sex) - off) * person.baseline.get("hba1c", 1.0)
+    return off + base * trend_factor(person, "hba1c", when) * event_factor(person, "hba1c", when)[0]
+
+
+def hba1c_from_history(person, when: date) -> float:
+    """Expected laboratory HbA1c: the glycaemic state over the preceding HBA1C_WINDOW_DAYS days,
+    weighted linearly from the measurement day back to zero. Only past days enter."""
+    n = HBA1C_WINDOW_DAYS
+    total = n * (n + 1) / 2
+    return sum((n - k) * glycaemic_state(person, when - timedelta(days=k)) for k in range(n)) / total
+
+
 def expected(person, key: str, when: date) -> float:
     """A person's indicator on a day without measurement noise: the centre `measure` draws around.
     Home glucose logs and the CGM read it, so a meter, a sensor and a laboratory share one level."""
@@ -193,6 +220,8 @@ def expected(person, key: str, when: date) -> float:
         return person.height_cm
     if key == "weight":
         return weight_at(person, when)
+    if key == "hba1c":
+        return hba1c_from_history(person, when)
     off = OFFSET.get(key, 0.0)
     base = (center_of(key, person.sex) - off) * person.baseline.get(key, 1.0)
     return off + base * trend_factor(person, key, when) * event_factor(person, key, when)[0]
@@ -207,9 +236,12 @@ def measure(rng: random.Random, person, key: str, when: date) -> float:
 
     item = spec.indicators()[key]
     off = OFFSET.get(key, 0.0)
-    base = (center_of(key, person.sex) - off) * person.baseline.get(key, 1.0)
-    base *= trend_factor(person, key, when)
-    base *= event_factor(person, key, when)[0]
+    if key == "hba1c":
+        base = hba1c_from_history(person, when) - off
+    else:
+        base = (center_of(key, person.sex) - off) * person.baseline.get(key, 1.0)
+        base *= trend_factor(person, key, when)
+        base *= event_factor(person, key, when)[0]
 
     cvi = item.get("cvi") or DEFAULT_CVI
     cv = math.sqrt(cvi ** 2 + CVA_OVERRIDE.get(key, CVA) ** 2) / 100

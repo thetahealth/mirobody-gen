@@ -45,7 +45,7 @@ import re
 from dataclasses import asdict, dataclass, field
 from datetime import date, datetime, timedelta
 
-from . import spec, synthid
+from . import clinical, spec, synthid
 from .layout import Family, date_role, script_of
 from .model import Encounter, Person, Reading
 
@@ -180,6 +180,10 @@ def _paren(text: str, f: Family) -> str:
 
 def _variant_for(item: dict, script: str, rng: random.Random) -> str | None:
     pool = [v for v in item.get("name_variants") or [] if script_of(v) == script]
+    if clinical.ENABLED:
+        from . import clinical_tables
+
+        pool = clinical_tables.same_script(pool, script)
     return rng.choice(pool) if pool else None
 
 

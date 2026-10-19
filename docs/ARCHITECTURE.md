@@ -67,6 +67,11 @@ go through the same scene from the same seed, and the difference measures every 
 ink contrast on the delivered image, replaying the scene's logged geometry to find it. A capture below the
 floor falls back to a milder one.
 
+**Clinical presentation profile** (opt-in, `build --clinical`). `clinical.py` holds the switch; each
+`clinical_*.py` module holds one set of rules that make documents read the way a clinician expects a real
+report to read, and acts only while the switch is on. The rules are presentation choices for clinician-review
+material, not validated clinical facts; a default build never enters them, so existing seeds keep their bytes.
+
 **Continuous streams** (opt-in, `build --continuous`). `continuous.py` plans each of a person's days once
 (sleep from the store's sleep record, meals, a run, walking bouts that add up to the store's step count) and
 draws two curves from it minute by minute: blood glucose, whose daily mean is the eAG of the person's

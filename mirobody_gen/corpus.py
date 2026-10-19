@@ -167,6 +167,12 @@ def assign_institutions(seed: int, people: list[Person], encounters: dict[str, l
     for _, _, idx, p, enc, identity, occurrence in visits:
         if p.person_id not in homes:
             homes[p.person_id] = home_institutions(seed, p, process)
+            if clinical.ENABLED:
+                from . import clinical_issuers
+
+                group, home = homes[p.person_id]
+                homes[p.person_id] = group, clinical_issuers.homes(seed, p, enc.exam_date.year, process, home,
+                                                                   spec.doc_lang(group))
         group, home = homes[p.person_id]
         doc_group = spec.doc_lang(group)
         rng = random.Random(json.dumps([INSTITUTION_ASSIGNMENT_POLICY, seed, p.person_id, list(identity), occurrence]))
@@ -181,6 +187,11 @@ def assign_institutions(seed: int, people: list[Person], encounters: dict[str, l
             index = process.draw(rng, kind, visit_group, required_service=service)
         if service is not None and not service_profile.supports(index, service):
             index = process.draw(rng, kind, visit_group, required_service=service)
+        if clinical.ENABLED:
+            from . import clinical_issuers
+
+            index = clinical_issuers.visit(seed, p, enc, list(identity), occurrence, process, index, kind, visit_group,
+                                           service_profile.eligible(kind, visit_group, service) if service else None)
         if service is not None:
             evidence[(p.person_id, enc.exam_date.isoformat(), enc.exam_type,
                       registry.institutions[index]["name"])] = service_profile.evidence(index, service)

@@ -330,6 +330,10 @@ def encounter_for(person: Person, when: date, exam_type: str, orders: list[str],
     categoricals = [k for k in keys if catalogue[k]["value_kind"] == "categorical"]
 
     raw: dict[str, float] = {k: measure(rng, person, k, when) for k in primaries}
+    if clinical.ENABLED:
+        from . import clinical_red_cells
+
+        clinical_red_cells.coherent(raw, person, when)
     normalize_differential(raw)
     values = {k: float(spec.format_value(k, v)) for k, v in raw.items()}
 

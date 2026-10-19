@@ -26,7 +26,7 @@ import math
 import random
 from datetime import date, timedelta
 
-from . import spec
+from . import clinical, spec
 
 #: Conservative within-subject variation (%) when no CVI is on file. Better to under-jitter than to
 #: invent "disease fluctuation" out of nothing.
@@ -244,7 +244,12 @@ def measure(rng: random.Random, person, key: str, when: date) -> float:
         base *= event_factor(person, key, when)[0]
 
     cvi = item.get("cvi") or DEFAULT_CVI
-    cv = math.sqrt(cvi ** 2 + CVA_OVERRIDE.get(key, CVA) ** 2) / 100
+    cva = CVA_OVERRIDE.get(key, CVA)
+    if clinical.ENABLED:
+        from .clinical_red_cells import ANALYTICAL_CV
+
+        cva = ANALYTICAL_CV.get(key, cva)
+    cv = math.sqrt(cvi ** 2 + cva ** 2) / 100
     # The log-scale SD whose lognormal has this CV: sqrt(ln(1 + CV^2)) (Fokkema et al. 2006). Using
     # the CV itself as the log SD overstated the spread (CV 40% printed as 41.7%), and the audit's
     # reference change value could not match it.

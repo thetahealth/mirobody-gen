@@ -26,7 +26,7 @@ import json
 import random
 from datetime import date, timedelta
 
-from . import physiology, profile, spec
+from . import clinical, physiology, profile, spec
 from .model import DoseStep, Encounter, Event, MedicationCourse, MissingResult, Person, Reading
 from .physiology import (
     derive, derive_second_pass, measure, normalize_differential,
@@ -402,6 +402,11 @@ def encounter_for(person: Person, when: date, exam_type: str, orders: list[str],
             source="synthetic_calculation" if key == "ldl" else "synthetic_generator",
         ))
 
+    if clinical.ENABLED:
+        from . import clinical_checkup
+
+        ordered_keys, readings, missing = clinical_checkup.orders(ordered_keys, readings, missing, person, when,
+                                                                  exam_type, package)
     location = {"routine": "checkup-center", "follow-up": "hospital", "clinic": "hospital",
                 "specialty": "clinic"}.get(exam_type, "hospital")
     encounter = Encounter(person_id=person.person_id, exam_date=when, exam_type=exam_type,

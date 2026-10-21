@@ -21,51 +21,136 @@ a tendency to hallucinate, not extraction ability.**
 from __future__ import annotations
 
 import json
+import copy
+import math
 import pathlib
+from collections import defaultdict
 from dataclasses import asdict
+from datetime import date
 
 from . import spec
 from .model import Encounter, Person
 
 
-def _conditions_of(person: Person, encounters: list[Encounter] | None = None) -> list[dict]:
-    """This person's diagnosis set = the archetype's own + **anything inferred from the values**.
+DIAGNOSTIC_POLICY = "observed-diagnosis-time-v1"
+CONDITION_KNOWLEDGE_POLICY = "dated-diagnosis-knowledge-v1"
 
-    The second part is a feedback loop: three consecutive blood-pressure readings >=140/90 make
-    someone hypertensive on paper, whatever archetype the cohort originally assigned them. Without
-    this loop, a generated record could show values that meet a diagnostic threshold with no
-    matching diagnosis — which a clinical audit would (correctly) flag as a missed diagnosis.
 
-    Measured on the public ESL-Bench dataset: of 20 users, values met a diagnostic threshold for 7
-    consecutive readings with no matching entry in that person's chronic-disease list in 2 cases
-    (both hypertension). Their pipeline is top-down (profile -> events -> values), so values
-    drifting into a diagnostic range never flows back into the profile. This function adds that
-    feedback.
+def _known_on(condition: dict, as_of: date | None) -> bool:
+    """A source and recorded date establish when a condition became known, not onset."""
+    if not isinstance(condition, dict):
+        raise ValueError("condition must be a source record")
+    days = {}
+    for key in ("recorded_date", "onset_date"):
+        text = condition.get(key)
+        if text is not None:
+            if not isinstance(text, str) or len(text) != 10:
+                raise ValueError(f"{key} must be a calendar date or null")
+            days[key] = date.fromisoformat(text)
+    source = condition.get("source")
+    if "recorded_date" not in days or not isinstance(source, str) or not source.strip():
+        return False
+    return as_of is None or all(day <= as_of for day in days.values())
 
-    "Undiagnosed hypertension" certainly exists in the real world, so this is not claiming that
-    pattern is wrong in general. But a benchmark meant to test attribution needs this written into
-    the truth, not left to be inferred.
+
+def _predicate(readings: list, criterion: dict) -> bool | None:
+    candidates = [r for r in readings if r.key == criterion["key"]]
+    if not candidates:
+        return None
+    signatures = {(r.canonical_value, r.unit_ucum, r.ref_low, r.ref_high) for r in candidates}
+    if len(signatures) != 1:
+        return None
+    row = candidates[0]
+    value = row.canonical_value
+    threshold = getattr(row, criterion["reference"], None) if "reference" in criterion else criterion["value"]
+    if any(type(v) not in (int, float) or not math.isfinite(v) for v in (value, threshold)):
+        return None
+    if criterion.get("unit") and row.unit_ucum != criterion["unit"]:
+        return None
+    return _meets(value, criterion["op"], threshold)
+
+
+def _sample_result(encounter: Encounter, rule: dict) -> bool | None:
+    primary = [_predicate(encounter.readings, c) for c in rule["any_of"]]
+    any_met = True if True in primary else None if None in primary else False
+    required = [_predicate(encounter.readings, c) for c in rule.get("all_of", [])]
+    if any_met is False or False in required:
+        return False
+    return True if any_met is True and all(v is True for v in required) else None
+
+
+def diagnostic_assessments(encounters: list[Encounter], as_of: date | None = None) -> list[dict]:
+    """Evidence checks only; absent tests are unknown, not negative or implied diagnoses.
+
+    Requirements in one sample are never joined across different encounters.
+    Same-day repeats count once. A conflicting day resets the run conservatively;
+    an unmeasured day does not masquerade as a normal measurement.
     """
-    base = list(spec.cohort().get("archetype_conditions", {}).get(person.archetype, []))
-    if not encounters:
-        return base
-    have = {c["code"] for c in base}
+    assessments = []
     for rule in spec.cohort().get("diagnostic_criteria", []):
-        code = rule["condition"]["code"]
-        if code in have:
-            continue
-        run = 0
-        for encounter in sorted(encounters, key=lambda e: e.exam_date):
-            values = {r.key: r.canonical_value for r in encounter.readings
-                      if r.canonical_value is not None}
-            met = any(_meets(values.get(c["key"]), c["op"], c["value"]) for c in rule["any_of"])
-            run = run + 1 if met else 0
-            if run >= rule["persistence"]:
-                base.append({**rule["condition"], "onset_date": encounter.exam_date.isoformat(),
-                             "source": "由数值推出（" + rule["source"].split("：")[0] + "）"})
-                have.add(code)
-                break
+        days = defaultdict(list)
+        for encounter in encounters:
+            if as_of is None or encounter.exam_date <= as_of:
+                days[encounter.exam_date].append(_sample_result(encounter, rule))
+        positives, unknown, conflicts = [], [], []
+        confirmed = None
+        for day, states in sorted(days.items()):
+            assessed = {s for s in states if s is not None}
+            if assessed == {True, False}:
+                positives = []
+                conflicts.append(day.isoformat())
+            elif assessed == {False}:
+                positives = []
+            elif assessed == {True}:
+                positives.append(day)
+                enough_time = ("minimum_elapsed_days_exclusive" not in rule or
+                               (day - positives[0]).days > rule["minimum_elapsed_days_exclusive"])
+                if len(positives) >= rule["persistence"] and enough_time:
+                    confirmed = day
+                    break
+            else:
+                unknown.append(day.isoformat())
+        status = ("met" if confirmed else "pending_confirmation" if positives else
+                  "not_assessable" if unknown or conflicts else "not_met")
+        assessments.append({"code": rule["condition"]["code"], "status": status,
+                            "recorded_date": confirmed.isoformat() if confirmed else None,
+                            "evidence_dates": [d.isoformat() for d in positives],
+                            "unmeasured_dates": unknown, "conflicting_dates": conflicts,
+                            "source": rule["source"], "policy": DIAGNOSTIC_POLICY})
+    return assessments
+
+
+def _conditions_of(person: Person, encounters: list[Encounter] | None = None,
+                   as_of: date | None = None) -> list[dict]:
+    # An archetype is latent simulation design, not a dated clinical source.
+    # Preserve it separately in the full person archive, never as an early diagnosis.
+    base = []
+    for c in person.diagnosis_history:
+        if not isinstance(c, dict) or any(not isinstance(c.get(k), str) or not c[k].strip() for k in ("code", "display")):
+            raise ValueError("diagnosis history requires code/display")
+        if _known_on(c, as_of):
+            base.append(copy.deepcopy(c))
+    have = {c["code"] for c in base}
+    rules = {r["condition"]["code"]: r for r in spec.cohort().get("diagnostic_criteria", [])}
+    for assessment in diagnostic_assessments(encounters or [], as_of):
+        code = assessment["code"]
+        if assessment["status"] == "met" and code not in have:
+            base.append({**rules[code]["condition"], "onset_date": None,
+                         "recorded_date": assessment["recorded_date"],
+                         "source": "synthetic_numeric_rule", "evidence_dates": assessment["evidence_dates"],
+                         "policy": DIAGNOSTIC_POLICY})
+            have.add(code)
     return base
+
+
+def conditions_for_encounter(person: Person, encounter: Encounter) -> list[dict]:
+    """Same dated facts for standalone rendering and the longitudinal generator."""
+    known = {c["code"]: copy.deepcopy(c) for c in (encounter.conditions or [])
+             if _known_on(c, encounter.exam_date)}
+    # Explicit current source history remains available to a standalone consumer;
+    # historical numeric confirmations come from the encounter's timeline context.
+    known.update({c["code"]: c for c in _conditions_of(person, [encounter], encounter.exam_date)})
+    return list(known.values())
 
 
 def _meets(value, op: str, threshold: float) -> bool:
@@ -76,7 +161,16 @@ def _meets(value, op: str, threshold: float) -> bool:
 
 
 def encounter_record(person: Person, encounter: Encounter, file: str | None = None,
-                     index: int = 0, conditions: list[dict] | None = None) -> dict:
+                     index: int = 0, conditions: list[dict] | None = None,
+                     assessments: list[dict] | None = None) -> dict:
+    encounter.validate_order_results()
+    if assessments is not None:
+        for assessment in assessments:
+            days = [assessment.get("recorded_date")]
+            for key in ("evidence_dates", "unmeasured_dates", "conflicting_dates"):
+                days.extend(assessment.get(key, []))
+            if any(day and date.fromisoformat(day[:10]) > encounter.exam_date for day in days):
+                raise ValueError("diagnostic assessment contains future evidence")
     # The placeholder id uses the encounter index, not the concatenated order names: normalising
     # `vitals+inflammation` gives `vitalsinflammation`, which happens to fall inside a 12-character
     # window of the reference corpus and would make the privacy gate report a verbatim copy that
@@ -94,13 +188,20 @@ def encounter_record(person: Person, encounter: Encounter, file: str | None = No
             "region": person.region,
             # Diagnosis set. Currently looked up from the archetype; once PySynthea is wired in,
             # this would read directly from its Condition resource — this line is that seam.
-            "conditions": conditions if conditions is not None else _conditions_of(person),
+            "conditions": [copy.deepcopy(c) for c in conditions if _known_on(c, encounter.exam_date)]
+                          if conditions is not None else conditions_for_encounter(person, encounter),
         },
         "collected": encounter.exam_date.isoformat(),
+        "knowledge_as_of": encounter.exam_date.isoformat(),
+        "condition_knowledge_policy": CONDITION_KNOWLEDGE_POLICY,
+        "diagnostic_assessments": assessments if assessments is not None else diagnostic_assessments([encounter], encounter.exam_date),
         "exam_type": encounter.exam_type,
         "exam_location": encounter.exam_location,
         "panels": list(encounter.panels),
+        "ordered_keys": list(encounter.ordered_keys) if encounter.ordered_keys is not None else None,
+        "missing_results": [asdict(m) for m in encounter.missing_results],
         "package": encounter.package,
+        "department": encounter.department,
         "events_since_previous": list(encounter.events_since_previous),
         # Chief complaints (expected symptom-axis code) and named findings (expected diagnosis-axis code).
         "complaints": [{"text": c.text, "symptom_id": c.symptom_id, "icpc3": c.icpc3, "expect": c.expect,
@@ -120,6 +221,7 @@ def encounter_record(person: Person, encounter: Encounter, file: str | None = No
 
 def person_record(person: Person, conditions: list[dict] | None = None) -> dict:
     return {
+        "truth_scope": "full_simulation_timeline_not_point_in_time",
         "person_id": person.person_id,
         "sex": person.sex,
         "birth_year": person.birth_year,
@@ -127,6 +229,8 @@ def person_record(person: Person, conditions: list[dict] | None = None) -> dict:
         "archetype": person.archetype,
         "region": person.region,
         "conditions": conditions if conditions is not None else _conditions_of(person),
+        "archetype_conditions": copy.deepcopy(spec.cohort().get("archetype_conditions", {}).get(person.archetype, [])),
+        "diagnosis_history": copy.deepcopy(list(person.diagnosis_history)),
         "events": [
             {
                 "name": e.name,
@@ -137,12 +241,36 @@ def person_record(person: Person, conditions: list[dict] | None = None) -> dict:
                 "impact_level": e.impact_level,
                 # The decidable answer to an attribution question lives here: which event, which
                 # indicators, how large an effect, and how long it takes to kick in.
-                "affected_indicators": sorted(e.effects),
+                "affected_indicators": sorted(set(e.effects) | set(_course_keys(e))),
                 "effects": {k: {"magnitude": m, "onset_days": o, "half_life_days": d}
                             for k, (m, o, d) in e.effects.items()},
+                # Dose-dependent effects come from the exposure course: each step's steady state
+                # (sourced response at that dose times adherence), ramped over onset/offset days.
+                **({"course": _course_record(e)} if e.course is not None else {}),
             }
             for e in person.events
         ],
+    }
+
+
+def _course_keys(event) -> list[str]:
+    if event.course is None:
+        return []
+    doses = spec.cohort()["medication_response"][event.course.drug]["doses_mg"]
+    return sorted({k for response in doses.values() for k in response})
+
+
+def _course_record(event) -> dict:
+    course = event.course
+    response = spec.cohort()["medication_response"][course.drug]
+    return {
+        "drug": course.drug,
+        "steps": [{"start": s.start.isoformat(), "dose_mg": s.dose_mg, "adherence": s.adherence,
+                   "steady_state": {k: v * s.adherence for k, v in response["doses_mg"][f"{s.dose_mg:g}"].items()}}
+                  for s in course.steps],
+        "stop": course.stop.isoformat() if course.stop is not None else None,
+        "onset_days": response["onset_days"], "offset_days": response["offset_days"],
+        "source": response["source"], "assumptions": sorted(response["assumptions"]),
     }
 
 
@@ -151,16 +279,17 @@ def write(out_dir: pathlib.Path, people: list[Person],
     out_dir.mkdir(parents=True, exist_ok=True)
     by_person = {p.person_id: p for p in people}
 
-    # Computed once per person (needs the full timeline), then handed to every one of their records.
+    # Full simulated truth is retained for people.jsonl, never copied into earlier visits.
     conditions = {pid: _conditions_of(by_person[pid], items)
                   for pid, items in encounters.items()}
 
     rows = 0
     with (out_dir / "manifest.jsonl").open("w", encoding="utf-8") as fh:
         for person_id, items in encounters.items():
-            for index, encounter in enumerate(items, start=1):
+            for index, encounter in enumerate(sorted(items, key=lambda e: (e.exam_date, e.exam_type, e.panels)), start=1):
                 record = encounter_record(by_person[person_id], encounter, index=index,
-                                          conditions=conditions[person_id])
+                                          conditions=_conditions_of(by_person[person_id], items, encounter.exam_date),
+                                          assessments=diagnostic_assessments(items, encounter.exam_date))
                 rows += len(record["rows"])
                 fh.write(json.dumps(record, ensure_ascii=False) + "\n")
 

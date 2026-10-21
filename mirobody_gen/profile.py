@@ -262,11 +262,11 @@ def complaints_for(person: Person, when: date, exam_type: str, lang: str, seed: 
     comp = _comp()
     pools = comp["pools"]
     arch = pools["archetype"].get(person.archetype, pools["archetype"]["healthy"])
-    scripted = [e for e in person.events if e.note == "原型剧本"]
-    after = bool(scripted) and scripted[0].start <= when
+    scripted = [e for e in person.events if e.note == "原型剧本" and e.start <= when]
+    after = bool(scripted)
     candidates = list(arch["after"] if after else arch["before"])
     for e in person.events:
-        if e.note == "随机事件" and e.start - timedelta(days=3) <= when <= e.start + timedelta(days=e.duration_days + 7):
+        if e.note == "随机事件" and e.start <= when <= e.start + timedelta(days=e.duration_days + 7):
             candidates += pools["incident"].get(e.name, [])
     candidates = [sid for sid in candidates if symptom_has_lang(sid, lang)]
     none_rate = arch["none_rate"] if not candidates else min(arch["none_rate"], 0.5)

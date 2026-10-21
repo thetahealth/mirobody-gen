@@ -5,7 +5,62 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); ver
 
 ## [Unreleased]
 
+- Keep undated archetype conditions as full-simulation design instead of
+  historical diagnoses. Visits and existing clinical documents use dated,
+  sourced diagnosis knowledge (`dated-diagnosis-knowledge-v1`); unknown history
+  remains undocumented, without invented years of illness or a negative history.
+  Future infection/treatment entries no longer choose current symptoms or
+  history-section draws. Full cross-source temporal acceptance remains open.
+
+- Isolate scheduled incident decisions and per-visit measurement randomness
+  (`encounter-streams-v2`), so future event edits no longer select past noise.
+  Builds record the policy in `generation.json`. This intentionally changes
+  legacy seed outputs; archived counterexamples remain explicit regression
+  inputs. Whole-source temporal isolation and undated diagnostic priors remain
+  open and are not certified by this repair.
+
 ### Added
+- `build --verify`: runs the clinical, readability and privacy audits on the build just written and
+  writes `verification.json` with passed/failed/skipped/not_run per check. A gating failure exits 1;
+  replay detection without the reference index, image-tier OCR and unaudited source families are
+  reported `not_run`, making the overall status `incomplete`, never `passed`.
+- `score-semantic`: a separate offline numeric-reading scorer for authored LOINC, normalized values
+  and units, observable dates, roles and supplied file context. One assignment drives all field and
+  joint metrics; extra/missing predictions affect precision/recall and ambiguous submissions fail.
+  Hidden previous results, incomplete dates and censored values have explicit eligibility limits.
+  Existing five-field `score` results are unchanged; these metrics do not validate clinical labels.
+- `review-scenarios`: offline evidence checks with an optional model critic, generic/expert rubric
+  variants, exact evidence references, explicit unassessable results and candidate user questions.
+  Model findings are not a clinical gate. The optional review transport supports DeepSeek credentials,
+  explicit model discovery, bounded output, a shared CNY 10/day Asia/Shanghai ledger, usage reporting and validated
+  request-addressed caching. See `docs/ITERATION_WORKFLOW.md` for limits and calibration boundaries.
+  `--ocular-source` restricts candidate questions to code-worded source-field lookups.
+- Paired presentation views: `build --pairs N --pair-views ordinary` writes only the clean table
+  controls, and `--pair-scope checkup` builds full routine checkup books, freezes each one, and clones
+  it for incident and capture stress. Records carry `presentation` (`paired-table-v2` /
+  `paired-checkup-v1`, purpose `ordinary` or `stress`); purpose is not a clinical-realism label.
+- `build --render --facility-services PROFILE`: optional authored-synthetic service profile; visit
+  files are drawn only from institutions that declare the visit's required service and record
+  `facility_service`. Off by default, without changing default selection.
+- Offline source-only tools that never sample or complete facts: `replay-ocular` (per-eye observations
+  with explicit laterality and measured/not_measured/unknown states, plus `--audit-existing`),
+  `snapshot-fhir` (lossless Observation index over the original Bundle bytes, with read-only
+  `--reference-audit` and `--body-patient-audit` diagnostics) and `render-fhir-view` (escaped,
+  self-contained HTML source view with its own audit). None maps codes, picks a version or infers
+  eye side.
+- Manifest records declare `ordered_keys` and `missing_results[]` (reason, method, source) so every
+  ordered analyte has exactly one result row or one stated non-result; rows carry `result_method`
+  and `source`. `build --verify` rejects omissions, duplicates and undeclared outcomes.
+- Manifest `diagnostic_assessments[]` (`observed-diagnosis-time-v1`): per-visit rule states (`met`,
+  `pending_confirmation`, `not_assessable`, `not_met`) with evidence dates, computed only from visits
+  up to that date. Numeric-rule conditions carry `recorded_date` and `evidence_dates`, leaving onset
+  unknown; `people.jsonl` is marked `truth_scope=full_simulation_timeline_not_point_in_time`.
+- Optional explicit `Encounter.department`, printed in outpatient records and preferred by same-visit
+  lab slips; file truth `care_context` records it or `unknown`. Nothing infers it from names.
+- Provenance and side metadata: device truth `pulse_model` (resting summary vs home cuff contexts),
+  continuous day `rhr_provenance` (store record vs model fallback), `walks[]`, `steps_source` and
+  `step_allocation`; checkup `ocular_exam.not_reported[]` and per-eye `measurements[]`; delivery
+  `container_fallback`.
 - Schema enlarged from public sources (expert consensus on basic check-up items 2022, Ningen Dock
   judgement categories 2026, Shenzhen report standard DB4403/T 551.2-2024, critical-result consensus,
   US commercial laboratory report layouts): 73 new indicators (hepatitis B/C serology, extended
@@ -133,6 +188,95 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); ver
   sentence; no polygenic score or trait probability is invented.
 
 ### Fixed
+- `--continuous` scheduling no longer depends on later events: each heart-rate window and glucose
+  sensor session draws from a stream of its own, overlaps resolve in calendar order and windows are
+  numbered in it, and the baseline sensor of the metformin archetype sits 130-180 days into the
+  window (before the earliest scripted start) instead of 14-40 days before the actual metformin
+  start. Before, adding a future cold moved a past ordinary heart-rate week (seed 7: p021, p029,
+  p058), and deleting a future metformin start changed the past baseline sensor (8 of 8 users).
+  Continuous outputs change for existing seeds. A CGM reading's clock jitter no longer places the
+  last reading after its session's end.
+- A cold's ibuprofen prn course depends on treatment in progress on the day of the cold, each plan
+  draws from its own stream and plans are numbered in date order: deleting a future metformin start
+  used to remove or renumber an earlier course (seed 7, p020).
+- HbA1c now follows glucose history instead of driving it: the glycaemic state (mean glucose as a
+  steady-state HbA1c) sets each CGM day's mean and the handwritten logs, and laboratory HbA1c is that
+  state's history over the preceding 100 days with a linearly falling weight (Tahara & Shima, Diabetes
+  Care 1995). Before, the CGM mean was solved to the same day's HbA1c, and a 90-day onset on
+  metformin's HbA1c effect stood in for the lag; that effect now acts on the state with glucose's
+  30 days. After metformin starts, sensor mean and GMI fall within weeks while HbA1c follows over
+  months (half-way about 30 days later; the paper measured 34.6 days). Visits in that lag name the
+  treatment. Red-cell lifespan, haemoglobin variants and glycation-rate differences are not modelled.
+- Atorvastatin exposure is one shared state: the statin event's course (dose steps with adherence, an
+  optional stop) drives LDL/TG, the `medications.jsonl` plan and the clinic note. The response per
+  dose is the LIPITOR label's Table 8 (20 mg: LDL-C -43%, TG -26%, previously a hand-set -38%/-12%)
+  with full effect at 4 weeks; curve shape, washout, adherence scaling and population transfer are
+  declared assumptions. `person.with_course` sets titration, adherence or a stop for a scenario. The
+  default course is unchanged: 20 mg daily from the start, never stopped.
+- `events_since_previous` no longer names an event whose effect is flat across the interval: a
+  treatment started years earlier was cited at every later visit (p029's statin at all 12 visits
+  after it started), and so was an ended event whose effects never decay. Attribution answers and
+  the RCV audit's event stratum change accordingly.
+- Measurement noise and the longitudinal RCV audit now share one declared lognormal model
+  (`resources/measurement.json`): the log-scale SD is sqrt(ln(1 + CV^2)), so printed values have the
+  catalogue CV (CV 42% printed as 44% before), and the audit's 95% threshold is
+  1.96 * sqrt(2 s^2 + rounding) on the trend-adjusted log ratio of pairs with no intervening event.
+  The old ln(1 + 2.77 CV) gate was narrower than the model (7.8% in a pre-registered simulation; seed 7
+  printed 10% against a stated ~5%). Seeds 7/11/23 now give 5.3%/4.6%/4.7% (exact binomial p >= 0.12);
+  every excluded pair is counted by reason. Measured values change slightly for existing seeds.
+- Rendered files no longer depend on later visits of other people: institutions are assigned in
+  calendar order across the cohort from per-visit streams (`institution-assignment-v2`), and the
+  genetics report, home logs and export use streams of their own. Deleting p001's visits after
+  2023-03-01 had changed 14 earlier files of 10 other people. Rendered bytes change for existing seeds.
+- The configured statin LDL effect (-38%) is now the simulated LDL change: LDL cholesterol is the
+  modelled lipid state and total cholesterol is derived as LDL + HDL + TG/2.2, so the printed values
+  keep the Friedewald identity. Before, LDL was computed from a separately sampled total cholesterol
+  with its own statin effect, giving -31% to -52% by baseline. The TC effect and TC archetype shift
+  are removed rather than left unused; lipid values change for existing seeds.
+- `--people N` now yields exactly N people (largest-remainder apportionment by archetype weight; one
+  per archetype once N ≥ the number of archetypes). Previously 61 gave 60, 100 gave 99, and 7–9
+  dropped the archetypes last in the table. The full cohort is unchanged; other sizes draw different
+  people than before. Non-positive or non-integer sizes are rejected.
+- `--lang-mix ja:1 --render` no longer dies with `KeyError ('ja', 'hospital')`: ordinary visits pick
+  institutions by document-wording group, while the demographic group (device time zone, genetics)
+  stays `ja`. zh/en builds are unaffected.
+- `score` rejects prediction files absent from the manifest, repeated `image` lines and malformed
+  lines instead of ignoring or overwriting them; it reports `documents_without_prediction` and
+  `unscored_predictions`. With `--medrep-labels`, whose label CSV is a subset by construction,
+  predictions outside it are counted in `predictions_outside_labels` instead of failing the run.
+- Generic OpenAI-compatible calls (`paraphrase`, `llm-panel` with `LLM_BASE_URL`) no longer follow
+  redirects, which would re-send the Authorization header, and refuse a credential containing
+  whitespace or control characters instead of quoting it in an error.
+- Ordered LDL no longer disappears silently when triglycerides exceed the existing Friedewald limit
+  (4.5 mmol/L) or an input is missing: the visit records `tg_above_calculation_limit` (with the
+  actual TG) or `calculation_inputs_missing`. The formula and limit are unchanged, and no direct
+  assay result is invented; an explicitly supplied direct LDL is copied unchanged.
+- Diagnoses from numeric rules no longer leak into earlier visits: each visit sees only evidence up
+  to its date, so a condition first confirmed later is not written into earlier records.
+  Low-eGFR CKD now needs repeat evidence spanning more than 90 days (KDIGO 2024 §1.1.3); overt
+  hypothyroidism needs a same-visit FT4 below its reference limit in addition to TSH ≥ 10; low
+  haemoglobin yields generic anaemia rather than an inferred iron-deficiency cause. Regenerating
+  after editing future events can still change past values (a shared random stream); see
+  `docs/SCHEMA.md`.
+- Continuous streams (`daily-activity-v3`): a sampled run can no longer need more steps than the
+  day's total, and runs and walks no longer overlap each other or leave the waking day; durations
+  and the daily device facts are kept, and an impossible placement is an error.
+- Home cuff pulse (`device-pulse-v2`) now applies the configured `pulse` event factor like resting
+  and clinic pulse; its baseline, context multiplier and noise are unchanged.
+- An explicit JPG/PNG capture of a multi-page document no longer silently keeps only page one: it is
+  delivered as a multi-page image PDF and recorded in `container_fallback`; the low-level encoder
+  rejects multi-page single-image input.
+- An exhausted institution pool no longer raises `StopIteration` (`institution-pool-v2`): it reuses an
+  institution already drawn from the same language and type; earlier draws are unchanged.
+- Visual acuity and intraocular pressure rows name the eye (`ocular-laterality-v1`); the two existing
+  draws are kept, the first IOP draw being left by definition.
+- Evaluate derived laboratory quantities in dependency order: waist, albumin/globulin and free/total
+  PSA ratios now appear when ordered. Weight interventions now affect the shared weight trajectory
+  and BMI; disease trends start at the observation-window anchor, independently of unrelated events.
+- Independent per-site genotype draws no longer assert VCF haplotype phase. Removed the incorrect
+  `HK` label from HBsAg name variants in both the authoring script and generated catalogue.
+  These corrections change generated output for existing seeds; keep code/resource versions with
+  archived corpora and regenerate affected comparisons.
 - Mixed `files.jsonl` manifests containing `genetics_report` no longer crash the laboratory scorer,
   oracle baseline, MedRepBench export, or fidelity audit. PGx records stay outside laboratory
   metrics; scorer, baselines and fidelity output state the excluded count. A genetics-only

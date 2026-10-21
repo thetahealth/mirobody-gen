@@ -7,9 +7,9 @@ frequencies, how each chronic condition progresses, when an intervention takes e
 a visit orders. It lives in the spec rather than buried in `generator/person.py` for two
 reasons:
 
-1. It must be reviewable by someone who doesn't read Python. "A statin drops LDL by 38%,
-   taking effect in 4-6 weeks" is a falsifiable clinical claim; it belongs in a file anyone
-   can point at.
+1. It must be reviewable by someone who doesn't read Python. "Atorvastatin 20 mg lowers LDL-C
+   by 43%, fully within 4 weeks" is a falsifiable clinical claim; it belongs in a file anyone
+   can point at, next to its source.
 2. Names such as `iron_deficiency_anemia` and `checkup-center` show up in generated output,
    and the privacy gate's exemption only recognizes public vocabulary declared in the spec --
    anything undeclared gets flagged as a possible string lifted from the real corpus. That
@@ -130,7 +130,8 @@ ARCHETYPES: list[dict] = [
      "trend": {"glu": 0.05, "hba1c": 0.045},
      "followup": ["glucose"], "interval": 6, "script": "metformin"},
     {"name": "dyslipidemia_statin", "n": 8,
-     "shift": {"chol": 1.35, "ldl": 1.45, "tg": 1.6, "hdl": 0.82, "bapwv_l": 1.08},
+     # No TC shift: total cholesterol is derived from LDL, HDL and TG (see build_indicators.py).
+     "shift": {"ldl": 1.45, "tg": 1.6, "hdl": 0.82, "bapwv_l": 1.08},
      "trend": {}, "followup": ["lipid"], "interval": 6, "script": "statin"},
     {"name": "iron_deficiency_anemia", "n": 5,
      # The shift is applied to the **independent variables**: iron deficiency is a
@@ -160,16 +161,20 @@ ARCHETYPES: list[dict] = [
 SCRIPTS: dict[str, dict] = {
     "metformin": {
         "name": "开始二甲双胍", "type": "medication", "effect": "positive", "impact": "high",
-        "effects": {"glu": (-0.18, 30, None), "hba1c": (-0.14, 90, None),
+        # The hba1c effect acts on the glycaemic state (mean glucose expressed as a steady-state
+        # HbA1c), so it takes effect with glucose (30 days, as glu); the laboratory HbA1c then lags
+        # it through physiology.hba1c_from_history. The earlier 90-day onset stood in for that lag.
+        "effects": {"glu": (-0.18, 30, None), "hba1c": (-0.14, 30, None),
                     "weight_kg": (-0.03, 90, None)},
     },
     "statin": {
         "name": "开始他汀治疗", "type": "medication", "effect": "positive", "impact": "high",
-        # The LDL step completes over 4-6 weeks -- a pharmacodynamic fact about statins, and
-        # the reason the "onset delay" parameter exists at all: a same-day prescription and
-        # same-day recheck would show no change.
-        "effects": {"ldl": (-0.38, 35, None), "chol": (-0.26, 35, None),
-                    "tg": (-0.12, 35, None), "alt": (0.15, 60, 180)},
+        # The LDL and TG response depends on the dose actually taken, so it comes from the
+        # exposure course and MEDICATION_RESPONSE below, not from a fixed triple here. Total
+        # cholesterol follows from LDL + HDL + TG/2.2. The ALT rise is a hand-set, unvalidated
+        # assumption that does not scale with dose.
+        "effects": {"alt": (0.15, 60, 180)},
+        "course": {"drug": "atorvastatin", "dose_mg": 20},
     },
     "iron": {
         "name": "开始补铁治疗", "type": "medication", "effect": "positive", "impact": "medium",
@@ -194,6 +199,34 @@ SCRIPTS: dict[str, dict] = {
     },
 }
 
+#: Dose-dependent response of a drug, read by `physiology` for every event whose course names it.
+#: Only doses with a sourced response are accepted; nothing is interpolated between them.
+MEDICATION_RESPONSE: dict[str, dict] = {
+    "atorvastatin": {
+        # Adjusted mean % change from baseline after 6 weeks, pooled from two placebo-controlled
+        # dose-response trials in primary hyperlipidaemia (LIPITOR US prescribing information,
+        # section 14, Table 8). HDL-C (+5% to +9%, not dose-related in the label) is not modelled.
+        "doses_mg": {"10": {"ldl": -0.39, "tg": -0.19}, "20": {"ldl": -0.43, "tg": -0.26},
+                     "40": {"ldl": -0.50, "tg": -0.29}, "80": {"ldl": -0.60, "tg": -0.37}},
+        # "Therapeutic response is seen within 2 weeks, and maximum response is usually achieved
+        # within 4 weeks and maintained during chronic therapy" (same label, section 14).
+        "onset_days": 28,
+        "offset_days": 28,
+        "source": "LIPITOR (atorvastatin calcium) US prescribing information, revised 2024, "
+                  "section 14 Table 8 and its text",
+        "source_url": "https://www.accessdata.fda.gov/drugsatfda_docs/label/2024/020702s081lbl.pdf",
+        "assumptions": {
+            "onset_shape": "linear to the full response at 28 days; the label gives timing, not a curve",
+            "offset": "after a stop the response returns linearly over 28 days, mirroring onset; not sourced",
+            "adherence": "the steady-state response scales linearly with the fraction of doses taken; "
+                         "not validated",
+            "population": "trial means applied to every synthetic user; individual response variation "
+                          "is not modelled",
+            "placebo": "drug-arm values as labelled; the placebo arm's own +4% LDL-C is not subtracted",
+        },
+    },
+}
+
 #: Event name -> first-line drug and starting dose, read by `mirobody_gen.medications`. The drug
 #: must match `scripts/build_profile.py`'s `OUTPATIENT["drugs"]` (what a clinic note says a person
 #: is "currently taking"), including iron's "多糖铁复合物" over a ferrous salt -- two sources naming
@@ -206,6 +239,9 @@ MEDICATION_PLANS: dict[str, dict] = {
         "generic": "atorvastatin", "name_zh": "阿托伐他汀钙片", "name_en": "Atorvastatin",
         "strength": "20 mg", "route": "oral", "frequency": "qd",
         "dose_text_zh": "每日1次，每次20mg", "dose_text_en": "20 mg once daily",
+        # A course's later dose steps are written with these; the starting dose above must match
+        # the script's course (checked in medications.plans_for).
+        "dose_text_template_zh": "每日1次，每次{dose}mg", "dose_text_template_en": "{dose} mg once daily",
     },
     "开始降压治疗": {
         "generic": "amlodipine", "name_zh": "苯磺酸氨氯地平片", "name_en": "Amlodipine",
@@ -296,18 +332,16 @@ ARCHETYPE_CONDITIONS: dict[str, list[dict]] = {
     "hypertension": [{"code": "38341003", "display": "高血压"}],
 }
 
-#: Diagnostic criteria: **once a value crosses this line, the matching diagnosis must exist**.
+#: Declared model evidence patterns, not an automatic clinical gold standard.
 #:
 #: This backs the clinical audit's fifth check class. It catches an inconsistency both ESL-Bench
 #: and Synthea have independently produced: a chart printing HbA1c 7.2% for a person whose
 #: diagnosis set has no diabetes -- an undiagnosed diabetic on paper. ESL-Bench generates
 #: values with no diagnostic constraint; Synthea's modules sample {low, high} uniformly.
 #:
-#: `persistence` is how many consecutive visits must meet the criterion before it counts.
-#: Setting it to 1 would flood the audit with single-visit noise -- a reference range is
-#: itself a 95% interval, so healthy people occasionally fall outside it; that's normal, not
-#: a missed diagnosis. All thresholds come from their respective diagnostic guidelines, not
-#: from guesswork.
+#: `persistence` counts distinct positive measurement dates; observed negatives reset
+#: the run, unrelated unmeasured visits do not. Clinical duration/companion constraints
+#: are explicit below. Legacy screening thresholds remain model assumptions where noted.
 DIAGNOSTIC_CRITERIA: list[dict] = [
     {"condition": {"code": "44054006", "display": "2型糖尿病"},
      "any_of": [{"key": "hba1c", "op": ">=", "value": 6.5},
@@ -322,15 +356,20 @@ DIAGNOSTIC_CRITERIA: list[dict] = [
     {"condition": {"code": "709044004", "display": "慢性肾脏病"},
      "any_of": [{"key": "egfr", "op": "<", "value": 60}],
      "persistence": 2,
-     "source": "KDIGO：eGFR<60 持续≥3 个月"},
-    {"condition": {"code": "87522002", "display": "贫血"},
+     "minimum_elapsed_days_exclusive": 90,
+     "source_url": "https://kdigo.org/wp-content/uploads/2024/03/KDIGO-2024-CKD-Guideline.pdf",
+     "source": "KDIGO 2024 1.1.3：重复低eGFR的慢性证据，时间超过90天；不涵盖所有CKD病因/AKI排除"},
+    {"condition": {"code": "271737000", "display": "贫血"},
      "any_of": [{"key": "hgb", "op": "<", "value": 110}],
      "persistence": 2,
-     "source": "WHO 贫血标准（成人女性<120、男性<130；此处取更保守的 110 以免误报）"},
+     "source_url": "https://docs.snomed.org/snomed-ct-specifications/snomed-ct-release-file-specification/reference-set-release-file-specification/5.2-reference-set-types/5.2.2.1-language-reference-set",
+     "source": "既有hgb<110模型筛查条件，仅记录贫血模式；不是缺铁病因或完整性别/人群诊断阈值"},
     {"condition": {"code": "40930008", "display": "甲状腺功能减退症"},
      "any_of": [{"key": "tsh", "op": ">=", "value": 10.0}],
+     "all_of": [{"key": "ft4", "op": "<", "reference": "ref_low", "unit": "pmol/L"}],
      "persistence": 2,
-     "source": "临床甲减：TSH≥10 mIU/L 且 FT4 降低"},
+     "source_url": "https://www.thyroid.org/thyroid-function-tests/",
+     "source": "既有TSH≥10模型条件且同次FT4低于该结果的参考下限；FT4正常或未测不判临床甲减"},
     {"condition": {"code": "55822004", "display": "高脂血症"},
      "any_of": [{"key": "chol", "op": ">=", "value": 6.2},
                 {"key": "ldl", "op": ">=", "value": 4.1}],
@@ -363,7 +402,7 @@ def main() -> None:
                                "exam_locations", "detection_methods",
                                "archetype_conditions", "condition", "display", "source",
                                "medication_plans", "generic", "name_zh", "name_en", "route", "frequency",
-                               "dose_text_zh", "dose_text_en"],
+                               "dose_text_zh", "dose_text_en", "dose_text_template_zh", "dose_text_template_en"],
         "orders": ORDERS,
         "checkup_packages": CHECKUP_PACKAGES,
         "archetypes": ARCHETYPES,
@@ -371,6 +410,7 @@ def main() -> None:
         "diagnostic_criteria": DIAGNOSTIC_CRITERIA,
         "scripts": SCRIPTS,
         "medication_plans": MEDICATION_PLANS,
+        "medication_response": MEDICATION_RESPONSE,
         "incidents": INCIDENTS,
         "lunar_new_year": LUNAR_NEW_YEAR,
         "regions": REGIONS,

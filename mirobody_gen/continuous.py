@@ -22,10 +22,12 @@ same minute, and the night's samples fall inside the sleep record the phone stor
 Blood glucose is built minute by minute: a basal level (the physiology model's fasting glucose for that
 day, with the indicator's own within-subject variation), the dawn rise of impaired glucose metabolism, one
 gamma-shaped response per meal, a dip during and after a run, and a slow physiological wander. The meal
-responses are scaled so that the day's mean glucose equals the estimated average glucose of the person's
-expected HbA1c that day (ADAG: eAG mmol/L = 1.59 × HbA1c − 2.59; Nathan et al., Diabetes Care
-2008;31:1473), the same relation the handwritten glucose logs use. A sensor's GMI therefore tracks the
-HbA1c on the person's laboratory slips, and the metformin course moves both.
+responses are scaled so that the day's mean glucose equals the person's glycaemic state that day,
+expressed through ADAG (eAG mmol/L = 1.59 × HbA1c − 2.59; Nathan et al., Diabetes Care 2008;31:1473),
+the same state the handwritten glucose logs read. Laboratory HbA1c is that state's weighted history
+over the preceding ~100 days (`physiology.hba1c_from_history`), so after a change in glycaemia -- the
+metformin course -- the sensor's mean and GMI move within weeks while the HbA1c on the laboratory
+slips follows over months. GMI is computed from the sensor's own readings and is never set to HbA1c.
 
 The sensor reads interstitial glucose, which lags blood glucose by several minutes (a first-order lag),
 through a per-sensor calibration gain that drifts over the session, correlated noise (noisier on day one),
@@ -63,7 +65,7 @@ import math
 import random
 from datetime import date, datetime, time, timedelta
 
-from . import physiology, spec
+from . import clinical, physiology, spec
 from .model import Person
 from .person import CORPUS_END
 
@@ -81,6 +83,9 @@ LOAD_SIGMA, FEAST_FACTOR = 0.25, 1.35
 #: Cadence (steps/min) for brisk walking and easy running, and the share of a day's steps walked in bouts
 #: (the rest is pottering that barely moves heart rate).
 WALK_SPM, RUN_SPM, WALK_SHARE = 105, 160, 0.55
+MIN_RUN_MINUTES, MAX_RUN_MINUTES = 25, 50
+ACTIVITY_POLICY = "daily-activity-v3"
+RHR_PROVENANCE_POLICY = "resting-hr-provenance-v1"
 
 # ── Glucose model (mmol/L, minutes) ─────────────────────────────────────────────
 #: A meal response peaks at `TAU` minutes in normal glucose tolerance and later, and longer, as HbA1c
@@ -137,6 +142,33 @@ def _during(person: Person, name: str, day: date) -> bool:
     return any(e.name == name and 0 <= (day - e.start).days <= e.duration_days for e in person.events)
 
 
+def _schedule_walks(walks, run, lower: datetime, upper: datetime) -> tuple[tuple[datetime, int], ...]:
+    """Keep feasible sampled starts; move collisions into the nearest free whole-bout slot."""
+    busy = [(run[0], run[0] + timedelta(minutes=run[1]))] if run else []
+    placed = []
+    for proposed, minutes in sorted(walks):
+        if minutes <= 0:
+            raise ValueError("Walking duration must be positive")
+        duration = timedelta(minutes=minutes)
+        candidates = []
+        cursor = lower
+        for begin, end in sorted(busy) + [(upper, upper)]:
+            if end <= cursor:
+                continue
+            gap_end = min(begin, upper)
+            if gap_end - cursor >= duration:
+                candidates.append(min(max(proposed, cursor), gap_end - duration))
+            cursor = max(cursor, end)
+            if cursor >= upper:
+                break
+        if not candidates:
+            raise ValueError("Could not place every walking bout in the synthetic activity window")
+        start = min(candidates, key=lambda t: (abs(t - proposed), t))
+        placed.append((start, minutes))
+        busy.append((start, start + duration))
+    return tuple(sorted(placed))
+
+
 @dataclasses.dataclass(frozen=True)
 class DayPlan:
     """What a person did on one local day; every stream reads the same plan."""
@@ -149,12 +181,42 @@ class DayPlan:
     walks: tuple[tuple[datetime, int], ...]              # (start, minutes)
     steps: int
     rhr: float
+    steps_source: str = "unspecified"
+    rhr_source: str = "unspecified"
+    rhr_record_time: str | None = None
+
+    def validate_activity(self) -> None:
+        run_steps = self.run[1] * RUN_SPM if self.run else 0
+        walk_steps = sum(m for _, m in self.walks) * WALK_SPM
+        if self.steps < 0 or run_steps + walk_steps > self.steps:
+            raise ValueError("Activity plan exceeds the daily step budget")
+        lower = max(self.wake, datetime.combine(self.day, time()))
+        upper = min(self.bed, datetime.combine(self.day + timedelta(days=1), time()))
+        bouts = sorted(list(self.walks) + ([self.run] if self.run else []))
+        previous_end = lower
+        for start, minutes in bouts:
+            end = start + timedelta(minutes=minutes)
+            if minutes <= 0 or start < lower or end > upper or start < previous_end:
+                raise ValueError("Invalid activity clock: overlapping or outside the local waking day")
+            previous_end = end
 
     def describe(self) -> dict:
+        self.validate_activity()
+        run_steps = self.run[1] * RUN_SPM if self.run else 0
+        walk_steps = sum(m for _, m in self.walks) * WALK_SPM
         return {"day": self.day.isoformat(), "wake": self.wake.isoformat(), "bed": self.bed.isoformat(),
                 "meals": [{"time": t.isoformat(), "kind": k, "load": round(load, 2)} for t, k, load in self.meals],
                 "run": {"start": self.run[0].isoformat(), "minutes": self.run[1]} if self.run else None,
-                "walk_minutes": sum(m for _, m in self.walks), "steps": self.steps, "rhr": round(self.rhr, 1)}
+                "walks": [{"start": t.isoformat(), "minutes": m} for t, m in self.walks],
+                "walk_minutes": sum(m for _, m in self.walks), "steps": self.steps, "rhr": round(self.rhr, 1),
+                "rhr_provenance": {"policy_version": RHR_PROVENANCE_POLICY, "source": self.rhr_source,
+                                   "context": {"phone_store": "daily_resting_summary",
+                                               "baseline_model": "resting_model_expectation"}.get(
+                                                   self.rhr_source, "unspecified"),
+                                   "record_time": self.rhr_record_time},
+                "activity_policy_version": ACTIVITY_POLICY, "steps_source": self.steps_source,
+                "step_allocation": {"run": run_steps, "walk": walk_steps,
+                                    "other": self.steps - run_steps - walk_steps}}
 
 
 class Life:
@@ -163,15 +225,17 @@ class Life:
     def __init__(self, seed: int, person: Person, series: dict):
         self.seed, self.person, self.series = seed, person, series
         self.tz = series["baseline"]["tz"]
-        rhr, steps, sleep = {}, {}, {}
+        rhr, rhr_times, steps, sleep = {}, {}, {}, {}
         for r in series["records"]:
             if r["_metric"] == "rhr":
                 rhr[r["time"][:10]] = r["value"]
+                rhr_times[r["time"][:10]] = r["time"]
             elif r["_metric"] == "steps":
                 steps[r["time"][:10]] = r["value"]
             elif r["_metric"] == "sleep":
                 sleep[r["end_time"][:10]] = (_local(r["time"]), _local(r["end_time"]))   # keyed by wake day
         self._rhr, self._steps, self._sleep = rhr, steps, sleep
+        self._rhr_times = rhr_times
         h = random.Random(f"habits:{seed}:{person.person_id}")
         self.meal_clock = {k: h.gauss(mu, sd) for k, (mu, sd, _) in MEALS.items()}
         self.skip_breakfast = h.choice([0.03, 0.1, 0.3])
@@ -230,9 +294,23 @@ class Life:
         if _running(self.person, day) and not _during(self.person, URI, day) and r.random() < self.run_rate:
             start = _hours(day, 19.5 + r.gauss(0, 0.5)) if self.run_evening else \
                 max(_hours(day, 6.5 + r.gauss(0, 0.3)), wake + timedelta(minutes=10))
-            run = (start, r.randint(25, 50))
+            run = (start, r.randint(MIN_RUN_MINUTES, MAX_RUN_MINUTES))
 
         steps = int(self._steps.get(day.isoformat(), self.series["baseline"]["steps"]))
+        if run:
+            # This simulator treats the shared daily total as the activity budget.
+            # Keep the existing cadence and minimum bout length; do not inflate the
+            # source steps or silently lower exported cadence to fit a longer run.
+            minutes = min(run[1], steps // RUN_SPM)
+            run = (run[0], minutes) if minutes >= MIN_RUN_MINUTES else None
+        day_start = datetime.combine(day, time())
+        day_end = day_start + timedelta(days=1)
+        if run:
+            lower = max(wake + timedelta(minutes=10), day_start)
+            latest = min(bed, day_end) - timedelta(minutes=run[1])
+            if latest < lower:
+                raise ValueError("Synthetic activity window cannot fit the running bout")
+            run = (min(max(run[0], lower), latest), run[1])
         walk_steps = max(0, steps - (run[1] * RUN_SPM if run else 0))
         walk_min = int(WALK_SHARE * walk_steps / WALK_SPM)
         walks = []
@@ -242,8 +320,13 @@ class Life:
             minutes = min(walk_min, r.randint(5, 25))
             walks.append((lo + timedelta(minutes=r.randrange(span)), minutes))
             walk_min -= minutes
-        walks.sort()
-        return DayPlan(day, wake, bed, tuple(meals), run, tuple(walks), steps, self.resting_hr(day))
+        walks = _schedule_walks(walks, run, max(lo, day_start), min(bed - timedelta(minutes=20), day_end))
+        plan = DayPlan(day, wake, bed, tuple(meals), run, walks, steps, self.resting_hr(day),
+                       steps_source="phone_store" if day.isoformat() in self._steps else "baseline_model",
+                       rhr_source="phone_store" if day.isoformat() in self._rhr else "baseline_model",
+                       rhr_record_time=self._rhr_times.get(day.isoformat()))
+        plan.validate_activity()
+        return plan
 
     def asleep(self, when: datetime) -> bool:
         today = self.plan(when.date())
@@ -252,7 +335,8 @@ class Life:
 
 # ── Glucose ──────────────────────────────────────────────────────────────────
 def _eag(person: Person, day: date) -> float:
-    return 1.59 * physiology.expected(person, "hba1c", day) - 2.59
+    """The day's mean glucose: eAG (ADAG) of the glycaemic state, not of the lagging laboratory HbA1c."""
+    return 1.59 * physiology.glycaemic_state(person, day) - 2.59
 
 
 def glucose_minutes(life: Life, start: datetime, minutes: int) -> list[float]:
@@ -293,7 +377,7 @@ def glucose_minutes(life: Life, start: datetime, minutes: int) -> list[float]:
 
     for di, d in enumerate(days):
         base0 = di * 1440
-        if life.dawn and physiology.expected(person, "hba1c", d) >= DAWN_FROM_A1C:
+        if life.dawn and physiology.glycaemic_state(person, d) >= DAWN_FROM_A1C:
             for m in range(270, 510):                    # 04:30-08:30, raised cosine centred 06:30
                 curve[base0 + m] += life.dawn * 0.5 * (1 + math.cos(math.pi * (m - 390) / 120))
         plan = life.plan(d)
@@ -309,7 +393,7 @@ def glucose_minutes(life: Life, start: datetime, minutes: int) -> list[float]:
         plan = life.plan(d)
         if not plan.meals:
             continue
-        a1c = physiology.expected(person, "hba1c", d)
+        a1c = physiology.glycaemic_state(person, d)
         tau = min(TAU_MAX, TAU + TAU_PER_A1C * max(0.0, a1c - 5.6))
         base0 = di * 1440
         need = _eag(person, d) - sum(curve[base0:base0 + 1440]) / 1440
@@ -439,9 +523,14 @@ def _weighted(r: random.Random, weights: dict) -> str:
 def cgm_plan(seed: int, person: Person, lang: str) -> list[dict]:
     """A person's sensor sessions: device, display unit and start, deterministic in seed and person.
 
-    For prediabetes progressing to diabetes: one sensor in the weeks before metformin starts and one a few
-    months into it (the drug's effect is visible on the curve and in the GMI), sometimes a third later on.
-    Anyone else wears at most one, in the last two years of their timeline."""
+    For prediabetes progressing to diabetes: a baseline sensor 130-180 days into the observation
+    window -- before the earliest scripted metformin start (day 200), decided from the archetype and
+    never from the treatment's date or existence -- and one a few months into metformin (the drug's
+    effect is visible on the curve and in the GMI), sometimes a third later on. Anyone else wears at
+    most one, in the last two years of their timeline. Each session draws from a stream of its own,
+    so a later session (or a treatment after it) never changes an earlier one. (The baseline sensor
+    used to sit 14-40 days before the metformin start, so deleting a future treatment changed a past
+    sensor session.)"""
     r = random.Random(f"cgm:{seed}:{person.person_id}")
     if r.random() >= CGM_RATE.get(person.archetype, CGM_RATE_OTHER):
         return []
@@ -452,17 +541,22 @@ def cgm_plan(seed: int, person: Person, lang: str) -> list[dict]:
     first = person.weight_anchors[0][0]
     last = min(person.weight_anchors[-1][0], CORPUS_END)
     days = []
-    drug = _metformin(person)
-    if drug is not None:
-        days.append(drug.start - timedelta(days=r.randint(14, 40)))
-        days.append(drug.start + timedelta(days=r.randint(120, 200)))
-        if r.random() < 0.4:
-            days.append(drug.start + timedelta(days=r.randint(400, 900)))
+    scripted = next((a["script"] for a in spec.cohort()["archetypes"] if a["name"] == person.archetype), None)
+    if scripted == "metformin":
+        rb = random.Random(f"cgm:{seed}:{person.person_id}:baseline")
+        days.append(first + timedelta(days=rb.randint(130, 180)))
+        drug = _metformin(person)
+        if drug is not None:
+            rt = random.Random(f"cgm:{seed}:{person.person_id}:on-treatment:{drug.start.isoformat()}")
+            days.append(drug.start + timedelta(days=rt.randint(120, 200)))
+            if rt.random() < 0.4:
+                days.append(drug.start + timedelta(days=rt.randint(400, 900)))
     else:
         lo = max(first, last - timedelta(days=730))
         days.append(lo + timedelta(days=r.randrange(max(1, (last - lo).days))))
     out = []
     for n, day in enumerate(sorted(days)):
+        r = random.Random(f"cgm:{seed}:{person.person_id}:session:{day.isoformat()}")
         dev = device if r.random() < 0.85 else _weighted(r, adoption["cgm"])     # most stay with one device
         spec_dev = s["devices"][dev]
         start = datetime.combine(day, time()) + timedelta(minutes=r.randint(8 * 60, 21 * 60), seconds=r.randrange(60))
@@ -475,8 +569,8 @@ def cgm_plan(seed: int, person: Person, lang: str) -> list[dict]:
         # English-speaking wearers who read mg/dL are taken to be in the US, where some sensors are cleared
         # with a narrower range and LibreView defaults to month-first dates.
         region = "us" if lang == "en" and unit == "mg/dL" else "default"
-        # The sensor before metformin is often a clinic's, placed and read out by the hospital.
-        setting = "clinic" if (drug is not None and n == 0 and spec_dev.get("clinic_share", 0)
+        # The baseline sensor before metformin is often a clinic's, placed and read out by the hospital.
+        setting = "clinic" if (scripted == "metformin" and n == 0 and spec_dev.get("clinic_share", 0)
                                and r.random() < spec_dev["clinic_share"]) else "home"
         out.append({"n": n + 1, "device": dev, "unit": unit, "region": region, "setting": setting, "start": start,
                     "end": start + wear, "ended": "sensor_failed" if failed else "wear_period"})
@@ -488,26 +582,30 @@ def hr_windows(seed: int, person: Person, series: dict, sessions: list[dict]) ->
     sensor (so the two streams overlap), the days around a cold, and an ordinary week."""
     if not series["habits"]["wearable"]:
         return []
-    r = random.Random(f"hr:{seed}:{person.person_id}")
     first = date.fromisoformat(min(x["time"][:10] for x in series["records"])) if series["records"] else None
     if first is None:
         return []
     last = min(person.weight_anchors[-1][0], CORPUS_END) - timedelta(days=1)
+    # Each window draws from a stream of its own, so whether or where one window falls never moves
+    # another: with one shared stream, a cold added in the future shifted the ordinary week into the past.
     wanted = []
     if sessions:
         s0 = sessions[0]
         wanted.append((s0["start"].date(), min(s0["end"].date(), s0["start"].date() + timedelta(days=13)), "cgm"))
     cold = next((e for e in person.events if e.name == URI and first <= e.start <= last), None)
-    if cold is not None and r.random() < 0.8:
+    if cold is not None and random.Random(f"hr:{seed}:{person.person_id}:infection:{cold.start.isoformat()}").random() < 0.8:
         wanted.append((cold.start - timedelta(days=2), cold.start + timedelta(days=HR_WINDOW_DAYS + 2), "infection"))
     if (last - first).days > HR_WINDOW_DAYS:
+        r = random.Random(f"hr:{seed}:{person.person_id}:routine")
         d0 = first + timedelta(days=r.randrange((last - first).days - HR_WINDOW_DAYS))
         wanted.append((d0, d0 + timedelta(days=HR_WINDOW_DAYS - 1), "routine"))
+    # Overlaps resolve in calendar order and windows are numbered in it: an earlier window is never
+    # dropped or renumbered because of a later one.
     out: list[dict] = []
-    for d0, d1, why in wanted:
+    for d0, d1, why in sorted(wanted, key=lambda w: w[0]):
         d0, d1 = max(d0, first), min(d1, last)
         if d1 < d0 or any(not (d1 < w["start"] or d0 > w["end"]) for w in out):
-            continue                                                             # overlapping windows merge into the first
+            continue                                                             # an overlapping later window merges into the earlier
         out.append({"start": d0, "end": d1, "reason": why})
     return out
 
@@ -628,7 +726,8 @@ def sensor_readings(life: Life, session: dict) -> dict:
         t = first + k * step
         noise = NOISE_PHI * noise + r.gauss(0, innovation * (FIRST_DAY_NOISE if t - start < timedelta(days=1) else 1))
         if not any(g["start"] <= t < g["end"] for g in lost):
-            x = read(t + timedelta(seconds=r.randint(-jitter, jitter)), "historic")
+            # the reported clock jitters around the nominal time, but never past the session's end
+            x = read(min(t + timedelta(seconds=r.randint(-jitter, jitter)), end), "historic")
             x["ticks"] = int((t - start).total_seconds())          # seconds since the sensor started
             readings.append(x)
         k += 1
@@ -738,8 +837,12 @@ def _name(person: Person, lang: str) -> tuple[str, str]:
     """(first, last) of the fictional name the person's own documents print (`document.subject_fields`
     draws it from the same sticky stream), so a CGM export links to the lab slips by name."""
     fiction = spec.fiction()
-    full = random.Random(f"patient:{person.person_id}").choice(
-        fiction["person_names_en" if spec.doc_lang(lang) == "en" else "person_names_zh"])
+    pool = fiction["person_names_en" if spec.doc_lang(lang) == "en" else "person_names_zh"]
+    full = random.Random(f"patient:{person.person_id}").choice(pool)
+    if clinical.ENABLED:
+        from . import clinical_names
+
+        full = clinical_names.patient_name(person, pool, full)
     if " " in full:
         first, last = full.split(" ", 1)
         return first, last
@@ -877,6 +980,7 @@ def write_all(out_dir, people: list[Person], seed: int, langs: dict[str, str], b
                     "expected": {"metric": "bloodGlucoses", "specimen": "interstitial fluid"},
                     "summary": glucose_summary(hist, expected) | {
                         "hba1c_expected_pct": round(physiology.expected(person, "hba1c", sess["start"].date()), 2),
+                        "glycaemic_state_a1c_pct": round(physiology.glycaemic_state(person, sess["start"].date()), 2),
                         "eag_mmol": round(_eag(person, sess["start"].date()), 2)},
                     "readings": [{"time": _iso(x["time"], tz), "kind": x["kind"], "mgdl": x["mgdl"], "mmol": x["mmol"],
                                   "flag": x["flag"], "true_mmol": x["true_mmol"], "artifact": x["artifact"]}
@@ -1323,14 +1427,14 @@ def _apple_daily(apple, life: Life, series: dict) -> None:
                           created=when + timedelta(seconds=r.randint(20, 240)), metadata={"HKWasUserEntered": "1"})
         if "steps" in group:
             plan = life.plan(when.date())
+            plan.validate_activity()
             total = int(group["steps"]["value"])
             bouts = [(t, m, int(m * WALK_SPM)) for t, m in plan.walks]
             if plan.run:
                 bouts.append((plan.run[0], plan.run[1], plan.run[1] * RUN_SPM))
             walked = sum(n for _, _, n in bouts)
-            if walked > total:                              # scale down to the store's total
-                bouts = [(t, m, n * total // max(walked, 1)) for t, m, n in bouts]
-                walked = sum(n for _, _, n in bouts)
+            if plan.steps != total or walked > total:
+                raise ValueError("Activity plan exceeds or disagrees with the daily step budget")
             # What was not walked in bouts is pottering: three records over the waking day.
             rest = total - walked
             third = (plan.bed - plan.wake) / 3

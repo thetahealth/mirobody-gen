@@ -24,25 +24,22 @@ from __future__ import annotations
 
 import math
 import random
-from datetime import date
+from datetime import date, timedelta
 
-from . import spec
+from . import clinical, spec
 
 #: Conservative within-subject variation (%) when no CVI is on file. Better to under-jitter than to
 #: invent "disease fluctuation" out of nothing.
-DEFAULT_CVI = 5.0
-#: Analytical variation (%). The same value for every item: its only job here is to keep a repeat
-#: measurement from being identical, not to reproduce any particular instrument's precision.
-CVA = 3.0
-#: Exception: temperature's 3% is +/-1 degC -- a clinic note would then print 35.7 and 38.5 degC for
-#: healthy people. A thermometer's actual precision is on the order of 0.1 degC.
-CVA_OVERRIDE = {"temp": 0.3}
-#: Quantities with a physical ceiling: saturation, ratio percentages, ankle-brachial index.
-#: Lognormal noise can cross the ceiling; real instruments can't.
-CEILING = {"spo2": 100.0, "fev1_fvc": 100.0, "fvc_pct": 140.0, "abi_l": 1.6, "abi_r": 1.6, "urine_sg": 1.040}
-#: Quantities that vary above a fixed floor. Urine specific gravity is 1 plus the solute load, so
-#: baseline, events and noise act on SG - 1; scaling the whole 1.0xx printed 0.84 and 1.25.
-OFFSET = {"urine_sg": 1.0}
+# The measurement-noise model is declared in resources/measurement.json, which the independent
+# clinical audit reads too: a default CVI, one analytical CV (temperature's 3% would be +/-1 degC, so
+# it reads 0.3%), physical ceilings real instruments can't cross, and floors such as urine specific
+# gravity's 1.0 (baseline, events and noise act on SG - 1; scaling the whole 1.0xx printed 0.84).
+_MEASUREMENT = spec.measurement()
+DEFAULT_CVI = _MEASUREMENT["default_cvi_percent"]
+CVA = _MEASUREMENT["cva_percent"]
+CVA_OVERRIDE = _MEASUREMENT["cva_override_percent"]
+CEILING = _MEASUREMENT["ceiling"]
+OFFSET = _MEASUREMENT["offset"]
 
 #: Center value for indicators with no reference interval (height and weight are handled separately).
 FALLBACK_CENTER: dict[str, float] = {
@@ -98,6 +95,11 @@ def event_factor(person, key: str, when: date) -> tuple[float, list[str]]:
     factor = 1.0
     names: list[str] = []
     for event in person.events:
+        if event.course is not None:
+            contribution = course_effect(event.course, key, when)
+            if abs(contribution) > 1e-6:
+                factor += contribution
+                names.append(event.name)
         effect = event.effects.get(key)
         if not effect:
             continue
@@ -120,36 +122,106 @@ def event_factor(person, key: str, when: date) -> tuple[float, list[str]]:
     return max(factor, 0.05), names
 
 
+def course_effect(course, key: str, when: date) -> float:
+    """A treatment course's effect on `key` on `when`, from the drug's sourced dose response.
+
+    Each dose step moves the response toward that dose's steady state times the fraction of doses
+    taken, linearly over the onset period; a stop returns it to zero over the offset period. Changes
+    superpose, so a 20 -> 40 mg step adds the difference between the two steady states from its date.
+    """
+    response = spec.cohort()["medication_response"][course.drug]
+
+    def steady(step) -> float:
+        dose = f"{step.dose_mg:g}"
+        if dose not in response["doses_mg"]:
+            raise ValueError(f"no sourced response for {course.drug} {dose} mg "
+                             f"(available: {', '.join(response['doses_mg'])} mg)")
+        return response["doses_mg"][dose].get(key, 0.0) * step.adherence
+
+    def ramp(start: date, days: int) -> float:
+        elapsed = (when - start).days
+        return 0.0 if elapsed < 0 else 1.0 if days <= 0 else min(1.0, elapsed / days)
+
+    total = previous = 0.0
+    for step in course.steps:
+        target = steady(step)
+        total += (target - previous) * ramp(step.start, response["onset_days"])
+        previous = target
+    if course.stop is not None:
+        total -= previous * ramp(course.stop, response["offset_days"])
+    return total
+
+
 def trend_factor(person, key: str, when: date) -> float:
     """Chronic-disease progression: compounded yearly. `trend[key]=0.06` means this indicator rises 6% a year."""
     rate = person.trend.get(key)
     if not rate:
         return 1.0
-    # Measured from the year this person entered the cohort, not their birth year: chronic-disease
-    # progression starts at some point in time, not at birth.
-    years = max(0.0, (when - person.events[0].start).days / 365.25) if person.events else 0.0
+    # The first anchor records entry into the observation window. An unrelated incident must
+    # not reset progression; removing all events must not remove the underlying disease trend.
+    years = max(0.0, (when - person.weight_anchors[0][0]).days / 365.25) if person.weight_anchors else 0.0
     return (1.0 + rate) ** years
 
 
 def weight_at(person, when: date) -> float:
-    """Weight linearly interpolated between anchors. Weight feeds BMI, so it must exist before BMI does."""
+    """Interpolate the untreated weight baseline, then apply the shared timeline's event effects.
+
+    These anchors contain natural drift only. Documents, scales, diaries and BMI all use this
+    function, so a weight intervention changes every channel exactly once.
+    """
     anchors = person.weight_anchors
     if not anchors:
-        return FALLBACK_CENTER["weight"]
-    if when <= anchors[0][0]:
-        return anchors[0][1]
-    if when >= anchors[-1][0]:
-        return anchors[-1][1]
-    for (d0, w0), (d1, w1) in zip(anchors, anchors[1:]):
-        if d0 <= when <= d1:
-            span = max((d1 - d0).days, 1)
-            return w0 + (w1 - w0) * ((when - d0).days / span)
-    return anchors[-1][1]
+        baseline = FALLBACK_CENTER["weight"]
+    elif when <= anchors[0][0]:
+        baseline = anchors[0][1]
+    elif when >= anchors[-1][0]:
+        baseline = anchors[-1][1]
+    else:
+        baseline = anchors[-1][1]
+        for (d0, w0), (d1, w1) in zip(anchors, anchors[1:]):
+            if d0 <= when <= d1:
+                span = max((d1 - d0).days, 1)
+                baseline = w0 + (w1 - w0) * ((when - d0).days / span)
+                break
+    return baseline * event_factor(person, "weight", when)[0]
+
+
+#: HbA1c reflects a weighted mean of the preceding plasma glucose, not the current level: the weight
+#: is largest just before the measurement, falls with time and extends back roughly 100 days
+#: (Tahara & Shima, Diabetes Care 1995;18:440, who also measured an HbA1c half-time of 34.6 days
+#: after glycaemic normalisation). Here the weight falls linearly to zero at 100 days, the uniform
+#: red-cell-age form they compare against. Red-cell lifespan changes (anaemia, haemolysis,
+#: transfusion, iron deficiency), haemoglobin variants and individual glycation rates are not modelled.
+HBA1C_WINDOW_DAYS = 100
+
+
+def glycaemic_state(person, when: date) -> float:
+    """Mean plasma glucose on `when`, as the HbA1c (%) it would settle at if held: the `hba1c`
+    centre, baseline, trend and events act here. The CGM day's mean glucose (eAG, ADAG: 1.59 x A1c
+    - 2.59 mmol/L) and the handwritten logs read this state; laboratory HbA1c is its weighted
+    history (`hba1c_from_history`), so it lags a change in glycaemia by weeks."""
+    off = OFFSET.get("hba1c", 0.0)
+    base = (center_of("hba1c", person.sex) - off) * person.baseline.get("hba1c", 1.0)
+    return off + base * trend_factor(person, "hba1c", when) * event_factor(person, "hba1c", when)[0]
+
+
+def hba1c_from_history(person, when: date) -> float:
+    """Expected laboratory HbA1c: the glycaemic state over the preceding HBA1C_WINDOW_DAYS days,
+    weighted linearly from the measurement day back to zero. Only past days enter."""
+    n = HBA1C_WINDOW_DAYS
+    total = n * (n + 1) / 2
+    return sum((n - k) * glycaemic_state(person, when - timedelta(days=k)) for k in range(n)) / total
 
 
 def expected(person, key: str, when: date) -> float:
     """A person's indicator on a day without measurement noise: the centre `measure` draws around.
     Home glucose logs and the CGM read it, so a meter, a sensor and a laboratory share one level."""
+    if key == "height":
+        return person.height_cm
+    if key == "weight":
+        return weight_at(person, when)
+    if key == "hba1c":
+        return hba1c_from_history(person, when)
     off = OFFSET.get(key, 0.0)
     base = (center_of(key, person.sex) - off) * person.baseline.get(key, 1.0)
     return off + base * trend_factor(person, key, when) * event_factor(person, key, when)[0]
@@ -164,12 +236,24 @@ def measure(rng: random.Random, person, key: str, when: date) -> float:
 
     item = spec.indicators()[key]
     off = OFFSET.get(key, 0.0)
-    base = (center_of(key, person.sex) - off) * person.baseline.get(key, 1.0)
-    base *= trend_factor(person, key, when)
-    base *= event_factor(person, key, when)[0]
+    if key == "hba1c":
+        base = hba1c_from_history(person, when) - off
+    else:
+        base = (center_of(key, person.sex) - off) * person.baseline.get(key, 1.0)
+        base *= trend_factor(person, key, when)
+        base *= event_factor(person, key, when)[0]
 
     cvi = item.get("cvi") or DEFAULT_CVI
-    sigma = math.sqrt(cvi ** 2 + CVA_OVERRIDE.get(key, CVA) ** 2) / 100
+    cva = CVA_OVERRIDE.get(key, CVA)
+    if clinical.ENABLED:
+        from .clinical_red_cells import ANALYTICAL_CV
+
+        cva = ANALYTICAL_CV.get(key, cva)
+    cv = math.sqrt(cvi ** 2 + cva ** 2) / 100
+    # The log-scale SD whose lognormal has this CV: sqrt(ln(1 + CV^2)) (Fokkema et al. 2006). Using
+    # the CV itself as the log SD overstated the spread (CV 40% printed as 41.7%), and the audit's
+    # reference change value could not match it.
+    sigma = math.sqrt(math.log(1 + cv ** 2))
     # **Lognormal**, not additive normal. Direct bilirubin's CVI is 36.8%; under an additive model
     # `base * (1 + 0.37*eps)` gives 0.04x baseline at eps=-2.6 — a bilirubin collapsing toward zero.
     # Biological quantities are non-negative and right-skewed, which is the shape multiplicative
@@ -224,16 +308,13 @@ def derive(values: dict[str, float], person, when: date) -> dict[str, float]:
         fraction = min(0.45, max(0.08, 0.25 * person.baseline.get("dbil", 1.0)))
         out["dbil"] = values["tbil"] * fraction
         out["ibil"] = values["tbil"] - out["dbil"]
-    if has("chol", "hdl", "tg"):
-        # Friedewald. The formula breaks down above a triglyceride level of 4.5 mmol/L, where a real
-        # lab would switch to a direct assay — so this does too, rather than carrying the identity
-        # through to a negative LDL.
-        if values["tg"] <= 4.5:
-            out["ldl"] = max(values["chol"] - values["hdl"] - values["tg"] / 2.2, 0.3)
+    if has("ldl", "hdl", "tg"):
+        # LDL is the modelled lipid state (statins act on it); total cholesterol is LDL + HDL +
+        # VLDL cholesterol, with VLDL-C taken as TG/2.2 mmol/L -- the Friedewald relation read the
+        # other way. Whether the LDL can be *reported* above TG 4.5 is decided in encounter_for.
+        out["chol"] = values["ldl"] + values["hdl"] + values["tg"] / 2.2
     if has("crea"):
         out["egfr"] = ckd_epi_2021(values["crea"], person.age_at(when), person.sex)
-    if has("chol", "hdl"):
-        out["nonhdl"] = values["chol"] - values["hdl"]
     if has("psa"):
         # Free PSA is a fraction of total PSA, fixed per person (0.08-0.45); the fraction runs higher in benign cases
         out["fpsa"] = values["psa"] * _person_factor(person, "fpsa", 0.08, 0.45)
@@ -263,6 +344,8 @@ def derive_second_pass(values: dict[str, float], person=None) -> dict[str, float
         out["waist"] = 2.8 * values["bmi"] + (19 if person.sex == "male" else 13)
     if "alb" in values and values.get("glb"):
         out["ag_ratio"] = values["alb"] / values["glb"]
+    if "chol" in values and "hdl" in values:
+        out["nonhdl"] = values["chol"] - values["hdl"]
     if values.get("psa") and "fpsa" in values:
         out["fpsa_ratio"] = values["fpsa"] / values["psa"]
     if values.get("pg2") and "pg1" in values:
@@ -296,7 +379,7 @@ def normalize_differential(values: dict[str, float]) -> None:
     catch. After normalising, the residual is folded into neutrophils (the largest share, where it
     goes unnoticed).
     """
-    keys = ["neut_pct", "lymph_pct", "mono_pct", "eos_pct", "baso_pct"]
+    keys = _MEASUREMENT["compositional"]
     if not all(k in values for k in keys):
         return
     total = sum(values[k] for k in keys)

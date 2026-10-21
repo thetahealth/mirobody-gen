@@ -20,11 +20,14 @@ distribution matches the measured p50=6 / p95=36.
 from __future__ import annotations
 
 import math
+import copy
+import dataclasses
+import json
 import random
 from datetime import date, timedelta
 
-from . import profile, spec
-from .model import Encounter, Event, Person, Reading
+from . import clinical, physiology, profile, spec
+from .model import DoseStep, Encounter, Event, MedicationCourse, MissingResult, Person, Reading
 from .physiology import (
     derive, derive_second_pass, measure, normalize_differential,
     categorical_value, person_baseline, qualitative_value,
@@ -47,25 +50,57 @@ REGIONS: list[str] = _COHORT["regions"]
 #: Lunar New Year's Day by year, read from cohort.json (sourced in scripts/build_cohort.py).
 LUNAR_NEW_YEAR: dict[int, date] = {int(y): date.fromisoformat(d) for y, d in _COHORT["lunar_new_year"].items()}
 
+ENCOUNTER_STREAM_POLICY = "encounter-streams-v2"
+
 
 def build_cohort(seed: int, size: int | None = None) -> list[Person]:
     """An entire cohort. Same seed, same result, always."""
     rng = random.Random(f"cohort:{seed}")
-    full = sum(a["n"] for a in ARCHETYPES)
-    # `--people N` must **scale proportionally across archetypes**, not just take the first N: taking
-    # the first N would give an all-healthy cohort, so a smoke test would never see a chronic-disease
-    # trajectory, an intervention event, or an abnormal value — exactly what it's meant to test.
-    scale = 1.0 if size is None else size / full
+    counts = archetype_counts(size)
     people: list[Person] = []
     index = 0
     for archetype in ARCHETYPES:
-        count = archetype["n"] if size is None else max(1, round(archetype["n"] * scale))
-        for _ in range(count):
-            if size is not None and len(people) >= size:
-                return people
+        for _ in range(counts[archetype["name"]]):
             index += 1
             people.append(_one_person(rng, f"p{index:03d}", archetype))
     return people
+
+
+def archetype_counts(size: int | None) -> dict[str, int]:
+    """Exactly `size` seats apportioned across archetypes by their prevalence weight `n`.
+
+    `--people N` must **scale proportionally across archetypes**, not just take the first N: taking
+    the first N would give an all-healthy cohort, so a smoke test would never see a chronic-disease
+    trajectory, an intervention event, or an abnormal value — exactly what it's meant to test. The
+    earlier rule (`max(1, round(n * scale))`, then truncating in table order) returned 60 people for
+    61 and 99 for 100, and for 7/8 dropped whichever archetypes came last in the table.
+
+    Largest-remainder apportionment (ties broken by table order) gives each archetype within one
+    seat of its exact quota and the full table back when `size` equals its total. When there are at
+    least as many seats as archetypes, each archetype gets one, taken from the archetype with the
+    most seats; fewer seats than archetypes cannot cover them all and are not asked to.
+    """
+    weights = {a["name"]: a["n"] for a in ARCHETYPES}
+    full = sum(weights.values())
+    if size is None:
+        return dict(weights)
+    if isinstance(size, bool) or not isinstance(size, int) or size < 1:
+        raise ValueError(f"cohort size must be a positive integer, got {size!r}")
+    quota = {name: n * size / full for name, n in weights.items()}
+    seats = {name: int(q) for name, q in quota.items()}
+    order = list(weights)
+    by_remainder = sorted(order, key=lambda name: (-(quota[name] - seats[name]), order.index(name)))
+    for name in by_remainder[:size - sum(seats.values())]:
+        seats[name] += 1
+    if size >= len(order):
+        for name in order:
+            if seats[name] == 0:
+                # the donor holds the most seats; on a tie, the one furthest above its quota
+                donor = max(order, key=lambda d: (seats[d], seats[d] - quota[d], -order.index(d)))
+                seats[donor] -= 1
+                seats[name] = 1
+    assert sum(seats.values()) == size
+    return seats
 
 
 def _one_person(rng: random.Random, person_id: str, archetype: dict) -> Person:
@@ -140,12 +175,20 @@ def _timeline(rng: random.Random, archetype: dict, start: date, birth_year: int)
         # follow-up points to compare on both sides — an event pushed past the last exam leaves the
         # attribution question with no observable answer.
         offset = rng.randint(200, 420)
+        begin = start + timedelta(days=offset)
+        # A dose-dependent treatment starts as one continuous step at the script's dose, fully taken
+        # and never stopped; titration, stops and adherence are explicit course edits (with_course).
+        course = (MedicationCourse(script["course"]["drug"], (DoseStep(begin, script["course"]["dose_mg"]),))
+                  if script.get("course") else None)
         events.append(Event(
             name=script["name"], event_type=script["type"],
-            start=start + timedelta(days=offset), duration_days=3650,
+            start=begin, duration_days=3650,
             health_effect=script["effect"], impact_level=script["impact"],
-            effects={k: tuple(v) for k, v in script["effects"].items() if k != "weight_kg"},
-            note="原型剧本"))
+            # Cohort resources call this weight_kg; event truth uses the catalogue key so
+            # documents, scales and attribution all refer to the same indicator.
+            effects={"weight" if k == "weight_kg" else k: tuple(v)
+                     for k, v in script["effects"].items()},
+            note="原型剧本", course=course))
     for _ in range(rng.randint(1, 3)):
         when = start + timedelta(days=rng.randint(30, (CORPUS_END - start).days - 30))
         # Age-gate before drawing, not after: a draw that lands on "献血 400mL" at age 63 should
@@ -157,7 +200,8 @@ def _timeline(rng: random.Random, archetype: dict, start: date, birth_year: int)
             name=incident["name"], event_type=incident["type"], start=when,
             duration_days=incident["duration"], health_effect=incident["effect"],
             impact_level=incident["impact"],
-            effects={k: tuple(v) for k, v in incident["effects"].items() if k != "weight_kg"},
+            effects={"weight" if k == "weight_kg" else k: tuple(v)
+                     for k, v in incident["effects"].items()},
             note="随机事件"))
     return tuple(sorted(events, key=lambda e: e.start))
 
@@ -173,6 +217,11 @@ def schedule(person: Person, rng: random.Random) -> list[tuple[date, str, list[s
     never printed on a lab report.
     """
     start = person.weight_anchors[0][0]
+    # Clone without consuming the routine stream. The incident root must not
+    # depend on later routine-schedule draw counts (for example the horizon).
+    event_stream = random.Random()
+    event_stream.setstate(rng.getstate())
+    event_root = event_stream.getrandbits(128)
     out: list[tuple[date, str, list[str], str | None]] = []
 
     # Annual check-up: once a year, the date drifting around the same month (real check-ups also
@@ -217,9 +266,20 @@ def schedule(person: Person, rng: random.Random) -> list[tuple[date, str, list[s
         out.append((when, "specialty", [rng.choice(["inflammation", "urinalysis", "ecg", "ultrasound",
                                                     "imaging", "thyroid", "tumor", "cbc"])], None))
     # A cold sends them to a community clinic: CBC + CRP + a clinic note.
+    # An event's list position or an added/deleted future incident must not decide
+    # whether/when an earlier incident gets a visit. Fork once from the stable
+    # initial routine-schedule state, then address each incident independently.
+    occurrences: dict[tuple, int] = {}
     for e in person.events:
-        if e.name == "急性上呼吸道感染" and rng.random() < 0.7:
-            out.append((e.start + timedelta(days=rng.randint(1, 3)), "clinic", ["vitals_clinic", "cbc", "inflammation"], None))
+        if e.name != "急性上呼吸道感染":
+            continue
+        identity = (e.name, e.event_type, e.start.isoformat())
+        occurrence = occurrences.get(identity, 0)
+        occurrences[identity] = occurrence + 1
+        event_rng = random.Random(json.dumps([ENCOUNTER_STREAM_POLICY, "incident", event_root,
+                                             person.person_id, identity, occurrence]))
+        if event_rng.random() < 0.7:
+            out.append((e.start + timedelta(days=event_rng.randint(1, 3)), "clinic", ["vitals_clinic", "cbc", "inflammation"], None))
     return sorted(out, key=lambda x: (x[0], x[1]))
 
 
@@ -229,36 +289,76 @@ DETECTION = {"vitals": "Physiological", "ecg": "Physiological", "spirometry": "P
 
 
 def encounter_for(person: Person, when: date, exam_type: str, orders: list[str],
-                  rng: random.Random, package: str | None = None) -> Encounter:
+                  rng: random.Random, package: str | None = None, *, direct_ldl: Reading | None = None) -> Encounter:
     """Turn one encounter into a set of readings."""
     keys: list[str] = []
     for order in orders:
+        # Existing narrative/image procedures intentionally have no analyte list.
+        if order not in ORDERS and order not in ("ultrasound", "imaging"):
+            raise ValueError(f"Unknown order panel: {order}")
         for key in ORDERS.get(order, []):          # an order with no lab items, like "ultrasound", gives an empty list
             if key not in keys:
                 keys.append(key)
-    # Sex-specific items: no CA125 for men, no PSA for women.
+    ordered_keys = tuple(keys)
+    if direct_ldl is not None:
+        if ("ldl" not in keys or direct_ldl.key != "ldl" or direct_ldl.result_method != "direct_assay"
+                or not isinstance(direct_ldl.source, str) or not direct_ldl.source.strip()
+                or direct_ldl.value_kind != "quantitative"
+                or direct_ldl.unit != "mmol/L" or direct_ldl.unit_ucum != "mmol/L"
+                or type(direct_ldl.canonical_value) not in (float, int)
+                or not math.isfinite(direct_ldl.canonical_value) or direct_ldl.canonical_value < 0):
+            raise ValueError("direct_ldl requires an ordered, finite, sourced direct-assay result in mmol/L")
+        try:
+            if float(direct_ldl.value) != direct_ldl.canonical_value:
+                raise ValueError("direct_ldl text and numeric result disagree")
+        except (TypeError, ValueError) as exc:
+            raise ValueError("direct_ldl text and numeric result disagree") from exc
+    # Preserve excluded orders as explicit non-results rather than deleting the orders.
     keys = [k for k in keys
             if not (spec.indicators()[k].get("sex_specific")
                     and spec.indicators()[k]["sex_specific"] != person.sex)]
 
     catalogue = spec.indicators()
+    missing = [MissingResult(k, catalogue[k]["unit"], "not_applicable_sex_specific",
+                             {"sex": person.sex, "applicable_sex": catalogue[k]["sex_specific"]})
+               for k in ordered_keys if k not in keys]
     primaries = [k for k in keys if not catalogue[k]["derived_from"]
                  and catalogue[k]["value_kind"] == "quantitative"]
+    if "chol" in keys and "ldl" not in keys:
+        primaries.append("ldl")  # the modelled LDL state supports a derived TC even when not printed
     qualitatives = [k for k in keys if catalogue[k]["value_kind"] == "qualitative"]
     categoricals = [k for k in keys if catalogue[k]["value_kind"] == "categorical"]
 
     raw: dict[str, float] = {k: measure(rng, person, k, when) for k in primaries}
+    if clinical.ENABLED:
+        from . import clinical_red_cells
+
+        clinical_red_cells.coherent(raw, person, when)
     normalize_differential(raw)
     values = {k: float(spec.format_value(k, v)) for k, v in raw.items()}
 
-    for derived in (derive(values, person, when), derive_second_pass(values, person)):
+    def record_derived(derived: dict[str, float]) -> None:
         for key, value in derived.items():
             if key in keys or key in ("glb",):     # globulin feeds the A/G ratio, so compute it even when not printed
                 values[key] = float(spec.format_value(key, value))
 
+    # Evaluate each pass only after recording the preceding pass's rounded results. Eagerly
+    # constructing a tuple of both calls leaves BMI/globulin/free PSA absent from pass two.
+    record_derived(derive(values, person, when))
+    record_derived(derive_second_pass(values, person))
+    # The laboratory reports LDL as the Friedewald calculation from TC, HDL and TG: without all
+    # three, or above TG 4.5 mmol/L where Friedewald is not used, it is not reported (with its
+    # reason below) even though the modelled LDL still determines TC. A direct assay is not
+    # modelled; no value is invented from missing inputs or an invalid formula.
+    if "ldl" in values and (any(k not in values for k in ("chol", "hdl", "tg")) or values["tg"] > 4.5):
+        del values["ldl"]
+
     readings: list[Reading] = []
     for key in keys:
         item = catalogue[key]
+        if key == "ldl" and direct_ldl is not None:
+            readings.append(copy.deepcopy(direct_ldl))
+            continue
         if key in qualitatives:
             text = qualitative_value(rng, person, key, when)
             normal_text = spec.reference_text(key, person.sex)
@@ -279,6 +379,18 @@ def encounter_for(person: Person, when: date, exam_type: str, orders: list[str],
             ))
             continue
         if key not in values:
+            details = {"declared_derivation": item.get("derived_from")}
+            reason, method, source = "result_unavailable", "not_modelled", "synthetic_generator"
+            if key == "ldl":
+                method, source = "calculated_friedewald", "synthetic_calculation"
+                absent = [k for k in ("chol", "hdl", "tg") if k not in values]
+                if absent:
+                    reason, details = "calculation_inputs_missing", {"missing_inputs": absent, "direct_result_supplied": False}
+                elif values["tg"] > 4.5:
+                    reason, details = "tg_above_calculation_limit", {
+                        "tg": values["tg"], "tg_text": spec.format_value("tg", values["tg"]), "tg_unit": "mmol/L",
+                        "limit": 4.5, "direct_result_supplied": False}
+            missing.append(MissingResult(key, item["unit"], reason, details, method, source))
             continue
         value = values[key]
         lo, hi = spec.reference_bounds(key, person.sex)
@@ -290,12 +402,76 @@ def encounter_for(person: Person, when: date, exam_type: str, orders: list[str],
             canonical_value=value, unit_ucum=item["unit"], loinc=item.get("loinc"),
             value_kind="quantitative", expect_resolvable=item.get("expect_resolvable", False),
             ref_low=lo, ref_high=hi,
+            result_method="calculated_friedewald" if key == "ldl" else None,
+            source="synthetic_calculation" if key == "ldl" else "synthetic_generator",
         ))
 
+    if clinical.ENABLED:
+        from . import clinical_checkup
+
+        ordered_keys, readings, missing = clinical_checkup.orders(ordered_keys, readings, missing, person, when,
+                                                                  exam_type, package)
     location = {"routine": "checkup-center", "follow-up": "hospital", "clinic": "hospital",
                 "specialty": "clinic"}.get(exam_type, "hospital")
-    return Encounter(person_id=person.person_id, exam_date=when, exam_type=exam_type,
-                     exam_location=location, panels=tuple(orders), readings=readings, package=package)
+    encounter = Encounter(person_id=person.person_id, exam_date=when, exam_type=exam_type,
+                          exam_location=location, panels=tuple(orders), readings=readings, package=package,
+                          ordered_keys=ordered_keys, missing_results=missing)
+    encounter.validate_order_results()
+    return encounter
+
+
+def _changing(event: Event, previous: date | None, when: date) -> bool:
+    """Whether the event's effect changes between the previous encounter and this one, so it can
+    explain a difference between them: it starts in between; it is still ramping up after the previous
+    visit (a statin takes weeks to kick in, iron supplementation 90 days); it has ended by this visit
+    and is still decaying after the previous one (its effect falls by half-life once it ends); or a
+    treatment course changes dose, adherence or stops in between. An event whose effect is flat across
+    the whole interval -- a treatment years into steady use -- does not explain it. The first visit
+    lists every event that has started by then."""
+    if event.start > when:
+        return False
+    if previous is None or event.start > previous:
+        return True
+    # Laboratory HbA1c keeps moving for its history window after the glycaemic state settles.
+    lag = {k: physiology.HBA1C_WINDOW_DAYS if k == "hba1c" else 0 for k in event.effects}
+    onset = max([o + lag[k] for k, (_, o, _) in event.effects.items()] or [0])
+    if event.start + timedelta(days=onset) > previous:
+        return True
+    end = event.start + timedelta(days=event.duration_days)
+    tails = [3 * h + lag[k] for k, (_, _, h) in event.effects.items() if h is not None]  # None: never decays
+    if tails and end <= when and end + timedelta(days=max(tails)) > previous:
+        return True
+    return _course_changing(event, previous, when)
+
+
+def _course_changing(event: Event, previous: date, when: date) -> bool:
+    """A dose change, adherence change or stop after `previous` (or still ramping at it) up to `when`."""
+    if event.course is None:
+        return False
+    response = spec.cohort()["medication_response"][event.course.drug]
+    ramp = timedelta(days=max(response["onset_days"], response["offset_days"]))
+    return any(change <= when and change + ramp > previous for change in event.course.change_dates())
+
+
+def with_course(person: Person, event_name: str, steps: list[DoseStep], stop: date | None = None) -> Person:
+    """`person` with the named treatment's exposure course replaced: dose steps (dose, adherence, from a
+    date on) and an optional stop. The first step must start on the event's own start date. A stop ends
+    the event there, so its fixed effects decay from that day too."""
+    events, found = [], False
+    for event in person.events:
+        if event.name == event_name:
+            found = True
+            if event.course is None:
+                raise ValueError(f"{event_name} has no dose-dependent course")
+            if steps[0].start != event.start:
+                raise ValueError("the first dose step must start on the treatment's start date")
+            course = MedicationCourse(event.course.drug, tuple(steps), stop)
+            duration = (stop - event.start).days if stop is not None else event.duration_days
+            event = dataclasses.replace(event, course=course, duration_days=duration)
+        events.append(event)
+    if not found:
+        raise ValueError(f"{person.person_id} has no event {event_name}")
+    return dataclasses.replace(person, events=tuple(events))
 
 
 def home_stream(seed: int, person_id: str) -> random.Random:
@@ -346,23 +522,29 @@ def person_lang(seed: int, person_id: str) -> str:
 
 
 def encounters_for(person: Person, seed: int) -> list[Encounter]:
-    rng = random.Random(f"enc:{seed}:{person.person_id}")
+    """Default v2 schedule with independently addressed measurement streams.
+
+    This intentionally changes draws from the legacy shared stream. A seed must
+    always be interpreted with its policy/code version; archived v1 outputs are
+    comparison evidence, not recalibrated/overwritten by this function.
+    """
+    schedule_rng = random.Random(f"enc:{seed}:{person.person_id}")
     states = profile.person_findings(person, seed)
     lang = person_lang(seed, person.person_id)
     out: list[Encounter] = []
     previous: date | None = None
-    for when, exam_type, orders, package in schedule(person, rng):
-        encounter = encounter_for(person, when, exam_type, orders, rng, package)
-        # Events that **started, or whose effect is still ramping up,** between the previous
-        # encounter and this one: a statin takes 35 days to kick in, iron supplementation 90 — an
-        # event that started before the previous visit but whose effect lands in this window is also
-        # an explanation for the jump. After an event ends its effect decays by half-life: one still
-        # decaying at the previous visit also explains this drop.
-        encounter.events_since_previous = tuple(
-            e.name for e in person.events
-            if e.start <= when and (previous is None or e.start > previous
-                                    or e.start + timedelta(days=max([o for _, o, _ in e.effects.values()] or [0])) > previous
-                                    or e.start + timedelta(days=e.duration_days + 3 * max([h or 0 for _, _, h in e.effects.values()] or [0])) > previous))
+    occurrences: dict[tuple, int] = {}
+    for when, exam_type, orders, package in schedule(person, schedule_rng):
+        # Noise is owned by this scheduled visit, not by the full schedule's
+        # future draw count or by earlier visits' order counts. Exact duplicate
+        # slots retain multiplicity through a local occurrence number.
+        identity = (when.isoformat(), exam_type, tuple(orders), package)
+        occurrence = occurrences.get(identity, 0)
+        occurrences[identity] = occurrence + 1
+        visit_rng = random.Random(json.dumps([ENCOUNTER_STREAM_POLICY, "observation", seed,
+                                             person.person_id, identity, occurrence]))
+        encounter = encounter_for(person, when, exam_type, orders, visit_rng, package)
+        encounter.events_since_previous = tuple(e.name for e in person.events if _changing(e, previous, when))
         values = {r.key: r.canonical_value for r in encounter.readings if r.canonical_value is not None}
         if exam_type == "routine":
             encounter.findings = profile.encounter_findings(person, when, states, package, values, seed)
@@ -374,5 +556,8 @@ def encounters_for(person: Person, seed: int) -> list[Encounter]:
                                   if f.where in ("chest_xray", "chest_ct")]
         encounter.complaints = profile.complaints_for(person, when, exam_type, lang, seed)
         out.append(encounter)
+        from .manifest import _conditions_of
+
+        encounter.conditions = _conditions_of(person, out, when)
         previous = when
     return out

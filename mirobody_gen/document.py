@@ -42,10 +42,10 @@ from __future__ import annotations
 
 import random
 import re
-from dataclasses import dataclass, field
+from dataclasses import asdict, dataclass, field
 from datetime import date, datetime, timedelta
 
-from . import spec, synthid
+from . import clinical, spec, synthid
 from .layout import Family, date_role, script_of
 from .model import Encounter, Person, Reading
 
@@ -105,6 +105,8 @@ class DocReading:
     role: str = "current"              # current / previous / export
     expect_resolvable: bool = False
     printed_row: int | None = None
+    result_method: str | None = None
+    source: str | None = None
 
 
 @dataclass
@@ -160,6 +162,7 @@ class Doc:
     summary_truth: list[dict] = field(default_factory=list)
     complaints_truth: list[dict] = field(default_factory=list)
     diagnoses_truth: list[dict] = field(default_factory=list)
+    missing_results: list[dict] = field(default_factory=list)
 
     def mark(self, name: str, source: str, rows: list[int] | None = None) -> None:
         entry = self.hazards.setdefault(name, {"source": source, "rows": []})
@@ -177,6 +180,10 @@ def _paren(text: str, f: Family) -> str:
 
 def _variant_for(item: dict, script: str, rng: random.Random) -> str | None:
     pool = [v for v in item.get("name_variants") or [] if script_of(v) == script]
+    if clinical.ENABLED:
+        from . import clinical_tables
+
+        pool = clinical_tables.same_script(pool, script)
     return rng.choice(pool) if pool else None
 
 
@@ -299,6 +306,11 @@ def subject_fields(rng: random.Random, person: Person, f: Family, collected: dat
     t, labels = _t(), _t()["subject_labels"][lang]
     name = sticky.choice(fiction["person_names_en" if en else "person_names_zh"])
     doctor = rng.choice(fiction["person_names_en" if en else "person_names_zh"])
+    if clinical.ENABLED:
+        from . import clinical_names
+
+        pool = fiction["person_names_en" if en else "person_names_zh"]
+        name, doctor = clinical_names.patient_name(person, pool, name), clinical_names.staff_name(doctor, pool)
     sex = t["sex_words"][lang][person.sex]
     age = t["age_format"][lang].format(n=person.age_at(collected))
     pid = synthid.make(random.Random(f"pid:{f.family_id}:{person.person_id}"), 10)
@@ -310,7 +322,8 @@ def subject_fields(rng: random.Random, person: Person, f: Family, collected: dat
         fields.append((labels["department"], department))
     fields += [(labels["specimen"], specimen), (labels["doctor"], doctor)]
     keep = rng.randint(5, len(fields))
-    return fields[:keep]
+    # An unknown department ("" in clinical mode) leaves its field off without changing the draw.
+    return [x for x in fields[:keep] if x != (labels.get("department"), "")]
 
 
 # ── File splitting ──
@@ -320,6 +333,8 @@ def split_encounter(rng: random.Random, encounter: Encounter) -> list[list[str]]
     groups: dict[str, list[Reading]] = {}
     for reading in encounter.readings:
         groups.setdefault(group_of(reading.key), []).append(reading)
+    for missing in encounter.missing_results:
+        groups.setdefault(group_of(missing.key), [])
     names = [g for g in GROUP_ORDER if g in groups] + (["other"] if "other" in groups else [])
     slips: list[list[str]] = []
     for g in names:
@@ -354,10 +369,22 @@ def build_doc(rng: random.Random, doc_id: str, person: Person, encounter: Encoun
     if book:
         title = rng.choice(t["book_titles"][lang])
     specimen = t["specimens"]["urine"][1 if en else 0] if main == "urinalysis" else ""
-    department = rng.choice(t["departments"][lang])
+    sampled_department = rng.choice(t["departments"][lang])
+    department = encounter.department if encounter.department and encounter.department.strip() else sampled_department
+    if clinical.ENABLED:
+        from . import clinical_departments
+
+        department = clinical_departments.printed(encounter, lang)
     doc = Doc(doc_id=doc_id, person_id=person.person_id, family=f, title=title,
               subject=subject_fields(rng, person, f, encounter.exam_date, department, specimen),
               dates=print_dates(rng, f, encounter.exam_date), tables=[], banner=banner)
+    # Non-results are explanatory text, never fabricated numeric/normal cells.
+    for missing in encounter.missing_results:
+        if group_of(missing.key) in groups:
+            name = catalogue[missing.key]["en" if en else "zh"]
+            text = f"{name}: {missing.explanation(en)}"
+            doc.narratives.append(("Unresulted order" if en else "未出结果医嘱", text))
+            doc.missing_results.append({**asdict(missing), "printed_text": text})
 
     unit_at = f.unit_at
     if unit_at == "header" and len({r.unit for r in readings}) != 1:
@@ -369,6 +396,10 @@ def build_doc(rng: random.Random, doc_id: str, person: Person, encounter: Encoun
 
     split_tables = len(groups) > 1 and (book or rng.random() < 0.5) and f.columns.count("name") == 1
     table_groups = [[g] for g in groups] if split_tables else [groups]
+    if book:
+        # A group present only through a non-result (a sex-specific screen ordered for the other sex)
+        # gets its explanatory note above, not a captioned table with a header and no rows.
+        table_groups = [tg for tg in table_groups if any(group_of(r.key) in tg for r in readings)] or table_groups
     bp_pair = {"sbp", "dbp"} <= {r.key for r in readings} and rng.random() < 0.6
 
     for t_index, tgroups in enumerate(table_groups):
@@ -418,7 +449,8 @@ def build_doc(rng: random.Random, doc_id: str, person: Person, encounter: Encoun
                 doc.readings.append(DocReading(
                     key=k.key, loinc=k.loinc, canonical_value=k.canonical_value, value_text=k.value,
                     unit_ucum=k.unit_ucum, value_kind=k.value_kind, status=k.status, observed=observed,
-                    expect_resolvable=k.expect_resolvable, printed_row=p_index))
+                    expect_resolvable=k.expect_resolvable, printed_row=p_index,
+                    result_method=k.result_method, source=k.source))
             prev = ""
             if f.previous_column and reading.key in previous and len(group_readings) == 1:
                 prev_value, prev_date = previous[reading.key]
@@ -454,6 +486,10 @@ def build_doc(rng: random.Random, doc_id: str, person: Person, encounter: Encoun
 
     doc.footer = [(role, rng.choice(spec.fiction()["person_names_en" if en else "person_names_zh"]))
                   for role in f.signatures]
+    if clinical.ENABLED:
+        from . import clinical_names
+
+        doc.footer = clinical_names.signatures(doc.footer, en)
     if "disclaimer" in f.furniture:
         doc.footer.append(("", rng.choice(t["disclaimers"][lang])))
     return doc

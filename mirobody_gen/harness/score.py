@@ -6,9 +6,9 @@
 
 Predictions use MedRepBench's own format: each line is `{"image": <relative path>, "items": [five
 fields...]}`, so one prediction file works both with MedRepBench's official script (paired with labels
-exported by `mirobody-gen medrep-view`) and with this module. Each item may carry three extra fields,
-`loinc / value_num / unit_ucum` (the terminology layer's output after extraction); when present, the
-semantic layer is scored too.
+exported by `mirobody-gen medrep-view`) and with this module. Additional semantic fields are not
+scored here. Use `mirobody-gen score-semantic` with its explicit numeric-reading contract for
+codes, normalized values/units and observable dates; see docs/SEMANTIC_SCORING.md.
 
 ## Why score anything beyond the official metric
 
@@ -281,16 +281,44 @@ def summarize(tally: Tally, n_docs: int) -> dict:
 
 
 def load_predictions(path: pathlib.Path) -> dict[str, list[dict]]:
+    """One `{"image", "items"}` object per line. A repeated `image` is rejected rather than letting
+    the later line silently replace the earlier one."""
     out = {}
-    for line in path.read_text(encoding="utf-8").splitlines():
-        if line.strip():
-            obj = json.loads(line)
-            items = obj.get("items") or []
-            out[obj["image"]] = json.loads(items) if isinstance(items, str) else items
+    for n, line in enumerate(path.read_text(encoding="utf-8").splitlines(), start=1):
+        if not line.strip():
+            continue
+        obj = json.loads(line)
+        if not isinstance(obj, dict) or not isinstance(obj.get("image"), str) or not obj["image"]:
+            raise ValueError(f"{path}:{n}: prediction line needs a non-empty string 'image'")
+        items = obj.get("items") or []
+        items = json.loads(items) if isinstance(items, str) else items
+        if not isinstance(items, list) or not all(isinstance(it, dict) for it in items):
+            raise ValueError(f"{path}:{n}: 'items' must be a list of objects")
+        if obj["image"] in out:
+            raise ValueError(f"{path}:{n}: duplicate prediction file: {obj['image']}")
+        out[obj["image"]] = items
     return out
 
 
-def score(records: list[dict], predictions: dict[str, list[dict]]) -> dict:
+def score(records: list[dict], predictions: dict[str, list[dict]],
+          known_files: set[str] | None = None, *, outside_labels: bool = False) -> dict:
+    """`known_files` is every file the manifest holds (default: the files of `records`). A prediction
+    for a file outside it is rejected, not ignored: a mistyped path would otherwise look like a
+    document with no prediction and a prediction that scored nothing, with no error anywhere. A
+    prediction for a known file that is not scored (a genetics report, or a kind left out by
+    `--kinds`) is counted in `unscored_predictions`.
+
+    `outside_labels=True` is for a label set that is a subset by construction (a MedRepBench CSV, or
+    `medrep-view`'s lab-slip export scored against whole-corpus predictions): predictions outside it
+    are counted and sampled in `predictions_outside_labels` instead of failing the run."""
+    files = [r["file"] for r in records]
+    if dupes := sorted(f for f, k in collections.Counter(files).items() if k > 1):
+        raise ValueError(f"duplicate truth file: {', '.join(dupes)}")
+    known = set(files) if known_files is None else set(known_files) | set(files)
+    unknown = sorted(set(predictions) - known)
+    if unknown and not outside_labels:
+        raise ValueError(f"unknown prediction files: {', '.join(unknown[:5])}"
+                         + (f" (+{len(unknown) - 5} more)" if len(unknown) > 5 else ""))
     # PGx truth has gene/rsID/genotype rows, outside the laboratory five-field metric.
     skipped = sum(r.get("kind") == "genetics_report" for r in records)
     records = [r for r in records if r.get("kind") != "genetics_report"]
@@ -304,6 +332,12 @@ def score(records: list[dict], predictions: dict[str, list[dict]]) -> dict:
                "unit_acc_given_aligned": t.rate("unit_ok", "matched")}
         for name, t in sorted(by_hazard.items())}
     out["per_document"] = per_doc
+    # A scored document with no prediction line counts as all-missed in the recall figures above.
+    out["documents_without_prediction"] = sum(r["file"] not in predictions for r in records)
+    if unscored := len(set(predictions) - set(per_doc) - set(unknown)):
+        out["unscored_predictions"] = unscored
+    if unknown:
+        out["predictions_outside_labels"] = {"count": len(unknown), "sample": unknown[:5]}
     if skipped:
         out["skipped_documents"] = {"genetics_report": skipped}
     return out
@@ -358,6 +392,12 @@ def render(report: dict, effects: dict | None) -> str:
     if report.get("skipped_documents"):
         skipped = ", ".join(f"{n} {kind}" for kind, n in report["skipped_documents"].items())
         lines[1:1] = [f"Excluded {skipped} from laboratory metrics."]
+    if outside := report.get("predictions_outside_labels"):
+        lines[1:1] = [f"{outside['count']} predictions name files outside the label set and were not scored "
+                      f"(e.g. {', '.join(outside['sample'][:2])})."]
+    if report.get("documents_without_prediction"):
+        lines[1:1] = [f"{report['documents_without_prediction']} scored documents had no prediction line "
+                      "(counted as all rows missed)."]
     for tag, label in (("v0", "V0 official (truncated by order)"), ("v1", "V1 untruncated")):
         r = report[tag]
         lines.append(f"| {label} | " + " | ".join(f(r[k]) for k in FIELDS) + f" | {f(r['average'])} |")
@@ -386,6 +426,16 @@ def render(report: dict, effects: dict | None) -> str:
     return "\n".join(lines)
 
 
+def medrep_images(path: pathlib.Path) -> set[str]:
+    """Every image a MedRepBench label CSV names, including rows `records_from_medrep` leaves out (other
+    report types, rows without items): predictions for them are known but unscored, not unknown."""
+    import csv
+
+    csv.field_size_limit(10**9)
+    with path.open(newline="", encoding="utf-8") as fh:
+        return {row["image"] for row in csv.DictReader(fh)}
+
+
 def records_from_medrep(path: pathlib.Path, include_types: set[str] = frozenset({"Laboratory"})) -> list[dict]:
     """MedRepBench's label CSV, converted to this scorer's record shape. No hazards, no abstention
     rows: its labels don't carry those. This lets predictions mirobody produces on MedRepBench be
@@ -406,7 +456,7 @@ def records_from_medrep(path: pathlib.Path, include_types: set[str] = frozenset(
     return out
 
 
-def main() -> None:
+def main(argv: list[str] | None = None) -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("manifest", help="files.jsonl / pairs.jsonl, or a MedRepBench label CSV with --medrep-labels")
     ap.add_argument("predictions")
@@ -414,15 +464,20 @@ def main() -> None:
     ap.add_argument("--pairs", action="store_true", help="the manifest is pairs.jsonl: also report within-pair deltas")
     ap.add_argument("--kinds", nargs="*", default=None, help="score only these document kinds (default: all)")
     ap.add_argument("--json", default=None)
-    args = ap.parse_args()
+    args = ap.parse_args(argv)
     if args.medrep_labels:
         records = records_from_medrep(pathlib.Path(args.manifest))
+        known_files = medrep_images(pathlib.Path(args.manifest))
     else:
         records = [json.loads(line) for line in pathlib.Path(args.manifest).read_text(encoding="utf-8").splitlines()]
+        known_files = {r["file"] for r in records}
     if args.kinds:
         records = [r for r in records if r["kind"] in args.kinds]
-    predictions = load_predictions(pathlib.Path(args.predictions))
-    report = score(records, predictions)
+    try:
+        predictions = load_predictions(pathlib.Path(args.predictions))
+        report = score(records, predictions, known_files, outside_labels=args.medrep_labels)
+    except ValueError as e:
+        ap.error(str(e))
     effects = paired_effects(records, predictions) if args.pairs else None
     print(render(report, effects))
     if args.json:

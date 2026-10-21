@@ -171,12 +171,15 @@ def _ocr_text(path: pathlib.Path) -> str | None:
     return "\n".join(text)
 
 
-def audit(manifest: pathlib.Path, ocr: bool = False) -> int:
+def audit(manifest: pathlib.Path, ocr: bool = False, stats: dict | None = None) -> int:
+    """Problem count. `stats`, when given, receives the checked-row and skipped-file counts."""
     base = manifest.parent
-    problems = checked = skipped = 0
+    problems = checked = skipped = transcribed = 0
     ocr_stats: dict[str, list[int]] = {}
+    checked_records = 0
     for line in manifest.read_text(encoding="utf-8").splitlines():
         rec = json.loads(line)
+        checked_records += 1
         if not rec.get("synthetic"):
             print(f"missing synthetic flag  {rec['file']}")
             problems += 1
@@ -186,6 +189,7 @@ def audit(manifest: pathlib.Path, ocr: bool = False) -> int:
             # here is that the record is consistent with its own transcript (every truth row was written);
             # the generator's tests check the transcript against the ink on the page.
             text = "\n".join(rec["handwriting"].get("transcript") or [])
+            transcribed += 1
         is_genetics = rec.get("kind") == "genetics_report"
         if text is None:
             skipped += 1
@@ -217,6 +221,13 @@ def audit(manifest: pathlib.Path, ocr: bool = False) -> int:
                         problems += 1
                         print(f"not found on page  {rec['file']} pgx[{row['rsid']}] {want[:40]!r}")
             continue
+        for item in rec.get("missing_results") or []:
+            want = item.get("printed_text")
+            if want:
+                checked += 1
+                if not _present(want, blob):
+                    problems += 1
+                    print(f"not found on page  {rec['file']} unresulted[{item.get('key')}] {want[:60]!r}")
         # blocks, summary, complaints, diagnoses -- every printed piece of text must be on the page
         for block in rec.get("blocks") or []:
             for want in block.get("printed") or []:
@@ -252,6 +263,10 @@ def audit(manifest: pathlib.Path, ocr: bool = False) -> int:
               "share of printed-truth values recognized")
         for key, (hit, total) in sorted(ocr_stats.items()):
             print(f"  {key:<40} {hit}/{total} = {hit / max(total, 1):.0%}")
+    if stats is not None:
+        stats.update(records=checked_records, checked_rows=checked, problems=problems,
+                     image_files_skipped=skipped, handwritten_transcript_only=transcribed,
+                     ocr_recheck=bool(ocr_stats))
     return problems
 
 

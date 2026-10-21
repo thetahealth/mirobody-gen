@@ -100,7 +100,7 @@ def test_clinical_audit_selftest_passes():
 
     assert clinical.audit([clinical.CLEAN]) == []
     kinds = {f.kind for f in clinical.audit([clinical.BROKEN])}
-    assert {"恒等式", "生理边界", "人口学", "标记"} <= kinds
+    assert {"恒等式", "生理边界", "人口学", "标记", "诊断", "诊断时序"} <= kinds
 
 
 def test_hazard_taxonomy_is_usable():

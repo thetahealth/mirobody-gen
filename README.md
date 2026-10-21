@@ -224,7 +224,7 @@ Field-by-field definitions: [docs/SCHEMA.md](docs/SCHEMA.md).
 
 ## Determinism and audits
 
-The corpus is a function of generator + seed (+ `--lang-mix`, + `--paraphrase`, + `--handwriting`): two builds with
+The corpus is a function of generator + seed (+ `--lang-mix`, + `--paraphrase`, + `--handwriting`, + `--clinical`): two builds with
 the same parameters are byte-identical, so `out/` is disposable and the generator plus the seed
 **is** the artefact. Three audits gate a build (clinical, readability, privacy); fidelity reports
 against reference aggregates; the test suite runs clinical + readability on a small build, and CI

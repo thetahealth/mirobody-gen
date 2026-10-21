@@ -347,9 +347,16 @@ add("hba1c", "糖化血红蛋白", "Glycated hemoglobin", "HbA1c", "%", 1,
     variants=("糖化血色素", "HbA1c", "糖化血红蛋白A1c"))
 add("ga", "糖化血清白蛋白", "Glycated albumin", "GA", "%", 1,
     ("range", 11.0, 16.0), COMMON, None, None, "glucose", variants=("糖化白蛋白", "GA"))
+# LDL-C is the modelled lipid state (treatment effects such as a statin's act on it); total
+# cholesterol is derived as LDL + HDL + TG/2.2, the Friedewald relation read the other way, so the
+# Friedewald LDL recomputed from the printed TC/HDL/TG equals the modelled LDL up to rounding. A
+# derived TC also means its configured effect could not silently disagree with LDL's: before this,
+# TC carried its own statin effect and LDL was computed from it, so the configured LDL -38% never
+# reached the output (actual -31% to -52% depending on the person's baseline).
 add("chol", "总胆固醇", "Total cholesterol", "TC", "mmol/L", 2,
     ("upper", 5.18), COMMON, 5.95, 15.3, "lipid",
-    variants=("胆固醇", "總膽固醇", "血清总胆固醇", "TC", "CHOL", "Cholesterol, Total"))
+    variants=("胆固醇", "總膽固醇", "血清总胆固醇", "TC", "CHOL", "Cholesterol, Total"),
+    derived="ldl + hdl + tg/2.2 (VLDL cholesterol taken as TG/2.2 mmol/L, the Friedewald relation)")
 add("tg", "甘油三酯", "Triglycerides", "TG", "mmol/L", 2,
     ("upper", 1.70), COMMON, 19.9, 32.7, "lipid",
     variants=("三酰甘油", "甘油三脂", "TG", "Triglyceride"))
@@ -359,7 +366,8 @@ add("hdl", "高密度脂蛋白胆固醇", "HDL cholesterol", "HDL-C", "mmol/L", 
 add("ldl", "低密度脂蛋白胆固醇", "LDL cholesterol", "LDL-C", "mmol/L", 2,
     ("upper", 3.37), COMMON, 7.8, 20.4, "lipid",
     variants=("低密度脂蛋白", "LDL-C", "LDL Cholesterol"),
-    derived="Friedewald: chol - hdl - tg/2.2")
+    note="modelled lipid state; reported as the Friedewald calculation (TC - HDL - TG/2.2), "
+         "unavailable above TG 4.5 mmol/L")
 add("apoa1", "载脂蛋白A1", "Apolipoprotein A1", "ApoA1", "g/L", 2,
     ("range", 1.20, 1.60), COMMON, 6.5, 13.4, "lipid", variants=("APOA1", "ApoA-I"))
 add("apob", "载脂蛋白B", "Apolipoprotein B", "ApoB", "g/L", 2,
@@ -487,7 +495,7 @@ add("spo2", "血氧饱和度", "Oxygen saturation", "SpO2", "%", 0, ("range", 95
     variants=("血氧", "SpO₂", "指脉氧"))
 # Hepatitis B panel / hepatitis C (qualitative; positive rate by population)
 add("hbsag", "乙肝表面抗原", "Hepatitis B surface antigen", "HBsAg", "", 0, ("qualitative", "阴性"), COMMON, None, None,
-    "hepatitis", variants=("HBsAg", "乙型肝炎表面抗原", "乙型肝炎表面抗原(HK)"), kind="qualitative",
+    "hepatitis", variants=("HBsAg", "乙型肝炎表面抗原"), kind="qualitative",
     positive_rate=0.06, positive_values=[["阳性", 1]])
 add("hbsab", "乙肝表面抗体", "Hepatitis B surface antibody", "HBsAb", "", 0, ("qualitative", "阴性"), COMMON, None, None,
     "hepatitis", variants=("Anti-HBs", "乙型肝炎表面抗體"), kind="qualitative",

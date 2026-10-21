@@ -258,7 +258,9 @@ def test_heart_rate_samples_stay_inside_the_window_and_off_the_charger(built):
             off = [(o["start"], o["end"]) for o in d["off_body"]]
             for x in d["samples"]:
                 assert t["start"] <= x["time"][:10] <= t["end"]
-                assert 30 <= x["bpm"] <= 220 and abs(x["bpm"] - x["true_bpm"]) < 12
+                # the modelled heart rate stays physiological; the delivered reading is that value plus
+                # Gaussian device noise (noise_bpm), which is not bounded at 30 (seed 7: true 36 asleep, read 29)
+                assert 30 <= x["true_bpm"] <= 220 and abs(x["bpm"] - x["true_bpm"]) < 12
                 assert not any(a <= x["time"] < b for a, b in off), (t["person_id"], x["time"])
 
 

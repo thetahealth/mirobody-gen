@@ -80,6 +80,8 @@ POPULATION = {
 #: An unknown group defaults to the English-speaking world's profile: conservative and reproducible.
 _DEFAULT_POPULATION = POPULATION["en"]
 BATCH = 500
+# Version the synthetic pulse model separately from the vendor payload format.
+PULSE_POLICY_VERSION = "device-pulse-v2"
 
 
 def _tz(lang: str) -> str:
@@ -108,12 +110,12 @@ def series_for(person: Person, seed: int, lang: str) -> dict:
     records: list[dict] = []
     day = start
     while day <= end:
+        pulse_factor, _ = physiology.event_factor(person, "pulse", day)
         stamp = f"{day.isoformat()}T{rng.randint(6, 8):02d}:{rng.randint(0, 59):02d}:00{tz}"
         if "weight" in fields and rng.random() < weigh_rate:
             w = physiology.weight_at(person, day) + rng.gauss(0, 0.35)
             records.append(_rec("weight", fields, round(w, 1), stamp))
         if wearable:
-            pulse_factor, _ = physiology.event_factor(person, "pulse", day)
             uri = any(e.name == "急性上呼吸道感染" and 0 <= (day - e.start).days <= e.duration_days for e in person.events)
             if "rhr" in fields:
                 rhr = base_rhr * pulse_factor * (1.10 if uri else 1.0) + rng.gauss(0, 2.2)
@@ -140,11 +142,15 @@ def series_for(person: Person, seed: int, lang: str) -> dict:
                 t = f"{day.isoformat()}T{hour:02d}:{r.randint(0, 40):02d}:00{tz}"
                 records.append(_rec("sbp", fields, int(round(sbp)), t))
                 records.append(_rec("dbp", fields, int(round(dbp)), t))
-                records.append(_rec("hr", fields, int(round(base_rhr * 1.08 + r.gauss(0, 3))), t))
+                # Keep the cuff context and its original noise; timeline effects change the
+                # signal's centre, just as they do for resting and clinic pulse measurements.
+                records.append(_rec("hr", fields, int(round(base_rhr * 1.08 * pulse_factor + r.gauss(0, 3))), t))
         day += timedelta(days=1)
     # `baseline` is never written out: the continuous streams (`continuous.py`) read it for the days and
     # vendors that carry no daily record (Xiaomi has no resting-heart-rate field).
     return {"vendor": vendor, "source": VENDORS[vendor]["source"], "records": records,
+            "pulse_model": {"policy_version": PULSE_POLICY_VERSION, "authority": "synthetic_model",
+                            "contexts": {"rhr": "daily_resting_summary", "hr": "home_cuff"}},
             "habits": {"weigh_rate": weigh_rate, "wearable": wearable, "cuff": cuff},
             "baseline": {"rhr": base_rhr, "steps": base_steps, "sleep_min": base_sleep, "tz": tz}}
 
@@ -186,6 +192,7 @@ def write_all(out_dir: pathlib.Path, people: list[Person], seed: int, langs: dic
             truth = [{"indicator": r["indicator"], "metric": r["_metric"], "loinc": LOINC[r["_metric"]],
                       "value": r["value"], "unit": r["unit"], "time": r["time"]} for r in recs]
             fh.write(json.dumps({"person_id": person.person_id, "synthetic": True, "vendor": s["vendor"],
+                                 "pulse_model": s["pulse_model"],
                                  "source": s["source"], "files": files, "habits": s["habits"],
                                  "n_records": len(recs), "records": truth}, ensure_ascii=False) + "\n")
     return total

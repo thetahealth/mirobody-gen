@@ -47,7 +47,7 @@ import pathlib
 import random
 from datetime import date, timedelta
 
-from . import physiology, spec
+from . import clinical, physiology, spec
 from .document import Cells, Doc, DocReading, PrintedRow, Table, build_doc, group_of
 from .layout import Family
 from .model import Encounter, Person
@@ -110,7 +110,7 @@ def glucose_day(seed: int, person: Person, day: date, meals: list[str]) -> dict[
     r = random.Random(f"glucose:{seed}:{person.person_id}:{day.isoformat()}")
     out = {"fasting": round(min(max(physiology.measure(r, person, "glu", day), 3.2), 22.0), 1)}
     fasting = _expected(person, "glu", day)
-    eag = 1.59 * _expected(person, "hba1c", day) - 2.59
+    eag = 1.59 * physiology.glycaemic_state(person, day) - 2.59  # the day's glycaemia, not lagging HbA1c
     post = max((4 * eag - fasting) / 3, fasting + 0.8)
     for meal in meals:
         out[meal] = round(min(max(post * math.exp(r.gauss(0, 0.14)), 3.5), 25.0), 1)
@@ -413,11 +413,16 @@ def build_note(seed: int, person: Person, enc: Encounter, family: Family, lang: 
     label_font = hand.printed_face(int(round(9 * DPI / 72)))
     field_texts = {"date": _date_text(rng.choice(n["date_formats"]), enc.exam_date),
                    "department": rng.choice(n["departments"])}
+    if clinical.ENABLED:
+        from . import clinical_departments
+
+        field_texts["department"] = clinical_departments.printed(enc, lang)
     fields_line = []
     for role, label in labels.items():
         x = hand.mm(field_x[role], DPI) + label_font.getlength(label) + 8
-        sheet.write(field_texts[role], x, hand.mm(25.0, DPI), pen.sized(0.85), role="date" if role == "date" else "text",
-                    field=role)
+        if field_texts[role]:
+            sheet.write(field_texts[role], x, hand.mm(25.0, DPI), pen.sized(0.85),
+                        role="date" if role == "date" else "text", field=role)
         fields_line.append(f"{label}{field_texts[role]}" if lang == "zh" else f"{label} {field_texts[role]}")
     w.transcript.append(("  " if lang == "zh" else "   ").join(fields_line))
     doc.dates = [{"label": n["fields"]["date"], "role": "collected", "printed": field_texts["date"],

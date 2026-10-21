@@ -111,3 +111,31 @@ def test_write_all_matches_plans_for_and_skips_empty_people():
         else:
             assert by_id[p.person_id]["plans"] == plans
             assert by_id[p.person_id]["synthetic"] is True
+
+
+def test_future_treatment_never_changes_past_plans():
+    """Deleting a treatment that starts after the cut-off leaves every earlier plan, and its id, as it
+    was. Before, a cold's prn course depended on whether the person would ever be treated, and plans
+    were numbered with the scripted ones first (seed 7, p020: deleting the 2025-07-26 metformin start
+    removed or renumbered an earlier ibuprofen course)."""
+    import dataclasses
+    from datetime import timedelta
+
+    checked = 0
+    for p in person_mod.build_cohort(SEED):
+        for e in [e for e in p.events if e.note == "原型剧本" and e.name in medications._PLANS]:
+            cutoff = e.start - timedelta(days=1)
+            trimmed = dataclasses.replace(p, events=tuple(x for x in p.events if x.start <= cutoff))
+            before = [plan for plan in medications.plans_for(p, SEED) if plan["start"] <= cutoff.isoformat()]
+            after = [plan for plan in medications.plans_for(trimmed, SEED) if plan["start"] <= cutoff.isoformat()]
+            assert before == after, p.person_id
+            checked += 1
+    assert checked >= 20
+
+
+def test_a_prn_course_needs_treatment_in_progress_on_the_day():
+    for p in person_mod.build_cohort(SEED):
+        scripted = [e for e in p.events if e.note == "原型剧本" and e.name in medications._PLANS]
+        for plan in medications.plans_for(p, SEED):
+            if plan["generic"] == "ibuprofen":
+                assert any(s.start.isoformat() <= plan["start"] for s in scripted), (p.person_id, plan)

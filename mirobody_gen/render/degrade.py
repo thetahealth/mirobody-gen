@@ -826,6 +826,8 @@ def apply_scene(pages: list[Image.Image], scene: str, severity: str, seed_text: 
 
 def encode(pages: list[Image.Image], container: str, doc_title: str) -> bytes:
     """jpg / png: a single page image; scanpdf: a multi-page, text-layer-free image PDF."""
+    if container in ("jpg", "png") and len(pages) > 1:
+        raise ValueError("Cannot encode a multi-page document as one image; use scanpdf")
     if container == "jpg":
         exif = Image.Exif()
         exif[0x010E] = SYNTHETIC_MARK          # ImageDescription

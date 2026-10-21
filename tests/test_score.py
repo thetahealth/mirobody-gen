@@ -67,9 +67,11 @@ class Oracle(unittest.TestCase):
             {**item("WBC", "6.2"), "readable": True, "unreadable_fields": []}]}
         genetics = {"file": "pgx.pdf", "kind": "genetics_report", "pgx_rows": []}
         predictions = {"lab.pdf": [item("WBC", "6.2")], "pgx.pdf": [item("rs4149056", "TC")]}
-        expected = score.score([lab], predictions)
+        # pgx.pdf is not in a lab-only manifest, so the lab-only reference takes only the lab prediction
+        expected = score.score([lab], {"lab.pdf": predictions["lab.pdf"]})
         got = score.score([lab, genetics], predictions)
         self.assertEqual(got.pop("skipped_documents"), {"genetics_report": 1})
+        self.assertEqual(got.pop("unscored_predictions"), 1)
         self.assertEqual(got, expected)
         self.assertIn("genetics_report", score.render({**got, "skipped_documents": {"genetics_report": 1}}, None))
 

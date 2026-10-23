@@ -109,7 +109,8 @@ mirobody-gen score     out/p3/pairs.jsonl out/p3/pred_rules_pairs.jsonl --pairs
 呼气试验就不再开幽门螺杆菌抗体；红细胞指标成套一致地抽取。这些是呈现规则（`mirobody_gen/clinical*.py`），
 不是经过验证的临床事实。构建会在 `generation.json` 里记录 `"clinical_profile": true`。
 
-`--no-clinical` 关闭该配置，逐字节复现它成为默认之前的构建（提交 `9723605` 及更早、不带 `--clinical`）。
+`--no-clinical` 关闭该配置，逐字节复现它成为默认之前的构建（提交 `9723605` 及更早、不带 `--clinical`），
+模板曾印出已删除的名称变体 `空腹血糖(HK)` 的页面除外。
 `--clinical` 仍然接受且不改变任何东西，因此固定了这个参数的配方构建出的字节不变。
 
 ## 手写

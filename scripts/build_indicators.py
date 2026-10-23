@@ -658,10 +658,11 @@ add("tct", "液基薄层细胞学检查", "Liquid-based cytology (TCT)", "TCT", 
     positive_values=[["ASC-US", 8], ["LSIL", 2], ["ASC-H", 1]])
 
 # Hong Kong / Taiwan spellings: common printed forms of the same indicator in Traditional-script reports
+# (the spelling only: a region tag such as "(HK)" is not part of a printed name and would print verbatim)
 EXTRA_VARIANTS = {
     "hgb": ["血色素", "血紅素"], "tg": ["三酸甘油酯", "三酸甘油脂"], "crea": ["肌酸酐"], "alt": ["谷丙轉氨酶", "GPT"],
     "ast": ["谷草轉氨酶", "GOT"], "chol": ["總膽固醇"], "hdl": ["高密度膽固醇"], "ldl": ["低密度膽固醇"],
-    "glu": ["血糖(空腹)", "空腹血糖(HK)"], "ua": ["尿酸(UA)"], "wbc": ["白血球"], "plt": ["血小板"], "rbc": ["紅血球"],
+    "glu": ["血糖(空腹)"], "ua": ["尿酸(UA)"], "wbc": ["白血球"], "plt": ["血小板"], "rbc": ["紅血球"],
     "hba1c": ["糖化血色素"], "urea": ["尿素氮(BUN)", "BUN"],
 }
 for item in INDICATORS:

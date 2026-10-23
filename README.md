@@ -140,7 +140,8 @@ coherently. These are presentation rules (`mirobody_gen/clinical*.py`), not vali
 build records `"clinical_profile": true` in `generation.json`.
 
 `--no-clinical` turns the profile off and reproduces, byte for byte, a build made before it became the
-default (commit `9723605` and earlier, without `--clinical`). `--clinical` is still accepted and changes
+default (commit `9723605` and earlier, without `--clinical`), apart from a page where a template had
+printed the since-removed name variant `空腹血糖(HK)`. `--clinical` is still accepted and changes
 nothing, so recipes pinned with it build the same bytes.
 
 ## Handwriting

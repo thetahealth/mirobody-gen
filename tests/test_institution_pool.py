@@ -3,11 +3,19 @@ from types import SimpleNamespace
 
 import pytest
 
-from mirobody_gen import corpus, layout
+from mirobody_gen import clinical, corpus, layout
 
 
+@pytest.fixture(autouse=True)
+def every_institution(monkeypatch):
+    """Pool mechanics on stand-in registries, which have no templates for the clinical profile to filter."""
+    monkeypatch.setattr(clinical, "ENABLED", False)
+
+
+@pytest.mark.parametrize("enabled", [True, False])
 @pytest.mark.parametrize("seed", [7, 8, 9, 14])
-def test_english_hospital_pool_can_finish_the_existing_200_draw_replay(seed):
+def test_english_hospital_pool_can_finish_the_existing_200_draw_replay(seed, enabled, monkeypatch):
+    monkeypatch.setattr(clinical, "ENABLED", enabled)
     registry = layout.Registry(seed)
     process = corpus.Institutions(registry, seed)
     rng = random.Random(f"services:{seed}:en")

@@ -30,8 +30,9 @@ extraction contract (`original_indicator`, `value`, `unit`, `reference_range`, `
 
 ## `manifest.jsonl` — one record per visit
 
-Default builds also write `generation.json` with the seed and
-`encounter_stream_policy=encounter-streams-v2`. Routine scheduling keeps its
+Default builds also write `generation.json` with the seed,
+`encounter_stream_policy=encounter-streams-v2` and `clinical_profile=true`
+(absent under `--no-clinical`). Routine scheduling keeps its
 existing seed stream; incident visits use stable event identities, and each
 scheduled visit has its own observation stream keyed by seed, person, date,
 type, ordered panels, package and exact-slot occurrence. Distinct duplicate

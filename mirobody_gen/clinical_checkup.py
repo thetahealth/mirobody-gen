@@ -1,12 +1,12 @@
-"""Clinical profile: checkup content (`build --clinical`).
+"""Clinical profile: checkup content (on unless `build --no-clinical`).
 
 Clinician review read four details of generated checkups as fake: a drawn ultrasound fan with a dark
 blob beside the report, a kidney or thyroid finding that leaves the other side undescribed, ECG
-intervals printed as a lab table, and a serum H. pylori antibody beside a urea breath test. In
-clinical mode the ultrasound report is text only, a one-sided finding is followed by the other
-side's normal description (`contralateral` in narratives.json), ECG parameters stay with the tracing,
-and a checkup that runs the breath test does not order the antibody. The first three change only
-what is printed; the antibody's draw is kept, so the visit's other results match a default build.
+intervals printed as a lab table, and a serum H. pylori antibody beside a urea breath test. In clinical
+mode the ultrasound report is text only, a one-sided finding is followed by the other side's normal
+description (`contralateral` in narratives.json), ECG parameters stay with the tracing, and a checkup
+that runs the breath test does not order the antibody. The first three change only what is printed; the
+antibody's draw is kept, so the visit's other results match a `--no-clinical` build.
 """
 
 from __future__ import annotations

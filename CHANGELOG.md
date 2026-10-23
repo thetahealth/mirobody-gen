@@ -5,6 +5,26 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); ver
 
 ## [Unreleased]
 
+- The clinical presentation profile is now the default (`build --clinical/--no-clinical`, default on).
+  Before, a build without `--clinical` still printed what clinician review had flagged as fake: ECG
+  intervals as a lab table, an H. pylori antibody beside a breath test, drawn ultrasound images,
+  one-sided kidney and thyroid reports, result tables without units, reference ranges or abnormal
+  flags or with name and sex among the results, Traditional names on Simplified pages, men at
+  maternal and child health hospitals, names that do not match the patient's sex, and incoherent
+  red-cell indices. Default builds change bytes accordingly: rendered files carry no incident
+  hazards (`--pairs` keep them), a checkup book's ECG intervals leave its `readings` (they stay in
+  `manifest.jsonl`), and a checkup with a breath test no longer orders `hp_ab`. A build now made
+  without a flag is byte-identical to a `--clinical` build of `9723605`, and `--no-clinical` is
+  byte-identical to a build of `9723605` without it; `--clinical` is still accepted. Both hold
+  except where a template printed the glucose variant removed below. Tell them apart by
+  `generation.json`: `"clinical_profile": true` means the profile was on.
+
+- Drop the glucose name variant "空腹血糖(HK)": its region tag printed verbatim as part of the item
+  name (seed 20261014 printed it on page 7 of two checkup books; clinician review had flagged the same
+  pattern as "乙型肝炎表面抗原(HK)"). It was the only region-tagged name. Traditional-only spellings such
+  as "飯前血糖" stay as variants for Traditional pages; a test now checks that every name filed as
+  Simplified is GB2312-encodable, and that no printable name carries a region tag.
+
 - Keep undated archetype conditions as full-simulation design instead of
   historical diagnoses. Visits and existing clinical documents use dated,
   sourced diagnosis knowledge (`dated-diagnosis-knowledge-v1`); unknown history

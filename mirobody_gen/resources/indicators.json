@@ -1605,8 +1605,7 @@
         "GLU",
         "FBG",
         "飯前血糖",
-        "血糖(空腹)",
-        "空腹血糖(HK)"
+        "血糖(空腹)"
       ],
       "value_kind": "quantitative",
       "derived_from": null,

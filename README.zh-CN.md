@@ -100,6 +100,19 @@ mirobody-gen score     out/p3/pairs.jsonl out/p3/pred_rules_pairs.jsonl --pairs
 
 冒烟构建：`--people 8`。`python -m mirobody_gen <command>` 与 `mirobody-gen <command>` 等价。
 
+## 临床呈现配置
+
+默认开启，回应临床医生对生成报告的审阅意见。只抽取模板对每条结果都印出单位、参考范围和异常标记、且不把姓名
+性别混进结果行的机构；简体页面不印繁体名称；渲染文件不加偶发事故类干扰（`--pairs` 保留）。妇幼保健院只接诊
+育龄期且就诊内容相符的女性，中医医院不出西医门诊病历。患者姓名与性别相符且在队列内不重复；科室只在就诊明确
+给出时才印。体检把心电图参数留在心电图报告里而不是印成化验表，超声只出文字报告并描述双肾、甲状腺两叶，做了
+呼气试验就不再开幽门螺杆菌抗体；红细胞指标成套一致地抽取。这些是呈现规则（`mirobody_gen/clinical*.py`），
+不是经过验证的临床事实。构建会在 `generation.json` 里记录 `"clinical_profile": true`。
+
+`--no-clinical` 关闭该配置，逐字节复现它成为默认之前的构建（提交 `9723605` 及更早、不带 `--clinical`），
+模板曾印出已删除的名称变体 `空腹血糖(HK)` 的页面除外。
+`--clinical` 仍然接受且不改变任何东西，因此固定了这个参数的配方构建出的字节不变。
+
 ## 手写
 
 ```bash
@@ -190,7 +203,7 @@ Fitbit API 的继任者。
 
 ## 确定性与审计
 
-语料是 生成器 + 种子（+ `--lang-mix`、+ `--paraphrase`、+ `--handwriting`）的函数：同参数两次构建字节一致，`out/` 可丢弃，
+语料是 生成器 + 种子（+ `--lang-mix`、+ `--paraphrase`、+ `--handwriting`、+ `--no-clinical`）的函数：同参数两次构建字节一致，`out/` 可丢弃，
 生成器加种子**就是**交付物。三道审计门（临床、可读性、隐私）卡每次构建，保真度对参考集聚合值出报告；测试套件
 在小构建上跑临床+可读性审计，CI 以 `--skip-replay` 跑隐私门（回放索引需要参考集，按
 [docs/PRIVACY.md](docs/PRIVACY.md) 在发布机器上跑）。

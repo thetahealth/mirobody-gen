@@ -7,7 +7,7 @@ import random
 
 import pytest
 
-from mirobody_gen import manifest, person, spec, verify
+from mirobody_gen import clinical_checkup, manifest, person, spec, verify
 from mirobody_gen.document import build_doc, split_encounter
 from mirobody_gen.layout import build_registry
 from mirobody_gen.model import Person, Reading
@@ -115,7 +115,9 @@ def test_invalid_claimed_direct_result_rejected(monkeypatch, change):
 def test_all_default_orders_are_accounted_once_without_dropping_sex_exclusions():
     for p in person.build_cohort(7):
         for e in person.encounters_for(p, 7):
-            expected = list(dict.fromkeys(k for panel in e.panels for k in person.ORDERS.get(panel, [])))
+            expected = tuple(dict.fromkeys(k for panel in e.panels for k in person.ORDERS.get(panel, [])))
+            # The clinical profile drops the H. pylori antibody beside a breath test.
+            expected = list(clinical_checkup.orders(expected, [], [], p, e.exam_date, e.exam_type, e.package)[0])
             assert list(e.ordered_keys) == expected
             counts = [r.key for r in e.readings] + [m.key for m in e.missing_results]
             assert sorted(counts) == sorted(expected) and len(counts) == len(set(counts))

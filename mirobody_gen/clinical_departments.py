@@ -1,11 +1,11 @@
-"""Clinical profile: departments (`build --clinical`).
+"""Clinical profile: departments (on unless `build --no-clinical`).
 
-A default build prints a department drawn from the template vocabulary on lab slips, checkup books
-and handwritten clinic booklets, so clinician review saw a kidney patient's clinic slip filed under
-the checkup centre and checkup books filed under endocrinology. In clinical mode a document prints
-the visit's explicit department (`Encounter.department`), the checkup centre for a visit at a
-checkup centre, and otherwise no department. Nothing is inferred from the institution, the person
-or the condition. The random draw is still made, so the document stream advances as by default.
+Without the profile (`--no-clinical`) a build prints a department drawn from the template vocabulary on
+lab slips, checkup books and handwritten clinic booklets, so clinician review saw a kidney patient's
+clinic slip filed under the checkup centre and checkup books filed under endocrinology. In clinical mode
+a document prints the visit's explicit department (`Encounter.department`), the checkup centre for a
+visit at a checkup centre, and otherwise no department. Nothing is inferred from the institution, the
+person or the condition. The random draw is still made, so the document stream advances as without it.
 """
 
 from __future__ import annotations

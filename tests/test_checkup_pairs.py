@@ -6,7 +6,7 @@ import sys
 
 import pytest
 
-from mirobody_gen import build, pairs, person
+from mirobody_gen import build, clinical, clinical_checkup, pairs, person, spec
 
 
 @pytest.mark.parametrize("seed", [7, 8])
@@ -35,12 +35,14 @@ def test_checkup_pairs_freeze_whole_document_and_source_measurements(seed, tmp_p
         for field in ("readings", "blocks", "findings", "summary", "cover", "complaints", "diagnoses", "subject", "dates"):
             assert record[field] == base[field], (record["pair"]["variant"], field)
         assert captures[record["doc_id"]] == captures[base["doc_id"]]
+    # The clinical profile prints ECG parameters with the tracing, not among the book's readings.
+    off_table = {k for g in clinical_checkup.OFF_TABLE for k in spec.panels()[g]} if clinical.ENABLED else set()
     for base in ordinary:
         assert base["cover"] and base["summary"] and base["blocks"]
         source = next(e for e in encounters[base["person_id"]]
                       if e.exam_date.isoformat() == base["encounter_dates"][0] and e.exam_type == "routine")
         original = {(r.key, r.canonical_value, r.unit_ucum, r.loinc, r.value, r.status)
-                    for r in source.readings}
+                    for r in source.readings if r.key not in off_table}
         observed = {(r["key"], r["canonical_value"], r["unit_ucum"], r["loinc"], r["value_text"], r["status"])
                     for r in base["readings"] if r["role"] == "current"}
         assert observed == original

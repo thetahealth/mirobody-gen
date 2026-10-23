@@ -65,9 +65,10 @@ def main(argv: list[str] | None = None) -> None:
                     help="after writing, run the deterministic audits (clinical, readability, privacy) and write "
                          "verification.json with passed/failed/skipped/not_run per check; exits 1 if a "
                          "required check fails")
-    ap.add_argument("--clinical", action="store_true",
-                    help="opt-in clinical presentation profile (mirobody_gen/clinical*.py) for clinician-review "
-                         "material; off by default so existing seeds keep their bytes")
+    ap.add_argument("--clinical", action=argparse.BooleanOptionalAction, default=True,
+                    help="clinical presentation profile (mirobody_gen/clinical*.py): complete result tables, "
+                         "plausible issuers, clinical checkup content (default on); --no-clinical reproduces "
+                         "builds made before it was the default")
     ap.add_argument("--lang-mix", default=None,
                     help="language-group ratio, e.g. 'zh:0.45,en:0.4,ja:0.15' (default zh:0.5,en:0.5). "
                          "Unknown groups fall back to English document templates; the mix changes "
@@ -95,8 +96,7 @@ def main(argv: list[str] | None = None) -> None:
         except ValueError as e:
             ap.error(f"--lang-mix: {e}")
 
-    if args.clinical:
-        clinical.enable()
+    clinical.set_enabled(args.clinical)
     people = person_mod.build_cohort(args.seed, args.people)
     encounters = {p.person_id: person_mod.encounters_for(p, args.seed) for p in people}
     if service_profile is not None:

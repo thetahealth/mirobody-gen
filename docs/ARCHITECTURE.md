@@ -46,7 +46,7 @@ distributions (column set, reference-range dialect, flag markers, unit position,
 furniture) and lets it drift by year and by print batch. `document.py` lays a visit's readings into
 tables and records two truth layers per row: the printed cell (MedRepBench fields) and the semantic
 reading. `book.py` composes check-up books (cover, summary and advice, general examination, department
-key-value sections, auxiliary narratives with ECG strips and ultrasound images, laboratory tables),
+key-value sections, auxiliary narratives with ECG strips and, under `--no-clinical`, ultrasound images, laboratory tables),
 outpatient records, ECG / ultrasound / imaging reports and home logs. `hazards.py` injects incident
 hazards at their reference document rates and records every hazard with row attribution. `corpus.py`
 routes each visit to its documents and writes `files.jsonl`; `delivery.py` chooses the delivery tier
@@ -67,10 +67,11 @@ go through the same scene from the same seed, and the difference measures every 
 ink contrast on the delivered image, replaying the scene's logged geometry to find it. A capture below the
 floor falls back to a milder one.
 
-**Clinical presentation profile** (opt-in, `build --clinical`). `clinical.py` holds the switch; each
-`clinical_*.py` module holds one set of rules that make documents read the way a clinician expects a real
-report to read, and acts only while the switch is on. The rules are presentation choices for clinician-review
-material, not validated clinical facts; a default build never enters them, so existing seeds keep their bytes.
+**Clinical presentation profile** (on by default; `build --no-clinical` turns it off). `clinical.py` holds the
+switch; each `clinical_*.py` module holds one set of rules that make documents read the way a clinician expects
+a real report to read, and acts only while the switch is on. The rules are presentation choices for
+clinician-review material, not validated clinical facts. With the switch off a build never enters them and
+reproduces the bytes of builds made before the profile became the default.
 
 **Continuous streams** (opt-in, `build --continuous`). `continuous.py` plans each of a person's days once
 (sleep from the store's sleep record, meals, a run, walking bouts that add up to the store's step count) and

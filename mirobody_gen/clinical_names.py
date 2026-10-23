@@ -1,10 +1,10 @@
-"""Clinical profile: names (`build --clinical`).
+"""Clinical profile: names (on unless `build --no-clinical`).
 
-A default build draws a patient's printed name without regard to sex, and the fiction pool joins
-given-name characters freely, so review saw men printed under women's names, names that mix a
-feminine and a masculine character, and two people of one cohort under the same name. In clinical
-mode a patient's name reads as the person's sex, never mixes, and differs from every other
-patient's while the pool lasts; a signing doctor's or technician's name never mixes. The default
+Without the profile (`--no-clinical`) a build draws a patient's printed name without regard to sex, and
+the fiction pool joins given-name characters freely, so review saw men printed under women's names,
+names that mix a feminine and a masculine character, and two people of one cohort under the same name.
+In clinical mode a patient's name reads as the person's sex, never mixes, and differs from every other
+patient's while the pool lasts; a signing doctor's or technician's name never mixes. The unprofiled
 draws are still made.
 """
 

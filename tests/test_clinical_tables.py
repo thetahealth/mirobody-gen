@@ -38,7 +38,8 @@ def test_a_template_without_ranges_or_with_traditional_headers_is_rejected():
     assert not clinical_tables.complete(dataclasses.replace(f, headers={**f.headers, "name": "總項目"}))
 
 
-def test_default_draws_keep_every_institution():
+def test_unprofiled_draws_keep_every_institution(monkeypatch):
+    monkeypatch.setattr(clinical, "ENABLED", False)
     process = corpus.Institutions(layout.Registry(7), 7)
     assert process.allowed is None and process.admits(process.registry.big["hospital"])
 

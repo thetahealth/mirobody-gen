@@ -1,12 +1,12 @@
-"""Clinical profile: complete result tables (`build --clinical`).
+"""Clinical profile: complete result tables (on unless `build --no-clinical`).
 
-Clinician review of generated scenarios read slips as fake when results had no unit, no reference
-range or no abnormal flag, when the patient's name and sex sat among the result rows, and when a
-Simplified Chinese slip printed Traditional names. Layout families drawn from the reference corpus
-carry each of these at its real document rate, and so do the incident hazards (artifacts measured
-on OCR output of real scans). In clinical mode an institution is drawn only if its template keeps
-all of them in every revision, and incidents stay off the page. Default builds and `--pairs` keep
-both for robustness studies.
+Clinician review of generated scenarios read slips as fake when results had no unit, no reference range
+or no abnormal flag, when the patient's name and sex sat among the result rows, and when a Simplified
+Chinese slip printed Traditional names. Layout families drawn from the reference corpus carry each of
+these at its real document rate, and so do the incident hazards (artifacts measured on OCR output of
+real scans). In clinical mode an institution is drawn only if its template keeps all of them in every
+revision, and incidents stay off the page. `--no-clinical` builds and `--pairs` keep both for robustness
+studies.
 """
 
 from __future__ import annotations
@@ -52,6 +52,6 @@ def same_script(variants: list[str], script: str) -> list[str]:
 
 
 def skip_incidents(doc, rng: random.Random) -> None:
-    """Draw the incidents on a copy, so the document stream advances as in a default build and the
-    page keeps none of them."""
+    """Draw the incidents on a copy, so the document stream advances as in a `--no-clinical` build and
+    the page keeps none of them."""
     hazards.inject(copy.deepcopy(doc), rng)

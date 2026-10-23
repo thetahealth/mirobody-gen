@@ -66,6 +66,7 @@ def test_clinical_mode_moves_every_implausible_visit(monkeypatch):
                                                   encounters[pid][idx - 1].exam_type, 7)
                    for (pid, idx), i in chosen.items())
 
+    monkeypatch.setattr(clinical, "ENABLED", False)
     assert implausible() > 0
     monkeypatch.setattr(clinical, "ENABLED", True)
     assert implausible() == 0

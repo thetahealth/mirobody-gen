@@ -1,10 +1,10 @@
-"""Clinical profile: coherent red-cell indices (`build --clinical`).
+"""Clinical profile: coherent red-cell indices (on unless `build --no-clinical`).
 
-By default haemoglobin is the product RBC x MCV x MCHC of three independently drawn indices, each
-with a 3% analytical CV, so its spread is the sum of theirs (CV about 10.6% against haemoglobin's
-own 7.4%): seed 7 printed men up to 195 g/L and MCHC above 360 g/L in 12 of 286 blood counts. In
-clinical mode haemoglobin is drawn with its own between- and within-subject variation and the red
-cell count follows from it, the analytical CV of haemoglobin, MCV and MCHC is that of a current
+Without the profile (`--no-clinical`) haemoglobin is the product RBC x MCV x MCHC of three independently
+drawn indices, each with a 3% analytical CV, so its spread is the sum of theirs (CV about 10.6% against
+haemoglobin's own 7.4%): seed 7 printed men up to 195 g/L and MCHC above 360 g/L in 12 of 286 blood
+counts. In clinical mode haemoglobin is drawn with its own between- and within-subject variation and the
+red cell count follows from it, the analytical CV of haemoglobin, MCV and MCHC is that of a current
 analyser, and the archetype's shifts, trends and events still reach haemoglobin through the three
 indices. The noise comes from a stream of its own, so the visit's other draws are unchanged.
 """

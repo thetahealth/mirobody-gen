@@ -126,6 +126,23 @@ medical templating is a resource-layer project of its own).
 Smoke builds: `--people 8`. `python -m mirobody_gen <command>` is equivalent to
 `mirobody-gen <command>`.
 
+## Clinical presentation profile
+
+On by default; it answers clinician review of generated reports. An institution is drawn only if its
+template prints a unit, a reference range and an abnormal flag for every result and keeps the patient's
+name and sex out of the result rows; Simplified pages print no Traditional names; incident hazards stay off
+rendered files (`--pairs` keep them). A maternal and child health hospital sees only women of reproductive
+age with matching care, and a TCM hospital issues no Western outpatient record. Patient names match the
+person's sex and are unique in a cohort; departments print only when the visit names one. Checkups print
+ECG parameters with the tracing, not as a lab table, ultrasound as a text report that describes both
+kidneys and both thyroid lobes, and no H. pylori antibody beside a breath test; red-cell indices are drawn
+coherently. These are presentation rules (`mirobody_gen/clinical*.py`), not validated clinical facts. A
+build records `"clinical_profile": true` in `generation.json`.
+
+`--no-clinical` turns the profile off and reproduces, byte for byte, a build made before it became the
+default (commit `9723605` and earlier, without `--clinical`). `--clinical` is still accepted and changes
+nothing, so recipes pinned with it build the same bytes.
+
 ## Handwriting
 
 ```bash
@@ -224,7 +241,7 @@ Field-by-field definitions: [docs/SCHEMA.md](docs/SCHEMA.md).
 
 ## Determinism and audits
 
-The corpus is a function of generator + seed (+ `--lang-mix`, + `--paraphrase`, + `--handwriting`, + `--clinical`): two builds with
+The corpus is a function of generator + seed (+ `--lang-mix`, + `--paraphrase`, + `--handwriting`, + `--no-clinical`): two builds with
 the same parameters are byte-identical, so `out/` is disposable and the generator plus the seed
 **is** the artefact. Three audits gate a build (clinical, readability, privacy); fidelity reports
 against reference aggregates; the test suite runs clinical + readability on a small build, and CI

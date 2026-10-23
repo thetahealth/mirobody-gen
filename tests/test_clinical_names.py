@@ -39,7 +39,8 @@ def test_patients_get_own_sex_unique_names_across_documents_and_exports(lang, cl
         assert names[p.person_id] in (f"{first} {last}", f"{last}{first}")
 
 
-def test_default_names_include_the_cases_clinical_mode_removes():
+def test_unprofiled_names_include_the_cases_clinical_mode_removes(monkeypatch):
+    monkeypatch.setattr(clinical, "ENABLED", False)
     people = person.build_cohort(7)
     names = [_subject_name(p) for p in people]
     assert len(set(names)) < len(names) or any(clinical_names.name_sex(n) == "mixed" for n in names)

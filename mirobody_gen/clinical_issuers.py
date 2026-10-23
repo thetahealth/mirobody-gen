@@ -1,12 +1,12 @@
-"""Clinical profile: plausible issuers (`build --clinical`).
+"""Clinical profile: plausible issuers (on unless `build --no-clinical`).
 
-The fiction pool names 103 of 347 Chinese hospitals 妇幼保健院 (maternal and child health hospital)
-and 80 中医医院 (TCM hospital). A default build therefore sends a 56-year-old man's checkup to the
-first and prints a Western outpatient record under the second, and clinician review read both as
-fake. In clinical mode such a visit moves to another institution of the same pool, chosen the way
-`Institutions.draw` chooses, from a stream addressed by the visit. These are presentation rules for
-review material: no facility service is inferred or recorded, and the manifest names the
-institution actually printed.
+The fiction pool names 103 of 347 Chinese hospitals 妇幼保健院 (maternal and child health hospital) and 80
+中医医院 (TCM hospital). Without the profile (`--no-clinical`) a build therefore sends a 56-year-old man's
+checkup to the first and prints a Western outpatient record under the second, and clinician review read
+both as fake. In clinical mode such a visit moves to another institution of the same pool, chosen the
+way `Institutions.draw` chooses, from a stream addressed by the visit. These are presentation rules for
+review material: no facility service is inferred or recorded, and the manifest names the institution
+actually printed.
 """
 
 from __future__ import annotations

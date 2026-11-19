@@ -140,8 +140,10 @@ coherently. These are presentation rules (`mirobody_gen/clinical*.py`), not vali
 build records `"clinical_profile": true` in `generation.json`.
 
 `--no-clinical` turns the profile off and, with `--surface off`, reproduces byte for byte a build made
-before it became the default (commit `9723605` and earlier, without `--clinical`), apart from a page where a template had
-printed the since-removed name variant `空腹血糖(HK)`. `--clinical` is still accepted and changes
+before it became the default (commit `9723605` and earlier, without `--clinical`). Three things differ:
+readings' `loinc`, now taken from the LOINC table; the 2-hour glucose item's name, now postprandial
+rather than an OGTT name; and a page where a template had printed the since-removed name variant
+`空腹血糖(HK)`. `--clinical` is still accepted and changes
 nothing, so recipes pinned with it build the same bytes.
 
 ## Written forms: names, instructions, device units
@@ -160,8 +162,7 @@ default `realistic` mode draws only observed forms at their measured rates: an
 abbreviation run into the name (`白细胞WBC`), printed before it or after a space, an assay word
 (`尿酸测定`) or a send-out mark (`尿酸#`, with a footnote). `fuzz` draws every tier at raised rates and
 lets an institution's naming drift between template revisions; it is material for finding a consumer's
-failures, not for realism numbers. `--surface off` prints names as builds made before this layer did,
-byte for byte. Every form names a hazard class (`name.*`) with row attribution, while the reading's key
+failures, not for realism numbers. `--surface off` prints names as builds made before this layer did. Every form names a hazard class (`name.*`) with row attribution, while the reading's key
 and value stay those of the indicator; `--pairs` adds one minimal-contrast variant per class.
 
 Medication instructions follow the same tiers (`mirobody_gen/sig.py`): each plan's canonical

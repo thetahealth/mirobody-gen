@@ -3,7 +3,8 @@
 Rules that make generated documents read the way a clinician expects a real report to read, written in
 answer to clinician review of generated scenarios. Each rule set lives in its own `clinical_*.py` module
 and acts only while `ENABLED` is set. With it off, a build reproduces the bytes of a build made before
-the profile became the default (with `--surface off`, which leaves names as they were). These are
+the profile became the default (with `--surface off`, which leaves names as they were), apart from the
+LOINC codes now taken from the LOINC table and the renamed 2-hour glucose item. These are
 presentation choices for review material, not validated clinical facts.
 """
 

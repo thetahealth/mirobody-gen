@@ -59,6 +59,8 @@ def test_resource_contract():
     assert s["modes"]["realistic"] == ["observed"] and s["modes"]["off"] == []
     assert set(s["modes"]["fuzz"]) == set(s["tiers"])
     choices = s["name_join"]["choices"] + s["name_suffix"]["choices"] + s["name_marker"]["choices"]
+    choices += [c for a in s["sig"]["axes"].values() for c in a["choices"]]
+    choices += [c for a in s["device_units"].values() for c in a["choices"]]
     assert all(c["tier"] in s["tiers"] for c in choices)
     assert all(c["share"] > 0 for c in choices if c["tier"] == "observed")
     assert all(c.get("sources") for c in choices if c["tier"] in ("reference", "field", "generated"))

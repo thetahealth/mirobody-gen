@@ -272,5 +272,50 @@
         ]
       }
     }
+  },
+  "device_units": {
+    "sleep": {
+      "description": "the unit a phone or cloud app sends a night's sleep duration in; values are converted from the canonical first choice",
+      "drift_rate": 0.5,
+      "choices": [
+        {
+          "unit": "min",
+          "per_minute": 1,
+          "tier": "reference",
+          "share": 0,
+          "sources": [
+            "the simulated series' own unit; vendor APIs send it too (Fitbit Web API, Get Sleep Log by Date: minutesAsleep is in minutes)"
+          ]
+        },
+        {
+          "unit": "ms",
+          "per_minute": 60000,
+          "tier": "reference",
+          "share": 0,
+          "sources": [
+            "Fitbit Web API, Get Sleep Log by Date: duration is in milliseconds",
+            "thetahealth/mirobody#296"
+          ]
+        },
+        {
+          "unit": "s",
+          "per_minute": 60,
+          "tier": "reference",
+          "share": 0,
+          "sources": [
+            "Fitbit Web API, Get Sleep Log by Date: levels.data[].seconds is in seconds"
+          ]
+        },
+        {
+          "unit": "h",
+          "per_minute": 0.016666666666666666,
+          "tier": "field",
+          "share": 0,
+          "sources": [
+            "thetahealth/mirobody#296: LOINC 93832-4 gives h as its example unit"
+          ]
+        }
+      ]
+    }
   }
 }

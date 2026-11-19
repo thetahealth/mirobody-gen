@@ -202,11 +202,11 @@ def print_name(item: dict, f: Family, rng: random.Random) -> tuple[str, str, lis
         native = _variant_for(item, "zh-Hant", sticky) or item["zh"]
     else:
         native = item["zh"]
-    abbr = item.get("abbr") or ""
+    abbr, abbr_hazard = surface.abbreviation(item, f)
     style = f.name_style
     if style == "variant":
         native = _variant_for(item, script_of(native), sticky) or native
-    applied: list[str] = []
+    applied = [abbr_hazard] if abbr_hazard and (style in ("abbr", "native(abbr)") or "abbr" in f.columns) else []
     if style == "abbr" and abbr and "abbr" not in f.columns:
         name, abbr = abbr, ""
     elif style == "native(abbr)" and abbr and "abbr" not in f.columns:

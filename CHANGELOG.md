@@ -5,6 +5,25 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); ver
 
 ## [Unreleased]
 
+- Catalogue additions (179 indicators): RDW-SD beside RDW-CV in every blood count (derived as
+  3.59 × RDW-CV × MCV, the width at 20% of a normal histogram's peak); the rest of the urine dipstick
+  (bilirubin, urobilinogen, leukocyte esterase), so a urinalysis prints all its bare abbreviations;
+  procalcitonin in the inflammation panel of hospital visits; RV5 and SV1, printed by their bare lead
+  names, in every ECG. Each has a LOINC code from the table (115742-9, 1977-8, 13658-0, 105103-6,
+  33959-8, 9995-2, 10040-4), a hard limit and, for RDW-SD, an identity check in `audit-clinical`.
+  Builds print these rows from now on.
+- `confusable_with` in the catalogue declares an abbreviation with a second sense: PCT is plateletcrit
+  (%) and procalcitonin (ng/mL); `Cre` also names a carbapenem-resistant Enterobacterales culture
+  (thetahealth/mirobody#306).
+- Abbreviations are an expression axis (`surface.json` `abbr_variants`, class `name.abbr_variant`):
+  an institution's own abbreviation, measured per indicator on the reference set (肌酐 Cr, 空腹血糖
+  GLU, 尿素 UREA). Every indicator has fewer than `min_support` observations, so `realistic` keeps
+  the catalogue's; `fuzz` draws them, and `Cre` from the field report. The class has no
+  minimal-contrast pair: the clean base layout prints no abbreviations to vary.
+- An indicator added to the catalogue draws each person's baseline from a stream of its own
+  (`own_baseline_stream`), so the additions above leave every existing person, weight series and
+  timeline as it was; only the new rows are new.
+
 - LOINC ground truth no longer comes from the system under test. Every catalogue indicator's code is
   now chosen from the LOINC 2.83 table by component, the property its printed unit implies and its
   specimen (`scripts/build_indicators.py` `LOINC`), and checked against the table at build time.

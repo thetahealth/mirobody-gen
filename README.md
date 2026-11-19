@@ -165,6 +165,10 @@ lets an institution's naming drift between template revisions; it is material fo
 failures, not for realism numbers. `--surface off` prints names as builds made before this layer did. Every form names a hazard class (`name.*`) with row attribution, while the reading's key
 and value stay those of the indicator; `--pairs` adds one minimal-contrast variant per class.
 
+Abbreviations are an axis too: an institution may print its own (`肌酐(Cr)`, `空腹血糖(GLU)`), and
+`fuzz` also prints `肌酐(Cre)`, the spelling a resolver once read as a culture code. The catalogue declares
+such collisions (`confusable_with`: PCT is plateletcrit in % or procalcitonin in ng/mL).
+
 Medication instructions follow the same tiers (`mirobody_gen/sig.py`): each plan's canonical
 `每日2次，每次500mg` is parsed into its intent, which `medications.jsonl` records (`timing`,
 `slots_per_day`, `dose_per_slot`), and respelled in one dialect per plan. The reference set holds too

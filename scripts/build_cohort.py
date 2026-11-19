@@ -37,7 +37,7 @@ RESOURCES = REPO / "mirobody_gen" / "resources"
 #: / premium` are the lab portion of the three package tiers; departments and imaging/other
 #: investigations are under `packages` in `resources/narratives.json`, matched by name.
 ORDERS: dict[str, list[str]] = {
-    "cbc": ["wbc", "rbc", "hgb", "hct", "mcv", "mch", "mchc", "rdw", "plt", "mpv",
+    "cbc": ["wbc", "rbc", "hgb", "hct", "mcv", "mch", "mchc", "rdw", "rdw_sd", "plt", "mpv",
             "pdw", "pct", "neut_pct", "lymph_pct", "mono_pct", "eos_pct", "baso_pct",
             "neut_abs", "lymph_abs", "mono_abs", "eos_abs", "baso_abs"],
     "liver_basic": ["alt", "ast", "ggt", "tbil", "dbil", "ibil"],
@@ -56,15 +56,15 @@ ORDERS: dict[str, list[str]] = {
     "thyroid_basic": ["tsh", "ft3", "ft4"],
     "thyroid": ["tsh", "ft3", "ft4", "tt3", "tt4", "tpoab"],
     "urinalysis": ["urine_sg", "urine_ph", "urine_pro", "urine_glu", "urine_bld",
-                   "urine_ket", "urine_nit", "urine_rbc", "urine_wbc"],
-    "inflammation": ["crp", "hscrp", "esr"],
+                   "urine_ket", "urine_nit", "urine_bil", "urine_uro", "urine_leu", "urine_rbc", "urine_wbc"],
+    "inflammation": ["crp", "hscrp", "esr", "procalcitonin"],
     "inflammation_hs": ["hscrp"],
     "anemia": ["ferritin", "serum_iron", "b12", "folate"],
     "cardiac": ["ldh", "ck", "ckmb"],
     "tumor": ["afp", "cea", "psa", "ca125"],
     "vitals": ["height", "weight", "bmi", "waist", "sbp", "dbp", "pulse"],
     "vitals_clinic": ["temp", "pulse", "resp", "spo2", "sbp", "dbp", "weight"],   # the clinic-note vitals line
-    "ecg": ["pulse", "pr_interval", "qrs_duration", "qtc", "qrs_axis"],
+    "ecg": ["pulse", "pr_interval", "qrs_duration", "qtc", "qrs_axis", "rv5", "sv1"],
     "vitamin": ["vitd", "hcy"],
     # ── 2026-09-29 addition: groups common in mainstream packages, missing from the original set ──
     # Sources: the "1+X" optional-item catalogue in the Expert Consensus on Basic Health

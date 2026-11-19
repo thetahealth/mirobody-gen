@@ -8,7 +8,7 @@ import pytest
 
 from mirobody_gen import clinical, person, spec
 
-RED_CELLS = {"rbc", "hgb", "hct", "mcv", "mch", "mchc"}
+RED_CELLS = {"rbc", "hgb", "hct", "mcv", "mch", "mchc", "rdw_sd"}      # RDW-SD is RDW-CV x MCV
 
 
 def _blood_counts(monkeypatch, enabled):

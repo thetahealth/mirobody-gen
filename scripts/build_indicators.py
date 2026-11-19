@@ -78,7 +78,7 @@ TYPICAL_CENTER: dict[str, float] = {
     # Liver and biliary
     "dbil": 3.5, "tba": 4.0,
     # Inflammation: skewed distribution, median well below the upper bound
-    "crp": 1.5, "hscrp": 0.9, "hcy": 10.0,
+    "crp": 1.5, "hscrp": 0.9, "hcy": 10.0, "procalcitonin": 0.03,
     # Thyroid antibodies, tumor markers: most people sit near the low end
     "tpoab": 9.0, "afp": 2.8, "cea": 1.8, "psa": 0.9, "ca125": 12.0,
     # Cardiac enzymes
@@ -93,6 +93,8 @@ TYPICAL_CENTER: dict[str, float] = {
     "ogtt2h": 6.0, "tgab": 15.0, "rf": 8.0, "aso": 60.0, "ccp": 5.0, "nonhdl": 3.2, "hp_ab": 0.0,
     "fvc_pct": 98.0, "fev1_fvc": 82.0, "fev1_pct": 96.0, "bapwv_l": 1250.0, "bapwv_r": 1250.0,
     "visceral_fat": 6.0, "la": 30.0, "ea": 1.3, "spo2": 98.0,
+    # ECG voltages: adult medians, RV5 well under its 2.5 mV limit; SV1 prints without a range
+    "rv5": 1.5, "sv1": 0.9,
 }
 
 #: Reference-range source for every indicator. A missing key fails the build -- better than
@@ -104,7 +106,7 @@ REFERENCE_SOURCES: dict[str, str] = {
     "sbp": HYPERTENSION, "dbp": HYPERTENSION, "pulse": ECGTEXT, "resp": LABMANUAL, "temp": LABMANUAL,
     # Complete blood count
     "wbc": WS405, "rbc": WS405, "hgb": WS405, "hct": WS405, "mcv": WS405, "mch": WS405,
-    "mchc": WS405, "rdw": LABMANUAL, "plt": WS405, "mpv": LABMANUAL, "pdw": LABMANUAL,
+    "mchc": WS405, "rdw": LABMANUAL, "rdw_sd": VENDOR, "plt": WS405, "mpv": LABMANUAL, "pdw": LABMANUAL,
     "pct": LABMANUAL, "neut_pct": WS405, "lymph_pct": WS405, "mono_pct": WS405,
     "eos_pct": WS405, "baso_pct": WS405, "neut_abs": WS405, "lymph_abs": WS405,
     "mono_abs": WS405, "eos_abs": WS405, "baso_abs": WS405,
@@ -122,7 +124,7 @@ REFERENCE_SOURCES: dict[str, str] = {
     "tsh": VENDOR, "ft3": VENDOR, "ft4": VENDOR, "tt3": VENDOR, "tt4": VENDOR,
     "tpoab": VENDOR,
     # Inflammation, anemia, vitamins
-    "crp": LABMANUAL, "hscrp": LABMANUAL, "esr": LABMANUAL, "hcy": VENDOR,
+    "crp": LABMANUAL, "hscrp": LABMANUAL, "esr": LABMANUAL, "procalcitonin": VENDOR, "hcy": VENDOR,
     "vitd": VENDOR, "ferritin": VENDOR, "serum_iron": LABMANUAL, "b12": VENDOR,
     "folate": VENDOR,
     # Tumor markers: all vendor cutoffs, no national standard range
@@ -131,8 +133,10 @@ REFERENCE_SOURCES: dict[str, str] = {
     "urine_sg": LABMANUAL, "urine_ph": LABMANUAL, "urine_pro": LABMANUAL,
     "urine_glu": LABMANUAL, "urine_bld": LABMANUAL, "urine_ket": LABMANUAL,
     "urine_nit": LABMANUAL, "urine_rbc": LABMANUAL, "urine_wbc": LABMANUAL,
+    "urine_bil": LABMANUAL, "urine_uro": LABMANUAL, "urine_leu": LABMANUAL,
     # ECG
     "pr_interval": ECGTEXT, "qrs_duration": ECGTEXT, "qtc": ECGTEXT, "qrs_axis": ECGTEXT,
+    "rv5": ECGTEXT, "sv1": ECGTEXT,
     # 2026-09-29 addition: filled in from the optional-item catalogue in the Expert Consensus
     # on Basic Health Check-up Items (2022) and mainstream packages
     "spo2": PULSEOX,
@@ -173,7 +177,7 @@ LOINC: dict[str, str | None] = {
     "pulse": "8867-4", "resp": "9279-1", "temp": "8310-5", "spo2": "59408-5",
     # cbc
     "wbc": "26464-8", "rbc": "26453-1", "hgb": "718-7", "hct": "4544-3", "mcv": "30428-7", "mch": "28539-5",
-    "mchc": "28540-3", "rdw": "115741-1", "plt": "26515-7", "mpv": "28542-9", "pdw": "32207-3", "pct": "51637-7",
+    "mchc": "28540-3", "rdw": "115741-1", "rdw_sd": "115742-9", "plt": "26515-7", "mpv": "28542-9", "pdw": "32207-3", "pct": "51637-7",
     "neut_pct": "26511-6", "lymph_pct": "26478-8", "mono_pct": "26485-3", "eos_pct": "26450-7",
     "baso_pct": "30180-4", "neut_abs": "26499-4", "lymph_abs": "26474-7", "mono_abs": "26484-6",
     "eos_abs": "26449-9", "baso_abs": "26444-0",
@@ -194,7 +198,7 @@ LOINC: dict[str, str | None] = {
     "tsh": "3016-3", "ft3": "14928-6", "ft4": "14920-3", "tt3": "14930-2", "tt4": "14921-1", "tpoab": "8099-4",
     "tgab": "8098-6", "tg_protein": "3013-0",
     # inflammation
-    "crp": "1988-5", "hscrp": "30522-7", "esr": "30341-2",
+    "crp": "1988-5", "hscrp": "30522-7", "esr": "30341-2", "procalcitonin": "33959-8",
     # vitamin
     "vitd": "62292-8",
     # anemia
@@ -206,8 +210,10 @@ LOINC: dict[str, str | None] = {
     # urinalysis
     "urine_sg": "2965-2", "urine_ph": "2756-5", "urine_pro": "2887-8", "urine_glu": "2349-9", "urine_bld": "725-2",
     "urine_ket": "33903-6", "urine_nit": "32710-6", "urine_rbc": "13945-1", "urine_wbc": "5821-4",
+    "urine_bil": "1977-8", "urine_uro": "13658-0", "urine_leu": "105103-6",
     # ecg
     "pr_interval": "8625-6", "qrs_duration": "8633-0", "qtc": "8636-3", "qrs_axis": "8632-2",
+    "rv5": "9995-2", "sv1": "10040-4",
     # hepatitis
     "hbsag": "5196-1", "hbsab": "22322-2", "hbeag": "13954-3", "hbeab": "13953-5", "hbcab": "13952-7",
     "hcvab": "13955-0",
@@ -257,7 +263,7 @@ INDICATORS: list[dict] = []
 
 def add(key, zh, en, abbr, unit, decimals, ref, _legacy_src, cvi, cvg, panel,
         *, variants=(), kind="quantitative", derived=None, sex=None, note="",
-        positive_rate=None, positive_values=None, categories=None):
+        positive_rate=None, positive_values=None, categories=None, confusable=(), own_stream=False):
     # REFERENCE_SOURCES is the only place a source is recognized. The 8th positional argument
     # stays so the 98 call sites don't need to change, but its value is ignored -- writing the
     # source in two places means one of them eventually goes stale.
@@ -273,6 +279,11 @@ def add(key, zh, en, abbr, unit, decimals, ref, _legacy_src, cvi, cvg, panel,
         # Qualitative items: population positive rate and what gets printed when positive
         # (default +/++/weakly positive); categorical items: values and weights
         "positive_rate": positive_rate, "positive_values": positive_values, "categories": categories,
+        # Another sense this indicator's abbreviation has: a catalogue key, or a note for a sense outside it
+        "confusable_with": list(confusable),
+        # Indicators added after the cohort was laid down draw a person's baseline from a stream of their
+        # own (person.py), so adding one does not reshuffle everyone else. Mark every new indicator.
+        "own_baseline_stream": own_stream,
     })
 
 
@@ -330,7 +341,13 @@ add("mchc", "平均红细胞血红蛋白浓度", "Mean corpuscular hemoglobin co
     "g/L", 0, ("range", 316, 354), WS405, 1.7, 2.8, "cbc",
     variants=("平均血红蛋白浓度", "MCHC"))
 add("rdw", "红细胞分布宽度", "Red cell distribution width", "RDW-CV", "%", 1,
-    ("range", 11.5, 14.5), COMMON, 3.5, 5.7, "cbc", variants=("RDW", "RDW-CV"))
+    ("range", 11.5, 14.5), COMMON, 3.5, 5.7, "cbc", variants=("RDW", "RDW-CV", "红细胞分布宽度-变异系数"))
+# Analyzers print RDW-SD (fL) beside RDW-CV (%). For a normal-shaped red-cell histogram the width at 20%
+# of the peak, where RDW-SD is read, is 2*sqrt(2 ln 5) = 3.59 standard deviations, and the SD is
+# RDW-CV x MCV: typical 13% and 90 fL give 42 fL, inside the analyzer's 37-54 fL.
+add("rdw_sd", "红细胞分布宽度-标准差", "Red cell distribution width (SD)", "RDW-SD", "fL", 1,
+    ("range", 37.0, 54.0), COMMON, None, None, "cbc", variants=("RDW-SD",),
+    derived="3.59 × rdw × mcv / 100", own_stream=True)
 add("plt", "血小板计数", "Platelet count", "PLT", "10^9/L", 0,
     ("range", 125, 350), WS405, 9.1, 21.9, "cbc",
     variants=("血小板", "血小板總數", "PLT"))
@@ -339,7 +356,8 @@ add("mpv", "平均血小板体积", "Mean platelet volume", "MPV", "fL", 1,
 add("pdw", "血小板分布宽度", "Platelet distribution width", "PDW", "fL", 1,
     ("range", 9.0, 17.0), COMMON, None, None, "cbc", variants=("PDW",))
 add("pct", "血小板压积", "Plateletcrit", "PCT", "%", 3,
-    ("range", 0.108, 0.282), COMMON, None, None, "cbc", variants=("血小板比积", "PCT"))
+    ("range", 0.108, 0.282), COMMON, None, None, "cbc", variants=("血小板比积", "PCT"),
+    confusable=({"abbr": "PCT", "key": "procalcitonin"},))
 add("neut_pct", "中性粒细胞百分比", "Neutrophil percentage", "NEUT%", "%", 1,
     ("range", 40, 75), WS405, 12.0, 20.0, "cbc",
     variants=("中性粒细胞%", "中性细胞比率", "NEUT%", "中性粒细胞比率"),
@@ -412,7 +430,9 @@ add("urea", "尿素", "Urea", "BUN", "mmol/L", 2,
     variants=("血清尿素", "尿素氮", "BUN", "Urea"))
 add("crea", "肌酐", "Creatinine", "CREA", "μmol/L", 0,
     ("range_sex", (57, 97), (41, 73)), WS404, 5.95, 14.7, "chemistry",
-    variants=("肌酸酐", "血清肌酐", "CREA", "Cr", "Scr"))
+    variants=("肌酸酐", "血清肌酐", "CREA", "Cr", "Scr"),
+    confusable=({"abbr": "Cre", "note": "also names a carbapenem-resistant Enterobacterales (CRE) screening "
+                                        "culture, a microbiology result (thetahealth/mirobody#306)"},))
 add("ua", "尿酸", "Uric acid", "UA", "μmol/L", 0,
     ("range_sex", (208, 428), (155, 357)), WS404, 8.6, 17.5, "chemistry",
     variants=("血清尿酸", "尿酸", "UA"))
@@ -502,6 +522,9 @@ add("crp", "C反应蛋白", "C-reactive protein", "CRP", "mg/L", 2,
     ("upper", 8.0), COMMON, 42.2, 76.3, "inflammation", variants=("CRP", "C-反应蛋白"))
 add("hscrp", "超敏C反应蛋白", "High-sensitivity CRP", "hs-CRP", "mg/L", 2,
     ("upper", 3.0), COMMON, 42.2, 76.3, "inflammation", variants=("hsCRP", "超敏C-反应蛋白"))
+add("procalcitonin", "降钙素原", "Procalcitonin", "PCT", "ng/mL", 2,
+    ("upper", 0.05), COMMON, None, None, "inflammation", variants=("PCT",),
+    confusable=({"abbr": "PCT", "key": "pct"},), own_stream=True)
 add("esr", "红细胞沉降率", "Erythrocyte sedimentation rate", "ESR", "mm/h", 0,
     ("range_sex", (0, 15), (0, 20)), COMMON, None, None, "inflammation",
     variants=("血沉", "血沉速率", "ESR"))
@@ -558,6 +581,16 @@ add("urine_ket", "尿酮体", "Urine ketone", "KET", "", 0,
 add("urine_nit", "亚硝酸盐", "Nitrite", "NIT", "", 0,
     ("qualitative", "阴性"), COMMON, None, None, "urinalysis",
     variants=("尿亚硝酸盐", "NIT"), kind="qualitative")
+# The rest of a dipstick strip: printed as bare abbreviations under the urinalysis header
+add("urine_bil", "尿胆红素", "Urine bilirubin", "BIL", "", 0,
+    ("qualitative", "阴性"), COMMON, None, None, "urinalysis",
+    variants=("胆红素", "BIL"), kind="qualitative", own_stream=True)
+add("urine_uro", "尿胆原", "Urobilinogen", "URO", "", 0,
+    ("qualitative", "阴性"), COMMON, None, None, "urinalysis",
+    variants=("尿胆素原", "URO", "UBG"), kind="qualitative", own_stream=True)
+add("urine_leu", "白细胞酯酶", "Leukocyte esterase", "LEU", "", 0,
+    ("qualitative", "阴性"), COMMON, None, None, "urinalysis",
+    variants=("尿白细胞酯酶", "LEU"), kind="qualitative", own_stream=True)
 add("urine_rbc", "镜检红细胞", "Urine RBC (microscopy)", "U-RBC", "/HP", 1,
     ("range", 0, 3), COMMON, None, None, "urinalysis", variants=("尿红细胞", "红细胞(镜检)"))
 add("urine_wbc", "镜检白细胞", "Urine WBC (microscopy)", "U-WBC", "/HP", 1,
@@ -572,6 +605,12 @@ add("qtc", "QTc间期", "QTc interval", "QTc", "ms", 0,
     ("range", 350, 440), COMMON, None, None, "ecg", variants=("QTC间期", "校正QT间期"))
 add("qrs_axis", "QRS电轴", "QRS axis", "", "°", 0,
     ("range", -30, 90), COMMON, None, None, "ecg", variants=("心电轴",))
+# Voltages read for left ventricular hypertrophy (Sokolow-Lyon: RV5 < 2.5 mV, RV5 + SV1 < 4.0 mV in men,
+# 3.5 mV in women); reports print them by their bare lead names. SV1 carries no range of its own.
+add("rv5", "RV5", "R-wave amplitude in V5", "", "mV", 2,
+    ("upper", 2.5), COMMON, None, None, "ecg", variants=("R(V5)", "V5导联R波振幅"), own_stream=True)
+add("sv1", "SV1", "S-wave amplitude in V1", "", "mV", 2,
+    None, COMMON, None, None, "ecg", variants=("S(V1)", "V1导联S波振幅"), own_stream=True)
 
 
 # ── 2026-09-29 addition: mainstream check-up packages and the expert-consensus optional-item catalogue ──
@@ -806,7 +845,8 @@ PROPERTY_OF_UNIT = {
     **dict.fromkeys(("10^9/L", "10^12/L"), {"NCnc"}),
     **dict.fromkeys(("U/mL", "IU/mL", "mIU/L", "μIU/mL"), {"ACnc"}),
     "U/L": {"CCnc"}, "s": {"Time"}, "ms": {"Time"}, "cm": {"Len"}, "mm": {"Len"}, "kg": {"Mass"},
-    "L": {"Vol"}, "mmHg": {"Pres"}, "fL": {"EntMeanVol", "EntVol"}, "pg": {"EntMass"},
+    "L": {"Vol"}, "mmHg": {"Pres"}, "fL": {"EntMeanVol", "EntVol", "DistWidth"}, "pg": {"EntMass"},
+    "mV": {"Elpot"},
 }
 #: Codes outside the LOINC extract `check_loinc` reads, each checked by hand on loinc.org.
 CHECKED_ON_LOINC_ORG = {"69429-9": "Metabolic rate --resting (EngRat, ^Patient), 2026-11-19"}

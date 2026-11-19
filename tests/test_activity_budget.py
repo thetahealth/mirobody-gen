@@ -76,14 +76,14 @@ def test_export_rejects_inconsistent_overridden_plan_instead_of_shrinking_cadenc
     plan = life.plan(DAY)
     life._plans[DAY] = replace(plan, run=(datetime(2025, 3, 2, 19), 50), walks=())
     with pytest.raises(ValueError, match="step budget"):
-        C._apple_daily(ExportCapture(), life, life.series)
+        C.apple_daily(ExportCapture(), life, life.series)
 
 
 def test_valid_export_and_heart_curve_share_the_corrected_activity():
     life = life_for(5000)
     plan = life.plan(DAY)
     export = ExportCapture()
-    C._apple_daily(export, life, life.series)
+    C.apple_daily(export, life, life.series)
     exported = [x for x in export.rows if x["kind"] == "HKQuantityTypeIdentifierStepCount"]
     assert sum(int(x["value"]) for x in exported) == 5000
     run = next(x for x in exported if x["start"] == plan.run[0])

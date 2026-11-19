@@ -5,6 +5,14 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); ver
 
 ## [Unreleased]
 
+- Apple Health export scenarios (`build --apple-scenarios`, off by default; thetahealth/mirobody#266).
+  For everyone with at least 400 days of Apple Health data: the whole series as one export, a re-import
+  (an export taken three fifths of the way through, holding what had ended by then, and one at the end,
+  the second repeating every record of the first byte for byte), and a twelve-day trip whose records print the destination's UTC offset.
+  `apple_scenarios.jsonl` gives the figure an importer should show for every local date (steps, resting
+  heart rate, weight, sleep on the wake date, blood-pressure readings) with that day's offset. The
+  `--continuous` export is unchanged.
+
 - PDF layer views (thetahealth/mirobody#304): `--pairs` adds, per pair, the scan as an image-only PDF
   (`view:scan_pdf`), as a hybrid page whose hospital system stamped a live header and footer around the
   scan (`view:hybrid_pdf`: over 40 characters of text, none on the image, no result), as a searchable scan

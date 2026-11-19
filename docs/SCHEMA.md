@@ -345,6 +345,16 @@ acceptance records in mirobody's `kernel/decoders/samples/<vendor>/`. Per file, 
 `person_id`, `synthetic`, `vendor`, `file`, `n_records`, and `records[]` with `data_type` (the HealthKit type
 for `apple`), `input` (the payload) and `expected_metrics` (the catalogue metrics the decoder should produce).
 
+## `apple_scenarios.jsonl` and `apple_scenarios/<person>/<scenario>/…` (`build --apple-scenarios`)
+
+One record per person and scenario, for people whose Apple Health series spans at least 400 days: `person_id`,
+`synthetic`, `scenario` (`long_span` · `reimport` · `trip`), `files[]`, and `days[]`, the figure an importer
+should show for each local date: `date`, `offset` (the UTC offset printed that day), and where present
+`steps`, `resting_hr`, `weight_kg`, `sleep_min` (on the wake date) and `bp_readings`. `long_span` adds
+`first` and `last`; `reimport` adds `exports[]` (`file`, `first`, `last`) and `overlap` (`first`, `last`),
+its `days` being the merged figures; `trip` adds `home_offset` and `trip` (`first`, `last`, `offset`).
+Formats and rationale: [DEVICE_FORMATS.md](DEVICE_FORMATS.md).
+
 ## `continuous.jsonl` and `continuous/<person>/…` (`build --continuous`)
 
 One record per stream: a CGM sensor session or a heart-rate window. Every file it names is written under

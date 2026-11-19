@@ -431,8 +431,8 @@ add("urea", "尿素", "Urea", "BUN", "mmol/L", 2,
 add("crea", "肌酐", "Creatinine", "CREA", "μmol/L", 0,
     ("range_sex", (57, 97), (41, 73)), WS404, 5.95, 14.7, "chemistry",
     variants=("肌酸酐", "血清肌酐", "CREA", "Cr", "Scr"),
-    confusable=({"abbr": "Cre", "note": "also names a carbapenem-resistant Enterobacterales (CRE) screening "
-                                        "culture, a microbiology result (thetahealth/mirobody#306)"},))
+    confusable=({"abbr": "Cre", "note": "a resolver once read it as a CRE culture screen, not creatinine "
+                                        "(thetahealth/mirobody#306)"},))
 add("ua", "尿酸", "Uric acid", "UA", "μmol/L", 0,
     ("range_sex", (208, 428), (155, 357)), WS404, 8.6, 17.5, "chemistry",
     variants=("血清尿酸", "尿酸", "UA"))

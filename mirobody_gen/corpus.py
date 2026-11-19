@@ -332,7 +332,7 @@ def record(doc: Doc, path: pathlib.Path, out_root: pathlib.Path, pages: int | No
         "hazards": hazard_list,
         "hazard_count": len(hazard_list),
         "split": "stress" if stress else "main",
-        "printed_rows": [asdict(p) for p in doc.printed],
+        "printed_rows": [{**asdict(p), "section": p.section or doc.title} for p in doc.printed],
         "readings": [asdict(r) for r in doc.readings],
         "distractors": doc.distractors,
         "missing_results": doc.missing_results,

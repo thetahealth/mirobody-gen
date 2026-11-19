@@ -11,6 +11,9 @@ value or fragment is written anywhere.
 Abbreviations (the `abbr_variants` axis) are counted the same way per indicator: the documents that
 pair a native name with each abbreviation the resource lists for it.
 
+Unit systems are counted per language group: documents that print glucose, lipids, creatinine, urate,
+bilirubin or calcium in mg/dL are conventional, those that print them only in mol/L are SI.
+
 Medication-instruction spellings (the `sig` axes) are counted only inside complete instructions found
 in a reference document's analysis text, a frequency next to a dose with its unit (每日2次，每次1片, in
 either order), so that "每日监测血糖3次" counts for nothing: in how many documents each word occurs
@@ -122,6 +125,27 @@ def measure_abbreviations(docs: list[list[str]], payload: dict) -> dict[str, dic
     return {key: dict(sorted(c.items())) for key, c in counts.items()}
 
 
+#: Analytes whose unit system a report reveals: a mg/dL row makes the document conventional.
+UNIT_ANALYTES = re.compile(r"glucose|cholesterol|triglycer|creatinine|uric acid|urate|bilirubin|"
+                           r"(?:^|serum |total )calcium\b|hdl|ldl|血糖|葡萄糖|胆固醇|甘油三酯|肌酐|尿酸|胆红素|"
+                           r"^(?:血清?|总)?钙(?:[(（]|$)", re.I)
+
+
+def measure_units(analysis: pathlib.Path) -> dict[str, dict[str, int]]:
+    """Per language group, documents printing those analytes in mg/dL (conventional) or only in mol/L (SI)."""
+    docs = {"zh": collections.Counter(), "en": collections.Counter()}
+    for path in sorted(analysis.glob("*.json")):
+        a = json.loads(path.read_text(encoding="utf-8")).get("analysis")
+        if not isinstance(a, dict):
+            continue
+        rows = [r for r in a.get("indicator_rows") or [] if isinstance(r, dict) and r.get("name")]
+        units = {(r.get("unit") or "").lower() for r in rows if UNIT_ANALYTES.search(r["name"])}
+        system = "conventional" if any("mg/dl" in u for u in units) else "SI" if any("mol/l" in u for u in units) else None
+        if system:
+            docs["zh" if any(CJK.search(r["name"]) for r in rows) else "en"][system] += 1
+    return {group: dict(sorted(c.items())) for group, c in docs.items()}
+
+
 def measure(analysis: pathlib.Path) -> dict:
     docs = documents(analysis)
     natives, abbrs = vocabulary()
@@ -138,6 +162,7 @@ def measure(analysis: pathlib.Path) -> dict:
             "name_suffix": measure_affix(docs, ["测定", "检测"]),
             "name_marker": measure_affix(docs, ["#", "＃", "*", "＊", "†"]),
             "sig": measure_sig(analysis),
+            "units": measure_units(analysis),
             "abbreviations": measure_abbreviations(docs, json.loads((RESOURCES / "surface.json").read_text(encoding="utf-8")))}
 
 
@@ -156,6 +181,9 @@ def apply(payload: dict, m: dict) -> dict:
         for choice in choices:
             if choice["tier"] == "observed":
                 choice["share"] = m["abbreviations"][key].get(choice["word"], 0)
+    for group, choices in payload["unit_system"]["languages"].items():
+        for choice in choices:
+            choice["share"] = m["units"][group].get(choice["word"], 0)
     for axis in payload["sig"]["axes"].values():
         for choice in axis["choices"]:
             if choice["tier"] == "observed":

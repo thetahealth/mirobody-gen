@@ -236,8 +236,10 @@ def _fmt(x: float, decimals: int) -> str:
     return f"{x:.{decimals}f}" if decimals else f"{x:g}"
 
 
-def print_range(key: str, sex: str, f: Family, multiline: bool = False) -> tuple[str, list[str]]:
-    """(the segment that applies to this subject, the whole cell's original text as an alternative)."""
+def print_range(key: str, sex: str, f: Family, multiline: bool = False,
+                conventional: dict | None = None) -> tuple[str, list[str]]:
+    """(the segment that applies to this subject, the whole cell's original text as an alternative),
+    in the conventional unit when one is given."""
     item = spec.indicators()[key]
     ref = item["reference"]
     if not ref:
@@ -245,6 +247,14 @@ def print_range(key: str, sex: str, f: Family, multiline: bool = False) -> tuple
     kind, dec = ref[0], item["decimals"]
     if kind == "qualitative":
         return str(ref[1]), []
+    lo, hi = spec.reference_bounds(key, sex)
+    if conventional:
+        scale, dec = conventional["factor"], conventional["decimals"]
+
+        def conv(b):
+            return tuple(conv(x) for x in b) if isinstance(b, (list, tuple)) else round(b * scale, dec)
+
+        ref, lo, hi = (kind, *map(conv, ref[1:])), *(None if b is None else conv(b) for b in (lo, hi))
     if kind == "range_sex" and f.sex_partitioned or (kind == "range_sex" and multiline):
         (ml, mh), (fl, fh) = ref[1], ref[2]
         m = f.reference_dialect.format(lo=_fmt(ml, dec), hi=_fmt(mh, dec))
@@ -253,12 +263,22 @@ def print_range(key: str, sex: str, f: Family, multiline: bool = False) -> tuple
         sep = "\n" if multiline else " "
         full = f"{labels[0]}:{m}{sep}{labels[1]}:{w}"
         return (m if sex == "male" else w), [full, full.replace("\n", " ")]
-    lo, hi = spec.reference_bounds(key, sex)
     if kind == "upper":
         return f.upper_dialect.format(hi=_fmt(hi, dec)), []
     if kind == "lower":
         return f.lower_dialect.format(lo=_fmt(lo, dec)), []
     return f.reference_dialect.format(lo=_fmt(lo, dec), hi=_fmt(hi, dec)), []
+
+
+def converted(reading: Reading, sex: str, conventional: dict) -> tuple[str, str]:
+    """(printed value, printed status) in the conventional unit. The laboratory flags in its own unit:
+    the rounded value against the rounded bounds. Only the printed truth takes these; the reading
+    keeps its SI value, code and status."""
+    scale, dec = conventional["factor"], conventional["decimals"]
+    value = round(reading.canonical_value * scale, dec)
+    lo, hi = (None if b is None else round(b * scale, dec) for b in spec.reference_bounds(reading.key, sex))
+    status = "high" if hi is not None and value > hi else "low" if lo is not None and value < lo else "normal"
+    return _fmt(value, dec), status
 
 
 def print_flag(status: str, f: Family) -> str:
@@ -397,8 +417,12 @@ def build_doc(rng: random.Random, doc_id: str, person: Person, encounter: Encoun
             doc.narratives.append(("Unresulted order" if en else "未出结果医嘱", text))
             doc.missing_results.append({**asdict(missing), "printed_text": text})
 
+    # A checkup book keeps one unit system throughout: its summary quotes the table's values.
+    def conventional(reading: Reading) -> dict | None:
+        return None if book else surface.conventional(catalogue[reading.key], f)
+
     unit_at = f.unit_at
-    if unit_at == "header" and len({r.unit for r in readings}) != 1:
+    if unit_at == "header" and len({(conventional(r) or {}).get("unit", r.unit) for r in readings}) != 1:
         unit_at = "reference" if "reference" in f.columns else "value"
     if unit_at in ("reference", "reference_amp") and "reference" not in f.columns:
         unit_at = "value"
@@ -421,10 +445,13 @@ def build_doc(rng: random.Random, doc_id: str, person: Person, encounter: Encoun
                 continue
             item = catalogue[reading.key]
             name, abbr, surface_hazards = print_name(item, f, rng)
-            unit = print_unit(reading.unit, f)
-            range_text, alts = print_range(reading.key, person.sex, f)
-            value = print_value(reading.value, f)
-            status = reading.status
+            conv = conventional(reading) if reading.canonical_value is not None else None
+            unit = print_unit(conv["unit"] if conv else reading.unit, f)
+            range_text, alts = print_range(reading.key, person.sex, f, conventional=conv)
+            value, status = converted(reading, person.sex, conv) if conv else (reading.value, reading.status)
+            value = print_value(value, f)
+            if conv:
+                surface_hazards = surface_hazards + [spec.surface()["unit_system"]["hazard"]]
             group_readings = [reading]
             if bp_pair and reading.key == "sbp":
                 dbp = next(r for r in members if r.key == "dbp")
@@ -458,6 +485,7 @@ def build_doc(rng: random.Random, doc_id: str, person: Person, encounter: Encoun
                 doc.mark(h, "layout", [p_index])
 
             # ── Semantic truth ──
+            # The semantic truth is canonical SI whatever unit the page prints
             for k in group_readings:
                 doc.printed[p_index].readings.append(len(doc.readings))
                 doc.readings.append(DocReading(
@@ -468,10 +496,12 @@ def build_doc(rng: random.Random, doc_id: str, person: Person, encounter: Encoun
             prev = ""
             if f.previous_column and reading.key in previous and len(group_readings) == 1:
                 prev_value, prev_date = previous[reading.key]
-                prev = print_value(prev_value, f)
+                prev_si = float(prev_value) if re.fullmatch(r"-?\d+(\.\d+)?", prev_value) else None
+                shown = _fmt(round(prev_si * conv["factor"], conv["decimals"]), conv["decimals"]) \
+                    if conv and prev_si is not None else prev_value
+                prev = print_value(shown, f)
                 doc.readings.append(DocReading(
-                    key=reading.key, loinc=reading.loinc,
-                    canonical_value=float(prev_value) if re.fullmatch(r"-?\d+(\.\d+)?", prev_value) else None,
+                    key=reading.key, loinc=reading.loinc, canonical_value=prev_si,
                     value_text=prev_value, unit_ucum=reading.unit_ucum, value_kind=reading.value_kind,
                     status="", observed=prev_date, role="previous",
                     expect_resolvable=reading.expect_resolvable, printed_row=p_index))

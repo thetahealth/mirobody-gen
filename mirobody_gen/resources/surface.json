@@ -417,5 +417,35 @@
         }
       ]
     }
+  },
+  "unit_system": {
+    "hazard": "unit.conventional",
+    "description": "the institution prints mass concentrations (glucose, lipids, creatinine, urate, bilirubin, calcium in mg/dL) instead of SI units",
+    "languages": {
+      "zh": [
+        {
+          "word": "SI",
+          "tier": "observed",
+          "share": 74
+        },
+        {
+          "word": "conventional",
+          "tier": "observed",
+          "share": 5
+        }
+      ],
+      "en": [
+        {
+          "word": "SI",
+          "tier": "observed",
+          "share": 6
+        },
+        {
+          "word": "conventional",
+          "tier": "observed",
+          "share": 10
+        }
+      ]
+    }
   }
 }

@@ -837,11 +837,27 @@ def resolve_loinc(resolve, name: str) -> tuple[str | None, bool]:
     return (result.loinc or None), bool(result.resolved)
 
 
+#: The conventional (mass) unit an institution may print instead of the SI one: (unit, factor from the SI
+#: value, printed decimals, LOINC code). Factors are molar masses: glucose 180.16 g/mol (18.016),
+#: cholesterol 386.65 (38.67), triglyceride as triolein (88.57, the factor laboratories use), creatinine
+#: 113.12 (1/88.42), uric acid 168.11
+#: (1/59.48), bilirubin 584.66 (1/17.10), calcium 40.08 (4.008). The code changes with the unit: a
+#: mg/dL result is a mass concentration.
+CONVENTIONAL: dict[str, tuple[str, float, int, str]] = {
+    "glu": ("mg/dL", 18.016, 0, "1558-6"), "ogtt2h": ("mg/dL", 18.016, 0, "1521-4"),
+    "chol": ("mg/dL", 38.67, 0, "2093-3"), "hdl": ("mg/dL", 38.67, 0, "2085-9"),
+    "ldl": ("mg/dL", 38.67, 0, "13457-7"), "nonhdl": ("mg/dL", 38.67, 0, "43396-1"),
+    "tg": ("mg/dL", 88.57, 0, "2571-8"), "crea": ("mg/dL", 1 / 88.42, 2, "2160-0"),
+    "ua": ("mg/dL", 1 / 59.48, 1, "3084-1"), "tbil": ("mg/dL", 1 / 17.10, 1, "1975-2"),
+    "dbil": ("mg/dL", 1 / 17.10, 1, "1968-7"), "ibil": ("mg/dL", 1 / 17.10, 1, "1971-1"),
+    "ca": ("mg/dL", 4.008, 1, "17861-6"),
+}
+
 #: The properties a printed unit allows (an "entitic" property is the same quantity per cell). Units
 #: missing here (%, ratios, counts per field) take part in the check only through the code's existence.
 PROPERTY_OF_UNIT = {
     **dict.fromkeys(("mmol/L", "μmol/L", "nmol/L", "pmol/L"), {"SCnc"}),
-    **dict.fromkeys(("g/L", "mg/L", "ng/mL", "ng/L", "pg/mL", "mg/L FEU"), {"MCnc", "EntMCnc"}),
+    **dict.fromkeys(("g/L", "mg/L", "ng/mL", "ng/L", "pg/mL", "mg/L FEU", "mg/dL"), {"MCnc", "EntMCnc"}),
     **dict.fromkeys(("10^9/L", "10^12/L"), {"NCnc"}),
     **dict.fromkeys(("U/mL", "IU/mL", "mIU/L", "μIU/mL"), {"ACnc"}),
     "U/L": {"CCnc"}, "s": {"Time"}, "ms": {"Time"}, "cm": {"Len"}, "mm": {"Len"}, "kg": {"Mass"},
@@ -867,17 +883,19 @@ def check_loinc() -> None:
         return
     prop = {table.field(i, bundle.AXIS_CODE): table.field(i, bundle.AXIS_PROPERTY) for i in range(table._n)}
     problems = []
-    for item in INDICATORS:
-        code, want = LOINC[item["key"]], PROPERTY_OF_UNIT.get(item["unit"])
+    printed = [(item["key"], LOINC[item["key"]], item["unit"]) for item in INDICATORS]
+    printed += [(key, code, unit) for key, (unit, _, _, code) in CONVENTIONAL.items()]
+    for key, code, unit in printed:
+        want = PROPERTY_OF_UNIT.get(unit)
         if code is None or code in CHECKED_ON_LOINC_ORG:
             continue
         if code not in prop:
-            problems.append(f"{item['key']}: {code} is not in LOINC 2.83 (or not in the extract)")
+            problems.append(f"{key}: {code} is not in LOINC 2.83 (or not in the extract)")
         elif want and prop[code] not in want:
-            problems.append(f"{item['key']}: {code} has property {prop[code]}, but {item['unit']} implies {sorted(want)}")
+            problems.append(f"{key}: {code} has property {prop[code]}, but {unit} implies {sorted(want)}")
     if problems:
         raise SystemExit("LOINC check failed:\n  " + "\n  ".join(problems))
-    print(f"LOINC check: {sum(c is not None for c in LOINC.values())} codes exist, units agree with properties")
+    print(f"LOINC check: {sum(c is not None for _, c, _ in printed)} codes exist, units agree with properties")
 
 
 def compare_with_corpus() -> None:
@@ -948,6 +966,9 @@ def main() -> None:
     for item in INDICATORS:
         observed, ok = resolve_loinc(resolve, item["zh"]) if resolve else (None, False)
         item["loinc"] = LOINC[item["key"]]
+        if item["key"] in CONVENTIONAL:
+            unit, factor, decimals, code = CONVENTIONAL[item["key"]]
+            item["conventional"] = {"unit": unit, "factor": factor, "decimals": decimals, "loinc": code}
         item["mirobody_loinc"] = observed
         item["expect_resolvable"] = ok
         resolved += ok

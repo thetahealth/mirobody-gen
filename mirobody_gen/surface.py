@@ -76,20 +76,28 @@ def hazard_classes() -> dict[str, str]:
     """Every hazard class this layer can produce -> its description."""
     s = spec.surface()
     out = {c["hazard"]: c["description"] for c in s["name_join"]["choices"] if c["hazard"]}
-    out.update({s[axis]["hazard"]: s[axis]["description"] for axis in ("name_suffix", "name_marker", "abbr_variants")})
+    out.update({s[axis]["hazard"]: s[axis]["description"]
+                for axis in ("name_suffix", "name_marker", "abbr_variants", "unit_system")})
     return out
 
 
 def _varies(f: Family) -> bool:
-    """Only Simplified Chinese layouts vary: the reference set measures nothing else, and the assay
-    words are Simplified."""
+    """Only Simplified Chinese layouts vary their names: the reference set measures nothing else, and
+    the assay words are Simplified."""
     return f.language == "zh-Hans"
 
 
 def draw(f: Family, rng: random.Random) -> Family:
-    """One institution's naming conventions."""
-    if MODE == "off" or not _varies(f):
+    """One institution's conventions: how it writes names (Simplified Chinese layouts) and which unit
+    system it prints (every layout, drawn last so the naming draws stay where they were)."""
+    if MODE == "off":
         return f
+    names = _names(rng) if _varies(f) else {}
+    system = pick(rng, allowed(spec.surface()["unit_system"]["languages"][f.lang_group]))["word"]
+    return dataclasses.replace(f, unit_system=system, **names)
+
+
+def _names(rng: random.Random) -> dict:
     join = pick(rng, _choices("name_join"))["form"]
     affixes = {}
     for axis in ("name_suffix", "name_marker"):
@@ -100,7 +108,7 @@ def draw(f: Family, rng: random.Random) -> Family:
             affixes.update({axis: word, f"{axis}_share": _rate(axis, "row_rate")})
     # Realistic builds always consult the abbreviation axis (its evidence decides); fuzz ones per institution
     own = rng.random() < spec.surface()["fuzz_rate"] or MODE == "realistic"
-    return dataclasses.replace(f, name_join=join, abbr_variants="drawn" if own else "", **affixes)
+    return dict(name_join=join, abbr_variants="drawn" if own else "", **affixes)
 
 
 def revised(f: Family, year: int) -> tuple[Family, list[str]]:
@@ -149,6 +157,12 @@ def abbreviation(item: dict, f: Family) -> tuple[str, str | None]:
     return (choice["word"], axis["hazard"]) if choice["word"] != abbr else (abbr, None)
 
 
+def conventional(item: dict, f: Family) -> dict | None:
+    """The conventional unit (with its factor, decimals and LOINC) this layout prints an indicator in,
+    or None for SI."""
+    return item.get("conventional") if f.unit_system == "conventional" else None
+
+
 def join_hazard(form: str) -> str | None:
     return {c["form"]: c["hazard"] for c in spec.surface()["name_join"]["choices"]}[form]
 
@@ -170,4 +184,6 @@ def toggles() -> dict:
     for axis in ("name_suffix", "name_marker"):
         if choices := _choices(axis):
             out[spec.surface()[axis]["hazard"]] = only_varying({axis: choices[0]["word"], f"{axis}_share": 1.0})
+    if MODE != "off":
+        out[spec.surface()["unit_system"]["hazard"]] = lambda f: {"unit_system": "conventional"}
     return out

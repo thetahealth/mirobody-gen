@@ -571,7 +571,7 @@ def build_form(seed: int, person: Person, enc: Encounter, family: Family, lang: 
     form_family = dataclasses.replace(
         family, fmt="pdf", columns=cols, headers=headers, flag_at="none", flag_high="", flag_low="", flag_normal="",
         unit_at="column", previous_column=False, subject_in_table=False, bilingual_header=False, decimal_comma=False,
-        name_style="native", name_suffix="", name_marker="", abbr_variants="", watermark=False,
+        name_style="native", name_suffix="", name_marker="", abbr_variants="", unit_system="SI", watermark=False,
         font_size=max(family.font_size, 10.5), rules="grid")
     doc = build_doc(rng, doc_id, person, dataclasses.replace(enc, readings=keep[:12]), groups, form_family, {},
                     banner=banner)

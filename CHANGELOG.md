@@ -5,6 +5,15 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); ver
 
 ## [Unreleased]
 
+- Laboratories print in their own unit system. Each institution draws SI or conventional units at the
+  shares measured on the reference set per language (5 of 79 Chinese and 10 of 16 English documents
+  print these analytes in mg/dL); a conventional row converts glucose, lipids, creatinine, urate,
+  bilirubin and calcium by molar mass, prints the converted range and flags the rounded value against the
+  rounded range as a laboratory would; its reading stays canonical SI (value, unit, LOINC, status), and
+  the catalogue's `conventional.loinc` names the mass-concentration code. One person's series now crosses reports in two units (17 series in a
+  30-person build), the shape of thetahealth/mirobody#271. New class `unit.conventional` with a
+  minimal-contrast pair; checkup books keep one system throughout; `--surface off` prints SI as before.
+
 - Catalogue additions (179 indicators): RDW-SD beside RDW-CV in every blood count (derived as
   3.59 × RDW-CV × MCV, the width at 20% of a normal histogram's peak); the rest of the urine dipstick
   (bilirubin, urobilinogen, leukocyte esterase), so a urinalysis prints all its bare abbreviations;

@@ -290,7 +290,8 @@ def _multiple_rows(doc: Doc, rng: random.Random) -> list[int]:
         row = doc.printed[c.printed]
         reading = doc.readings[row.readings[0]]
         ref = spec.indicators()[reading.key]["reference"]
-        if ref and ref[0] == "range_sex" and "\n" not in c.range and row.item_range:
+        converted = "unit.conventional" in row.hazards                # its range is printed in another unit
+        if ref and ref[0] == "range_sex" and "\n" not in c.range and row.item_range and not converted:
             sex = "male" if row.item_range == print_range(reading.key, "male", doc.family)[0] else "female"
             applicable, alts = print_range(reading.key, sex, doc.family, multiline=True)
             c.range = alts[0]

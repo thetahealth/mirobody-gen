@@ -62,11 +62,12 @@ def test_resource_contract():
     choices += [c for a in s["sig"]["axes"].values() for c in a["choices"]]
     choices += [c for a in s["device_units"].values() for c in a["choices"]]
     choices += [c for listed in s["abbr_variants"]["indicators"].values() for c in listed]
+    choices += [c for listed in s["unit_system"]["languages"].values() for c in listed]
     assert all(c["tier"] in s["tiers"] for c in choices)
     assert all(c["share"] > 0 for c in choices if c["tier"] == "observed")
     assert all(c.get("sources") for c in choices if c["tier"] in ("reference", "field", "generated"))
     names = list(surface.hazard_classes())
-    assert len(names) == len(set(names)) and all(n.startswith("name.") for n in names)
+    assert len(names) == len(set(names)) and all(n.startswith(("name.", "unit.")) for n in names)
 
 
 def test_unknown_mode_is_refused():
@@ -92,7 +93,7 @@ def test_realistic_draws_only_observed_forms():
 
 
 def test_the_rest_of_a_layout_is_the_same_in_every_mode():
-    fields = ("name_join", "name_suffix", "name_suffix_share", "name_marker", "name_marker_share", "abbr_variants")
+    fields = ("name_join", "name_suffix", "name_suffix_share", "name_marker", "name_marker_share", "abbr_variants", "unit_system")
 
     def strip(f):
         return dataclasses.replace(f, **{k: layout.Family.__dataclass_fields__[k].default for k in fields})
@@ -142,7 +143,7 @@ def test_every_toggle_isolates_its_class_and_keeps_semantics(mode):
     base = _doc(family)
     toggles = surface.toggles()
     assert set(toggles) <= set(surface.hazard_classes())
-    for name, toggle in toggles.items():
+    for name, toggle in ((n, t) for n, t in toggles.items() if n.startswith("name.")):
         doc = _doc(dataclasses.replace(family, **toggle(family)))
         assert name in doc.hazards, name
         assert {h for h in doc.hazards if h.startswith("name.")} == {name}, name
@@ -154,7 +155,7 @@ def test_every_toggle_isolates_its_class_and_keeps_semantics(mode):
 @pytest.mark.parametrize("group,language", [("en", "en"), ("zh", "zh-Hant")])
 def test_toggles_leave_unmeasured_layouts_alone(group, language):
     family = _clean(group, language)
-    assert all(toggle(family) == {} for toggle in surface.toggles().values())
+    assert all(toggle(family) == {} for name, toggle in surface.toggles().items() if name.startswith("name."))
 
 
 def test_drawn_forms_are_simplified_only():

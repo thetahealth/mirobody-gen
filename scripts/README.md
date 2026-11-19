@@ -10,7 +10,7 @@ These scripts produce `mirobody_gen/resources/*.json`. Users of the package do n
 | `build_fiction.py` | `fiction.json` — fictional names, places and institutions | filters candidates against the reference set if present |
 | `distill_layout.py` | `layout.json` — format tokens (column sets, dialects, markers, furniture) | yes |
 | `distill_hazards.py` | `hazards.json` — hazard taxonomy with document rates | yes |
-| `distill_surface.py` | the `observed` shares and rates in `surface.json` — how names join their abbreviation, assay words, send-out marks, how medication instructions are spelled | yes |
+| `distill_surface.py` | the `observed` shares and rates in `surface.json` — how names join their abbreviation, assay words, send-out marks, how medication instructions are spelled, which unit system a language's reports print | yes |
 | `build_numbers.py` | `numbers.json`, `docs/zh-CN/numbers.md` — aggregate statistics | yes |
 | `measure_images.py` | `numbers_images.json` — aggregate image statistics | yes |
 

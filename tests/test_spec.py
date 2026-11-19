@@ -166,7 +166,7 @@ def test_spec_is_regenerable_without_drift():
         return
 
     before = {p.name: p.read_bytes() for p in sorted(RESOURCES.glob("*.json"))}
-    for script in ("distill_hazards.py", "distill_layout.py", "build_indicators.py",
+    for script in ("distill_hazards.py", "distill_layout.py", "distill_surface.py", "build_indicators.py",
                    "build_cohort.py", "build_fiction.py", "build_profile.py", "build_handwriting.py",
                    "build_streams.py"):
         python = str(mirobody_python) if script == "build_indicators.py" else sys.executable

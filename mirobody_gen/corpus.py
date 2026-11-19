@@ -33,7 +33,7 @@ import re
 from dataclasses import asdict
 from datetime import date
 
-from . import book, clinical, export, genomics, genomics_report, hazards, layout, spec
+from . import book, clinical, export, genomics, genomics_report, hazards, layout, spec, surface
 from . import person as person_mod
 from .delivery import choose_delivery, render_doc, upload_habit
 from .document import Doc, build_doc, split_encounter
@@ -298,7 +298,9 @@ def record(doc: Doc, path: pathlib.Path, out_root: pathlib.Path, pages: int | No
                    for k, v in sorted(doc.hazards.items())]
     delivery = delivery or {"tier": TIER[f.fmt], "scene": None, "severity": None, "ops": [], "container": f.fmt,
                             "annotations": []}
-    stress = len(hazard_list) > MAIN_CAP or delivery.get("severity") == "severe"
+    # MAIN_CAP is the reference set's p95 over the distilled taxonomy, which has no naming classes.
+    counted = [h for h in hazard_list if not h["name"].startswith("name.")]
+    stress = len(counted) > MAIN_CAP or delivery.get("severity") == "severe"
     out = {
         "file": str(path.relative_to(out_root)),
         "synthetic": True,
@@ -454,6 +456,8 @@ def render_corpus(seed: int, people: list[Person], encounters: dict[str, list[En
         for idx, enc in enumerate(encounters[person.person_id], start=1):
             index = chosen[(person.person_id, idx)]
             family, rev = layout.revised(registry.family(index), enc.exam_date.year)
+            family, renamed = surface.revised(family, enc.exam_date.year)
+            rev += renamed
             family, jit = layout.jitter(rng, family)
             jit = rev + jit
             visits.append((idx, enc, family))

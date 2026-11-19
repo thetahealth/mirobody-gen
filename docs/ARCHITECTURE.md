@@ -73,6 +73,14 @@ a real report to read, and acts only while the switch is on. The rules are prese
 clinician-review material, not validated clinical facts. With the switch off a build never enters them and
 reproduces the bytes of builds made before the profile became the default.
 
+**Expression layer** (`build --surface realistic|fuzz|off`, default `realistic`). `surface.py` draws each
+Simplified Chinese institution's naming conventions (how a native name and its abbreviation share a cell, an assay word, a
+send-out mark) from `resources/surface.json`, on a stream of its own so the rest of the layout is the same in
+every mode. Each form carries a provenance tier (`observed`, `reference`, `field`, `generated`); a mode names
+the tiers it may draw, so material behind a realism number never contains a form the reference set has not
+shown. The forms reach the page through `document.print_name` and the manifest as `name.*` hazard classes;
+`pairs.py` takes one toggle per class from `surface.toggles()`.
+
 **Continuous streams** (opt-in, `build --continuous`). `continuous.py` plans each of a person's days once
 (sleep from the store's sleep record, meals, a run, walking bouts that add up to the store's step count) and
 draws two curves from it minute by minute: blood glucose, whose daily mean is the eAG of the person's

@@ -45,7 +45,7 @@ import re
 from dataclasses import asdict, dataclass, field
 from datetime import date, datetime, timedelta
 
-from . import clinical, spec, synthid
+from . import clinical, spec, surface, synthid
 from .layout import Family, date_role, script_of
 from .model import Encounter, Person, Reading
 
@@ -187,9 +187,14 @@ def _variant_for(item: dict, script: str, rng: random.Random) -> str | None:
     return rng.choice(pool) if pool else None
 
 
-def print_name(item: dict, f: Family, rng: random.Random) -> tuple[str, str]:
-    """(name-column text, abbreviation-column text). The same institution always writes the same
-    indicator the same way - one LIS has one dictionary."""
+def _join(native: str, abbr: str, f: Family) -> str:
+    return {"paren": native + _paren(abbr, f), "glued": native + abbr, "spaced": f"{native} {abbr}",
+            "abbr_first": abbr + native}[f.name_join]
+
+
+def print_name(item: dict, f: Family, rng: random.Random) -> tuple[str, str, list[str]]:
+    """(name-column text, abbreviation-column text, surface hazard classes applied). The same
+    institution always writes the same indicator the same way - one LIS has one dictionary."""
     sticky = random.Random(f"name:{f.family_id}:{item['key']}")
     if f.language == "en":
         native = item["en"]
@@ -201,11 +206,17 @@ def print_name(item: dict, f: Family, rng: random.Random) -> tuple[str, str]:
     style = f.name_style
     if style == "variant":
         native = _variant_for(item, script_of(native), sticky) or native
+    applied: list[str] = []
     if style == "abbr" and abbr and "abbr" not in f.columns:
-        return abbr, ""
-    if style == "native(abbr)" and abbr and "abbr" not in f.columns:
-        return native + _paren(abbr, f), ""
-    return native, abbr
+        name, abbr = abbr, ""
+    elif style == "native(abbr)" and abbr and "abbr" not in f.columns:
+        name, abbr = _join(native, abbr, f), ""
+        if hazard := surface.join_hazard(f.name_join):
+            applied.append(hazard)
+    else:
+        name = native
+    name, decorations = surface.decorate(name, item, f)
+    return name, abbr, applied + decorations
 
 
 def print_unit(unit: str, f: Family) -> str:
@@ -409,7 +420,7 @@ def build_doc(rng: random.Random, doc_id: str, person: Person, encounter: Encoun
             if bp_pair and reading.key == "dbp":
                 continue
             item = catalogue[reading.key]
-            name, abbr = print_name(item, f, rng)
+            name, abbr, surface_hazards = print_name(item, f, rng)
             unit = print_unit(reading.unit, f)
             range_text, alts = print_range(reading.key, person.sex, f)
             value = print_value(reading.value, f)
@@ -418,6 +429,7 @@ def build_doc(rng: random.Random, doc_id: str, person: Person, encounter: Encoun
             if bp_pair and reading.key == "sbp":
                 dbp = next(r for r in members if r.key == "dbp")
                 name, abbr = t["bp"][lang], (t["bp"]["abbr"] if abbr else "")
+                surface_hazards = []                     # the fixed blood-pressure label replaces the name
                 value = f"{reading.value}/{dbp.value}"
                 range_text, alts = t["bp"]["reference"], []
                 status = "high" if "high" in (reading.status, dbp.status) else "normal"
@@ -442,6 +454,8 @@ def build_doc(rng: random.Random, doc_id: str, person: Person, encounter: Encoun
                 item_name=name, item_value=value, item_unit=printed_unit, item_range=printed_range,
                 is_abnormal=flag_code, table=t_index,
                 alternatives={"item_range": alts} if alts and printed_range else {}))
+            for h in surface_hazards:
+                doc.mark(h, "layout", [p_index])
 
             # ── Semantic truth ──
             for k in group_readings:
@@ -490,6 +504,7 @@ def build_doc(rng: random.Random, doc_id: str, person: Person, encounter: Encoun
         from . import clinical_names
 
         doc.footer = clinical_names.signatures(doc.footer, en)
+    doc.footer += [("", note) for note in surface.footnotes(f, doc.hazards)]
     if "disclaimer" in f.furniture:
         doc.footer.append(("", rng.choice(t["disclaimers"][lang])))
     return doc

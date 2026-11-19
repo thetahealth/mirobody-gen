@@ -83,6 +83,12 @@ class Family:
     rules: str = "grid"             # table rules: grid / horizontal / none
     weight: float = 1.0             # relative weight of drawing this institution (big clients weigh more)
     lab_code: str = ""              # what a US-style lab slip's lab-code column prints (only used when there's a lab column)
+    # Naming conventions drawn by surface.py; the defaults print names as before that layer existed.
+    name_join: str = "paren"        # how native(abbr) joins the two halves: paren / glued / spaced / abbr_first
+    name_suffix: str = ""           # assay word appended to some names (测定)
+    name_suffix_share: float = 0.0  # share of eligible indicators the dictionary appends it to
+    name_marker: str = ""           # mark glued to the end of some names (#), explained by a footnote
+    name_marker_share: float = 0.0
 
     @property
     def lang_group(self) -> str:
@@ -330,12 +336,16 @@ def jitter(rng: random.Random, f: Family) -> tuple[Family, list[str]]:
     return (dataclasses.replace(f, **changes), sorted(changes)) if changes else (f, [])
 
 
+def revision(f: Family, year: int, rate: float = 0.25) -> int:
+    """Which template revision an institution prints with in `year`. Each year has a `rate` chance of a
+    new revision; the number depends only on (institution, year), never on who the visit belongs to."""
+    return sum(1 for y in range(2018, year + 1) if random.Random(f"rev:{f.family_id}:{y}").random() < rate)
+
+
 def revised(f: Family, year: int, rate: float = 0.25) -> tuple[Family, list[str]]:
-    """An institution's template gets revised (LIS upgrade, a new print template). Each year has a
-    `rate` chance of a new revision; every slip within the same revision looks alike. The revision
-    number depends only on (institution, year), never on who the visit belongs to."""
-    version = sum(1 for y in range(2018, year + 1)
-                  if random.Random(f"rev:{f.family_id}:{y}").random() < rate)
+    """An institution's template gets revised (LIS upgrade, a new print template); every slip within the
+    same revision looks alike."""
+    version = revision(f, year, rate)
     if version == 0:
         return f, []
     rng = random.Random(f"rev:{f.family_id}:v{version}")
@@ -385,8 +395,11 @@ class Registry:
 
     def family(self, index: int) -> Family:
         if index not in self._cache:
+            from . import surface
+
             rng = random.Random(f"family:{self.seed}:{index}")
-            self._cache[index] = sample_family(rng, f"f{index:04d}", self.institutions[index])
+            f = sample_family(rng, f"f{index:04d}", self.institutions[index])
+            self._cache[index] = surface.draw(f, random.Random(f"surface:{self.seed}:{index}"))
         return self._cache[index]
 
 

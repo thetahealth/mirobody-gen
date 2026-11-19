@@ -17,22 +17,23 @@ extraction contract (`original_indicator`, `value`, `unit`, `reference_range`, `
 | `handwriting.tier` | `H1` neat (regular-script Chinese, print-like English) · `H2` running hand · `H3` hard cursive, always a `T3` phone photo |
 | `handwriting.scope` | `page` (everything on the page was written by hand) · `values` (a printed form whose results were filled in by hand) |
 | `severity` | `mild` · `moderate` · `severe` · `null` |
-| `split` | `main` · `stress` (hazard count above the reference p95, or `severe`) |
+| `split` | `main` · `stress` (hazard count above the reference p95, or `severe`; `name.*` classes are not counted) |
 | `status` | `normal` · `high` · `low` (`""` on a `previous` reading and on home-log rows) |
 | `value_kind` | `quantitative` · `qualitative` (negative/positive, graded `+`, cytology categories) · `categorical` (blood group) |
 | `detection_method` | `laboratory` · `Physiological` · `Imaging` |
 | `role` (reading) | `current` · `previous` (an "last result" column) · `export` (a row of a multi-date table) |
 | `is_abnormal` | `"1"` · `"0"` · `""` (not determinable: numeric, no range and no flag printed) |
 | hazard `source` | `layout` · `content` · `incident` |
-| hazard `name` | the distilled taxonomy in `resources/hazards.json`, plus the handwriting classes in `resources/handwriting.json` (`hand.written`, `hand.correction`, `hand.ditto`) |
+| hazard `name` | the distilled taxonomy in `resources/hazards.json`, plus the handwriting classes in `resources/handwriting.json` (`hand.written`, `hand.correction`, `hand.ditto`) and the naming classes in `resources/surface.json` (`name.glued_to_abbr`, `name.abbr_first`, `name.spaced_abbr`, `name.assay_suffix`, `name.trailing_marker`; source `layout`). A naming class changes `item_name` only: the row's readings keep the indicator's `key` and value, and a send-out mark's footnote prints in the page footer |
 | `expect` (coding) | `coded` · `no-match` · `refused` · `needs-input` — what mirobody's ICPC-3 resolver should return for the surface |
 | `call_status` | `called` · `no_call` · `unresolved` (site not in the catalogue) |
 
 ## `manifest.jsonl` — one record per visit
 
 Default builds also write `generation.json` with the seed,
-`encounter_stream_policy=encounter-streams-v2` and `clinical_profile=true`
-(absent under `--no-clinical`). Routine scheduling keeps its
+`encounter_stream_policy=encounter-streams-v2`, `clinical_profile=true`
+(absent under `--no-clinical`) and `surface_mode` (`realistic` or `fuzz`; absent under
+`--surface off`). Routine scheduling keeps its
 existing seed stream; incident visits use stable event identities, and each
 scheduled visit has its own observation stream keyed by seed, person, date,
 type, ordered panels, package and exact-slot occurrence. Distinct duplicate

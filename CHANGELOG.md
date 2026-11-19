@@ -5,6 +5,19 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); ver
 
 ## [Unreleased]
 
+- An expression layer for indicator names (`build --surface realistic|fuzz|off`, default
+  `realistic`). `resources/surface.json` lists how an institution may write a name it means, each
+  form with a provenance tier (`observed`, `reference`, `field`, `generated`); `scripts/distill_surface.py`
+  measures the observed ones on the reference set. Realistic builds now print, at measured rates, an
+  abbreviation run into the name (`白细胞WBC`), placed before it or after a space, an assay word
+  (`尿酸测定`) and a footnoted send-out mark (`尿酸#`); each is a new `name.*` hazard class with row
+  attribution and a minimal-contrast pair, and the reading's key and value are unchanged. `fuzz`
+  also draws forms known only from field reports (`*`, naming drift between template revisions) at
+  raised rates. Only Simplified Chinese institutions vary (the reference set measures nothing else); the `main`/`stress`
+  split does not count naming classes. Default builds change bytes for institutions that draw a form;
+  `--surface off` is byte-identical to a build of `e2257e0`, and `generation.json` records
+  `surface_mode` otherwise.
+
 - The clinical presentation profile is now the default (`build --clinical/--no-clinical`, default on).
   Before, a build without `--clinical` still printed what clinician review had flagged as fake: ECG
   intervals as a lab table, an H. pylori antibody beside a breath test, drawn ultrasound images,

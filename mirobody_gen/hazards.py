@@ -235,9 +235,11 @@ def _mixed_script(doc: Doc, rng: random.Random) -> list[int]:
         return []
     out = []
     for _, _, c in _reading_rows(doc):
-        key = doc.readings[doc.printed[c.printed].readings[0]].key
+        row = doc.printed[c.printed]
+        key = doc.readings[row.readings[0]].key
         trad = [v for v in spec.indicators()[key].get("name_variants") or [] if script_of(v) == "zh-Hant"]
-        if trad and len(out) < 3 and rng.random() < 0.6:
+        written = any(h.startswith("name.") for h in row.hazards)   # a variant would erase the surface form
+        if trad and not written and len(out) < 3 and rng.random() < 0.6:
             c.name = trad[0]
             doc.printed[c.printed].item_name = trad[0]
             out.append(c.printed)

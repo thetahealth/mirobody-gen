@@ -31,7 +31,7 @@ import json
 import pathlib
 import random
 
-from . import book, hazards, layout, spec
+from . import book, hazards, layout, spec, surface
 from .corpus import Institutions, home_institutions, record
 from .delivery import render_doc
 from .document import Doc, build_doc, split_encounter
@@ -58,7 +58,8 @@ def clean_family(f: layout.Family) -> layout.Family:
         sex_partitioned=False, subject_in_table=False, previous_column=False,
         date_labels=f.date_labels[:1] or (("Reported",) if en else ("报告时间",)),
         date_format="YYYY-MM-DD HH:mm", furniture=(), watermark=False, decimal_comma=False,
-        fmt="pdf", rules="grid")
+        fmt="pdf", rules="grid", name_join="paren", name_suffix="", name_suffix_share=0.0,
+        name_marker="", name_marker_share=0.0)
 
 
 def _drop(cols: tuple[str, ...], role: str) -> tuple[str, ...]:
@@ -136,7 +137,7 @@ def render_pairs(seed: int, people: list[Person], encounters: dict[str, list[Enc
         variants: list[tuple[str, Doc]] = [("base", base)]
         if views == "all":
             if not checkup:
-                for name, toggle in TOGGLES.items():
+                for name, toggle in {**TOGGLES, **surface.toggles()}.items():
                     fam = dataclasses.replace(base_family, **toggle(base_family))
                     if fam == base_family:
                         continue

@@ -179,6 +179,25 @@ def render_pairs(seed: int, people: list[Person], encounters: dict[str, list[Enc
                                    "presentation": {"policy_version": policy,
                                                     "scope": presentation_scope, "purpose": "stress"}},
                                   delivery=delivery))
+        # PDF layer views (thetahealth/mirobody#304): the page scanned in the same scene (each view draws its
+        # own noise) as an image-only PDF, as a hybrid page whose stamped header and footer are live text,
+        # as a searchable scan, and the born-digital page over a letterhead image. Only the first two need
+        # OCR; a text-layer check alone cannot tell which.
+        layered = [("hybrid_pdf", "hybridpdf"), ("searchable_pdf", "ocrpdf"), ("letterhead_pdf", None)]
+        for view, container in ([] if checkup else [("scan_pdf", "scanpdf")]) + layered:
+            doc = copy.deepcopy(base)
+            doc.doc_id = f"{pair_id}_view_{view}"
+            hazards.detect(doc)
+            delivery = {"tier": "T0", "scene": None, "severity": None, "ops": [], "container": "pdf",
+                        "annotations": [], "background": "letterhead"} if container is None else \
+                {"tier": "T2", "scene": "flatbed_scan", "severity": "moderate", "ops": [], "container": container,
+                 "annotations": []}
+            path, pages, delivery = render_doc(doc, root, f"{pair_id}/view_{view}", delivery=delivery)
+            records.append(record(doc, path, out_dir, pages, [enc],
+                                  {"pair": {"pair_id": pair_id, "variant": f"view:{view}"},
+                                   "presentation": {"policy_version": policy,
+                                                    "scope": presentation_scope, "purpose": "stress"}},
+                                  delivery=delivery))
     with (out_dir / "pairs.jsonl").open("w", encoding="utf-8") as fh:
         for r in records:
             fh.write(json.dumps(r, ensure_ascii=False) + "\n")

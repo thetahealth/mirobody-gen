@@ -89,6 +89,7 @@ class Family:
     name_suffix_share: float = 0.0  # share of eligible indicators the dictionary appends it to
     name_marker: str = ""           # mark glued to the end of some names (#), explained by a footnote
     name_marker_share: float = 0.0
+    abbr_variants: str = ""         # "" prints the catalogue's abbreviations, "drawn" the institution's own
 
     @property
     def lang_group(self) -> str:

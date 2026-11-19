@@ -62,7 +62,7 @@ def build_cohort(seed: int, size: int | None = None) -> list[Person]:
     for archetype in ARCHETYPES:
         for _ in range(counts[archetype["name"]]):
             index += 1
-            people.append(_one_person(rng, f"p{index:03d}", archetype))
+            people.append(_one_person(rng, seed, f"p{index:03d}", archetype))
     return people
 
 
@@ -103,7 +103,7 @@ def archetype_counts(size: int | None) -> dict[str, int]:
     return seats
 
 
-def _one_person(rng: random.Random, person_id: str, archetype: dict) -> Person:
+def _one_person(rng: random.Random, seed: int, person_id: str, archetype: dict) -> Person:
     sex = "male" if rng.random() < 0.5 else "female"
     # Iron-deficiency anaemia skews female, an epidemiological fact; without this, sex-stratified
     # reference ranges never get exercised — if both sexes used the same range there would be no
@@ -114,9 +114,11 @@ def _one_person(rng: random.Random, person_id: str, archetype: dict) -> Person:
     birth_year = CORPUS_END.year - age
     height = rng.gauss(172 if sex == "male" else 160, 6.5)
 
-    baseline: dict[str, float] = {}
-    for key in spec.indicators():
-        baseline[key] = person_baseline(rng, key, sex)
+    # An indicator marked `own_baseline_stream` draws from a stream of its own, so adding it to the
+    # catalogue leaves every other baseline, the weight and the timeline of the existing cohort as they were.
+    baseline = {key: person_baseline(random.Random(f"baseline:{seed}:{person_id}:{key}")
+                                     if item["own_baseline_stream"] else rng, key, sex)
+                for key, item in spec.indicators().items()}
     # The red-cell indices' latent variables are MCV and MCHC (each with its own CVG); MCH is
     # determined by the two of them. These three public CVGs (4.85%, 2.8%, 5.2%) are only mutually
     # consistent when MCH = MCHC x MCV. Derivation happens in physiology.derive; no extra coupling

@@ -59,7 +59,7 @@ def clean_family(f: layout.Family) -> layout.Family:
         date_labels=f.date_labels[:1] or (("Reported",) if en else ("报告时间",)),
         date_format="YYYY-MM-DD HH:mm", furniture=(), watermark=False, decimal_comma=False,
         fmt="pdf", rules="grid", name_join="paren", name_suffix="", name_suffix_share=0.0,
-        name_marker="", name_marker_share=0.0)
+        name_marker="", name_marker_share=0.0, abbr_variants="")
 
 
 def _drop(cols: tuple[str, ...], role: str) -> tuple[str, ...]:

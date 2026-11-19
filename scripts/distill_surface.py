@@ -8,6 +8,9 @@ leave this script: how many Simplified Chinese documents join a native name and 
 how many append an assay word or a trailing marker, and how many rows those documents mark. No name,
 value or fragment is written anywhere.
 
+Abbreviations (the `abbr_variants` axis) are counted the same way per indicator: the documents that
+pair a native name with each abbreviation the resource lists for it.
+
 Medication-instruction spellings (the `sig` axes) are counted only inside complete instructions found
 in a reference document's analysis text, a frequency next to a dose with its unit (每日2次，每次1片, in
 either order), so that "每日监测血糖3次" counts for nothing: in how many documents each word occurs
@@ -101,6 +104,24 @@ def measure_sig(analysis: pathlib.Path) -> dict[str, int]:
     return dict(sorted(docs.items()))
 
 
+def measure_abbreviations(docs: list[list[str]], payload: dict) -> dict[str, dict[str, int]]:
+    """Per indicator listed in `abbr_variants`, the documents that pair its native name with each
+    listed abbreviation (in brackets or run in). Only listed words count, which keeps OCR debris out."""
+    natives: dict[str, str] = {}
+    for item in json.loads((RESOURCES / "indicators.json").read_text(encoding="utf-8"))["indicators"]:
+        for name in (item["zh"], *(v for v in item.get("name_variants") or [] if CJK.search(v))):
+            natives.setdefault(name, item["key"])
+    listed = {key: {c["word"] for c in choices} for key, choices in payload["abbr_variants"]["indicators"].items()}
+    counts = {key: collections.Counter() for key in listed}
+    for names in docs:
+        pairs = {(natives.get(m["native"]), m["abbr"]) for n in names
+                 for form in ("paren", "glued") if (m := JOINS[form].match(n))}
+        for key, word in pairs:
+            if key in listed and word in listed[key]:
+                counts[key][word] += 1
+    return {key: dict(sorted(c.items())) for key, c in counts.items()}
+
+
 def measure(analysis: pathlib.Path) -> dict:
     docs = documents(analysis)
     natives, abbrs = vocabulary()
@@ -116,7 +137,8 @@ def measure(analysis: pathlib.Path) -> dict:
     return {"documents": len(docs), "name_join": dict(sorted(joins.items())),
             "name_suffix": measure_affix(docs, ["测定", "检测"]),
             "name_marker": measure_affix(docs, ["#", "＃", "*", "＊", "†"]),
-            "sig": measure_sig(analysis)}
+            "sig": measure_sig(analysis),
+            "abbreviations": measure_abbreviations(docs, json.loads((RESOURCES / "surface.json").read_text(encoding="utf-8")))}
 
 
 def apply(payload: dict, m: dict) -> dict:
@@ -130,6 +152,10 @@ def apply(payload: dict, m: dict) -> dict:
         for choice in spec["choices"]:
             if choice["tier"] == "observed":
                 choice["share"] = got["rows"].get(choice["word"], 0)
+    for key, choices in payload["abbr_variants"]["indicators"].items():
+        for choice in choices:
+            if choice["tier"] == "observed":
+                choice["share"] = m["abbreviations"][key].get(choice["word"], 0)
     for axis in payload["sig"]["axes"].values():
         for choice in axis["choices"]:
             if choice["tier"] == "observed":

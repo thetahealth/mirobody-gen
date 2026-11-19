@@ -1017,7 +1017,7 @@ def write_all(out_dir, people: list[Person], seed: int, langs: dict[str, str], b
             if sessions:
                 _libre_export(fmt, life, out, lang, sessions[0]["unit"], truths, fr)
             if apple is not None and (sessions or any(t["stream"] == "heart_rate" for t in truths)):
-                _apple_daily(apple, life, series)
+                apple_daily(apple, life, series)
                 exported = datetime.combine(min(person.weight_anchors[-1][0], CORPUS_END), time(21, 0))
                 entry = out.write("apple_health_export/export.xml", apple.to_bytes(exported),
                                   format="apple_health_export_xml", channel="file_upload")
@@ -1390,7 +1390,7 @@ def _hr_files(fmt, life: Life, wearable: str, wn: int, samples: list[dict], out:
     return files, hazards
 
 
-def _apple_daily(apple, life: Life, series: dict) -> None:
+def apple_daily(apple, life: Life, series: dict) -> None:
     """The rest of an Apple Health export: the daily records the phone store already holds (resting
     heart rate, sleep, weight, cuff readings) and step counts walked in the day plan's bouts, which add up
     to the store's daily total."""

@@ -265,6 +265,11 @@ API's successor.
 
 Off by default; a build without it is byte-identical to before.
 
+`--apple-scenarios` writes, for everyone with a year or more of Apple Health data, the shapes an importer
+meets later: the whole multi-year export, a re-import of two overlapping exports, and a trip abroad that
+changes the printed UTC offset, each with the figure it should show per local date
+(`apple_scenarios.jsonl`). Off by default.
+
 ## What a build produces
 
 | Path | Content | Truth |

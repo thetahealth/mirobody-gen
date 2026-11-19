@@ -343,6 +343,26 @@ directory form.
   in real exports.
 - Sources: [real export 1][hk-sample], [real export 2][hk-sample2].
 
+#### Export scenarios (`build --apple-scenarios`)
+
+For every Apple Health person whose device series spans at least 400 days (`apple_scenarios.MIN_SPAN_DAYS`),
+three more exports of the same records, each with the figure an importer should show per local date
+(`apple_scenarios.jsonl`):
+
+- `long_span/export.xml`: the whole series, every daily record above, typically two to five years, many
+  times a 30-day import chunk.
+- `reimport/export_1.xml` and `export_2.xml`: an export taken at 21:00 three fifths of the way through the
+  series, holding the records that had ended by then (a phone saves a record when it ends), and one at its end. An Apple Health export is a snapshot of everything the phone holds, so the second repeats
+  every record of the first byte for byte; the `overlap` is the first export's whole range, and the merged
+  figures are the single export's (thetahealth/mirobody#266: a re-import must neither double nor drop a day).
+- `trip/export.xml`: a twelve-day trip abroad (UTC+8 to +9, UTC+0 to −5, UTC+9 to +8). Records keep the
+  person's clock times; those on the trip's dates print the destination's offset, as a phone set to local
+  time writes them, and a record spanning the change prints each end in its own offset. Truth buckets each
+  record by its own local date and gives every day's offset.
+
+The daily figures: `steps` (sum of step records starting that date), `resting_hr`, `weight_kg` (the day's
+last), `sleep_min` (on the wake date), `bp_readings`.
+
 ### Oura ring: API v2 `heartrate`
 
 `{"data": [{timestamp, timestamp_unix, bpm, source}], "next_token": null}`. All four fields are required

@@ -21,7 +21,7 @@ import math
 import random
 import re
 import uuid
-from datetime import datetime, timedelta, timezone
+from datetime import date, datetime, timedelta, timezone
 from xml.sax.saxutils import quoteattr
 
 from . import spec
@@ -297,15 +297,24 @@ def hk_time(local: datetime, tz: str) -> str:
 
 class AppleExport:
     """One person's `apple_health_export/export.xml`: records are added as (start, xml) and written
-    sorted by type then start, which is how an export groups them."""
+    sorted by type then start, which is how an export groups them.
 
-    def __init__(self, tz: str, locale: str, sex: str, r: random.Random):
-        self.tz, self.locale, self.sex, self.r = tz, locale, sex, r
-        self.records: list[tuple[str, datetime, str]] = []
+    Times are local wall-clock; each is printed with the offset of the zone the phone was in on that
+    date: `tz`, or a `zones` entry (first day, last day, offset) for a trip. `entries` keeps every
+    top-level record's type, local start and end, value, unit and the offsets of its start and end."""
+
+    def __init__(self, tz: str, locale: str, sex: str, r: random.Random,
+                 zones: tuple[tuple[date, date, str], ...] = ()):
+        self.tz, self.locale, self.sex, self.r, self.zones = tz, locale, sex, r, zones
+        self.records: list[tuple[str, datetime, str, datetime]] = []      # (type, start, xml, end)
+        self.entries: list[dict] = []
         h = spec.streams()["formats"]["apple_export"]
         self.watch_hw = r.choice(h["watch_hardware"])
         self.phone_hw = r.choice(h["phone_hardware"])
         self.versions = h["os_versions"]
+
+    def offset(self, when: datetime) -> str:
+        return next((tz for first, last, tz in self.zones if first <= when.date() <= last), self.tz)
 
     def _version(self, kind: str, when: datetime) -> str:
         table = self.versions[kind]
@@ -333,8 +342,8 @@ class AppleExport:
             attrs.append(("device", device))
         if unit:
             attrs.append(("unit", unit))
-        attrs += [("creationDate", hk_time(created, self.tz)), ("startDate", hk_time(start, self.tz)),
-                  ("endDate", hk_time(end, self.tz))]
+        attrs += [("creationDate", hk_time(created, self.offset(created))),
+                  ("startDate", hk_time(start, self.offset(start))), ("endDate", hk_time(end, self.offset(end)))]
         if value is not None:
             attrs.append(("value", value))
         pad = " " * indent
@@ -348,7 +357,9 @@ class AppleExport:
             source: str, source_version: str | None, device: str | None, created: datetime,
             metadata: dict | None = None) -> None:
         self.records.append((rtype, start, self._xml(rtype, start, end, value, unit, source, source_version,
-                                                     device, created, metadata, 1)))
+                                                     device, created, metadata, 1), end))
+        self.entries.append({"type": rtype, "start": start, "end": end, "value": value, "unit": unit,
+                             "offset": self.offset(start), "end_offset": self.offset(end)})
 
     def add_blood_pressure(self, when: datetime, sbp: int, dbp: int, created: datetime) -> None:
         """A cuff reading typed into Health: the Correlation with its two Records inside, and the same two
@@ -361,23 +372,27 @@ class AppleExport:
                      device=None, created=created, metadata=meta)
             children += self._xml(rtype, when, when, str(v), "mmHg", "Health", None, None, created, meta, 2)
         attrs = [("type", "HKCorrelationTypeIdentifierBloodPressure"), ("sourceName", "Health"),
-                 ("creationDate", hk_time(created, self.tz)), ("startDate", hk_time(when, self.tz)),
-                 ("endDate", hk_time(when, self.tz))]
+                 ("creationDate", hk_time(created, self.offset(created))), ("startDate", hk_time(when, self.offset(when))),
+                 ("endDate", hk_time(when, self.offset(when)))]
         xml = (" <Correlation " + " ".join(f"{k}={quoteattr(v)}" for k, v in attrs) + ">\n"
                '  <MetadataEntry key="HKWasUserEntered" value="1"/>\n' + children + " </Correlation>\n")
-        self.records.append(("HKCorrelationTypeIdentifierBloodPressure", when, xml))
+        self.records.append(("HKCorrelationTypeIdentifierBloodPressure", when, xml, when))
 
     def to_bytes(self, exported: datetime) -> bytes:
+        return self.document(self.records, exported)
+
+    def document(self, records: list[tuple[str, datetime, str, datetime]], exported: datetime) -> bytes:
+        """An export holding `records` (a subset, for an earlier export of the same phone)."""
         sex = {"male": "HKBiologicalSexMale", "female": "HKBiologicalSexFemale"}[self.sex]
         head = ('<?xml version="1.0" encoding="UTF-8"?>\n' + _HK_DTD +
                 f'<HealthData locale="{self.locale}">\n'
-                f' <ExportDate value="{hk_time(exported, self.tz)}"/>\n'
+                f' <ExportDate value="{hk_time(exported, self.offset(exported))}"/>\n'
                 f' <Me HKCharacteristicTypeIdentifierDateOfBirth="" HKCharacteristicTypeIdentifierBiologicalSex="{sex}" '
                 'HKCharacteristicTypeIdentifierBloodType="HKBloodTypeNotSet" '
                 'HKCharacteristicTypeIdentifierFitzpatrickSkinType="HKFitzpatrickSkinTypeNotSet" '
                 'HKCharacteristicTypeIdentifierCardioFitnessMedicationsUse="None"/>\n')
-        order = {t: i for i, t in enumerate(dict.fromkeys(t for t, _, _ in sorted(self.records, key=lambda x: x[0])))}
-        body = "".join(xml for _, _, xml in sorted(self.records, key=lambda x: (order[x[0]], x[1])))
+        order = {t: i for i, t in enumerate(dict.fromkeys(t for t, *_ in sorted(records, key=lambda x: x[0])))}
+        body = "".join(xml for _, _, xml, _ in sorted(records, key=lambda x: (order[x[0]], x[1])))
         return (head + body + "</HealthData>\n").encode("utf-8")
 
 

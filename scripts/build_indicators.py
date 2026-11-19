@@ -13,7 +13,8 @@ value legality.
 | Reference range | PRC health industry standards WS/T 404.1-.8 (chemistry), WS/T 405 (hematology), and standard clinical ranges | Public standards. Using reference values observed in the real corpus would treat one hospital's one instrument as ground truth |
 | CVI / CVG | Westgard / EFLM biological-variation database | Sets how much a value should jitter on repeat testing of the same person. Without it, a longitudinal series is either frozen or bouncing randomly |
 | Unit | Common UCUM notation | Dialect variants (fL/fl, /L vs /l, mu vs u) are applied by the render layer from the observed distribution in `resources/layout.json`, not enumerated here |
-| LOINC | Queried against `mirobody.engine.resolve` at build time | Not to "copy the answer," but to **record which names resolve and which don't**: the ones that don't resolve are material for abstention in evaluation |
+| LOINC | Chosen from the LOINC 2.83 table (component, unit-implied property, specimen) and checked against it at build time | Truth must not come from the system under test; see `LOINC` |
+| Resolvability | Queried against `mirobody.engine.resolve` at build time (`mirobody_loinc`, `expect_resolvable`) | Not to "copy the answer," but to **record which names resolve and which don't**: the ones that don't resolve are material for abstention in evaluation |
 | Name variants | Hand-written (includes Traditional Chinese, English, abbreviations, `#`/`%` suffixes) | The printed name is the extraction key; an indicator's several printed forms are part of layout diversity |
 
 ## The corpus's only role here: reconciliation, not sourcing values
@@ -156,6 +157,87 @@ REFERENCE_SOURCES: dict[str, str] = {
     "hpv16": VENDOR, "hpv18": VENDOR, "hpv_other": VENDOR, "tct": TBS,
 }
 
+#: The LOINC code every reading of an indicator carries as truth, chosen from the LOINC table itself
+#: (release 2.83): the indicator's component, the property its printed unit implies (μmol/L is a
+#: substance concentration, SCnc; U/L a catalytic one, CCnc), its specimen, and no method unless the
+#: indicator names one (hs-CRP, an echo measurement, LDL by the Friedewald calculation). `None` where no code fits (a vendor's unitless
+#: visceral fat level). A missing key fails the build, as for REFERENCE_SOURCES.
+#:
+#: This is deliberately independent of mirobody: the resolver matches names, not units, so the codes it
+#: returns (kept as `mirobody_loinc`) put a mass-concentration creatinine code on a μmol/L result, and
+#: the catalogue once shipped a thyroxine-binding code for 球蛋白. `check_loinc` verifies every code
+#: against the table.
+LOINC: dict[str, str | None] = {
+    # vitals
+    "height": "8302-2", "weight": "29463-7", "bmi": "39156-5", "waist": "8280-0", "sbp": "8480-6", "dbp": "8462-4",
+    "pulse": "8867-4", "resp": "9279-1", "temp": "8310-5", "spo2": "59408-5",
+    # cbc
+    "wbc": "26464-8", "rbc": "26453-1", "hgb": "718-7", "hct": "4544-3", "mcv": "30428-7", "mch": "28539-5",
+    "mchc": "28540-3", "rdw": "115741-1", "plt": "26515-7", "mpv": "28542-9", "pdw": "32207-3", "pct": "51637-7",
+    "neut_pct": "26511-6", "lymph_pct": "26478-8", "mono_pct": "26485-3", "eos_pct": "26450-7",
+    "baso_pct": "30180-4", "neut_abs": "26499-4", "lymph_abs": "26474-7", "mono_abs": "26484-6",
+    "eos_abs": "26449-9", "baso_abs": "26444-0",
+    # chemistry
+    "alt": "1742-6", "ast": "1920-8", "alp": "6768-6", "ggt": "2324-2", "tp": "2885-2", "alb": "1751-7",
+    "glb": "10834-0", "ag_ratio": "1759-0", "tbil": "14631-6", "dbil": "14629-0", "ibil": "14630-8",
+    "tba": "14628-2", "urea": "22664-7", "crea": "14682-9", "ua": "14933-6", "cysc": "33863-2", "egfr": "98979-8",
+    "k": "2823-3", "na": "2951-2", "cl": "2075-0", "ca": "2000-8", "phos": "14879-1", "mg": "2601-3",
+    "ldh": "14804-9", "ck": "2157-6", "ckmb": "32673-6", "hcy": "13965-9", "amy": "1798-8", "lps": "3040-3",
+    "che": "2098-2", "pa": "14338-8",
+    # glucose
+    "glu": "14771-0", "hba1c": "4548-4", "ga": "13873-5", "insulin": "20448-7", "cpep": "1986-9",
+    "ogtt2h": "14761-1",
+    # lipid
+    "chol": "14647-2", "tg": "14927-8", "hdl": "14646-4", "ldl": "39469-2", "apoa1": "1869-7", "apob": "1884-6",
+    "lpa": "10835-7", "nonhdl": "70204-3",
+    # thyroid
+    "tsh": "3016-3", "ft3": "14928-6", "ft4": "14920-3", "tt3": "14930-2", "tt4": "14921-1", "tpoab": "8099-4",
+    "tgab": "8098-6", "tg_protein": "3013-0",
+    # inflammation
+    "crp": "1988-5", "hscrp": "30522-7", "esr": "30341-2",
+    # vitamin
+    "vitd": "62292-8",
+    # anemia
+    "ferritin": "2276-4", "serum_iron": "14798-3", "b12": "14685-2", "folate": "14732-2",
+    # tumor
+    "afp": "1834-1", "cea": "2039-6", "psa": "2857-1", "ca125": "10334-1", "ca199": "24108-3", "ca153": "6875-9",
+    "ca724": "17843-4", "cyfra211": "25390-6", "nse": "15060-7", "scc": "9679-2", "fpsa": "10886-0",
+    "fpsa_ratio": "12841-3", "pg1": "2736-7", "pg2": "2738-3", "pgr": "104248-0",
+    # urinalysis
+    "urine_sg": "2965-2", "urine_ph": "2756-5", "urine_pro": "2887-8", "urine_glu": "2349-9", "urine_bld": "725-2",
+    "urine_ket": "33903-6", "urine_nit": "32710-6", "urine_rbc": "13945-1", "urine_wbc": "5821-4",
+    # ecg
+    "pr_interval": "8625-6", "qrs_duration": "8633-0", "qtc": "8636-3", "qrs_axis": "8632-2",
+    # hepatitis
+    "hbsag": "5196-1", "hbsab": "22322-2", "hbeag": "13954-3", "hbeab": "13953-5", "hbcab": "13952-7",
+    "hcvab": "13955-0",
+    # coagulation
+    "pt": "5902-2", "inr": "34714-6", "aptt": "14979-9", "tt": "3243-3", "fib": "3255-7", "ddimer": "48065-7",
+    # blood_type
+    "abo": "883-9", "rh": "10331-7",
+    # renal_early
+    "umalb": "14957-5", "uacr": "9318-7", "b2mg": "1952-1",
+    # cardiac
+    "hstni": "89579-7", "ntprobnp": "33762-6",
+    # immune
+    "rf": "11572-5", "aso": "5370-2", "ccp": "33935-8", "igg": "2465-3", "iga": "2458-8", "igm": "2472-9",
+    "c3": "4485-9", "c4": "4498-2",
+    # stool
+    "fobt": "2335-8",
+    # hp
+    "hp_ab": "22310-7",
+    # spirometry
+    "fvc": "19870-5", "fvc_pct": "19872-1", "fev1_fvc": "19926-5", "fev1": "20150-9", "fev1_pct": "20152-5",
+    # arterial
+    "bapwv_l": "77196-4", "bapwv_r": "77196-4", "abi_l": "77194-9", "abi_r": "77194-9",
+    # body_composition
+    "body_fat": "41982-0", "visceral_fat": None, "muscle_mass": "73964-9", "bmr": "69429-9",
+    # echo
+    "lvef": "8806-2", "lvedd": "18083-6", "ivs": "79969-2", "la": "29468-6", "ea": "18038-0",
+    # cervical
+    "hpv16": "77399-4", "hpv18": "77400-0", "hpv_other": "71431-1", "tct": "19762-4",
+}
+
 #: The indicator catalogue.
 #:
 #: Each entry = (key, Chinese name, English name, abbreviation, unit, decimal places,
@@ -181,6 +263,8 @@ def add(key, zh, en, abbr, unit, decimals, ref, _legacy_src, cvi, cvg, panel,
     # source in two places means one of them eventually goes stale.
     if key not in REFERENCE_SOURCES:
         raise KeyError(f"indicator {key} has no reference-range source declared in REFERENCE_SOURCES")
+    if key not in LOINC:
+        raise KeyError(f"indicator {key} has no LOINC entry declared in LOINC (None if no code fits)")
     INDICATORS.append({
         "key": key, "zh": zh, "en": en, "abbr": abbr, "unit": unit, "decimals": decimals,
         "reference": ref, "reference_source": REFERENCE_SOURCES[key], "cvi": cvi, "cvg": cvg,
@@ -455,6 +539,7 @@ add("ca125", "糖类抗原125", "Cancer antigen 125", "CA125", "U/mL", 1,
 add("urine_sg", "尿比重", "Urine specific gravity", "SG", "", 3,
     ("range", 1.003, 1.030), COMMON, 35.0, 25.0, "urinalysis", variants=("比重", "SG"),
     note="cvi/cvg 作用于 SG−1（physiology.OFFSET），手工设定，不是 EFLM 数据")
+# LOINC scales every urine pH code SemiQn (dipstick steps); the catalogue keeps it quantitative.
 add("urine_ph", "尿酸碱度", "Urine pH", "pH", "", 1,
     ("range", 4.5, 8.0), COMMON, None, None, "urinalysis", variants=("酸碱度", "尿PH", "pH"))
 add("urine_pro", "尿蛋白", "Urine protein", "PRO", "", 0,
@@ -566,8 +651,10 @@ add("insulin", "空腹胰岛素", "Fasting insulin", "INS", "μIU/mL", 2, ("rang
     variants=("胰岛素", "FINS"))
 add("cpep", "C肽", "C-peptide", "C-P", "ng/mL", 2, ("range", 1.1, 4.4), COMMON, 9.3, 30.0, "glucose",
     variants=("C-肽", "空腹C肽"))
-add("ogtt2h", "餐后2小时血糖", "2-hour post-load glucose", "2hPG", "mmol/L", 2, ("upper", 7.8), COMMON, None, None, "glucose",
-    variants=("OGTT 2h", "糖负荷后2小时血糖", "餐后两小时血糖"), derived="glu × 个体餐后系数（1.05–1.9）")
+# Two hours after a meal, not a 75 g glucose load: the value is derived from a meal factor, so OGTT names
+# would print a test that was not done.
+add("ogtt2h", "餐后2小时血糖", "2-hour postprandial glucose", "2hPG", "mmol/L", 2, ("upper", 7.8), COMMON, None, None,
+    "glucose", variants=("餐后两小时血糖",), derived="glu × 个体餐后系数（1.05–1.9）")
 # Thyroid (extended)
 add("tgab", "甲状腺球蛋白抗体", "Thyroglobulin antibody", "TgAb", "IU/mL", 1, ("upper", 115.0), COMMON, 12.0, 60.0, "thyroid",
     variants=("TGAb", "抗甲状腺球蛋白抗体"))
@@ -711,6 +798,48 @@ def resolve_loinc(resolve, name: str) -> tuple[str | None, bool]:
     return (result.loinc or None), bool(result.resolved)
 
 
+#: The properties a printed unit allows (an "entitic" property is the same quantity per cell). Units
+#: missing here (%, ratios, counts per field) take part in the check only through the code's existence.
+PROPERTY_OF_UNIT = {
+    **dict.fromkeys(("mmol/L", "μmol/L", "nmol/L", "pmol/L"), {"SCnc"}),
+    **dict.fromkeys(("g/L", "mg/L", "ng/mL", "ng/L", "pg/mL", "mg/L FEU"), {"MCnc", "EntMCnc"}),
+    **dict.fromkeys(("10^9/L", "10^12/L"), {"NCnc"}),
+    **dict.fromkeys(("U/mL", "IU/mL", "mIU/L", "μIU/mL"), {"ACnc"}),
+    "U/L": {"CCnc"}, "s": {"Time"}, "ms": {"Time"}, "cm": {"Len"}, "mm": {"Len"}, "kg": {"Mass"},
+    "L": {"Vol"}, "mmHg": {"Pres"}, "fL": {"EntMeanVol", "EntVol"}, "pg": {"EntMass"},
+}
+#: Codes outside the LOINC extract `check_loinc` reads, each checked by hand on loinc.org.
+CHECKED_ON_LOINC_ORG = {"69429-9": "Metabolic rate --resting (EngRat, ^Patient), 2026-11-19"}
+
+
+def check_loinc() -> None:
+    """Every code exists in LOINC 2.83 and has the property its indicator's unit implies.
+
+    Reads the table through mirobody's bundle, an unmodified extract of LOINC 2.83 (63,416 codes),
+    the one copy on the machines that build this resource; the resolver's own name matching plays no
+    part here."""
+    try:
+        from mirobody import _bundle as bundle
+
+        table, _, _ = bundle.load_axis()
+    except Exception as e:                       # noqa: BLE001 - say why, then build without the check
+        print(f"LOINC check skipped: the LOINC table is unavailable ({type(e).__name__}: {e})")
+        return
+    prop = {table.field(i, bundle.AXIS_CODE): table.field(i, bundle.AXIS_PROPERTY) for i in range(table._n)}
+    problems = []
+    for item in INDICATORS:
+        code, want = LOINC[item["key"]], PROPERTY_OF_UNIT.get(item["unit"])
+        if code is None or code in CHECKED_ON_LOINC_ORG:
+            continue
+        if code not in prop:
+            problems.append(f"{item['key']}: {code} is not in LOINC 2.83 (or not in the extract)")
+        elif want and prop[code] not in want:
+            problems.append(f"{item['key']}: {code} has property {prop[code]}, but {item['unit']} implies {sorted(want)}")
+    if problems:
+        raise SystemExit("LOINC check failed:\n  " + "\n  ".join(problems))
+    print(f"LOINC check: {sum(c is not None for c in LOINC.values())} codes exist, units agree with properties")
+
+
 def compare_with_corpus() -> None:
     """Hand-written ranges vs. the corpus's observed quantiles. For calibration, not a data source."""
     path = REPO / "library" / "synth_spec.json"
@@ -777,11 +906,14 @@ def main() -> None:
 
     resolved = unresolved = 0
     for item in INDICATORS:
-        loinc, ok = resolve_loinc(resolve, item["zh"]) if resolve else (None, False)
-        item["loinc"] = loinc
+        observed, ok = resolve_loinc(resolve, item["zh"]) if resolve else (None, False)
+        item["loinc"] = LOINC[item["key"]]
+        item["mirobody_loinc"] = observed
         item["expect_resolvable"] = ok
         resolved += ok
         unresolved += not ok
+    check_loinc()
+    disagree = [i for i in INDICATORS if i["mirobody_loinc"] and i["mirobody_loinc"] != i["loinc"]]
 
     panels: dict[str, int] = {}
     for item in INDICATORS:
@@ -797,6 +929,9 @@ def main() -> None:
     if unresolved:
         print("Unresolved (material for abstention in evaluation):",
               ", ".join(i["zh"] for i in INDICATORS if not i["expect_resolvable"]))
+    if disagree:
+        print(f"Resolved to a code other than the reference ({len(disagree)}):",
+              ", ".join(f"{i['zh']} {i['mirobody_loinc']}≠{i['loinc']}" for i in disagree))
 
     if args.compare:
         compare_with_corpus()
@@ -807,16 +942,19 @@ def main() -> None:
                                    "value_kind", "panel", "panels"],
             "_source": "public-standard",
             "_note": (
-                "参考区间来自 WS/T 404.1–.8 与 WS/T 405 及通行临床区间；"
-                "生物学变异 CVI/CVG 来自 Westgard/EFLM 公开数据库；"
-                "LOINC 为构建时向 mirobody.engine.resolve 查询所得，记录的是"
-                "『这个打印名解析得出与否』，供评测区分召回与弃权。"
-                "本文件不含任何来自真实语料的取值。"
+                "Reference intervals from WS/T 404.1-.8, WS/T 405 and standard clinical ranges; "
+                "biological variation (CVI/CVG) from the Westgard/EFLM databases; `loinc` chosen from "
+                "the LOINC 2.83 table by component, unit-implied property and specimen, and checked "
+                "against it. `mirobody_loinc` and `expect_resolvable` record what mirobody.engine.resolve "
+                "returned for the native name at build time: an observation of the consumer, not truth. "
+                "Nothing here comes from the reference corpus."
             ),
             "_provenance": {
                 "script": "scripts/build_indicators.py",
                 "indicators": len(INDICATORS),
+                "loinc_reference": sum(c is not None for c in LOINC.values()),
                 "loinc_resolved": resolved,
+                "loinc_resolver_disagrees": len(disagree),
                 "reference_sources": sorted({i["reference_source"] for i in INDICATORS
                                              if i["reference_source"]}),
             },

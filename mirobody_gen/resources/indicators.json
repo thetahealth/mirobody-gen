@@ -10,11 +10,13 @@
     "panels"
   ],
   "_source": "public-standard",
-  "_note": "参考区间来自 WS/T 404.1–.8 与 WS/T 405 及通行临床区间；生物学变异 CVI/CVG 来自 Westgard/EFLM 公开数据库；LOINC 为构建时向 mirobody.engine.resolve 查询所得，记录的是『这个打印名解析得出与否』，供评测区分召回与弃权。本文件不含任何来自真实语料的取值。",
+  "_note": "Reference intervals from WS/T 404.1-.8, WS/T 405 and standard clinical ranges; biological variation (CVI/CVG) from the Westgard/EFLM databases; `loinc` chosen from the LOINC 2.83 table by component, unit-implied property and specimen, and checked against it. `mirobody_loinc` and `expect_resolvable` record what mirobody.engine.resolve returned for the native name at build time: an observation of the consumer, not truth. Nothing here comes from the reference corpus.",
   "_provenance": {
     "script": "scripts/build_indicators.py",
     "indicators": 172,
+    "loinc_reference": 171,
     "loinc_resolved": 129,
+    "loinc_resolver_disagrees": 41,
     "reference_sources": [
       "Bethesda（TBS）2014 宫颈细胞学报告系统；《中国子宫颈癌筛查指南（2023）》：NILM 为未见上皮内病变或恶性细胞",
       "KDIGO 2012 慢性肾脏病评估与管理指南（UACR < 30 mg/g）",
@@ -61,6 +63,7 @@
       "positive_values": null,
       "categories": null,
       "loinc": "8302-2",
+      "mirobody_loinc": "8302-2",
       "expect_resolvable": true
     },
     {
@@ -88,6 +91,7 @@
       "positive_values": null,
       "categories": null,
       "loinc": "29463-7",
+      "mirobody_loinc": "29463-7",
       "expect_resolvable": true
     },
     {
@@ -119,6 +123,7 @@
       "positive_values": null,
       "categories": null,
       "loinc": "39156-5",
+      "mirobody_loinc": "39156-5",
       "expect_resolvable": true
     },
     {
@@ -153,7 +158,8 @@
       "positive_rate": null,
       "positive_values": null,
       "categories": null,
-      "loinc": null,
+      "loinc": "8280-0",
+      "mirobody_loinc": null,
       "expect_resolvable": false
     },
     {
@@ -185,6 +191,7 @@
       "positive_values": null,
       "categories": null,
       "loinc": "8480-6",
+      "mirobody_loinc": "8480-6",
       "expect_resolvable": true
     },
     {
@@ -215,6 +222,7 @@
       "positive_values": null,
       "categories": null,
       "loinc": "8462-4",
+      "mirobody_loinc": "8462-4",
       "expect_resolvable": true
     },
     {
@@ -247,6 +255,7 @@
       "positive_values": null,
       "categories": null,
       "loinc": "8867-4",
+      "mirobody_loinc": "8867-4",
       "expect_resolvable": true
     },
     {
@@ -276,6 +285,7 @@
       "positive_values": null,
       "categories": null,
       "loinc": "9279-1",
+      "mirobody_loinc": "9279-1",
       "expect_resolvable": true
     },
     {
@@ -307,6 +317,7 @@
       "positive_values": null,
       "categories": null,
       "loinc": "8310-5",
+      "mirobody_loinc": "8310-5",
       "expect_resolvable": true
     },
     {
@@ -341,6 +352,7 @@
       "positive_values": null,
       "categories": null,
       "loinc": "26464-8",
+      "mirobody_loinc": "26464-8",
       "expect_resolvable": true
     },
     {
@@ -379,6 +391,7 @@
       "positive_values": null,
       "categories": null,
       "loinc": "26453-1",
+      "mirobody_loinc": "26453-1",
       "expect_resolvable": true
     },
     {
@@ -419,6 +432,7 @@
       "positive_values": null,
       "categories": null,
       "loinc": "718-7",
+      "mirobody_loinc": "718-7",
       "expect_resolvable": true
     },
     {
@@ -457,6 +471,7 @@
       "positive_values": null,
       "categories": null,
       "loinc": "4544-3",
+      "mirobody_loinc": "4544-3",
       "expect_resolvable": true
     },
     {
@@ -486,6 +501,7 @@
       "positive_values": null,
       "categories": null,
       "loinc": "30428-7",
+      "mirobody_loinc": "30428-7",
       "expect_resolvable": true
     },
     {
@@ -515,7 +531,8 @@
       "positive_rate": null,
       "positive_values": null,
       "categories": null,
-      "loinc": "785-6",
+      "loinc": "28539-5",
+      "mirobody_loinc": "785-6",
       "expect_resolvable": true
     },
     {
@@ -545,7 +562,8 @@
       "positive_rate": null,
       "positive_values": null,
       "categories": null,
-      "loinc": "786-4",
+      "loinc": "28540-3",
+      "mirobody_loinc": "786-4",
       "expect_resolvable": true
     },
     {
@@ -575,7 +593,8 @@
       "positive_rate": null,
       "positive_values": null,
       "categories": null,
-      "loinc": "30385-9",
+      "loinc": "115741-1",
+      "mirobody_loinc": "30385-9",
       "expect_resolvable": true
     },
     {
@@ -607,6 +626,7 @@
       "positive_values": null,
       "categories": null,
       "loinc": "26515-7",
+      "mirobody_loinc": "26515-7",
       "expect_resolvable": true
     },
     {
@@ -637,6 +657,7 @@
       "positive_values": null,
       "categories": null,
       "loinc": "28542-9",
+      "mirobody_loinc": "28542-9",
       "expect_resolvable": true
     },
     {
@@ -666,6 +687,7 @@
       "positive_values": null,
       "categories": null,
       "loinc": "32207-3",
+      "mirobody_loinc": "32207-3",
       "expect_resolvable": true
     },
     {
@@ -696,6 +718,7 @@
       "positive_values": null,
       "categories": null,
       "loinc": "51637-7",
+      "mirobody_loinc": "51637-7",
       "expect_resolvable": true
     },
     {
@@ -728,6 +751,7 @@
       "positive_values": null,
       "categories": null,
       "loinc": "26511-6",
+      "mirobody_loinc": "26511-6",
       "expect_resolvable": true
     },
     {
@@ -759,6 +783,7 @@
       "positive_values": null,
       "categories": null,
       "loinc": "26478-8",
+      "mirobody_loinc": "26478-8",
       "expect_resolvable": true
     },
     {
@@ -789,6 +814,7 @@
       "positive_values": null,
       "categories": null,
       "loinc": "26485-3",
+      "mirobody_loinc": "26485-3",
       "expect_resolvable": true
     },
     {
@@ -819,6 +845,7 @@
       "positive_values": null,
       "categories": null,
       "loinc": "26450-7",
+      "mirobody_loinc": "26450-7",
       "expect_resolvable": true
     },
     {
@@ -849,6 +876,7 @@
       "positive_values": null,
       "categories": null,
       "loinc": "30180-4",
+      "mirobody_loinc": "30180-4",
       "expect_resolvable": true
     },
     {
@@ -880,6 +908,7 @@
       "positive_values": null,
       "categories": null,
       "loinc": "26499-4",
+      "mirobody_loinc": "26499-4",
       "expect_resolvable": true
     },
     {
@@ -911,6 +940,7 @@
       "positive_values": null,
       "categories": null,
       "loinc": "26474-7",
+      "mirobody_loinc": "26474-7",
       "expect_resolvable": true
     },
     {
@@ -941,6 +971,7 @@
       "positive_values": null,
       "categories": null,
       "loinc": "26484-6",
+      "mirobody_loinc": "26484-6",
       "expect_resolvable": true
     },
     {
@@ -971,6 +1002,7 @@
       "positive_values": null,
       "categories": null,
       "loinc": "26449-9",
+      "mirobody_loinc": "26449-9",
       "expect_resolvable": true
     },
     {
@@ -1001,6 +1033,7 @@
       "positive_values": null,
       "categories": null,
       "loinc": "26444-0",
+      "mirobody_loinc": "26444-0",
       "expect_resolvable": true
     },
     {
@@ -1041,6 +1074,7 @@
       "positive_values": null,
       "categories": null,
       "loinc": "1742-6",
+      "mirobody_loinc": "1742-6",
       "expect_resolvable": true
     },
     {
@@ -1080,6 +1114,7 @@
       "positive_values": null,
       "categories": null,
       "loinc": "1920-8",
+      "mirobody_loinc": "1920-8",
       "expect_resolvable": true
     },
     {
@@ -1117,6 +1152,7 @@
       "positive_values": null,
       "categories": null,
       "loinc": "6768-6",
+      "mirobody_loinc": "6768-6",
       "expect_resolvable": true
     },
     {
@@ -1155,6 +1191,7 @@
       "positive_values": null,
       "categories": null,
       "loinc": "2324-2",
+      "mirobody_loinc": "2324-2",
       "expect_resolvable": true
     },
     {
@@ -1186,6 +1223,7 @@
       "positive_values": null,
       "categories": null,
       "loinc": "2885-2",
+      "mirobody_loinc": "2885-2",
       "expect_resolvable": true
     },
     {
@@ -1217,6 +1255,7 @@
       "positive_values": null,
       "categories": null,
       "loinc": "1751-7",
+      "mirobody_loinc": "1751-7",
       "expect_resolvable": true
     },
     {
@@ -1246,7 +1285,8 @@
       "positive_rate": null,
       "positive_values": null,
       "categories": null,
-      "loinc": "14016-0",
+      "loinc": "10834-0",
+      "mirobody_loinc": "10834-0",
       "expect_resolvable": true
     },
     {
@@ -1278,6 +1318,7 @@
       "positive_values": null,
       "categories": null,
       "loinc": "1759-0",
+      "mirobody_loinc": "1759-0",
       "expect_resolvable": true
     },
     {
@@ -1315,7 +1356,8 @@
       "positive_rate": null,
       "positive_values": null,
       "categories": null,
-      "loinc": "1975-2",
+      "loinc": "14631-6",
+      "mirobody_loinc": "1975-2",
       "expect_resolvable": true
     },
     {
@@ -1345,7 +1387,8 @@
       "positive_rate": null,
       "positive_values": null,
       "categories": null,
-      "loinc": "1968-7",
+      "loinc": "14629-0",
+      "mirobody_loinc": "1968-7",
       "expect_resolvable": true
     },
     {
@@ -1376,7 +1419,8 @@
       "positive_rate": null,
       "positive_values": null,
       "categories": null,
-      "loinc": "1971-1",
+      "loinc": "14630-8",
+      "mirobody_loinc": "1971-1",
       "expect_resolvable": true
     },
     {
@@ -1406,6 +1450,7 @@
       "positive_values": null,
       "categories": null,
       "loinc": "14628-2",
+      "mirobody_loinc": "14628-2",
       "expect_resolvable": true
     },
     {
@@ -1444,7 +1489,8 @@
       "positive_rate": null,
       "positive_values": null,
       "categories": null,
-      "loinc": "3094-0",
+      "loinc": "22664-7",
+      "mirobody_loinc": "3091-6",
       "expect_resolvable": true
     },
     {
@@ -1483,7 +1529,8 @@
       "positive_rate": null,
       "positive_values": null,
       "categories": null,
-      "loinc": "2160-0",
+      "loinc": "14682-9",
+      "mirobody_loinc": "2160-0",
       "expect_resolvable": true
     },
     {
@@ -1521,7 +1568,8 @@
       "positive_rate": null,
       "positive_values": null,
       "categories": null,
-      "loinc": "3084-1",
+      "loinc": "14933-6",
+      "mirobody_loinc": "3084-1",
       "expect_resolvable": true
     },
     {
@@ -1551,6 +1599,7 @@
       "positive_values": null,
       "categories": null,
       "loinc": "33863-2",
+      "mirobody_loinc": "33863-2",
       "expect_resolvable": true
     },
     {
@@ -1579,7 +1628,8 @@
       "positive_rate": null,
       "positive_values": null,
       "categories": null,
-      "loinc": "48642-3",
+      "loinc": "98979-8",
+      "mirobody_loinc": "48642-3",
       "expect_resolvable": true
     },
     {
@@ -1614,7 +1664,8 @@
       "positive_rate": null,
       "positive_values": null,
       "categories": null,
-      "loinc": "1558-6",
+      "loinc": "14771-0",
+      "mirobody_loinc": "1558-6",
       "expect_resolvable": true
     },
     {
@@ -1646,6 +1697,7 @@
       "positive_values": null,
       "categories": null,
       "loinc": "4548-4",
+      "mirobody_loinc": "4548-4",
       "expect_resolvable": true
     },
     {
@@ -1675,7 +1727,8 @@
       "positive_rate": null,
       "positive_values": null,
       "categories": null,
-      "loinc": null,
+      "loinc": "13873-5",
+      "mirobody_loinc": null,
       "expect_resolvable": false
     },
     {
@@ -1708,7 +1761,8 @@
       "positive_rate": null,
       "positive_values": null,
       "categories": null,
-      "loinc": "2093-3",
+      "loinc": "14647-2",
+      "mirobody_loinc": "2093-3",
       "expect_resolvable": true
     },
     {
@@ -1741,7 +1795,8 @@
       "positive_rate": null,
       "positive_values": null,
       "categories": null,
-      "loinc": "2571-8",
+      "loinc": "14927-8",
+      "mirobody_loinc": "2571-8",
       "expect_resolvable": true
     },
     {
@@ -1772,7 +1827,8 @@
       "positive_rate": null,
       "positive_values": null,
       "categories": null,
-      "loinc": "2085-9",
+      "loinc": "14646-4",
+      "mirobody_loinc": "2085-9",
       "expect_resolvable": true
     },
     {
@@ -1803,7 +1859,8 @@
       "positive_rate": null,
       "positive_values": null,
       "categories": null,
-      "loinc": "13457-7",
+      "loinc": "39469-2",
+      "mirobody_loinc": "13457-7",
       "expect_resolvable": true
     },
     {
@@ -1834,6 +1891,7 @@
       "positive_values": null,
       "categories": null,
       "loinc": "1869-7",
+      "mirobody_loinc": "1869-7",
       "expect_resolvable": true
     },
     {
@@ -1864,6 +1922,7 @@
       "positive_values": null,
       "categories": null,
       "loinc": "1884-6",
+      "mirobody_loinc": "1884-6",
       "expect_resolvable": true
     },
     {
@@ -1892,7 +1951,8 @@
       "positive_rate": null,
       "positive_values": null,
       "categories": null,
-      "loinc": "2576-7",
+      "loinc": "10835-7",
+      "mirobody_loinc": "2576-7",
       "expect_resolvable": true
     },
     {
@@ -1924,6 +1984,7 @@
       "positive_values": null,
       "categories": null,
       "loinc": "2823-3",
+      "mirobody_loinc": "2823-3",
       "expect_resolvable": true
     },
     {
@@ -1955,6 +2016,7 @@
       "positive_values": null,
       "categories": null,
       "loinc": "2951-2",
+      "mirobody_loinc": "2951-2",
       "expect_resolvable": true
     },
     {
@@ -1986,6 +2048,7 @@
       "positive_values": null,
       "categories": null,
       "loinc": "2075-0",
+      "mirobody_loinc": "2075-0",
       "expect_resolvable": true
     },
     {
@@ -2016,7 +2079,8 @@
       "positive_rate": null,
       "positive_values": null,
       "categories": null,
-      "loinc": "17861-6",
+      "loinc": "2000-8",
+      "mirobody_loinc": "17861-6",
       "expect_resolvable": true
     },
     {
@@ -2046,7 +2110,8 @@
       "positive_rate": null,
       "positive_values": null,
       "categories": null,
-      "loinc": "2777-1",
+      "loinc": "14879-1",
+      "mirobody_loinc": "2777-1",
       "expect_resolvable": true
     },
     {
@@ -2075,7 +2140,8 @@
       "positive_rate": null,
       "positive_values": null,
       "categories": null,
-      "loinc": "19123-9",
+      "loinc": "2601-3",
+      "mirobody_loinc": "19123-9",
       "expect_resolvable": true
     },
     {
@@ -2106,6 +2172,7 @@
       "positive_values": null,
       "categories": null,
       "loinc": "14804-9",
+      "mirobody_loinc": "14804-9",
       "expect_resolvable": true
     },
     {
@@ -2143,6 +2210,7 @@
       "positive_values": null,
       "categories": null,
       "loinc": "2157-6",
+      "mirobody_loinc": "2157-6",
       "expect_resolvable": true
     },
     {
@@ -2171,7 +2239,8 @@
       "positive_rate": null,
       "positive_values": null,
       "categories": null,
-      "loinc": "13969-1",
+      "loinc": "32673-6",
+      "mirobody_loinc": "13969-1",
       "expect_resolvable": true
     },
     {
@@ -2203,6 +2272,7 @@
       "positive_values": null,
       "categories": null,
       "loinc": "3016-3",
+      "mirobody_loinc": "3016-3",
       "expect_resolvable": true
     },
     {
@@ -2232,7 +2302,8 @@
       "positive_rate": null,
       "positive_values": null,
       "categories": null,
-      "loinc": "3051-0",
+      "loinc": "14928-6",
+      "mirobody_loinc": "3051-0",
       "expect_resolvable": true
     },
     {
@@ -2262,7 +2333,8 @@
       "positive_rate": null,
       "positive_values": null,
       "categories": null,
-      "loinc": "3024-7",
+      "loinc": "14920-3",
+      "mirobody_loinc": "3024-7",
       "expect_resolvable": true
     },
     {
@@ -2292,7 +2364,8 @@
       "positive_rate": null,
       "positive_values": null,
       "categories": null,
-      "loinc": "3053-6",
+      "loinc": "14930-2",
+      "mirobody_loinc": "3053-6",
       "expect_resolvable": true
     },
     {
@@ -2322,7 +2395,8 @@
       "positive_rate": null,
       "positive_values": null,
       "categories": null,
-      "loinc": "3026-2",
+      "loinc": "14921-1",
+      "mirobody_loinc": "3026-2",
       "expect_resolvable": true
     },
     {
@@ -2352,6 +2426,7 @@
       "positive_values": null,
       "categories": null,
       "loinc": "8099-4",
+      "mirobody_loinc": "8099-4",
       "expect_resolvable": true
     },
     {
@@ -2380,7 +2455,8 @@
       "positive_rate": null,
       "positive_values": null,
       "categories": null,
-      "loinc": "14634-0",
+      "loinc": "1988-5",
+      "mirobody_loinc": "14634-0",
       "expect_resolvable": true
     },
     {
@@ -2410,6 +2486,7 @@
       "positive_values": null,
       "categories": null,
       "loinc": "30522-7",
+      "mirobody_loinc": "30522-7",
       "expect_resolvable": true
     },
     {
@@ -2447,6 +2524,7 @@
       "positive_values": null,
       "categories": null,
       "loinc": "30341-2",
+      "mirobody_loinc": "30341-2",
       "expect_resolvable": true
     },
     {
@@ -2476,6 +2554,7 @@
       "positive_values": null,
       "categories": null,
       "loinc": "13965-9",
+      "mirobody_loinc": "13965-9",
       "expect_resolvable": true
     },
     {
@@ -2506,7 +2585,8 @@
       "positive_rate": null,
       "positive_values": null,
       "categories": null,
-      "loinc": null,
+      "loinc": "62292-8",
+      "mirobody_loinc": null,
       "expect_resolvable": false
     },
     {
@@ -2542,7 +2622,8 @@
       "positive_rate": null,
       "positive_values": null,
       "categories": null,
-      "loinc": "20567-4",
+      "loinc": "2276-4",
+      "mirobody_loinc": "20567-4",
       "expect_resolvable": true
     },
     {
@@ -2578,7 +2659,8 @@
       "positive_rate": null,
       "positive_values": null,
       "categories": null,
-      "loinc": "2498-4",
+      "loinc": "14798-3",
+      "mirobody_loinc": "2498-4",
       "expect_resolvable": true
     },
     {
@@ -2608,7 +2690,8 @@
       "positive_rate": null,
       "positive_values": null,
       "categories": null,
-      "loinc": "2132-9",
+      "loinc": "14685-2",
+      "mirobody_loinc": "2132-9",
       "expect_resolvable": true
     },
     {
@@ -2637,7 +2720,8 @@
       "positive_rate": null,
       "positive_values": null,
       "categories": null,
-      "loinc": "2284-8",
+      "loinc": "14732-2",
+      "mirobody_loinc": "2284-8",
       "expect_resolvable": true
     },
     {
@@ -2666,6 +2750,7 @@
       "positive_values": null,
       "categories": null,
       "loinc": "1834-1",
+      "mirobody_loinc": "1834-1",
       "expect_resolvable": true
     },
     {
@@ -2693,7 +2778,8 @@
       "positive_rate": null,
       "positive_values": null,
       "categories": null,
-      "loinc": null,
+      "loinc": "2039-6",
+      "mirobody_loinc": null,
       "expect_resolvable": false
     },
     {
@@ -2722,7 +2808,8 @@
       "positive_rate": null,
       "positive_values": null,
       "categories": null,
-      "loinc": "15324-7",
+      "loinc": "2857-1",
+      "mirobody_loinc": "15324-7",
       "expect_resolvable": true
     },
     {
@@ -2751,6 +2838,7 @@
       "positive_values": null,
       "categories": null,
       "loinc": "10334-1",
+      "mirobody_loinc": "10334-1",
       "expect_resolvable": true
     },
     {
@@ -2781,6 +2869,7 @@
       "positive_values": null,
       "categories": null,
       "loinc": "2965-2",
+      "mirobody_loinc": "2965-2",
       "expect_resolvable": true
     },
     {
@@ -2812,6 +2901,7 @@
       "positive_values": null,
       "categories": null,
       "loinc": "2756-5",
+      "mirobody_loinc": "2756-5",
       "expect_resolvable": true
     },
     {
@@ -2842,6 +2932,7 @@
       "positive_values": null,
       "categories": null,
       "loinc": "2887-8",
+      "mirobody_loinc": "2887-8",
       "expect_resolvable": true
     },
     {
@@ -2871,7 +2962,8 @@
       "positive_rate": null,
       "positive_values": null,
       "categories": null,
-      "loinc": null,
+      "loinc": "2349-9",
+      "mirobody_loinc": null,
       "expect_resolvable": false
     },
     {
@@ -2901,7 +2993,8 @@
       "positive_rate": null,
       "positive_values": null,
       "categories": null,
-      "loinc": null,
+      "loinc": "725-2",
+      "mirobody_loinc": null,
       "expect_resolvable": false
     },
     {
@@ -2930,7 +3023,8 @@
       "positive_rate": null,
       "positive_values": null,
       "categories": null,
-      "loinc": "49779-2",
+      "loinc": "33903-6",
+      "mirobody_loinc": "49779-2",
       "expect_resolvable": true
     },
     {
@@ -2960,6 +3054,7 @@
       "positive_values": null,
       "categories": null,
       "loinc": "32710-6",
+      "mirobody_loinc": "32710-6",
       "expect_resolvable": true
     },
     {
@@ -2989,7 +3084,8 @@
       "positive_rate": null,
       "positive_values": null,
       "categories": null,
-      "loinc": null,
+      "loinc": "13945-1",
+      "mirobody_loinc": null,
       "expect_resolvable": false
     },
     {
@@ -3019,7 +3115,8 @@
       "positive_rate": null,
       "positive_values": null,
       "categories": null,
-      "loinc": null,
+      "loinc": "5821-4",
+      "mirobody_loinc": null,
       "expect_resolvable": false
     },
     {
@@ -3049,6 +3146,7 @@
       "positive_values": null,
       "categories": null,
       "loinc": "8625-6",
+      "mirobody_loinc": "8625-6",
       "expect_resolvable": true
     },
     {
@@ -3077,7 +3175,8 @@
       "positive_rate": null,
       "positive_values": null,
       "categories": null,
-      "loinc": null,
+      "loinc": "8633-0",
+      "mirobody_loinc": null,
       "expect_resolvable": false
     },
     {
@@ -3108,6 +3207,7 @@
       "positive_values": null,
       "categories": null,
       "loinc": "8636-3",
+      "mirobody_loinc": "8636-3",
       "expect_resolvable": true
     },
     {
@@ -3137,6 +3237,7 @@
       "positive_values": null,
       "categories": null,
       "loinc": "8632-2",
+      "mirobody_loinc": "8632-2",
       "expect_resolvable": true
     },
     {
@@ -3167,7 +3268,8 @@
       "positive_rate": null,
       "positive_values": null,
       "categories": null,
-      "loinc": "20564-1",
+      "loinc": "59408-5",
+      "mirobody_loinc": "20564-1",
       "expect_resolvable": true
     },
     {
@@ -3202,6 +3304,7 @@
       ],
       "categories": null,
       "loinc": "5196-1",
+      "mirobody_loinc": "5196-1",
       "expect_resolvable": true
     },
     {
@@ -3235,7 +3338,8 @@
         ]
       ],
       "categories": null,
-      "loinc": "5193-8",
+      "loinc": "22322-2",
+      "mirobody_loinc": "5193-8",
       "expect_resolvable": true
     },
     {
@@ -3269,6 +3373,7 @@
       ],
       "categories": null,
       "loinc": "13954-3",
+      "mirobody_loinc": "13954-3",
       "expect_resolvable": true
     },
     {
@@ -3302,6 +3407,7 @@
       ],
       "categories": null,
       "loinc": "13953-5",
+      "mirobody_loinc": "13953-5",
       "expect_resolvable": true
     },
     {
@@ -3335,6 +3441,7 @@
       ],
       "categories": null,
       "loinc": "13952-7",
+      "mirobody_loinc": "13952-7",
       "expect_resolvable": true
     },
     {
@@ -3369,6 +3476,7 @@
       ],
       "categories": null,
       "loinc": "13955-0",
+      "mirobody_loinc": "13955-0",
       "expect_resolvable": true
     },
     {
@@ -3399,6 +3507,7 @@
       "positive_values": null,
       "categories": null,
       "loinc": "24108-3",
+      "mirobody_loinc": "24108-3",
       "expect_resolvable": true
     },
     {
@@ -3428,6 +3537,7 @@
       "positive_values": null,
       "categories": null,
       "loinc": "6875-9",
+      "mirobody_loinc": "6875-9",
       "expect_resolvable": true
     },
     {
@@ -3456,6 +3566,7 @@
       "positive_values": null,
       "categories": null,
       "loinc": "17843-4",
+      "mirobody_loinc": "17843-4",
       "expect_resolvable": true
     },
     {
@@ -3484,7 +3595,8 @@
       "positive_rate": null,
       "positive_values": null,
       "categories": null,
-      "loinc": null,
+      "loinc": "25390-6",
+      "mirobody_loinc": null,
       "expect_resolvable": false
     },
     {
@@ -3512,7 +3624,8 @@
       "positive_rate": null,
       "positive_values": null,
       "categories": null,
-      "loinc": null,
+      "loinc": "15060-7",
+      "mirobody_loinc": null,
       "expect_resolvable": false
     },
     {
@@ -3541,7 +3654,8 @@
       "positive_rate": null,
       "positive_values": null,
       "categories": null,
-      "loinc": null,
+      "loinc": "9679-2",
+      "mirobody_loinc": null,
       "expect_resolvable": false
     },
     {
@@ -3571,6 +3685,7 @@
       "positive_values": null,
       "categories": null,
       "loinc": "10886-0",
+      "mirobody_loinc": "10886-0",
       "expect_resolvable": true
     },
     {
@@ -3599,7 +3714,8 @@
       "positive_rate": null,
       "positive_values": null,
       "categories": null,
-      "loinc": null,
+      "loinc": "12841-3",
+      "mirobody_loinc": null,
       "expect_resolvable": false
     },
     {
@@ -3629,6 +3745,7 @@
       "positive_values": null,
       "categories": null,
       "loinc": "2736-7",
+      "mirobody_loinc": "2736-7",
       "expect_resolvable": true
     },
     {
@@ -3658,6 +3775,7 @@
       "positive_values": null,
       "categories": null,
       "loinc": "2738-3",
+      "mirobody_loinc": "2738-3",
       "expect_resolvable": true
     },
     {
@@ -3686,7 +3804,8 @@
       "positive_rate": null,
       "positive_values": null,
       "categories": null,
-      "loinc": null,
+      "loinc": "104248-0",
+      "mirobody_loinc": null,
       "expect_resolvable": false
     },
     {
@@ -3717,6 +3836,7 @@
       "positive_values": null,
       "categories": null,
       "loinc": "5902-2",
+      "mirobody_loinc": "5902-2",
       "expect_resolvable": true
     },
     {
@@ -3747,6 +3867,7 @@
       "positive_values": null,
       "categories": null,
       "loinc": "34714-6",
+      "mirobody_loinc": "34714-6",
       "expect_resolvable": true
     },
     {
@@ -3776,7 +3897,8 @@
       "positive_rate": null,
       "positive_values": null,
       "categories": null,
-      "loinc": "3173-2",
+      "loinc": "14979-9",
+      "mirobody_loinc": "3173-2",
       "expect_resolvable": true
     },
     {
@@ -3805,7 +3927,8 @@
       "positive_rate": null,
       "positive_values": null,
       "categories": null,
-      "loinc": "21032-8",
+      "loinc": "3243-3",
+      "mirobody_loinc": "21032-8",
       "expect_resolvable": true
     },
     {
@@ -3836,7 +3959,8 @@
       "positive_rate": null,
       "positive_values": null,
       "categories": null,
-      "loinc": "97016-0",
+      "loinc": "3255-7",
+      "mirobody_loinc": "97016-0",
       "expect_resolvable": true
     },
     {
@@ -3866,7 +3990,8 @@
       "positive_rate": null,
       "positive_values": null,
       "categories": null,
-      "loinc": "71427-9",
+      "loinc": "48065-7",
+      "mirobody_loinc": "71427-9",
       "expect_resolvable": true
     },
     {
@@ -3910,6 +4035,7 @@
         ]
       ],
       "loinc": "883-9",
+      "mirobody_loinc": "883-9",
       "expect_resolvable": true
     },
     {
@@ -3944,7 +4070,8 @@
           1
         ]
       ],
-      "loinc": null,
+      "loinc": "10331-7",
+      "mirobody_loinc": null,
       "expect_resolvable": false
     },
     {
@@ -3974,6 +4101,7 @@
       "positive_values": null,
       "categories": null,
       "loinc": "14957-5",
+      "mirobody_loinc": "14957-5",
       "expect_resolvable": true
     },
     {
@@ -4002,7 +4130,8 @@
       "positive_rate": null,
       "positive_values": null,
       "categories": null,
-      "loinc": null,
+      "loinc": "9318-7",
+      "mirobody_loinc": null,
       "expect_resolvable": false
     },
     {
@@ -4033,6 +4162,7 @@
       "positive_values": null,
       "categories": null,
       "loinc": "1952-1",
+      "mirobody_loinc": "1952-1",
       "expect_resolvable": true
     },
     {
@@ -4061,7 +4191,8 @@
       "positive_rate": null,
       "positive_values": null,
       "categories": null,
-      "loinc": null,
+      "loinc": "89579-7",
+      "mirobody_loinc": null,
       "expect_resolvable": false
     },
     {
@@ -4090,7 +4221,8 @@
       "positive_rate": null,
       "positive_values": null,
       "categories": null,
-      "loinc": null,
+      "loinc": "33762-6",
+      "mirobody_loinc": null,
       "expect_resolvable": false
     },
     {
@@ -4120,7 +4252,8 @@
       "positive_rate": null,
       "positive_values": null,
       "categories": null,
-      "loinc": null,
+      "loinc": "20448-7",
+      "mirobody_loinc": null,
       "expect_resolvable": false
     },
     {
@@ -4151,12 +4284,13 @@
       "positive_values": null,
       "categories": null,
       "loinc": "1986-9",
+      "mirobody_loinc": "1986-9",
       "expect_resolvable": true
     },
     {
       "key": "ogtt2h",
       "zh": "餐后2小时血糖",
-      "en": "2-hour post-load glucose",
+      "en": "2-hour postprandial glucose",
       "abbr": "2hPG",
       "unit": "mmol/L",
       "decimals": 2,
@@ -4169,8 +4303,6 @@
       "cvg": null,
       "panel": "glucose",
       "name_variants": [
-        "OGTT 2h",
-        "糖负荷后2小时血糖",
         "餐后两小时血糖"
       ],
       "value_kind": "quantitative",
@@ -4180,7 +4312,8 @@
       "positive_rate": null,
       "positive_values": null,
       "categories": null,
-      "loinc": "1521-4",
+      "loinc": "14761-1",
+      "mirobody_loinc": "1521-4",
       "expect_resolvable": true
     },
     {
@@ -4210,6 +4343,7 @@
       "positive_values": null,
       "categories": null,
       "loinc": "8098-6",
+      "mirobody_loinc": "8098-6",
       "expect_resolvable": true
     },
     {
@@ -4240,6 +4374,7 @@
       "positive_values": null,
       "categories": null,
       "loinc": "3013-0",
+      "mirobody_loinc": "3013-0",
       "expect_resolvable": true
     },
     {
@@ -4269,6 +4404,7 @@
       "positive_values": null,
       "categories": null,
       "loinc": "11572-5",
+      "mirobody_loinc": "11572-5",
       "expect_resolvable": true
     },
     {
@@ -4297,7 +4433,8 @@
       "positive_rate": null,
       "positive_values": null,
       "categories": null,
-      "loinc": null,
+      "loinc": "5370-2",
+      "mirobody_loinc": null,
       "expect_resolvable": false
     },
     {
@@ -4327,6 +4464,7 @@
       "positive_values": null,
       "categories": null,
       "loinc": "33935-8",
+      "mirobody_loinc": "33935-8",
       "expect_resolvable": true
     },
     {
@@ -4355,7 +4493,8 @@
       "positive_rate": null,
       "positive_values": null,
       "categories": null,
-      "loinc": null,
+      "loinc": "2465-3",
+      "mirobody_loinc": null,
       "expect_resolvable": false
     },
     {
@@ -4384,7 +4523,8 @@
       "positive_rate": null,
       "positive_values": null,
       "categories": null,
-      "loinc": null,
+      "loinc": "2458-8",
+      "mirobody_loinc": null,
       "expect_resolvable": false
     },
     {
@@ -4413,7 +4553,8 @@
       "positive_rate": null,
       "positive_values": null,
       "categories": null,
-      "loinc": null,
+      "loinc": "2472-9",
+      "mirobody_loinc": null,
       "expect_resolvable": false
     },
     {
@@ -4443,6 +4584,7 @@
       "positive_values": null,
       "categories": null,
       "loinc": "4485-9",
+      "mirobody_loinc": "4485-9",
       "expect_resolvable": true
     },
     {
@@ -4472,6 +4614,7 @@
       "positive_values": null,
       "categories": null,
       "loinc": "4498-2",
+      "mirobody_loinc": "4498-2",
       "expect_resolvable": true
     },
     {
@@ -4503,6 +4646,7 @@
       "positive_values": null,
       "categories": null,
       "loinc": "1798-8",
+      "mirobody_loinc": "1798-8",
       "expect_resolvable": true
     },
     {
@@ -4533,6 +4677,7 @@
       "positive_values": null,
       "categories": null,
       "loinc": "3040-3",
+      "mirobody_loinc": "3040-3",
       "expect_resolvable": true
     },
     {
@@ -4563,6 +4708,7 @@
       "positive_values": null,
       "categories": null,
       "loinc": "2098-2",
+      "mirobody_loinc": "2098-2",
       "expect_resolvable": true
     },
     {
@@ -4593,6 +4739,7 @@
       "positive_values": null,
       "categories": null,
       "loinc": "14338-8",
+      "mirobody_loinc": "14338-8",
       "expect_resolvable": true
     },
     {
@@ -4621,7 +4768,8 @@
       "positive_rate": null,
       "positive_values": null,
       "categories": null,
-      "loinc": "43396-1",
+      "loinc": "70204-3",
+      "mirobody_loinc": "43396-1",
       "expect_resolvable": true
     },
     {
@@ -4661,6 +4809,7 @@
       ],
       "categories": null,
       "loinc": "2335-8",
+      "mirobody_loinc": "2335-8",
       "expect_resolvable": true
     },
     {
@@ -4694,7 +4843,8 @@
         ]
       ],
       "categories": null,
-      "loinc": null,
+      "loinc": "22310-7",
+      "mirobody_loinc": null,
       "expect_resolvable": false
     },
     {
@@ -4729,7 +4879,8 @@
       "positive_rate": null,
       "positive_values": null,
       "categories": null,
-      "loinc": "19869-7",
+      "loinc": "19870-5",
+      "mirobody_loinc": "19869-7",
       "expect_resolvable": true
     },
     {
@@ -4758,7 +4909,8 @@
       "positive_rate": null,
       "positive_values": null,
       "categories": null,
-      "loinc": null,
+      "loinc": "19872-1",
+      "mirobody_loinc": null,
       "expect_resolvable": false
     },
     {
@@ -4787,7 +4939,8 @@
       "positive_rate": null,
       "positive_values": null,
       "categories": null,
-      "loinc": null,
+      "loinc": "19926-5",
+      "mirobody_loinc": null,
       "expect_resolvable": false
     },
     {
@@ -4813,7 +4966,8 @@
       "positive_rate": null,
       "positive_values": null,
       "categories": null,
-      "loinc": null,
+      "loinc": "20150-9",
+      "mirobody_loinc": null,
       "expect_resolvable": false
     },
     {
@@ -4841,7 +4995,8 @@
       "positive_rate": null,
       "positive_values": null,
       "categories": null,
-      "loinc": null,
+      "loinc": "20152-5",
+      "mirobody_loinc": null,
       "expect_resolvable": false
     },
     {
@@ -4870,7 +5025,8 @@
       "positive_rate": null,
       "positive_values": null,
       "categories": null,
-      "loinc": null,
+      "loinc": "77196-4",
+      "mirobody_loinc": null,
       "expect_resolvable": false
     },
     {
@@ -4899,7 +5055,8 @@
       "positive_rate": null,
       "positive_values": null,
       "categories": null,
-      "loinc": null,
+      "loinc": "77196-4",
+      "mirobody_loinc": null,
       "expect_resolvable": false
     },
     {
@@ -4929,7 +5086,8 @@
       "positive_rate": null,
       "positive_values": null,
       "categories": null,
-      "loinc": null,
+      "loinc": "77194-9",
+      "mirobody_loinc": null,
       "expect_resolvable": false
     },
     {
@@ -4959,7 +5117,8 @@
       "positive_rate": null,
       "positive_values": null,
       "categories": null,
-      "loinc": null,
+      "loinc": "77194-9",
+      "mirobody_loinc": null,
       "expect_resolvable": false
     },
     {
@@ -4997,6 +5156,7 @@
       "positive_values": null,
       "categories": null,
       "loinc": "41982-0",
+      "mirobody_loinc": "41982-0",
       "expect_resolvable": true
     },
     {
@@ -5026,6 +5186,7 @@
       "positive_values": null,
       "categories": null,
       "loinc": null,
+      "mirobody_loinc": null,
       "expect_resolvable": false
     },
     {
@@ -5061,7 +5222,8 @@
       "positive_rate": null,
       "positive_values": null,
       "categories": null,
-      "loinc": null,
+      "loinc": "73964-9",
+      "mirobody_loinc": null,
       "expect_resolvable": false
     },
     {
@@ -5097,7 +5259,8 @@
       "positive_rate": null,
       "positive_values": null,
       "categories": null,
-      "loinc": "82259-3",
+      "loinc": "69429-9",
+      "mirobody_loinc": "82259-3",
       "expect_resolvable": true
     },
     {
@@ -5127,7 +5290,8 @@
       "positive_rate": null,
       "positive_values": null,
       "categories": null,
-      "loinc": null,
+      "loinc": "8806-2",
+      "mirobody_loinc": null,
       "expect_resolvable": false
     },
     {
@@ -5163,7 +5327,8 @@
       "positive_rate": null,
       "positive_values": null,
       "categories": null,
-      "loinc": null,
+      "loinc": "18083-6",
+      "mirobody_loinc": null,
       "expect_resolvable": false
     },
     {
@@ -5193,7 +5358,8 @@
       "positive_rate": null,
       "positive_values": null,
       "categories": null,
-      "loinc": null,
+      "loinc": "79969-2",
+      "mirobody_loinc": null,
       "expect_resolvable": false
     },
     {
@@ -5222,7 +5388,8 @@
       "positive_rate": null,
       "positive_values": null,
       "categories": null,
-      "loinc": null,
+      "loinc": "29468-6",
+      "mirobody_loinc": null,
       "expect_resolvable": false
     },
     {
@@ -5251,7 +5418,8 @@
       "positive_rate": null,
       "positive_values": null,
       "categories": null,
-      "loinc": null,
+      "loinc": "18038-0",
+      "mirobody_loinc": null,
       "expect_resolvable": false
     },
     {
@@ -5285,7 +5453,8 @@
         ]
       ],
       "categories": null,
-      "loinc": null,
+      "loinc": "77399-4",
+      "mirobody_loinc": null,
       "expect_resolvable": false
     },
     {
@@ -5318,7 +5487,8 @@
         ]
       ],
       "categories": null,
-      "loinc": null,
+      "loinc": "77400-0",
+      "mirobody_loinc": null,
       "expect_resolvable": false
     },
     {
@@ -5352,7 +5522,8 @@
         ]
       ],
       "categories": null,
-      "loinc": null,
+      "loinc": "71431-1",
+      "mirobody_loinc": null,
       "expect_resolvable": false
     },
     {
@@ -5395,7 +5566,8 @@
         ]
       ],
       "categories": null,
-      "loinc": null,
+      "loinc": "19762-4",
+      "mirobody_loinc": null,
       "expect_resolvable": false
     }
   ],

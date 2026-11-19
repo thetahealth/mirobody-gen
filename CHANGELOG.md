@@ -5,6 +5,23 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); ver
 
 ## [Unreleased]
 
+- LOINC ground truth no longer comes from the system under test. Every catalogue indicator's code is
+  now chosen from the LOINC 2.83 table by component, the property its printed unit implies and its
+  specimen (`scripts/build_indicators.py` `LOINC`), and checked against the table at build time.
+  Before, `loinc` was whatever `mirobody.engine.resolve` returned for the native name, so a resolver
+  error became the truth. Against today's resolver, 41 of 129 resolved indicators would carry another
+  code: most a mass concentration on a mol-unit result (creatinine, urate, bilirubin, glucose,
+  lipids, calcium, thyroid hormones, iron, B12, folate), some a different test outright (PSA as PSA
+  per prostate volume, CRP as a titer, thrombin time as an interpretation, FVC as its predicted
+  value), a few only a method the report does not name; the shipped catalogue also had 球蛋白 as thyroxine-binding-globulin-bound thyroxine, since
+  fixed in the resolver. `ogtt2h` is now named for what it models, glucose two hours after a meal
+  (`2-hour postprandial glucose`), without the oral glucose tolerance test names it printed before. 42 indicators the resolver could
+  not code now carry a code; one (a vendor's unitless visceral fat level) has none. The resolver's
+  answer stays in `indicators.json` as `mirobody_loinc`, beside `expect_resolvable`, and
+  `resolve-coverage` reports names it resolves to another code as miscoded (on the name alone, the
+  only input `resolve` takes). Every build's `loinc` changes accordingly: a `--surface off` build now
+  differs from `e2257e0` in those codes and, where it prints the 2-hour glucose item, in that name.
+
 - Device batches send sleep in the unit an app picks (`build --surface fuzz`): milliseconds, seconds or
   minutes as the Fitbit Web API documents them, or hours (thetahealth/mirobody#296), drawn per person
   and for some people switched once part way through the series. `devices.jsonl` records each sleep

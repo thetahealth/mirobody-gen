@@ -15,7 +15,7 @@ import random
 from . import spec
 from .document import Doc
 from .model import Person
-from .render import degrade, pdf, sheet
+from .render import degrade, layers, pdf, sheet
 
 
 def _d() -> dict:
@@ -106,6 +106,8 @@ def render_doc(doc: Doc, out_root: pathlib.Path, rel: str, habit: dict[str, floa
         delivery = choose_delivery(rng, habit, pages) if (habit and rng) else \
             {"tier": "T0", "scene": None, "severity": None, "ops": [], "container": "pdf", "annotations": []}
     if delivery["tier"] == "T0":
+        if delivery.get("background"):               # born-digital over a full-page template image
+            data = layers.with_background(data, doc.doc_id)
         path = out_root / f"{rel}.pdf"
         path.write_bytes(data)
         return path, pages, delivery
@@ -127,8 +129,18 @@ def render_doc(doc: Doc, out_root: pathlib.Path, rel: str, habit: dict[str, floa
     margins = degrade.content_margins(data, dpi)
     out_pages, ops = degrade.apply_scene(pages_img, delivery["scene"], delivery["severity"], doc.doc_id, margins)
     container = delivery["container"]
-    blob = degrade.encode(out_pages, container, doc.title)
-    ext = {"scanpdf": "pdf", "jpg": "jpg", "png": "png"}[container]
+    if container == "hybridpdf":
+        t, lang = spec.templates(), doc.family.lang_group
+        stamp = [t["page_number"][lang], t["printed_at"][lang].format(t=reported.replace("T", " "))]
+        stamp += [f"{d['label']}: {d['printed']}" for d in doc.dates[:1]]    # long enough with any short name
+        footer = "    ".join(stamp)
+        blob, live = layers.hybrid(out_pages, dpi, f"{doc.family.institution}  {doc.title}", footer, doc.title)
+        delivery = {**delivery, "live_text": live}
+    elif container == "ocrpdf":
+        blob = layers.searchable(data, out_pages, doc.title)
+    else:
+        blob = degrade.encode(out_pages, container, doc.title)
+    ext = {"scanpdf": "pdf", "hybridpdf": "pdf", "ocrpdf": "pdf", "jpg": "jpg", "png": "png"}[container]
     path = out_root / f"{rel}.{ext}"
     path.write_bytes(blob)
     delivery = {**delivery, "ops": ops, "annotations": marked, "dpi": dpi,

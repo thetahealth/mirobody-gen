@@ -81,7 +81,9 @@ the tiers it may draw, so material behind a realism number never contains a form
 shown. The forms reach the page through `document.print_name` and the manifest as `name.*` hazard classes;
 `pairs.py` takes one toggle per class from `surface.toggles()`. `sig.py` applies the same tiers to medication
 instructions: it parses a canonical instruction into its intent and respells it in a dialect drawn per plan.
-`devices.sent_units` applies them to device batches: the unit an app sends sleep in, converted from the series'
+`render/layers.py` builds PDFs whose image and text layer disagree: a scan stamped with a live header and
+footer (the text layer is long but holds no result), a searchable scan and a page over a template image; the
+pairs carry them as aligned views and the record says which needs OCR. `devices.sent_units` applies them to device batches: the unit an app sends sleep in, converted from the series'
 canonical minutes, which the truth keeps.
 
 **Continuous streams** (opt-in, `build --continuous`). `continuous.py` plans each of a person's days once

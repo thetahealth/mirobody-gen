@@ -198,6 +198,7 @@ earlier files of people rendered after them.
 | `family`, `institution`, `issuer_kind`, `language` | layout family and fictional issuer; `language` ∈ `zh-Hans` · `zh-Hant` · `en`. A handwritten notebook page has family `hand:<person_id>`, no institution and `issuer_kind` `home` |
 | `format`, `source_format` | file extension as delivered (`pdf`, `xlsx`, `csv`, `jpg`, `png`) and the family's native format (`handwriting` for a page written by hand) |
 | `tier`, `scene`, `severity`, `ops[]`, `annotations[]`, `dpi`, `image_size` | delivery: scene name, sampled operator parameters in order, values circled by pen, rasterisation dpi |
+| `pdf_layers` (optional) | a PDF whose image and text layer say different things (`render/layers.py`): `container` (`hybridpdf` · `ocrpdf` · `pdf` over a template image), `text_layer` (`furniture`: only the stamped header and footer, no result; `full`: the page's text), `text_on_image`, `needs_ocr` (true for `hybridpdf`: the results are only in the pixels, however long its text layer), `live_text[]` (the stamped strings, page by page: institution and title above, page number, print time and the first printed date below) |
 | `container_fallback` (optional) | `policy_version=all-pages-v1`, `requested` (`jpg`/`png`), `actual=scanpdf`, `reason=multiple_pages`; records an explicit image request promoted to a multi-page image PDF |
 | `page_count`, `layout` | pages; `layout` = `columns[]` (roles: `name`, `abbr`, `result`, `result_in`/`result_out` for the two-column US dialect, `reference`, `unit`, `flag`, `previous`, `category`, `note`, `method`, `lab`, `seq`), `reference_templates[]`, `flag_markers[]`, `page_count`, `languages[]` (the fingerprint input) |
 | `jitter[]`, `dates[]`, `subject{}`, `cover{}` | family drift applied to this file; printed dates (`label`, `role` ∈ `collected`·`received`·`tested`·`verified`·`reported`·`printed`, `printed`, `iso`); subject fields; cover fields of a book |
@@ -252,7 +253,10 @@ When no source department is known, their legacy sampling remains. Visibility
 still follows each document's existing subject layout.
 
 `pairs.jsonl` has the same fields plus `pair` (`pair_id`, `variant`); `variant` is `base`, a hazard
-class name, or `view:<scene>` for an aligned view. Paired records also carry
+class name, or `view:<scene>` for an aligned view. Four views keep the same scan in a PDF
+(thetahealth/mirobody#304): `view:scan_pdf` (image only; table scope), `view:hybrid_pdf` (stamped live
+header and footer around the scan), `view:searchable_pdf` (invisible exact text over the scan) and
+`view:letterhead_pdf` (the born-digital page over a template image); only the first two need OCR. Paired records also carry
 `presentation`: `policy_version` (`paired-table-v2` or `paired-checkup-v1`),
 `scope` (`table_extraction` or `checkup_document`),
 and `purpose` (`ordinary` for the clean base, `stress` for named hazards and aligned

@@ -291,6 +291,14 @@ def documents_for(rng: random.Random, person: Person, enc: Encounter, idx: int, 
     return docs
 
 
+#: Layered PDF deliveries (render/layers.py): what the text layer holds, and whether it sits on the image.
+PDF_LAYERS = {
+    "hybridpdf": {"container": "hybridpdf", "text_layer": "furniture", "text_on_image": False, "needs_ocr": True},
+    "ocrpdf": {"container": "ocrpdf", "text_layer": "full", "text_on_image": True, "needs_ocr": False},
+    "background": {"container": "pdf", "text_layer": "full", "text_on_image": True, "needs_ocr": False},
+}
+
+
 def record(doc: Doc, path: pathlib.Path, out_root: pathlib.Path, pages: int | None,
            encounters: list[Encounter], extra: dict | None = None, delivery: dict | None = None) -> dict:
     f = doc.family
@@ -349,6 +357,10 @@ def record(doc: Doc, path: pathlib.Path, out_root: pathlib.Path, pages: int | No
     }
     if delivery.get("container_fallback"):
         out["container_fallback"] = dict(delivery["container_fallback"])
+    if delivery.get("container") in PDF_LAYERS or delivery.get("background"):
+        # What the text layer holds and whether it sits on the image, so a test needs no PDF parser
+        key = "background" if delivery.get("background") else delivery["container"]
+        out["pdf_layers"] = {**PDF_LAYERS[key], "live_text": delivery.get("live_text", [])}
     eye = next((b for b in doc.blocks if b.section_id == "eye"), None)
     if doc.kind == "checkup_book" and eye is not None:
         present = {t.get("item_id") for t in eye.truth if t.get("measurements")}

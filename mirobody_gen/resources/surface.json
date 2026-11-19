@@ -8,13 +8,21 @@
     "measured": {
       "reference_documents": 347,
       "name_join_documents": {
+        "abbr_first": 2,
         "glued": 6,
         "paren": 9,
-        "abbr_first": 2,
         "spaced": 2
       },
       "name_suffix_documents": 16,
-      "name_marker_documents": 3
+      "name_marker_documents": 3,
+      "sig_word_documents": {
+        "": 3,
+        "一日": 1,
+        "一次": 1,
+        "每天": 1,
+        "每日": 1,
+        "每次": 2
+      }
     }
   },
   "_vocabulary_fields": [
@@ -39,6 +47,7 @@
     ]
   },
   "fuzz_rate": 0.5,
+  "min_support": 10,
   "panels": [
     "chemistry",
     "lipid",
@@ -131,5 +140,137 @@
         ]
       }
     ]
+  },
+  "sig": {
+    "description": "how a Chinese medication instruction spells one dosing intent; the first choice of each axis is the canonical spelling the resources are written in",
+    "axes": {
+      "day_word": {
+        "description": "the 'per day' word before a daily count",
+        "choices": [
+          {
+            "word": "每日",
+            "tier": "observed",
+            "share": 1
+          },
+          {
+            "word": "每天",
+            "tier": "observed",
+            "share": 1
+          },
+          {
+            "word": "一日",
+            "tier": "observed",
+            "share": 1
+          },
+          {
+            "word": "一天",
+            "tier": "field",
+            "share": 0,
+            "sources": [
+              "thetahealth/mirobody#302"
+            ]
+          },
+          {
+            "word": "1日",
+            "tier": "field",
+            "share": 0,
+            "sources": [
+              "thetahealth/mirobody#302"
+            ]
+          }
+        ]
+      },
+      "week_word": {
+        "description": "the 'per week' word before a weekly count",
+        "choices": [
+          {
+            "word": "每周",
+            "tier": "field",
+            "share": 0,
+            "sources": [
+              "thetahealth/mirobody#302"
+            ]
+          },
+          {
+            "word": "一周",
+            "tier": "field",
+            "share": 0,
+            "sources": [
+              "thetahealth/mirobody#302"
+            ]
+          }
+        ]
+      },
+      "every_other_day": {
+        "description": "once every two days, written whole",
+        "choices": [
+          {
+            "word": "隔日1次",
+            "tier": "field",
+            "share": 0,
+            "sources": [
+              "thetahealth/mirobody#302"
+            ]
+          },
+          {
+            "word": "隔日一次",
+            "tier": "field",
+            "share": 0,
+            "sources": [
+              "thetahealth/mirobody#302"
+            ]
+          },
+          {
+            "word": "隔一日一次",
+            "tier": "field",
+            "share": 0,
+            "sources": [
+              "thetahealth/mirobody#302"
+            ]
+          },
+          {
+            "word": "每2日1次",
+            "tier": "field",
+            "share": 0,
+            "sources": [
+              "thetahealth/mirobody#302"
+            ]
+          }
+        ]
+      },
+      "count_spacing": {
+        "description": "spaces around the count (每天 2 次)",
+        "choices": [
+          {
+            "word": "",
+            "tier": "observed",
+            "share": 3
+          },
+          {
+            "word": " ",
+            "tier": "field",
+            "share": 0,
+            "sources": [
+              "thetahealth/mirobody#302"
+            ]
+          }
+        ]
+      },
+      "dose_word": {
+        "description": "the 'per administration' word before the dose",
+        "choices": [
+          {
+            "word": "每次",
+            "tier": "observed",
+            "share": 2
+          },
+          {
+            "word": "一次",
+            "tier": "observed",
+            "share": 1
+          }
+        ]
+      }
+    }
   }
 }

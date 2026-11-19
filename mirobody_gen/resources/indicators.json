@@ -13,8 +13,8 @@
   "_note": "Reference intervals from WS/T 404.1-.8, WS/T 405 and standard clinical ranges; biological variation (CVI/CVG) from the Westgard/EFLM databases; `loinc` chosen from the LOINC 2.83 table by component, unit-implied property and specimen, and checked against it. `mirobody_loinc` and `expect_resolvable` record what mirobody.engine.resolve returned for the native name at build time: an observation of the consumer, not truth. Nothing here comes from the reference corpus.",
   "_provenance": {
     "script": "scripts/build_indicators.py",
-    "indicators": 179,
-    "loinc_reference": 178,
+    "indicators": 180,
+    "loinc_reference": 179,
     "loinc_resolved": 132,
     "loinc_resolver_disagrees": 42,
     "reference_sources": [
@@ -5795,6 +5795,36 @@
       "expect_resolvable": true
     },
     {
+      "key": "fat_mass",
+      "zh": "脂肪量",
+      "en": "Body fat mass",
+      "abbr": "FM",
+      "unit": "kg",
+      "decimals": 1,
+      "reference": null,
+      "reference_source": "由恒等式定义",
+      "cvi": null,
+      "cvg": null,
+      "panel": "body_composition",
+      "name_variants": [
+        "脂肪",
+        "体脂肪量",
+        "Fat mass"
+      ],
+      "value_kind": "quantitative",
+      "derived_from": "weight × body_fat / 100",
+      "sex_specific": null,
+      "note": "",
+      "positive_rate": null,
+      "positive_values": null,
+      "categories": null,
+      "confusable_with": [],
+      "own_baseline_stream": true,
+      "loinc": "73708-0",
+      "mirobody_loinc": null,
+      "expect_resolvable": false
+    },
+    {
       "key": "visceral_fat",
       "zh": "内脏脂肪等级",
       "en": "Visceral fat level",
@@ -6253,7 +6283,7 @@
     "hp": 1,
     "spirometry": 5,
     "arterial": 4,
-    "body_composition": 4,
+    "body_composition": 5,
     "echo": 5,
     "cervical": 4
   },

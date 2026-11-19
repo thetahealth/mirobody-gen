@@ -5,6 +5,14 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); ver
 
 ## [Unreleased]
 
+- Consumer-app screenshots (`kind: app_screenshot`, `--surface fuzz` only; thetahealth/mirobody#301). For a
+  person who weighs in at least every other day, three PNGs of one smart-scale page, with 体重, 脂肪 or 肌肉
+  selected: the chart's seven values are named only by the selected tab, and the summary card (goal,
+  starting weight, current weight, body fat, BMI) is the same on all three. Truth keeps the chart as
+  device-coded readings (new catalogue item `fat_mass`, 73708-0) and the card as `screen_context`, where a
+  goal is not a measurement and the latest weighing counts once per upload. `audit-fidelity` skips the
+  kind like genetics reports; realistic and off builds are unchanged.
+
 - Apple Health export scenarios (`build --apple-scenarios`, off by default; thetahealth/mirobody#266).
   For everyone with at least 400 days of Apple Health data: the whole series as one export, a re-import
   (an export taken three fifths of the way through, holding what had ended by then, and one at the end,

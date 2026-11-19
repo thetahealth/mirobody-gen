@@ -33,7 +33,7 @@ import re
 from dataclasses import asdict
 from datetime import date
 
-from . import book, clinical, export, genomics, genomics_report, hazards, layout, spec, surface
+from . import app_screens, book, clinical, export, genomics, genomics_report, hazards, layout, spec, surface
 from . import person as person_mod
 from .delivery import choose_delivery, render_doc, upload_habit
 from .document import Doc, build_doc, split_encounter
@@ -520,6 +520,9 @@ def render_corpus(seed: int, people: list[Person], encounters: dict[str, list[En
             records.append(record(doc, path, out_dir, pages, [Encounter(person_id=person.person_id, exam_date=first,
                                                                           exam_type="home_log", exam_location="home",
                                                                           panels=(log_kind,))], delivery=delivery))
+        if app_screens.drawn(seed, person, series):
+            records += app_screens.records(seed, person, series, person_lang(seed, person.person_id),
+                                           files_root, out_dir, banner)
         encs = encounters[person.person_id]
         export_rng = random.Random(f"export:{seed}:{person.person_id}")
         if export.eligible(encs) and export_rng.random() < 0.3:

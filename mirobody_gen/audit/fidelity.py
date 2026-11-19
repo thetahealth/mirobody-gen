@@ -104,10 +104,13 @@ def pct(values: list[int], q: float) -> int:
     return ordered[min(int(len(ordered) * q), len(ordered) - 1)] if ordered else 0
 
 
+#: Consumer pages the reference aggregates, which describe laboratory documents, say nothing about
+CONSUMER_KINDS = ("genetics_report", "app_screenshot")
+
+
 def report(records: list[dict]) -> list[str]:
-    # The reference aggregates describe laboratory documents, not consumer PGx pages.
-    skipped = sum(r.get("kind") == "genetics_report" for r in records)
-    records = [r for r in records if r.get("kind") != "genetics_report"]
+    skipped = collections.Counter(r["kind"] for r in records if r.get("kind") in CONSUMER_KINDS)
+    records = [r for r in records if r.get("kind") not in CONSUMER_KINDS]
     layout = _spec("layout.json")
     hz = _spec("hazards.json")
     numbers = json.loads((RESOURCES / "numbers.json").read_text(encoding="utf-8"))
@@ -115,7 +118,8 @@ def report(records: list[dict]) -> list[str]:
     out = [f"# Shape fidelity (synthetic {n} documents vs reference "
            f"{numbers['fingerprint']['primary']['documents']} documents)", ""]
     if skipped:
-        out.insert(1, f"Excluded {skipped} genetics_report from laboratory fidelity metrics.")
+        out.insert(1, f"Excluded {', '.join(f'{n} {k}' for k, n in sorted(skipped.items()))} "
+                      "from laboratory fidelity metrics.")
     if not records:
         return out + ["No compatible documents to audit."]
 

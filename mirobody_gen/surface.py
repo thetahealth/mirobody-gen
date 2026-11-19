@@ -13,7 +13,7 @@ provenance tier:
 
 * `off`       - none; names print exactly as they did before this layer existed;
 * `realistic` - `observed` only, at the measured rates (the default, and the only mode whose output
-  supports a realism claim);
+  supports a realism claim); an axis observed fewer than `min_support` times keeps its first choice;
 * `fuzz`      - every tier, drawn uniformly at `fuzz_rate`: material for finding a consumer's failures,
   never for realism numbers.
 
@@ -46,13 +46,23 @@ def _tiers() -> set[str]:
     return set(spec.surface()["modes"][MODE])
 
 
-def _choices(axis: str) -> list[dict]:
-    return [c for c in spec.surface()[axis]["choices"] if c["tier"] in _tiers()]
+def allowed(choices: list[dict]) -> list[dict]:
+    """The choices this mode may draw. A realistic build keeps only the first of an axis whose
+    observations add up to less than `min_support`: too few to estimate the shares from."""
+    out = [c for c in choices if c["tier"] in _tiers()]
+    if MODE == "realistic" and sum(c["share"] for c in out) < spec.surface()["min_support"]:
+        return out[:1]
+    return out
 
 
-def _pick(rng: random.Random, choices: list[dict]) -> dict:
+def pick(rng: random.Random, choices: list[dict]) -> dict:
+    """One choice: by measured share when realistic, uniformly when fuzzing."""
     weights = [1] * len(choices) if MODE == "fuzz" else [c["share"] for c in choices]
     return rng.choices(choices, weights=weights)[0]
+
+
+def _choices(axis: str) -> list[dict]:
+    return allowed(spec.surface()[axis]["choices"])
 
 
 def _rate(axis: str, level: str = "family_rate") -> float:
@@ -79,12 +89,12 @@ def draw(f: Family, rng: random.Random) -> Family:
     """One institution's naming conventions."""
     if MODE == "off" or not _varies(f):
         return f
-    join = _pick(rng, _choices("name_join"))["form"]
+    join = pick(rng, _choices("name_join"))["form"]
     affixes = {}
     for axis in ("name_suffix", "name_marker"):
         choices = _choices(axis)
         on = rng.random() < _rate(axis)
-        word = _pick(rng, choices)["word"] if choices else ""    # drawn either way: the stream stays aligned
+        word = pick(rng, choices)["word"] if choices else ""    # drawn either way: the stream stays aligned
         if on and word:
             affixes.update({axis: word, f"{axis}_share": _rate(axis, "row_rate")})
     return dataclasses.replace(f, name_join=join, **affixes)
@@ -99,7 +109,7 @@ def revised(f: Family, year: int) -> tuple[Family, list[str]]:
     rng = random.Random(f"surface-rev:{f.family_id}:v{version}")
     if rng.random() >= 0.5:
         return f, []
-    join = _pick(rng, _choices("name_join"))["form"]
+    join = pick(rng, _choices("name_join"))["form"]
     return (dataclasses.replace(f, name_join=join), ["name_join"]) if join != f.name_join else (f, [])
 
 

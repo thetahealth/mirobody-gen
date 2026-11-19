@@ -171,6 +171,14 @@ def main(argv: list[str] | None = None) -> None:
             n_groups = len({r["pair"]["pair_id"] for r in records})
             print(f"{n_groups} pair groups ({args.pair_scope or 'tables'}, {args.pair_views or 'all'} views), "
                   f"{len(records)} files → {out_dir / 'pairs'}")
+            if args.surface != "off":
+                from . import sig
+
+                rows = sig.pairs()
+                (out_dir / "sig_pairs.jsonl").write_text(
+                    "".join(json.dumps(r, ensure_ascii=False) + "\n" for r in rows), encoding="utf-8")
+                print(f"{len({r['pair_id'] for r in rows})} instruction pair groups, {len(rows)} spellings "
+                      f"(sig_pairs.jsonl)")
 
     if args.verify:
         import sys

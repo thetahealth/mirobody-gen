@@ -7,6 +7,9 @@ scripted intervention event into a first-line drug and starting dose (`resources
 `medication_plans`, hand-authored in `scripts/build_cohort.py`), plus an optional short prn course
 during a random infection incident.
 
+Instructions are written canonically (每日2次，每次500mg); `sig.py` respells each plan in a dialect
+drawn under `--surface` and adds the intent behind it (`timing`, `slots_per_day`, `dose_per_slot`).
+
 A plan's `start` is always its triggering event's own start date, and its drug name matches the one
 `scripts/build_profile.py`'s clinic-note narrative already says the person is "currently taking" --
 two sources naming two different drugs for the same archetype is exactly the kind of inconsistency
@@ -20,7 +23,7 @@ import pathlib
 import random
 from datetime import timedelta
 
-from . import spec
+from . import sig, spec
 from .model import Person
 
 _PLANS: dict[str, dict] = spec.cohort()["medication_plans"]
@@ -86,6 +89,12 @@ def plans_for(person: Person, seed: int) -> list[dict]:
     plans.sort(key=lambda plan: (plan["start"], plan["reason_event"]))
     for n, plan in enumerate(plans, start=1):
         plan["plan_id"] = f"{person.person_id}-m{n}"
+        # One prescriber writes one plan in one dialect, its later changes included.
+        form = sig.draw(random.Random(f"sig:{seed}:{person.person_id}:{plan['reason_event']}:{plan['start']}"))
+        if form:
+            for entry in plan["changes"]:
+                sig.spell(entry, form)
+            plan["sig_form"] = sig.spell(plan, form)
     return plans
 
 

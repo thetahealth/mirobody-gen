@@ -28,7 +28,8 @@ def _cohort():
 
 def test_schema_of_every_plan():
     required = {"plan_id", "generic", "name_zh", "name_en", "strength", "route", "frequency",
-                "dose_text_zh", "dose_text_en", "start", "end", "reason_event", "changes"}
+                "dose_text_zh", "dose_text_en", "start", "end", "reason_event", "changes",
+                "timing", "slots_per_day", "dose_per_slot", "sig_form"}       # the last four: sig.py
     seen_any = False
     for p in _cohort():
         for i, plan in enumerate(medications.plans_for(p, SEED), start=1):

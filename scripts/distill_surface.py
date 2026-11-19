@@ -8,6 +8,11 @@ leave this script: how many Simplified Chinese documents join a native name and 
 how many append an assay word or a trailing marker, and how many rows those documents mark. No name,
 value or fragment is written anywhere.
 
+Medication-instruction spellings (the `sig` axes) are counted only inside complete instructions found
+in a reference document's analysis text, a frequency next to a dose with its unit (每日2次，每次1片, in
+either order), so that "每日监测血糖3次" counts for nothing: in how many documents each word occurs
+in one, and in how many a count stands unspaced.
+
 A join is counted only when both halves are catalogue vocabulary (a native name or Chinese variant,
 and an abbreviation or Latin variant). This undercounts - a report's "白细胞计数" is not the
 catalogue's "白细胞" - but it never mistakes a name that contains Latin letters (IgM, 维生素B12) for
@@ -74,7 +79,26 @@ def measure_affix(docs: list[list[str]], words: list[str]) -> dict:
     total = sum(rows.values())
     return {"family_rate": round(hit_docs / len(docs), 4),
             "row_rate": round(total / rows_in_hit_docs, 4) if rows_in_hit_docs else 0.0,
-            "documents": hit_docs, "rows": dict(rows)}
+            "documents": hit_docs, "rows": dict(sorted(rows.items()))}
+
+
+COUNT = r"[0-9一二三四两半]+"
+UNIT = r"(?:mg|g|毫克|克|微克|μg|ug|片|粒|袋|丸|支|ml|mL|毫升|单位|IU)"
+FREQUENCY = rf"(?P<per>每日|每天|一日|一天|1日|每周|一周)(?P<space1>\s*){COUNT}(?P<space2>\s*)次"
+DOSE = rf"(?P<dose>每次|一次)\s*{COUNT}\s*{UNIT}"
+INSTRUCTIONS = [re.compile(rf"{FREQUENCY}[，,；;\s]*{DOSE}"), re.compile(rf"{DOSE}[，,；;\s]*{FREQUENCY}")]
+
+
+def measure_sig(analysis: pathlib.Path) -> dict[str, int]:
+    """Documents whose complete instructions use each sig word; '' counts unspaced counts."""
+    docs = collections.Counter()
+    for path in sorted(analysis.glob("*.json")):
+        text = json.dumps(json.loads(path.read_text(encoding="utf-8")).get("analysis"), ensure_ascii=False)
+        words = set()
+        for m in (m for p in INSTRUCTIONS for m in p.finditer(text)):
+            words |= {m["per"], m["dose"], " " if m["space1"] or m["space2"] else ""}
+        docs.update(words)
+    return dict(sorted(docs.items()))
 
 
 def measure(analysis: pathlib.Path) -> dict:
@@ -89,9 +113,10 @@ def measure(analysis: pathlib.Path) -> dict:
                 if m and m["native"] in natives and m["abbr"].upper() in abbrs:
                     forms.add(form)
         joins.update(forms)
-    return {"documents": len(docs), "name_join": dict(joins),
+    return {"documents": len(docs), "name_join": dict(sorted(joins.items())),
             "name_suffix": measure_affix(docs, ["测定", "检测"]),
-            "name_marker": measure_affix(docs, ["#", "＃", "*", "＊", "†"])}
+            "name_marker": measure_affix(docs, ["#", "＃", "*", "＊", "†"]),
+            "sig": measure_sig(analysis)}
 
 
 def apply(payload: dict, m: dict) -> dict:
@@ -105,10 +130,15 @@ def apply(payload: dict, m: dict) -> dict:
         for choice in spec["choices"]:
             if choice["tier"] == "observed":
                 choice["share"] = got["rows"].get(choice["word"], 0)
+    for axis in payload["sig"]["axes"].values():
+        for choice in axis["choices"]:
+            if choice["tier"] == "observed":
+                choice["share"] = m["sig"].get(choice["word"], 0)
     payload["_provenance"]["measured"] = {"reference_documents": m["documents"],
                                           "name_join_documents": m["name_join"],
                                           "name_suffix_documents": m["name_suffix"]["documents"],
-                                          "name_marker_documents": m["name_marker"]["documents"]}
+                                          "name_marker_documents": m["name_marker"]["documents"],
+                                          "sig_word_documents": m["sig"]}
     return payload
 
 

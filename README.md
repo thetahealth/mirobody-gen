@@ -144,7 +144,7 @@ before it became the default (commit `9723605` and earlier, without `--clinical`
 printed the since-removed name variant `空腹血糖(HK)`. `--clinical` is still accepted and changes
 nothing, so recipes pinned with it build the same bytes.
 
-## How names and instructions are written
+## Written forms: names, instructions, device units
 
 ```bash
 mirobody-gen build --seed 7 --out out/p3 --render                    # --surface realistic (default)
@@ -170,6 +170,11 @@ Medication instructions follow the same tiers (`mirobody_gen/sig.py`): each plan
 few complete instructions to estimate shares (under `min_support`), so `realistic` keeps the canonical
 spelling; `fuzz` draws `每天`, `一日`, `一天`, `1日`, `一次` and spaced counts. `--pairs` also writes `sig_pairs.jsonl`, one
 single-axis variant per spelling, including weekly and every-other-day schedules.
+
+Device batches use the same switch: under `fuzz` a person's app sends sleep in milliseconds, seconds or
+minutes (as the Fitbit Web API documents them) or hours (a field report), sometimes switching unit part way
+through the series,
+and `devices.jsonl` keeps each night's canonical minutes beside what was sent.
 
 ## Handwriting
 

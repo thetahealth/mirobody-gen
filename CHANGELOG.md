@@ -5,6 +5,12 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); ver
 
 ## [Unreleased]
 
+- Device batches send sleep in the unit an app picks (`build --surface fuzz`): milliseconds, seconds or
+  minutes as the Fitbit Web API documents them, or hours (thetahealth/mirobody#296), drawn per person
+  and for some people switched once part way through the series. `devices.jsonl` records each sleep
+  record's `canonical` minutes beside the value sent; `realistic` sends minutes as before and adds only
+  `canonical`; `--surface off` is unchanged.
+
 - Medication instructions are spelled through the expression layer (`mirobody_gen/sig.py`). Each plan's
   canonical instruction (`每日2次，每次500mg`) is parsed into its intent and respelled in one dialect
   drawn per plan under `--surface fuzz`: spellings seen in the reference set (`每天`, `一日`, `一次`) and

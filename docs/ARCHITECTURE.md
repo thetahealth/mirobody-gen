@@ -81,6 +81,8 @@ the tiers it may draw, so material behind a realism number never contains a form
 shown. The forms reach the page through `document.print_name` and the manifest as `name.*` hazard classes;
 `pairs.py` takes one toggle per class from `surface.toggles()`. `sig.py` applies the same tiers to medication
 instructions: it parses a canonical instruction into its intent and respells it in a dialect drawn per plan.
+`devices.sent_units` applies them to device batches: the unit an app sends sleep in, converted from the series'
+canonical minutes, which the truth keeps.
 
 **Continuous streams** (opt-in, `build --continuous`). `continuous.py` plans each of a person's days once
 (sleep from the store's sleep record, meals, a run, walking bouts that add up to the store's step count) and

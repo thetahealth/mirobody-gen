@@ -28,7 +28,7 @@ import pathlib
 import random
 from datetime import datetime, timedelta
 
-from . import physiology
+from . import physiology, spec, surface
 from .model import Person
 from .person import CORPUS_END
 
@@ -168,6 +168,28 @@ def _rec(metric: str, fields: dict, value, stamp: str) -> dict:
     return {"indicator": field, "value": value, "unit": unit, "time": stamp, "_metric": metric}
 
 
+def sent_units(records: list[dict], rng: random.Random) -> list[dict]:
+    """The records as the person's app sends them. Under `--surface fuzz`, a metric listed in
+    `surface.json` `device_units` (sleep) goes out in a unit drawn per person, and with `drift_rate`
+    switches to another unit part way through the series (an app update, a new app); values are
+    converted from the canonical unit, which each such record keeps as `_canonical`. Other modes send
+    the canonical unit; `off` adds nothing."""
+    if surface.MODE == "off":
+        return records
+    out = [dict(r) for r in records]
+    for metric, axis in spec.surface()["device_units"].items():
+        canonical, choices = axis["choices"][0], surface.allowed(axis["choices"])
+        mine = [r for r in out if r["_metric"] == metric]
+        units = [surface.pick(rng, choices), surface.pick(rng, choices)] if choices else [canonical] * 2
+        switch = rng.randrange(1, len(mine)) if len(mine) > 1 and rng.random() < axis["drift_rate"] else len(mine)
+        for i, r in enumerate(mine):
+            unit = units[i >= switch]
+            r["_canonical"] = {"value": r["value"], "unit": canonical["unit"]}
+            value = r["value"] * unit["per_minute"] / canonical["per_minute"]
+            r.update(value=round(value, 2) if unit["per_minute"] < 1 else int(round(value)), unit=unit["unit"])
+    return out
+
+
 def write_all(out_dir: pathlib.Path, people: list[Person], seed: int, langs: dict[str, str]) -> int:
     """One to several batch files per person (<=500 records, ready to POST), plus `devices.jsonl` truth."""
     root = out_dir / "devices"
@@ -176,7 +198,7 @@ def write_all(out_dir: pathlib.Path, people: list[Person], seed: int, langs: dic
     with (out_dir / "devices.jsonl").open("w", encoding="utf-8") as fh:
         for person in people:
             s = series_for(person, seed, langs.get(person.person_id, "zh"))
-            recs = s["records"]
+            recs = sent_units(s["records"], random.Random(f"device-unit:{seed}:{person.person_id}"))
             if not recs:
                 continue
             files = []
@@ -190,7 +212,8 @@ def write_all(out_dir: pathlib.Path, people: list[Person], seed: int, langs: dic
                 files.append(str(path.relative_to(out_dir)))
             total += len(recs)
             truth = [{"indicator": r["indicator"], "metric": r["_metric"], "loinc": LOINC[r["_metric"]],
-                      "value": r["value"], "unit": r["unit"], "time": r["time"]} for r in recs]
+                      "value": r["value"], "unit": r["unit"], "time": r["time"],
+                      **({"canonical": r["_canonical"]} if "_canonical" in r else {})} for r in recs]
             fh.write(json.dumps({"person_id": person.person_id, "synthetic": True, "vendor": s["vendor"],
                                  "pulse_model": s["pulse_model"],
                                  "source": s["source"], "files": files, "habits": s["habits"],

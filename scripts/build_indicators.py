@@ -156,7 +156,7 @@ REFERENCE_SOURCES: dict[str, str] = {
     "fobt": LABMANUAL, "hp_ab": VENDOR,
     "fvc": ATS, "fvc_pct": ATS, "fev1": ATS, "fev1_fvc": GOLD, "fev1_pct": ATS,
     "bapwv_l": PWV, "bapwv_r": PWV, "abi_l": PWV, "abi_r": PWV,
-    "body_fat": VENDOR, "visceral_fat": VENDOR, "muscle_mass": VENDOR, "bmr": VENDOR,
+    "body_fat": VENDOR, "fat_mass": DERIVED, "visceral_fat": VENDOR, "muscle_mass": VENDOR, "bmr": VENDOR,
     "lvef": ECHO, "lvedd": ECHO, "ivs": ECHO, "la": ECHO, "ea": ECHO,
     "hpv16": VENDOR, "hpv18": VENDOR, "hpv_other": VENDOR, "tct": TBS,
 }
@@ -237,7 +237,7 @@ LOINC: dict[str, str | None] = {
     # arterial
     "bapwv_l": "77196-4", "bapwv_r": "77196-4", "abi_l": "77194-9", "abi_r": "77194-9",
     # body_composition
-    "body_fat": "41982-0", "visceral_fat": None, "muscle_mass": "73964-9", "bmr": "69429-9",
+    "body_fat": "41982-0", "fat_mass": "73708-0", "visceral_fat": None, "muscle_mass": "73964-9", "bmr": "69429-9",
     # echo
     "lvef": "8806-2", "lvedd": "18083-6", "ivs": "79969-2", "la": "29468-6", "ea": "18038-0",
     # cervical
@@ -755,6 +755,9 @@ add("abi_r", "右侧踝臂指数", "ABI (right)", "ABI-R", "", 2, ("range", 0.9,
 # Body composition (bioelectrical impedance)
 add("body_fat", "体脂率", "Body fat percentage", "PBF", "%", 1, ("range_sex", (10.0, 20.0), (18.0, 28.0)), COMMON, 3.0, 20.0, "body_composition",
     variants=("体脂百分比", "身體脂肪百分比", "Body Fat"))
+# What a smart-scale app charts under its 脂肪 tab: body weight times the fat percentage, in kg
+add("fat_mass", "脂肪量", "Body fat mass", "FM", "kg", 1, None, COMMON, None, None, "body_composition",
+    variants=("脂肪", "体脂肪量", "Fat mass"), derived="weight × body_fat / 100", own_stream=True)
 add("visceral_fat", "内脏脂肪等级", "Visceral fat level", "VFL", "", 0, ("upper", 9), COMMON, 5.0, 30.0, "body_composition",
     variants=("内脏脂肪指数", "VFA level"))
 add("muscle_mass", "骨骼肌量", "Skeletal muscle mass", "SMM", "kg", 1, ("range_sex", (28.0, 45.0), (18.0, 30.0)), COMMON, 2.0, 12.0, "body_composition",

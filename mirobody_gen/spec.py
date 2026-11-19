@@ -114,6 +114,11 @@ def surface() -> dict:
     return _load("surface.json")
 
 
+def app_screens() -> dict:
+    """The smart-scale app page `app_screens.py` draws: tabs, titles, summary-card labels."""
+    return _load("app_screens.json")
+
+
 def handwriting() -> dict:
     """What a hand may write, the writing tiers, inks and paper. See `scripts/build_handwriting.py`."""
     return _load("handwriting.json")

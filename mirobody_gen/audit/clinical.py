@@ -136,7 +136,7 @@ HARD_LIMITS: dict[str, tuple[float, float]] = {
     "insulin": (0.5, 400), "cpep": (0.1, 30), "ogtt2h": (1.5, 40), "b2mg": (0.3, 30),
     "fvc": (0.8, 8), "fvc_pct": (20, 160), "fev1_fvc": (20, 100), "fev1": (0.4, 7), "fev1_pct": (10, 160),
     "bapwv_l": (600, 3500), "bapwv_r": (600, 3500), "abi_l": (0.3, 1.8), "abi_r": (0.3, 1.8),
-    "body_fat": (3, 60), "visceral_fat": (1, 30), "muscle_mass": (10, 70), "bmr": (700, 3000),
+    "body_fat": (3, 60), "fat_mass": (1, 150), "visceral_fat": (1, 30), "muscle_mass": (10, 70), "bmr": (700, 3000),
     "lvef": (15, 85), "lvedd": (30, 80), "ivs": (4, 25), "la": (20, 70), "ea": (0.3, 4),
     "pg1": (5, 600), "pg2": (1, 120), "pgr": (0.5, 40), "fpsa_ratio": (0.02, 1.0),
     "rdw_sd": (20, 120), "procalcitonin": (0, 1000), "rv5": (0, 6), "sv1": (0, 5),

@@ -783,6 +783,17 @@ FINDINGS = {
         "summary": {"zh": "骨质疏松", "en": "Osteoporosis"}, "advice": "bone",
         "rate": {"base": 0.02, "age": 0.008, "sex": {"female": 2.0, "male": 0.6}},
     },
+    # One sentence and one impression for both kidneys: an extractor must keep it as one finding. Last in
+    # this table, so each person's earlier findings keep their draws.
+    "kidney_crystals": {
+        "where": ("abd_us", "kidneys"), "sticky": True, "bilateral": True,
+        "finding": {"zh": "双肾集合系统内见多个点状强回声，后方无明显声影。",
+                    "en": "Multiple punctate echogenic foci without acoustic shadowing in both renal collecting systems."},
+        "impression": {"zh": "双肾结晶", "en": "Bilateral renal crystals"},
+        "surface": "肾结晶", "icpc3": None,
+        "summary": {"zh": "双肾结晶", "en": "Renal crystals"}, "advice": "kidney_crystals",
+        "rate": {"base": 0.03, "age": 0.001, "sex": {"male": 1.3, "female": 0.8}},
+    },
 }
 
 #: Overall recommendation templates. `{items}` gets replaced with the names of the abnormal items.
@@ -793,6 +804,8 @@ ADVICE = {
                     "en": "Cyst: usually benign; annual ultrasound follow-up is sufficient."},
     "gb_polyp": {"zh": "胆囊息肉样病变：建议每 6–12 个月复查超声，若增大或直径超过 10mm 请至肝胆外科就诊。",
                  "en": "Gallbladder polyp: ultrasound every 6–12 months; consult hepatobiliary surgery if it grows or exceeds 10 mm."},
+    "kidney_crystals": {"zh": "双肾结晶：建议多饮水，少食高草酸、高嘌呤食物，定期复查泌尿系超声。",
+                        "en": "Renal crystals: drink plenty of water, limit high-oxalate and high-purine foods, and repeat a urinary ultrasound."},
     "gb_stone": {"zh": "胆囊结石：建议低脂饮食，规律进食早餐，定期复查；如出现右上腹痛请及时就诊。",
                  "en": "Gallstones: low-fat diet, regular meals, periodic review; seek care for right upper quadrant pain."},
     "kidney_stone": {"zh": "肾结石：建议多饮水，适当运动，定期复查泌尿系超声；如出现腰痛、血尿请及时就诊。",

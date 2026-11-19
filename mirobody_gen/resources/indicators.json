@@ -1676,7 +1676,7 @@
       "confusable_with": [
         {
           "abbr": "Cre",
-          "note": "also names a carbapenem-resistant Enterobacterales (CRE) screening culture, a microbiology result (thetahealth/mirobody#306)"
+          "note": "a resolver once read it as a CRE culture screen, not creatinine (thetahealth/mirobody#306)"
         }
       ],
       "own_baseline_stream": false,

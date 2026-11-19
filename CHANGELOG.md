@@ -5,6 +5,15 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); ver
 
 ## [Unreleased]
 
+- Exam shapes from thetahealth/mirobody#281. Every printed row records `section`, the nearest printed
+  heading over it (table caption, block title or document title), so a test can check that an
+  extractor fills the row's panel from the page (RV5 under `心电图报告`). Block truth records
+  `value_kind`: a number from a reading or an eye measurement is `measurement`; a sentence (a dental
+  finding, an impression) is `narrative`, to be stored as a finding even under a physiological exam. A new
+  ultrasound finding, `kidney_crystals` (双肾结晶), describes both kidneys in one sentence and one
+  impression, and its truth says `bilateral`; it is drawn last, so every person's other findings are
+  unchanged.
+
 - Laboratories print in their own unit system. Each institution draws SI or conventional units at the
   shares measured on the reference set per language (5 of 79 Chinese and 10 of 16 English documents
   print these analytes in mg/dL); a conventional row converts glucose, lipids, creatinine, urate,

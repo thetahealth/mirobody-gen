@@ -163,6 +163,7 @@ def section_blocks(rng: random.Random, doc: Doc, person: Person, enc: Encounter,
             abnormal = False
             fid = None
             measurements = None
+            numeric = False
             if item["id"] == "history":
                 # Retain the old layout RNG draw count, but never interpret
                 # latent archetype/treatment timing as diagnostic evidence.
@@ -178,6 +179,7 @@ def section_blocks(rng: random.Random, doc: Doc, person: Person, enc: Encounter,
             elif item.get("from_reading"):
                 r = readings.get(item["from_reading"])
                 value = f"{r.value}{r.unit}" if r else normal_word
+                numeric = r is not None
             elif item.get("kind") == "acuity":
                 low = finding is not None and finding.id in ("myopia",)
                 if item["id"] == "va_corrected":
@@ -207,8 +209,10 @@ def section_blocks(rng: random.Random, doc: Doc, person: Person, enc: Encounter,
                 # only print their own normal value
                 value = rng.choice(pool) if pool and (item.get("own_normal") or rng.random() < 0.7) else normal_word
             rows.append((label, value))
+            # A sentence-valued row is a finding, not a measurement, whatever its detection method
             entry = {"label": label, "value": value, "abnormal": abnormal, "finding": fid,
-                     "detection_method": "Physiological"}
+                     "detection_method": "Physiological",
+                     "value_kind": "measurement" if numeric or measurements is not None else "narrative"}
             if item["id"] == "history":
                 entry.update(history_status="documented" if known_conditions else "not_documented",
                              knowledge_as_of=enc.exam_date.isoformat())
@@ -383,7 +387,7 @@ def aux_blocks(rng: random.Random, doc: Doc, person: Person, enc: Encounter, f: 
                 rows.append((name, text))
                 p_index = len(doc.printed)
                 doc.printed.append(PrintedRow(item_name=name, item_value=print_value(r.value, f), item_unit=r.unit, item_range=ref,
-                                              is_abnormal="1" if r.status != "normal" else "0"))
+                                              is_abnormal="1" if r.status != "normal" else "0", section=aux[lang]))
                 doc.printed[p_index].readings.append(len(doc.readings))
                 doc.readings.append(DocReading(key=key, loinc=r.loinc, canonical_value=r.canonical_value, value_text=r.value,
                                                unit_ucum=r.unit_ucum, value_kind=r.value_kind, status=r.status,
@@ -419,6 +423,8 @@ def aux_blocks(rng: random.Random, doc: Doc, person: Person, enc: Encounter, f: 
             rows.append((labels["impression"], imp))
             truth.append({"label": labels["impression"], "value": imp, "abnormal": bool(x), "finding": x.id if x else None,
                           "detection_method": "laboratory"})
+        for entry in truth:
+            entry["value_kind"] = "narrative"                 # impressions are sentences
         blocks.append(Block(kind="narrative", title=aux[lang], rows=rows, truth=truth, image=image,
                             image_size=size, section_id=aid))
     return blocks
@@ -605,6 +611,7 @@ def _finding_truth(x: Finding, lang: str) -> dict:
     fdef = _n()["findings"][x.id]
     return {"id": x.id, "where": x.where, "item": x.item, "surface": x.surface, "icpc3": x.icpc3,
             "expect": "coded" if x.icpc3 else "no-match", "severity": x.severity,
+            "bilateral": bool(fdef.get("bilateral")),
             "summary": _fill(fdef["summary"][lang], x.params), "since": x.since.isoformat() if x.since else None}
 
 

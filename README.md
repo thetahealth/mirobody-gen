@@ -139,12 +139,10 @@ kidneys and both thyroid lobes, and no H. pylori antibody beside a breath test; 
 coherently. These are presentation rules (`mirobody_gen/clinical*.py`), not validated clinical facts. A
 build records `"clinical_profile": true` in `generation.json`.
 
-`--no-clinical` turns the profile off and, with `--surface off`, reproduces byte for byte a build made
-before it became the default (commit `9723605` and earlier, without `--clinical`). Three things differ:
-readings' `loinc`, now taken from the LOINC table; the 2-hour glucose item's name, now postprandial
-rather than an OGTT name; and a page where a template had printed the since-removed name variant
-`空腹血糖(HK)`. `--clinical` is still accepted and changes
-nothing, so recipes pinned with it build the same bytes.
+`--no-clinical` turns the profile off (`--surface off` likewise turns off the expression layer). Builds
+of later versions also differ by the catalogue and truth changes in [CHANGELOG.md](CHANGELOG.md); to
+reproduce a build made before the profile became the default, build commit `9723605` without
+`--clinical`. `--clinical` is still accepted and changes nothing.
 
 ## Written forms: names, instructions, device units
 

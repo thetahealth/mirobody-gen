@@ -90,6 +90,9 @@ class PrintedRow:
     unreadable_fields: list[str] = field(default_factory=list)
     hazards: list[str] = field(default_factory=list)
     table: int = 0
+    #: The nearest printed heading over the row: its table's caption or block title (the record falls
+    #: back to the document title), what an extractor should carry as the row's panel.
+    section: str = ""
 
 
 @dataclass
@@ -518,6 +521,9 @@ def build_doc(rng: random.Random, doc_id: str, person: Person, encounter: Encoun
         if f.bilingual_header:
             headers.append([f.header_en.get(c, c) for c in f.columns])
         caption = panel_title(tgroups[0], en) if split_tables else ""
+        for row in rows:
+            if row.printed is not None:
+                doc.printed[row.printed].section = caption
         doc.tables.append(Table(columns=list(f.columns), headers=headers, rows=rows, caption=caption))
 
     if f.subject_in_table and doc.tables:

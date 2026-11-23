@@ -320,9 +320,16 @@ the public tree — ask if you need it).
   (which document-OCR model, printed pages at seed 7 and a `--handwriting` build at seed 42). The
   corpus is not otherwise loaded by mirobody: there is no import of a build directory, and
   `vendor_signals/` payloads are fed to its decoder test-suite shapes by hand.
-- The catalogue covers 172 indicators (153 quantitative, 17 qualitative, 2 categorical), 52 order
+- The catalogue covers 180 indicators (158 quantitative, 20 qualitative, 2 categorical), 52 order
   groups, 5 package tiers, 7 departments, 17 auxiliary examinations and 55 named findings; every
   reference interval cites a public standard or guideline.
+- What mirobody makes of a build is measured, not assumed. The catalogue records which mirobody its
+  `expect_resolvable` was observed against (`_provenance.resolver`, now 1.6.2), and
+  `resolve-coverage` reports the names that drift from it. `consumer-check out/fuzz`, run with
+  mirobody's interpreter, puts a build's stress material through mirobody itself: every printed name
+  through the resolver, per `name.*` class and with the names it reads as another analyte listed;
+  every `sig_pairs.jsonl` spelling through its dose-instruction parser; every PDF layer view through
+  its OCR decision.
 - The benchmark positioning — provisionally **ESL-Doc**, composed with ESL-Bench — is worked out in
   a Chinese working article kept out of the public tree. The generator keeps this repository's
   name whatever the benchmark ends up called.

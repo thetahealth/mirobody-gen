@@ -20,6 +20,7 @@ COMMANDS: dict[str, tuple[str, str]] = {
     "baselines": ("mirobody_gen.harness.baselines", "Rule-based and oracle baselines"),
     "medrep-view": ("mirobody_gen.harness.medrep_view", "Export labels in the MedRepBench format"),
     "resolve-coverage": ("mirobody_gen.harness.resolve_coverage", "Vocabulary coverage of the printed names (needs mirobody)"),
+    "consumer-check": ("mirobody_gen.harness.consumer_check", "Run a build's stress material through mirobody itself (needs mirobody)"),
     "synthea-check": ("mirobody_gen.harness.synthea_check", "Consistency checks over FHIR bundles (for PySynthea)"),
     "llm-panel": ("mirobody_gen.harness.llm_panel", "Multi-model cross-annotation panel (not a gate)"),
     "review-scenarios": ("mirobody_gen.harness.scenario_review", "Offline scenario checks; optional evidence-grounded LLM critic"),

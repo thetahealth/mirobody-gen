@@ -30,6 +30,11 @@
 !/docs/
 /docs/*
 !/docs/*.md
+# The README banner: two drawn SVGs (scripts/draw_banner.py), never a document image.
+!/docs/assets/
+/docs/assets/*
+!/docs/assets/banner-light.svg
+!/docs/assets/banner-dark.svg
 
 # ── Never tracked, even if the allow-list above is widened ────────
 # Local reference material, its derivatives, caches and generated corpora.

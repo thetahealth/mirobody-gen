@@ -51,6 +51,7 @@ mirobody_gen = ["resources/*.json", "harness/review/*.html", "render/fonts/*.ttf
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = "-q"
+markers = ["shipped_generated_tier: see the shipped resources/surface_generated.json (tests/conftest.py hides it otherwise)"]
 
 [tool.ruff]
 line-length = 120

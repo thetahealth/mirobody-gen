@@ -1,0 +1,5790 @@
+{
+ "_source": "llm-propose",
+ "_note": "Written forms proposed by a language model and accepted by mirobody_gen/llm/propose.py: the `generated` tier of surface.json's axes, drawn only by --surface fuzz builds. Untrusted text: not vocabulary, scanned by the privacy gate as is.",
+ "_vocabulary_fields": [],
+ "_provenance": {
+  "script": "mirobody_gen/llm/propose.py",
+  "runs": [
+   {
+    "axis": "synonym",
+    "models": [
+     "deepseek/deepseek-v4-flash",
+     "openai/gpt-6-luna"
+    ],
+    "judge": "anthropic/claude-haiku-4.5",
+    "date": "2026-11-24",
+    "prompt_version": "2026-11-24.2",
+    "requests": 25,
+    "accepted": 235,
+    "judge_dropped": 30,
+    "replay_screened": true,
+    "rejected": {
+     "adds Latin letters": 41,
+     "already a spelling of this indicator": 76,
+     "adds a digit": 8,
+     "adds the specimen 尿": 8,
+     "not a Chinese name of 2-20 characters": 3,
+     "adds 比值": 3,
+     "adds 百分率": 2,
+     "adds 比率": 3,
+     "adds 计数": 5,
+     "adds 百分比": 3,
+     "adds the specimen 粪": 2,
+     "replay hit": 1
+    }
+   },
+   {
+    "axis": "abbr",
+    "models": [
+     "deepseek/deepseek-v4-flash",
+     "openai/gpt-6-luna"
+    ],
+    "judge": "anthropic/claude-haiku-4.5",
+    "date": "2026-11-24",
+    "prompt_version": "2026-11-24.2",
+    "requests": 25,
+    "accepted": 274,
+    "judge_dropped": 53,
+    "replay_screened": true,
+    "rejected": {
+     "already a spelling of this indicator": 64,
+     "not an abbreviation of 2-16 letters, digits and marks": 12
+    }
+   }
+  ]
+ },
+ "axes": {
+  "abbr_variants": {
+   "abi_l": [
+    {
+     "word": "ABI (L)",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "abi_r": [
+    {
+     "word": "ABI (R)",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "abo": [
+    {
+     "word": "ABO group",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "ABO grouping",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "ABO grp",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "ABO typing",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "ag_ratio": [
+    {
+     "word": "AGR",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "alp": [
+    {
+     "word": "ALKP",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "alt": [
+    {
+     "word": "ALAT",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "SGPT",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "amy": [
+    {
+     "word": "AMYL",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "apoa1": [
+    {
+     "word": "APO-A1",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "apob": [
+    {
+     "word": "APO-B",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "Apo B-100",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "aptt": [
+    {
+     "word": "PTT",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "aso": [
+    {
+     "word": "ASL-O",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "ASLO",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "ast": [
+    {
+     "word": "ASAT",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "SGOT",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "b12": [
+    {
+     "word": "B-12",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "B12",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "Cbl",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "b2mg": [
+    {
+     "word": "B2M",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "B2MG",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "β2M",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "β2MG",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "bapwv_l": [
+    {
+     "word": "baPWV (L)",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "bapwv_r": [
+    {
+     "word": "baPWV (R)",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "baso_abs": [
+    {
+     "word": "BA#",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "BAS#",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "Bas#",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "baso_pct": [
+    {
+     "word": "BA%",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "BAS%",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "Bas%",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "body_fat": [
+    {
+     "word": "BF%",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "BFP",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "FAT%",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "Fat%",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "ca125": [
+    {
+     "word": "CA125II",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "ca153": [
+    {
+     "word": "CA15-3II",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "ca199": [
+    {
+     "word": "CA19.9",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "ca724": [
+    {
+     "word": "CA72.4",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "ccp": [
+    {
+     "word": "CCP",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "CCP Ab",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "CCP-Ab",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "che": [
+    {
+     "word": "BCHE",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "PChE",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "chol": [
+    {
+     "word": "T-CHO",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "TCH",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "TCHO",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "Total Chol",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "ckmb": [
+    {
+     "word": "CK2",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "CKMB",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "cpep": [
+    {
+     "word": "C-Pep",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "CP",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "CPEP",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "Cpep",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "crea": [
+    {
+     "word": "CREAT",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "cysc": [
+    {
+     "word": "Cys-C",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "Cyst C",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "dbil": [
+    {
+     "word": "BIL-D",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "BILD",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "D-BILI",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "DBILI",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "dbp": [
+    {
+     "word": "DIA",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "NIBP-D",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "NIBP-DIA",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "ea": [
+    {
+     "word": "E/A ratio",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "E:A",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "MV E/A",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "egfr": [
+    {
+     "word": "GFR",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "eos_abs": [
+    {
+     "word": "E#",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "eos_pct": [
+    {
+     "word": "E%",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "esr": [
+    {
+     "word": "ESR (Westergren)",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "Sed rate",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "fat_mass": [
+    {
+     "word": "BFM",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "ferritin": [
+    {
+     "word": "FERR",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "SF",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "fev1_pct": [
+    {
+     "word": "FEV1%P",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "fib": [
+    {
+     "word": "Fg",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "fobt": [
+    {
+     "word": "Hemoccult",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "folate": [
+    {
+     "word": "FOL",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "ft3": [
+    {
+     "word": "FT-3",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "ft4": [
+    {
+     "word": "FT-4",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "fvc_pct": [
+    {
+     "word": "FVC%P",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "ga": [
+    {
+     "word": "GAlb",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "GlycAlb",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "ggt": [
+    {
+     "word": "GGTP",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "glb": [
+    {
+     "word": "GLOB",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "glu": [
+    {
+     "word": "FBS",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "GLU0",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "hba1c": [
+    {
+     "word": "A1C",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "hbcab": [
+    {
+     "word": "HBc-Ab",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "hbeab": [
+    {
+     "word": "HBe-Ab",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "hbeag": [
+    {
+     "word": "HBe-Ag",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "hbsab": [
+    {
+     "word": "HBs-Ab",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "hbsag": [
+    {
+     "word": "HBs-Ag",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "hct": [
+    {
+     "word": "PCV",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "hcvab": [
+    {
+     "word": "HCV Ab",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "HCVAb",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "hcy": [
+    {
+     "word": "tHcy",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "hdl": [
+    {
+     "word": "HDL-Chol",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "HDLC",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "hp_ab": [
+    {
+     "word": "Anti-HP",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "H pylori Ab",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "H. pylori Ab",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "H.pylori-Ab",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "HP Ab",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "Hp Ab",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "hpv16": [
+    {
+     "word": "HPV-16",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "HPV-16 DNA",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "HPV16 (HR)",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "HPV16 (type 16)",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "HPV16 DNA",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "hpv18": [
+    {
+     "word": "HPV-18",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "HPV-18 DNA",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "HPV18 (HR)",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "HPV18 (type 18)",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "HPV18 DNA",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "hpv_other": [
+    {
+     "word": "12 HR-HPV",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "Non-16/18 HR HPV",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "Other 12 HR HPV",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "Other HR-HPV",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "hstni": [
+    {
+     "word": "TNI-HS",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "hsTnI",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "ibil": [
+    {
+     "word": "BIL-I",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "BILI",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "I-BILI",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "IBILI",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "insulin": [
+    {
+     "word": "FI",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "IRI",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "la": [
+    {
+     "word": "LA diam",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "LA-D",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "LADiam",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "ldh": [
+    {
+     "word": "LD",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "ldl": [
+    {
+     "word": "LDL-Chol",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "LDLC",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "lpa": [
+    {
+     "word": "LPA",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "Lp(a) mass",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "lps": [
+    {
+     "word": "LIPA",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "lvedd": [
+    {
+     "word": "LVDD",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "lvef": [
+    {
+     "word": "LV-EF",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "LVEF%",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "lymph_abs": [
+    {
+     "word": "ALC",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "L#",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "LY#",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "lymph_pct": [
+    {
+     "word": "L%",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "LY%",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "mg": [
+    {
+     "word": "MAG",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "mono_abs": [
+    {
+     "word": "M#",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "MO#",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "MON#",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "Mon#",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "mono_pct": [
+    {
+     "word": "M%",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "MO%",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "MON%",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "Mon%",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "muscle_mass": [
+    {
+     "word": "SKM",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "neut_abs": [
+    {
+     "word": "ANC",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "NEU#",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "neut_pct": [
+    {
+     "word": "N%",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "NE%",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "NEU%",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "nonhdl": [
+    {
+     "word": "NHDL",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "NHDL-C",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "Non HDL-Chol",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "Non-HDL",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "non-HDL",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "ntprobnp": [
+    {
+     "word": "NTPROBNP",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "NTproBNP",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "ogtt2h": [
+    {
+     "word": "2hBG",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "2hG",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "2hPPG",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "GLU2H",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "OGTT2h",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "pa": [
+    {
+     "word": "PALB",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "Prealb",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "TTR",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "pg1": [
+    {
+     "word": "PG1",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "pg2": [
+    {
+     "word": "PG2",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "phos": [
+    {
+     "word": "IP",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "PHOS",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "PO4",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "plt": [
+    {
+     "word": "PC",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "pr_interval": [
+    {
+     "word": "P-R",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "PQ",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "qrs_duration": [
+    {
+     "word": "QRSD",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "QRSd",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "qtc": [
+    {
+     "word": "QTcB",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "QTcF",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "rbc": [
+    {
+     "word": "RCC",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "resp": [
+    {
+     "word": "RESP",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "Resp",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "rf": [
+    {
+     "word": "RA Factor",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "RhF",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "rh": [
+    {
+     "word": "D antigen typing",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "D type",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "Rh type",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "Rh(D) typing",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "sbp": [
+    {
+     "word": "NIBP-S",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "NIBP-SYS",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "SYS",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "scc": [
+    {
+     "word": "SCCA",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "serum_iron": [
+    {
+     "word": "IRON",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "SI",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "spo2": [
+    {
+     "word": "O2 sat",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "tbil": [
+    {
+     "word": "BIL-T",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "BILT",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "T-BILI",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "TBILI",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "tct": [
+    {
+     "word": "Cervical LBC",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "LBC",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "temp": [
+    {
+     "word": "BT",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "TEMP",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "Temp",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "tg": [
+    {
+     "word": "TGL",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "TRIG",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "Trig",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "tgab": [
+    {
+     "word": "Anti-TG",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "Anti-Tg",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "TG-Ab",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "Tg-Ab",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "anti-Tg",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "tp": [
+    {
+     "word": "PROT",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "tpoab": [
+    {
+     "word": "Anti-TPO",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "TPO-Ab",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "anti-TPO",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "tt3": [
+    {
+     "word": "T3",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "tt4": [
+    {
+     "word": "T4",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "uacr": [
+    {
+     "word": "ACR-U",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "ALB/CREA",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "Alb/Cr",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "U-ACR",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "U-ALB/CREA",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "umalb": [
+    {
+     "word": "MAU",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "U-ALB",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "U-Alb",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "UMA",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "urea": [
+    {
+     "word": "SUN",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "UN",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "URE",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "urine_bil": [
+    {
+     "word": "U-BIL",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "urine_bld": [
+    {
+     "word": "U-BLD",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "urine_glu": [
+    {
+     "word": "GLU(U)",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "U-GLUC",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "UGLU",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "urine_ket": [
+    {
+     "word": "U-KET",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "urine_leu": [
+    {
+     "word": "U-LEU",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "urine_nit": [
+    {
+     "word": "U-NIT",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "urine_ph": [
+    {
+     "word": "U-pH",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "UPH",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "urine_pro": [
+    {
+     "word": "U-PRO",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "U-PROT",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "urine_rbc": [
+    {
+     "word": "RBC (HPF)",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "RBC (micro)",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "RBC/HP",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "RBC/HPF",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "urine_sg": [
+    {
+     "word": "U-SG",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "USG",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "urine_uro": [
+    {
+     "word": "U-URO",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "urine_wbc": [
+    {
+     "word": "WBC (HPF)",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "WBC (micro)",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "WBC/HP",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "WBC/HPF",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "visceral_fat": [
+    {
+     "word": "VF",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "Visceral Fat",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "vitd": [
+    {
+     "word": "25(OH)VD",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "25-OH Vit D",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "25-OH Vitamin D",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "25-OH-D",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "25-OHD",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "25OHD",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "wbc": [
+    {
+     "word": "TLC",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "WCC",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ]
+  },
+  "name_synonyms": {
+   "abi_l": [
+    {
+     "word": "左侧踝肱指数",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "左踝肱指数",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "左踝臂指数",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "abi_r": [
+    {
+     "word": "右侧踝肱指数",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "右踝肱指数",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "右踝臂指数",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "abo": [
+    {
+     "word": "ABO血型分型",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "ABO血型正反定型",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "ABO血型鉴定",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "血型ABO",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "alb": [
+    {
+     "word": "清蛋白",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "血清白蛋白",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "alt": [
+    {
+     "word": "丙氨酸转氨酶",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "谷氨酸丙酮酸转氨酶",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "amy": [
+    {
+     "word": "血清淀粉酶",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "apoa1": [
+    {
+     "word": "载脂蛋白A-I",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "载脂蛋白A-Ⅰ",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "载脂蛋白AⅠ",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "aptt": [
+    {
+     "word": "白陶土部分凝血活酶时间",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "aso": [
+    {
+     "word": "抗链球菌溶血素O抗体",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "ast": [
+    {
+     "word": "天冬氨酸转氨酶",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "谷氨酸草酰乙酸转氨酶",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "b12": [
+    {
+     "word": "维生素B12（血清）",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "bapwv_l": [
+    {
+     "word": "左侧臂踝脉搏波速度",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "左臂踝脉搏波传导速度",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "左臂踝脉搏波速度",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "bapwv_r": [
+    {
+     "word": "右侧臂踝脉搏波速度",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "右臂踝脉搏波传导速度",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "右臂踝脉搏波速度",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "baso_pct": [
+    {
+     "word": "嗜碱性粒细胞百分数",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "bmi": [
+    {
+     "word": "体质量指数",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "bmr": [
+    {
+     "word": "基础代谢值",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "基础代谢量",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "body_fat": [
+    {
+     "word": "体脂肪率",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "c3": [
+    {
+     "word": "补体3",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "补体第三成分",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "c4": [
+    {
+     "word": "补体4",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "补体第四成分",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "ca125": [
+    {
+     "word": "癌抗原125",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "糖抗原125",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "糖链抗原125",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "ca153": [
+    {
+     "word": "糖抗原15-3",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "糖链抗原15-3",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "ca199": [
+    {
+     "word": "糖抗原19-9",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "糖链抗原19-9",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "ca724": [
+    {
+     "word": "糖链抗原72-4",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "肿瘤相关糖抗原72-4",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "ccp": [
+    {
+     "word": "抗环瓜氨酸多肽抗体",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "che": [
+    {
+     "word": "血清胆碱酯酶",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "chol": [
+    {
+     "word": "血清胆固醇",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "cpep": [
+    {
+     "word": "C-肽(空腹)",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "空腹C-肽",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "血清C肽",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "crea": [
+    {
+     "word": "血肌酐",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "cyfra211": [
+    {
+     "word": "细胞角蛋白19可溶性片段",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "细胞角蛋白19片段抗原",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "dbil": [
+    {
+     "word": "直接反应胆红素",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "dbp": [
+    {
+     "word": "低压",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "动脉舒张压",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "最小血压",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "舒张期血压",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "舒张血压",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "ea": [
+    {
+     "word": "E/A比值",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "二尖瓣E/A峰比值",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "二尖瓣口E/A比值",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "二尖瓣舒张早期与舒张晚期血流速度比值",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "二尖瓣舒张期早晚期血流速度比",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "eos_pct": [
+    {
+     "word": "嗜酸性粒细胞百分数",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "esr": [
+    {
+     "word": "红细胞沉降速度",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "红细胞沉降速率",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "血沉速度",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "fat_mass": [
+    {
+     "word": "脂肪重量",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "fev1": [
+    {
+     "word": "第一秒呼气量",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "fev1_fvc": [
+    {
+     "word": "一秒钟率",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "fib": [
+    {
+     "word": "凝血因子Ⅰ",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "fobt": [
+    {
+     "word": "便隐血",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "大便潜血",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "fpsa": [
+    {
+     "word": "游离前列腺特异抗原",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "fpsa_ratio": [
+    {
+     "word": "游离/总PSA比值",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "ft3": [
+    {
+     "word": "游离三碘甲腺原氨酸",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "ft4": [
+    {
+     "word": "游离四碘甲状腺原氨酸",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "游离四碘甲腺原氨酸",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "fvc": [
+    {
+     "word": "强迫肺活量",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "用力呼气肺活量",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "ga": [
+    {
+     "word": "血清糖化白蛋白",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "ggt": [
+    {
+     "word": "γ-谷氨酰转移酶",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "glb": [
+    {
+     "word": "血清球蛋白",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "glu": [
+    {
+     "word": "空腹血浆葡萄糖",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "空腹血糖浓度",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "空腹血葡萄糖",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "hbcab": [
+    {
+     "word": "乙型肝炎核心抗体",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "乙型肝炎病毒核心抗体",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "乙肝病毒核心抗体",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "hbeab": [
+    {
+     "word": "乙型肝炎e抗体",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "乙型肝炎病毒e抗体",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "乙肝病毒e抗体",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "hbeag": [
+    {
+     "word": "乙型肝炎e抗原",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "乙型肝炎病毒e抗原",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "乙肝病毒e抗原",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "hbsab": [
+    {
+     "word": "乙型肝炎病毒表面抗体",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "乙型肝炎表面抗体",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "乙肝病毒表面抗体",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "hbsag": [
+    {
+     "word": "乙型肝炎病毒表面抗原",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "乙肝病毒表面抗原",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "hct": [
+    {
+     "word": "红细胞比积",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "hcvab": [
+    {
+     "word": "丙型肝炎抗体",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "丙型肝炎病毒抗体",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "丙肝病毒抗体",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "hdl": [
+    {
+     "word": "血清高密度脂蛋白胆固醇",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "hgb": [
+    {
+     "word": "血红蛋白浓度",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "hp_ab": [
+    {
+     "word": "抗幽门螺杆菌抗体",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "hpv16": [
+    {
+     "word": "人乳头状瘤病毒16型",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "hpv18": [
+    {
+     "word": "人乳头状瘤病毒18型",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "人乳头瘤病毒18型",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "hpv_other": [
+    {
+     "word": "其他12种高危HPV",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "其他12种高危型HPV",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "其他12种高危型人乳头瘤病毒",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "hscrp": [
+    {
+     "word": "高敏C-反应蛋白",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "高敏C反应蛋白",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "hstni": [
+    {
+     "word": "hs-cTnI（超敏）",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "超敏cTnI",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "超敏心肌肌钙蛋白I",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "高敏心肌肌钙蛋白I",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "高敏肌钙蛋白I",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "iga": [
+    {
+     "word": "血清免疫球蛋白A",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "igg": [
+    {
+     "word": "血清免疫球蛋白G",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "igm": [
+    {
+     "word": "血清免疫球蛋白M",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "insulin": [
+    {
+     "word": "空腹血清胰岛素",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "胰岛素(空腹)",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "ivs": [
+    {
+     "word": "室间隔舒张末厚度",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "室间隔舒张末期厚度",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "la": [
+    {
+     "word": "左心房内径",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "左房径",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "ldl": [
+    {
+     "word": "血清低密度脂蛋白胆固醇",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "lpa": [
+    {
+     "word": "脂蛋白小a",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "lps": [
+    {
+     "word": "血清脂肪酶",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "lvedd": [
+    {
+     "word": "左室舒张末径",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "左室舒张末期径",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "左心室舒张末内径",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "左心室舒张末期内径",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "左心室舒张末期径",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "lvef": [
+    {
+     "word": "左心室射血分数",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "左心室射血率",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "lymph_pct": [
+    {
+     "word": "淋巴细胞比例",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "淋巴细胞百分数",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "mch": [
+    {
+     "word": "平均红细胞血红蛋白含量",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "mcv": [
+    {
+     "word": "平均红细胞容积",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "红细胞平均体积",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "mono_pct": [
+    {
+     "word": "单核细胞百分数",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "muscle_mass": [
+    {
+     "word": "骨骼肌重量",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "neut_pct": [
+    {
+     "word": "中性粒细胞比例",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "中性粒细胞百分数",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "nse": [
+    {
+     "word": "神经元特异烯醇化酶",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "神经特异性烯醇化酶",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "ntprobnp": [
+    {
+     "word": "NT-proBNP（N末端B型利钠肽原）",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "N末端B型利钠肽原",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "N端脑钠肽前体",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "氨基末端脑钠肽前体",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "ogtt2h": [
+    {
+     "word": "2小时血糖",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "餐后2小时糖",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "餐后2小时葡萄糖",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "餐后2小时血葡萄糖",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "pdw": [
+    {
+     "word": "血小板体积分布宽度",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "plt": [
+    {
+     "word": "血小板总数",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "血小板数",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "血小板数量",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "pr_interval": [
+    {
+     "word": "P-R间隔",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "psa": [
+    {
+     "word": "前列腺特异抗原",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "总前列腺特异性抗原",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "pulse": [
+    {
+     "word": "脉率",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "qrs_axis": [
+    {
+     "word": "QRS波群电轴",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "QRS轴",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "qrs_duration": [
+    {
+     "word": "QRS宽度",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "QRS波群时间",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "QRS波群时限",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "qtc": [
+    {
+     "word": "QTc间隔",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "校正QT间隔",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "rbc": [
+    {
+     "word": "红细胞总数",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "红细胞数",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "红细胞数量",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "红血球计数",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "rdw": [
+    {
+     "word": "红细胞体积分布宽度",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "resp": [
+    {
+     "word": "呼吸次数",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "呼吸率",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "呼吸频次",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "rf": [
+    {
+     "word": "风湿因子",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "rh": [
+    {
+     "word": "Rh(D)血型鉴定",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "Rh血型鉴定",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "rv5": [
+    {
+     "word": "R波振幅(V5)",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "V5导联R波高度",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "sbp": [
+    {
+     "word": "动脉收缩压",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "收缩期血压",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "收缩血压",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "最大血压",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "高压",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "scc": [
+    {
+     "word": "鳞状细胞抗原",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "鳞癌抗原",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "spo2": [
+    {
+     "word": "氧饱和度",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "经皮血氧饱和度",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "脉搏血氧饱和度",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "sv1": [
+    {
+     "word": "S波振幅(V1)",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "V1导联S波高度",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "tbil": [
+    {
+     "word": "胆红素总量",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "tct": [
+    {
+     "word": "宫颈液基薄层细胞学",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "tg": [
+    {
+     "word": "中性脂肪",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "血清甘油三酯",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "tgab": [
+    {
+     "word": "甲状腺球蛋白自身抗体",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "tp": [
+    {
+     "word": "血清总蛋白质",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "tpoab": [
+    {
+     "word": "抗甲状腺过氧化物酶抗体",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "甲状腺过氧化物酶自身抗体",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "tsh": [
+    {
+     "word": "促甲状腺刺激素",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "tt": [
+    {
+     "word": "凝血酶凝固时间",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "tt3": [
+    {
+     "word": "总三碘甲腺原氨酸",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "tt4": [
+    {
+     "word": "总四碘甲状腺原氨酸",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "uacr": [
+    {
+     "word": "尿白蛋白/肌酐比",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "尿白蛋白肌酐比",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "尿白蛋白肌酐比值",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "urea": [
+    {
+     "word": "血尿素",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "urine_bil": [
+    {
+     "word": "尿液胆红素",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "urine_bld": [
+    {
+     "word": "尿液隐血",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "尿隐血",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "urine_glu": [
+    {
+     "word": "尿液葡萄糖",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "urine_ket": [
+    {
+     "word": "尿液酮体",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "urine_ph": [
+    {
+     "word": "尿液酸碱度",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "urine_pro": [
+    {
+     "word": "尿液蛋白质",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "尿蛋白质",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "urine_sg": [
+    {
+     "word": "尿液比重",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "visceral_fat": [
+    {
+     "word": "内脏脂肪级别",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "vitd": [
+    {
+     "word": "25-羟维生素D",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "25-羟胆钙化醇",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "25羟维生素D",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "wbc": [
+    {
+     "word": "白细胞数",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "白细胞数量",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    },
+    {
+     "word": "白血球计数",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:deepseek/deepseek-v4-flash",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ],
+   "weight": [
+    {
+     "word": "体质量",
+     "tier": "generated",
+     "share": 0,
+     "sources": [
+      "llm:openai/gpt-6-luna",
+      "judge:anthropic/claude-haiku-4.5",
+      "2026-11-24"
+     ]
+    }
+   ]
+  }
+ },
+ "collisions": {
+  "abbr_variants": {
+   "fat_mass": {
+    "Body Fat": [
+     "body_fat"
+    ]
+   },
+   "pulse": {
+    "PR": [
+     "pr_interval"
+    ]
+   },
+   "tt": {
+    "TCT": [
+     "tct"
+    ]
+   },
+   "urine_bld": {
+    "Hb": [
+     "hgb"
+    ]
+   }
+  },
+  "name_synonyms": {
+   "afp": {
+    "甲胎球蛋白": [
+     "glb"
+    ],
+    "胎儿甲种球蛋白": [
+     "glb"
+    ]
+   },
+   "ag_ratio": {
+    "白蛋白与球蛋白比": [
+     "alb",
+     "glb"
+    ]
+   },
+   "inr": {
+    "凝血酶原时间国际标准化比值": [
+     "pt"
+    ]
+   },
+   "pgr": {
+    "胃蛋白酶原Ⅰ/Ⅱ比值": [
+     "pg1"
+    ]
+   },
+   "uacr": {
+    "尿微量白蛋白/肌酐": [
+     "umalb"
+    ]
+   }
+  }
+ }
+}

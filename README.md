@@ -144,7 +144,7 @@ before it became the default (commit `9723605` and earlier, without `--clinical`
 printed the since-removed name variant `空腹血糖(HK)`. `--clinical` is still accepted and changes
 nothing, so recipes pinned with it build the same bytes.
 
-## How names are written
+## How names and instructions are written
 
 ```bash
 mirobody-gen build --seed 7 --out out/p3 --render                    # --surface realistic (default)
@@ -163,6 +163,13 @@ lets an institution's naming drift between template revisions; it is material fo
 failures, not for realism numbers. `--surface off` prints names as builds made before this layer did,
 byte for byte. Every form names a hazard class (`name.*`) with row attribution, while the reading's key
 and value stay those of the indicator; `--pairs` adds one minimal-contrast variant per class.
+
+Medication instructions follow the same tiers (`mirobody_gen/sig.py`): each plan's canonical
+`每日2次，每次500mg` is parsed into its intent, which `medications.jsonl` records (`timing`,
+`slots_per_day`, `dose_per_slot`), and respelled in one dialect per plan. The reference set holds too
+few complete instructions to estimate shares (under `min_support`), so `realistic` keeps the canonical
+spelling; `fuzz` draws `每天`, `一日`, `一天`, `1日`, `一次` and spaced counts. `--pairs` also writes `sig_pairs.jsonl`, one
+single-axis variant per spelling, including weekly and every-other-day schedules.
 
 ## Handwriting
 

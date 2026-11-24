@@ -571,7 +571,11 @@ line at all). `person_id`, `synthetic`, `plans[]`:
 | `dose_text_zh`, `dose_text_en` | the dose as a person or a label would phrase it |
 | `start`, `end` | `start` is always the triggering event's own start date; `end` is `null` for an ongoing chronic medication |
 | `reason_event` | the `people.jsonl` / manifest event name this plan was started for (`开始他汀治疗` etc., or `急性上呼吸道感染` for a short prn course) |
-| `changes[]` | later dose adjustments: `date`, `strength`, `dose_text_zh`, `dose_text_en`, and `frequency` only on the one change where the frequency itself changes (metformin bid to tid) |
+| `changes[]` | later dose adjustments: `date`, `strength`, `dose_text_zh`, `dose_text_en`, and `frequency` only on the one change where the frequency itself changes (metformin bid to tid); under `--surface realistic`/`fuzz` also `timing`, `slots_per_day`, `dose_per_slot` |
+| `timing` | the intent behind `dose_text_zh`, shaped like FHIR `Timing.repeat`: `count` administrations per `period` `period_unit` (`d` · `wk`), `as_needed`; for as-needed use `count` is the most allowed. Absent under `--surface off` |
+| `slots_per_day` | `count` for a regular once-a-day period, `null` for weekly, every-other-day and as-needed schedules |
+| `dose_per_slot` | `value` and UCUM `unit` (`mg` · `ug` · `{tbl}`) per administration |
+| `sig_form` | the spelling the plan and its changes share, one word per axis it uses: `day_word` (每日 · 每天 · 一日 · 一天 · 1日), `week_word`, `every_other_day`, `count_spacing` (`""` or `" "`), `dose_word` (每次 · 一次). Words and tiers in `resources/surface.json` `sig` |
 
 Mapped from the archetype's scripted intervention event (`resources/cohort.json`'s
 `medication_plans`): statin to atorvastatin, antihypertensive to amlodipine, metformin (with an
@@ -589,6 +593,21 @@ the visit date, a stop with its date, and reported adherence below 100%.
 Scripted treatments, including iron, remain ongoing (`end: null`) throughout the modelled
 follow-up, matching the treatment events and clinic-note narratives. The generator has no
 anaemia-resolution or iron-stop event from which to infer an independent finite iron course.
+
+Resources write every instruction canonically (`每日2次，每次500mg，随餐服用`); `sig.py` parses it into
+the intent and respells it in a dialect drawn once per plan under `--surface fuzz` (field spellings such
+as `一天2次` and `每日 2 次` included). Under `realistic` every axis is observed fewer than `min_support`
+times, so the spelling stays canonical.
+
+## `sig_pairs.jsonl`
+
+Written by `build --pairs` unless `--surface off`: a parser regression table independent of the cohort.
+One row per spelling: `pair_id` (`sig<N>`, one per intent), `variant` (`base`, or `<axis>:<word>`
+with a space shown as `␠`), `text`, `sig_form`, `timing`, `slots_per_day`, `dose_per_slot`. Each
+non-base row differs from its base in exactly one axis and shares its intent. Intents are the cohort's
+plans plus twice and three times daily, twice weekly and every other day (one tablet each). A
+`realistic` table holds only base rows, and no weekly or every-other-day intent: neither has an
+observed spelling.
 
 ### A genetics report file (`kind: genetics_report`) adds
 

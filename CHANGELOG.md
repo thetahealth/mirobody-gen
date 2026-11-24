@@ -5,6 +5,17 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); ver
 
 ## [Unreleased]
 
+- Medication instructions are spelled through the expression layer (`mirobody_gen/sig.py`). Each plan's
+  canonical instruction (`每日2次，每次500mg`) is parsed into its intent and respelled in one dialect
+  drawn per plan under `--surface fuzz`: spellings seen in the reference set (`每天`, `一日`, `一次`) and
+  those reported in thetahealth/mirobody#302 (`一天`, `1日`, `每日 2 次`). The reference set holds only
+  three documents with a complete instruction, below the new `min_support`, so `realistic` keeps the
+  canonical spelling and adds only the truth fields.
+  `medications.jsonl` records the intent behind every spelling (`timing`, `slots_per_day`,
+  `dose_per_slot`) and the plan's `sig_form`; `build --pairs` writes `sig_pairs.jsonl`, a
+  single-axis regression table that also spells weekly and every-other-day schedules.
+  `--surface off` leaves medications unchanged.
+
 - An expression layer for indicator names (`build --surface realistic|fuzz|off`, default
   `realistic`). `resources/surface.json` lists how an institution may write a name it means, each
   form with a provenance tier (`observed`, `reference`, `field`, `generated`); `scripts/distill_surface.py`

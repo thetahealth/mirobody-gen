@@ -32,8 +32,14 @@ CHOICE = {"image_only": ("scanned", "scanpdf"), "hybrid": ("scanned", "hybridpdf
 
 
 def measure() -> collections.Counter:
-    return collections.Counter(layers.classify(p.read_bytes()) for p in sorted(CORPUS.iterdir())
-                               if p.suffix.lower() == ".pdf")
+    counts = collections.Counter()
+    for path in sorted(CORPUS.iterdir()):
+        if path.suffix.lower() == ".pdf":
+            try:
+                counts[layers.classify(path.read_bytes())] += 1
+            except Exception:                     # noqa: BLE001 - a broken file is counted, not fatal
+                counts["unreadable"] += 1
+    return counts
 
 
 def main() -> None:
@@ -44,7 +50,8 @@ def main() -> None:
     print(f"{sum(counts.values())} PDFs: {dict(counts)}")
     shares = collections.Counter()
     for cls, n in counts.items():
-        shares[CHOICE[cls]] += n
+        if cls in CHOICE:                         # an empty or unreadable PDF says nothing about layers
+            shares[CHOICE[cls]] += n
     data = json.loads(DELIVERY.read_text(encoding="utf-8"))
     for group, choices in data["pdf_layers"].items():
         if not isinstance(choices, list):

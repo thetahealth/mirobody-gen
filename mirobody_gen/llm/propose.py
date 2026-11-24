@@ -13,7 +13,8 @@ vocabulary and nothing from the reference set. A candidate is accepted only when
 2. it is no spelling of another indicator: such a candidate is kept apart in `collisions`, never drawn,
    as material for `confusable_with`;
 3. a second model (`--judge`) reads it as the same test: same analyte, specimen and kind of result;
-4. it matches no 12-character window of the reference set, where the replay index is available.
+4. it matches no 12-character window of the reference set, where the replay index is available (so
+   only a candidate of 12 characters or more can be caught: a long synonym, not an abbreviation).
 
 Accepted forms are written to `resources/surface_generated.json`, whose choices `spec.surface()` appends
 to `abbr_variants` and `name_synonyms` as the `generated` tier: only `--surface fuzz` builds draw them, and

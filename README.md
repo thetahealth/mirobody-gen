@@ -190,7 +190,7 @@ page per tab (体重, 脂肪, 肌肉). The chart's values have no name but the s
 (goal, starting weight, latest weighing) repeats on every tab; the truth separates the chart's readings,
 coded as device measurements, from that card (`screen_context`).
 
-About one scanned PDF in seven in the reference set is a hybrid: a scan whose hospital system stamped a
+About 15% of the reference set's scanned PDFs (6 of 39) are hybrids: a scan whose hospital system stamped a
 live header and footer off the image, so its text layer passes a "has text" check and holds no result.
 Realistic builds deliver scanned PDFs that way at the measured share (`pdf_layers` in
 `resources/delivery.json`); the record's `pdf_layers.needs_ocr` says it must be read from pixels.
@@ -321,9 +321,9 @@ indicator, from the catalogue's own vocabulary (nothing from the reference set g
 A candidate must pass a deterministic contract (no qualifier, method word, value or added specimen;
 not a spelling the indicator already has), must not be another indicator's spelling (those are kept
 apart as collisions, material for `confusable_with`), and a second model (`--judge`) must read it as
-the same test. Accepted forms land in `resources/surface_generated.json` as the `generated` tier,
-which only `--surface fuzz` builds draw (`name.synonym`, `name.abbr_variant`). Without `--models` it
-writes the request bundle and sends nothing.
+the same test. Accepted forms land in `resources/surface_generated.json` as the `generated` tier, which
+only `--surface fuzz` builds draw; they print as `name.synonym` or `name.abbr_variant` rows. Without
+`--models` it writes the request bundle and sends nothing.
 
 ## Status and the mirobody relationship
 

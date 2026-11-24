@@ -137,3 +137,26 @@ def test_scanned_pdfs_become_hybrid_at_the_measured_share_and_only_where_a_mode_
                 assert set(drawn) == set(scanned) and any(born)
     finally:
         surface.set_mode("realistic")
+
+
+def test_the_classifier_reads_a_page_as_shown_and_counts_overlapping_images_once(rendered):
+    import io
+
+    from PIL import Image
+
+    from mirobody_gen.render import layers
+
+    _, out = rendered
+    turned = fitz.open("pdf", out["hybrid"][0].tobytes())
+    for page in turned:
+        page.set_rotation(180)                        # a scanner's /Rotate: header and footer swap, still edges
+    assert layers.classify(turned.tobytes()) == "hybrid"
+
+    buf = io.BytesIO()
+    Image.new("RGB", (30, 40), "white").save(buf, "PNG")
+    pdf = fitz.open()
+    page = pdf.new_page(width=600, height=800)
+    for _ in range(3):                                # one picture placed three times covers a quarter
+        page.insert_image(fitz.Rect(0, 0, 300, 400), stream=buf.getvalue())
+    page.insert_text((320, 500), "born-digital text " * 5, fontsize=8)
+    assert layers.page_layers(page) == "text"

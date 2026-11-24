@@ -6,10 +6,10 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); ver
 ## [Unreleased]
 
 - Hybrid PDFs in realistic builds (thetahealth/mirobody#304). `scripts/measure_pdf_layers.py` classifies
-  the reference set's 155 PDFs from their layers alone (`render.layers.classify`): 115 born-digital, 34
-  image-only scans, 6 hybrid scans whose only live text is a stamped header and footer off the image, no
+  the reference set's 155 PDFs from their layers alone (`render.layers.classify`, in the page's shown frame,
+  overlapping images counted once): 116 born-digital, 33 image-only scans, 6 hybrid scans whose only live text is a stamped header and footer off the image, no
   searchable scan and no page over a template image. A scanned PDF now becomes `hybridpdf` at that share
-  (6 of 40), drawn per file from a stream of its own; fuzz builds also draw searchable scans and template
+  (6 of 39), drawn per file from a stream of its own; fuzz builds also draw searchable scans and template
   backgrounds, and `--surface off` none. Only the affected files and their records change.
 
 - `mirobody-gen propose --axis synonym|abbr` proposes other native names and abbreviations per indicator

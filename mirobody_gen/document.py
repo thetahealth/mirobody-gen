@@ -207,8 +207,11 @@ def print_name(item: dict, f: Family, rng: random.Random) -> tuple[str, str, lis
         native = item["zh"]
     abbr, abbr_hazard = surface.abbreviation(item, f)
     style = f.name_style
+    synonym_hazard = None
     if style == "variant":
         native = _variant_for(item, script_of(native), sticky) or native
+    elif f.language == "zh-Hans":
+        native, synonym_hazard = surface.synonym(item, f)
     applied = [abbr_hazard] if abbr_hazard and (style in ("abbr", "native(abbr)") or "abbr" in f.columns) else []
     if style == "abbr" and abbr and "abbr" not in f.columns:
         name, abbr = abbr, ""
@@ -218,6 +221,8 @@ def print_name(item: dict, f: Family, rng: random.Random) -> tuple[str, str, lis
             applied.append(hazard)
     else:
         name = native
+    if synonym_hazard and native in name:
+        applied.append(synonym_hazard)
     name, decorations = surface.decorate(name, item, f)
     return name, abbr, applied + decorations
 

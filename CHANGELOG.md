@@ -5,6 +5,13 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); ver
 
 ## [Unreleased]
 
+- `mirobody-gen propose --axis synonym|abbr` proposes other native names and abbreviations per indicator
+  with a language model and keeps those that pass a deterministic contract, collide with no other
+  indicator and a second model reads as the same test. They go to `resources/surface_generated.json` as
+  the `generated` tier of `name_synonyms` (new, hazard `name.synonym`) and `abbr_variants`, drawn only by
+  `--surface fuzz` builds; collisions are recorded apart for review. Dry run by default; without the file
+  every build is unchanged.
+
 - The catalogue's resolver observations are re-taken against mirobody 1.6.2 and record the version
   (`_provenance.resolver`, from `git describe` for a source checkout, since an editable install's
   metadata can name an older release). Five change: 腰围, PSA and 脂肪量 now resolve to the reference

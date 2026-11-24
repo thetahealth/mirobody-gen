@@ -418,6 +418,11 @@
       ]
     }
   },
+  "name_synonyms": {
+    "hazard": "name.synonym",
+    "description": "another native name for the same test, from the institution's own dictionary (谷丙转氨酶 for 丙氨酸氨基转移酶)",
+    "indicators": {}
+  },
   "unit_system": {
     "hazard": "unit.conventional",
     "description": "the institution prints mass concentrations (glucose, lipids, creatinine, urate, bilirubin, calcium in mg/dL) instead of SI units",

@@ -61,7 +61,8 @@ def test_resource_contract():
     choices = s["name_join"]["choices"] + s["name_suffix"]["choices"] + s["name_marker"]["choices"]
     choices += [c for a in s["sig"]["axes"].values() for c in a["choices"]]
     choices += [c for a in s["device_units"].values() for c in a["choices"]]
-    choices += [c for listed in s["abbr_variants"]["indicators"].values() for c in listed]
+    choices += [c for axis in ("abbr_variants", "name_synonyms") for listed in s[axis]["indicators"].values()
+                for c in listed]
     choices += [c for listed in s["unit_system"]["languages"].values() for c in listed]
     assert all(c["tier"] in s["tiers"] for c in choices)
     assert all(c["share"] > 0 for c in choices if c["tier"] == "observed")

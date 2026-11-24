@@ -26,7 +26,8 @@ def test_every_spec_declares_provenance():
     fail here first."""
     for path in sorted(RESOURCES.glob("*.json")):
         payload = json.loads(path.read_text(encoding="utf-8"))
-        assert payload.get("_source") in {"public-standard", "format-token", "hand-authored", "llm-paraphrase", "llm-template"}, path
+        assert payload.get("_source") in {"public-standard", "format-token", "hand-authored", "llm-paraphrase", "llm-propose",
+                                          "llm-template"}, path
         assert "_provenance" in payload, path
         assert "_vocabulary_fields" in payload, path
 

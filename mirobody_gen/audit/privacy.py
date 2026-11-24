@@ -642,7 +642,7 @@ def check_indicator_citations() -> int:
 
 def check_spec_provenance() -> int:
     """Every spec file must declare its provenance."""
-    allowed = {"public-standard", "format-token", "hand-authored", "llm-paraphrase", "llm-template"}
+    allowed = {"public-standard", "format-token", "hand-authored", "llm-paraphrase", "llm-propose", "llm-template"}
     problems = 0
     for path in sorted((RESOURCES).glob("*.json")):
         payload = json.loads(path.read_text(encoding="utf-8"))

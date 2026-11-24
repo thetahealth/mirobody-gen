@@ -39,7 +39,10 @@ from .paraphrase import screen_replay
 AXES = {"synonym": "name_synonyms", "abbr": "abbr_variants"}
 
 CJK = re.compile(r"[一-鿿]")
-ABBR = re.compile(r"[A-Za-z][A-Za-z0-9+\-#%/().]{1,11}")
+#: An abbreviation as reports print one: Latin or Greek letters and digits, a few marks, single spaces
+ABBR = re.compile(r"(?=.*[A-Za-zα-ωΑ-Ω])[A-Za-z0-9α-ωΑ-Ω](?:[A-Za-z0-9α-ωΑ-Ω+\-#%/().:]| (?! )){1,15}(?<! )")
+#: A unit inside a candidate: the unit belongs in its own column
+UNIT = re.compile(r"(?i)/[a-zμ]*l\b|\b[mnpμu]?mol\b|\bmmhg\b|\bkcal\b")
 #: Words that make a name say something other than the test: a result, a method, a derived quantity
 QUALIFIERS = ("阳性", "阴性", "正常", "异常", "偏高", "偏低", "升高", "降低", "定性", "定量", "测定", "检测", "检查",
               "结果", "参考", "比值", "比率", "百分比", "百分率", "绝对值", "计数", "%")
@@ -65,7 +68,9 @@ def reasons(axis: str, item: dict, word: str) -> list[str]:
     if _norm(word) in spellings(item):
         return ["already a spelling of this indicator"]
     if axis == "abbr":
-        return [] if ABBR.fullmatch(word) else ["not a Latin-letter abbreviation of 2-12 characters"]
+        if not ABBR.fullmatch(word):
+            return ["not an abbreviation of 2-16 letters, digits and marks"]
+        return ["adds a unit"] if UNIT.search(word) else []
     out = []
     if not CJK.search(word) or not 2 <= len(word) <= 20:
         out.append("not a Chinese name of 2-20 characters")
@@ -119,8 +124,15 @@ def prompt(req: dict) -> tuple[str, str]:
 
 def judge_prompt(axis: str, candidates: dict[str, list[str]]) -> tuple[str, str]:
     catalogue = spec.indicators()
+
+    def siblings(key: str) -> list[str]:
+        """The panel's other tests, which a candidate must not name (骨骼肌量 is not 肌肉量)."""
+        panel = catalogue[key]["panel"]
+        return [f"{i['zh']} ({i['en']})" for k, i in catalogue.items() if i["panel"] == panel and k != key]
+
     items = [{"key": k, "name_zh": catalogue[k]["zh"], "name_en": catalogue[k]["en"], "abbr": catalogue[k]["abbr"],
-              "unit": catalogue[k]["unit"], "candidates": words} for k, words in sorted(candidates.items())]
+              "unit": catalogue[k]["unit"], "not": siblings(k), "candidates": words}
+             for k, words in sorted(candidates.items())]
     p = spec.llm_prompts()["propose"]["judge"]
     return p["system"], p["user"].format(items=json.dumps(items, ensure_ascii=False))
 

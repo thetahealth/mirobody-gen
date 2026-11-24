@@ -63,7 +63,7 @@
   }
  },
  "propose": {
-  "version": "2026-11-24.1",
+  "version": "2026-11-24.2",
   "system": "You are a clinical laboratory terminologist. You know how hospital laboratory reports in mainland China and in English-speaking countries print test names. Answer with one JSON object and nothing else.",
   "user": {
    "synonym": "For each test below, list up to {n} other names that Simplified Chinese laboratory reports print for exactly this test: the same analyte, the same specimen and the same kind of result. Include older or regional names that real reports still use. Do not repeat a name listed under `known`. Do not add an abbreviation, a unit, a value, a method word such as 测定 or 检测, or a qualifier such as 定性 or 阳性. Give an empty list when you know no other name.\n\nTests:\n{items}\n\nAnswer as {{\"<key>\": [\"<name>\", ...], ...}}.",
@@ -71,7 +71,7 @@
   },
   "judge": {
    "system": "You review laboratory terminology. Answer with one JSON object and nothing else.",
-   "user": "For each test below, decide for every candidate whether a laboratory physician reading it on a report would take it as exactly this test: the same analyte, the same specimen and the same kind of result (a count is not a percentage, a ratio is not a concentration, urine is not serum). Answer false when it names another test, a broader or narrower one, or is not used on reports.\n\nTests:\n{items}\n\nAnswer as {{\"<key>\": {{\"<candidate>\": true or false, ...}}, ...}}."
+   "user": "For each test below, decide for every candidate whether a laboratory physician reading it on a report would take it as exactly this test: the same analyte, the same specimen and the same kind of result (a count is not a percentage, a ratio is not a concentration, urine is not serum). Answer false when it names another test, a broader or narrower one, or is not used on reports. The tests listed under `not` are different tests from the same panel: a candidate that names one of them is false.\n\nTests:\n{items}\n\nAnswer as {{\"<key>\": {{\"<candidate>\": true or false, ...}}, ...}}."
   }
  }
 }

@@ -33,23 +33,27 @@ def generated(tmp_path, monkeypatch):
     ("丙氨酸氨基转移酶2", "adds a digit"),
     ("A", "not a Chinese name of 2-20 characters"),
 ])
-def test_the_synonym_contract(word, why):
+def test_the_synonym_contract(word, why, generated):
     got = propose.reasons("synonym", spec.indicators()["alt"], word)
     assert got[:1] == ([why] if why else [])
 
 
-def test_the_abbreviation_contract_and_collisions_with_another_indicator():
+def test_the_abbreviation_contract_and_collisions_with_another_indicator(generated):
     crea = spec.indicators()["crea"]
     assert propose.reasons("abbr", crea, "CREAT") == []
     assert propose.reasons("abbr", crea, "SCR") == ["already a spelling of this indicator"]     # Scr, by case
     assert propose.reasons("abbr", crea, "Cr") == ["already a spelling of this indicator"]
-    assert propose.reasons("abbr", crea, "肌酐值") == ["not a Latin-letter abbreviation of 2-12 characters"]
+    assert propose.reasons("abbr", crea, "肌酐值") == ["not an abbreviation of 2-16 letters, digits and marks"]
+    assert propose.reasons("abbr", crea, "Creatinine (enzymatic)") == ["not an abbreviation of 2-16 letters, digits and marks"]
+    for word in ("25-OHD", "β2M", "Sed rate"):
+        assert propose.reasons("abbr", spec.indicators()["alt"], word) == [], word
+    assert propose.reasons("abbr", spec.indicators()["ntprobnp"], "BNP pg/mL") == ["adds a unit"]
     assert propose.collisions("abbr", spec.indicators()["urea"], "crea") == ["crea"]          # case ignored
     assert propose.collisions("synonym", spec.indicators()["tbil"], "血清直接胆红素") == ["dbil"]
     assert propose.collisions("synonym", spec.indicators()["tbil"], "胆红素总量") == []
 
 
-def test_screen_keeps_collisions_apart_and_counts_rejects():
+def test_screen_keeps_collisions_apart_and_counts_rejects(generated):
     answers = {"m1": {"alt": ["血清谷丙转氨酶", "谷丙转氨酶"], "tbil": ["直接胆红素"], "nope": ["x"]},
                "m2": {"alt": ["血清谷丙转氨酶"]}}
     passing, collided, rejects = propose.screen("synonym", answers)

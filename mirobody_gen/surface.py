@@ -107,8 +107,8 @@ def _names(rng: random.Random) -> dict:
         if on and word:
             affixes.update({axis: word, f"{axis}_share": _rate(axis, "row_rate")})
     # Realistic builds always consult the abbreviation axis (its evidence decides); fuzz ones per institution
-    own = rng.random() < spec.surface()["fuzz_rate"] or MODE == "realistic"
-    return dict(name_join=join, abbr_variants="drawn" if own else "", **affixes)
+    own = "drawn" if rng.random() < spec.surface()["fuzz_rate"] or MODE == "realistic" else ""
+    return dict(name_join=join, abbr_variants=own, name_synonyms=own, **affixes)
 
 
 def revised(f: Family, year: int) -> tuple[Family, list[str]]:
@@ -145,21 +145,21 @@ def decorate(name: str, item: dict, f: Family) -> tuple[str, list[str]]:
 def abbreviation(item: dict, f: Family) -> tuple[str, str | None]:
     """The abbreviation this institution prints for an indicator, and the hazard class when it is not
     the catalogue's. The class has no minimal-contrast toggle: the clean base prints no abbreviations."""
-    return _own_word("abbr_variants", "abbr", item, f, item.get("abbr") or "")
+    return _own_word("abbr_variants", "abbr", item, f, f.abbr_variants, item.get("abbr") or "")
 
 
 def synonym(item: dict, f: Family) -> tuple[str, str | None]:
     """The native name a Simplified Chinese institution prints for an indicator, and the hazard class when
     it is not the catalogue's."""
-    return _own_word("name_synonyms", "synonym", item, f, item["zh"])
+    return _own_word("name_synonyms", "synonym", item, f, f.name_synonyms, item["zh"])
 
 
-def _own_word(axis: str, seed: str, item: dict, f: Family, canonical: str) -> tuple[str, str | None]:
+def _own_word(axis: str, seed: str, item: dict, f: Family, own: str, canonical: str) -> tuple[str, str | None]:
     """The word an institution's own dictionary holds on `axis` for an indicator (sticky per institution
-    and indicator, when its `abbr_variants` is "drawn"), and the axis's hazard class when it is not the
-    catalogue's."""
+    and indicator, when the family's flag for the axis is "drawn"), and the axis's hazard class when it is
+    not the catalogue's."""
     listed = spec.surface()[axis]["indicators"].get(item["key"])
-    if not f.abbr_variants or not listed:
+    if not own or not listed:
         return canonical, None
     choices = allowed(listed, keep_first=True)
     if len(choices) < 2:
@@ -195,6 +195,23 @@ def toggles() -> dict:
     for axis in ("name_suffix", "name_marker"):
         if choices := _choices(axis):
             out[spec.surface()[axis]["hazard"]] = only_varying({axis: choices[0]["word"], f"{axis}_share": 1.0})
+    if _drawn("name_synonyms"):
+        out[spec.surface()["name_synonyms"]["hazard"]] = only_varying({"name_synonyms": "drawn"})
     if MODE != "off":
         out[spec.surface()["unit_system"]["hazard"]] = lambda f: {"unit_system": "conventional"}
     return out
+
+
+def controlled() -> dict:
+    """Toggles that need a control of their own, as (control, variant) layout changes: an abbreviation
+    can differ from the catalogue's only on a layout that prints one, which the clean base does not."""
+    if not _drawn("abbr_variants"):
+        return {}
+    control, variant = dict(name_style="native(abbr)", name_join="paren"), {"abbr_variants": "drawn"}
+    return {spec.surface()["abbr_variants"]["hazard"]: (lambda f: control if _varies(f) else {},
+                                                        lambda f: variant if _varies(f) else {})}
+
+
+def _drawn(axis: str) -> bool:
+    """Whether this mode draws any indicator's word on a per-indicator axis other than the catalogue's."""
+    return any(len(allowed(listed, keep_first=True)) > 1 for listed in spec.surface()[axis]["indicators"].values())

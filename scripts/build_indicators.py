@@ -784,7 +784,8 @@ add("hpv16", "HPV16型", "HPV type 16", "HPV16", "", 0, ("qualitative", "阴性"
     variants=("HPV 16", "人乳头瘤病毒16型"), kind="qualitative", sex="female", positive_rate=0.02, positive_values=[["阳性", 1]])
 add("hpv18", "HPV18型", "HPV type 18", "HPV18", "", 0, ("qualitative", "阴性"), COMMON, None, None, "cervical",
     variants=("HPV 18",), kind="qualitative", sex="female", positive_rate=0.01, positive_values=[["阳性", 1]])
-add("hpv_other", "其他12型高危HPV", "Other high-risk HPV (12 types)", "HPV-HR", "", 0, ("qualitative", "阴性"), COMMON, None, None, "cervical",
+# The vendor's own label: "HPV-HR" would read as every high-risk type, 16 and 18 included (30167-1)
+add("hpv_other", "其他12型高危HPV", "Other high-risk HPV (12 types)", "Other HR HPV", "", 0, ("qualitative", "阴性"), COMMON, None, None, "cervical",
     variants=("高危型HPV(其他)", "HPV其他高危型"), kind="qualitative", sex="female", positive_rate=0.08, positive_values=[["阳性", 1]])
 add("tct", "液基薄层细胞学检查", "Liquid-based cytology (TCT)", "TCT", "", 0, ("qualitative", "NILM"), COMMON, None, None, "cervical",
     variants=("TCT", "宫颈细胞学", "宫颈液基细胞学"), kind="qualitative", sex="female", positive_rate=0.06,

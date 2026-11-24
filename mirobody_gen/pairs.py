@@ -41,6 +41,8 @@ from .render import degrade
 PRESENTATION_POLICY = "paired-table-v2"
 CHECKUP_PRESENTATION_POLICY = "paired-checkup-v1"
 PAIR_VIEWS = ("all", "ordinary")
+#: Prefix of a variant that is the control of another (`surface.controlled`), not a stressor
+CONTROL = "control."
 PAIR_SCOPES = ("tables", "checkup")
 
 
@@ -59,7 +61,7 @@ def clean_family(f: layout.Family) -> layout.Family:
         date_labels=f.date_labels[:1] or (("Reported",) if en else ("报告时间",)),
         date_format="YYYY-MM-DD HH:mm", furniture=(), watermark=False, decimal_comma=False,
         fmt="pdf", rules="grid", name_join="paren", name_suffix="", name_suffix_share=0.0,
-        name_marker="", name_marker_share=0.0, abbr_variants="", unit_system="SI")
+        name_marker="", name_marker_share=0.0, abbr_variants="", name_synonyms="", unit_system="SI")
 
 
 def _drop(cols: tuple[str, ...], role: str) -> tuple[str, ...]:
@@ -142,22 +144,38 @@ def render_pairs(seed: int, people: list[Person], encounters: dict[str, list[Enc
                     if fam == base_family:
                         continue
                     variants.append((name, build(fam)))
+                for name, (control, toggle) in surface.controlled().items():
+                    ctrl = dataclasses.replace(base_family, **control(base_family))
+                    fam = dataclasses.replace(ctrl, **toggle(ctrl))
+                    if fam != ctrl:                            # the variant first: its control follows only if kept
+                        variants += [(name, build(fam)), (CONTROL + name, build(ctrl))]
             for name in sorted(hazards.INCIDENTS):
                 doc = copy.deepcopy(base)
                 hazards.inject(doc, random.Random(f"{pair_id}:{name}"), only=[name])
                 if name in doc.hazards:
                     variants.append((name, doc))
+        kept: set[str] = set()
         for name, doc in variants:
             doc.doc_id = f"{pair_id}_{name}"
             hazards.detect(doc)
-            if name != "base" and name not in doc.hazards:
+            controls = name.removeprefix(CONTROL) if name.startswith(CONTROL) else None
+            if controls and controls not in kept:
+                continue                                   # its variant changed nothing here
+            if not controls and name != "base" and name not in doc.hazards:
                 continue                                   # this content gives that hazard class nothing to act on
+            kept.add(name)
+            pair = {"pair_id": pair_id, "variant": name}
+            if controls:
+                pair["controls"] = controls
+            elif any(v == CONTROL + name for v, _ in variants):
+                pair["control"] = CONTROL + name
             path, pages, delivery = render_doc(doc, root, f"{pair_id}/{name}")
             records.append(record(doc, path, out_dir, pages, [enc],
-                                  {"pair": {"pair_id": pair_id, "variant": name},
+                                  {"pair": pair,
                                    "presentation": {"policy_version": policy,
                                                     "scope": presentation_scope,
-                                                    "purpose": "ordinary" if name == "base" else "stress"}},
+                                                    "purpose": "stress" if name != "base" and not controls
+                                                    else "ordinary"}},
                                   delivery=delivery))
         if views == "ordinary":
             continue

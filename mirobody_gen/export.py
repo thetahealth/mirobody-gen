@@ -32,7 +32,7 @@ def export_family(base: Family, rng: random.Random) -> Family:
     return dataclasses.replace(
         base, family_id=f"export-{'en' if lang == 'en' else 'zh'}", kind="app_export",
         institution="", columns=("meta_checkup", "meta_report_time", "meta_facility", "meta_filename"),
-        headers=headers, bilingual_header=False, subject_in_table=False, previous_column=False,
+        headers=headers, bilingual_header=False, subject_in_table=False, previous_column=False, unit_system="SI",
         watermark=False, date_labels=(), furniture=(), signatures=(),
         fmt=rng.choices(["xlsx", "csv"], weights=[65, 35])[0],
         date_format=rng.choice(["YYYY-MM-DD HH:mm:ss", "YYYY-MM-DD", "YYYY/MM/DD HH:mm"]))

@@ -169,6 +169,12 @@ Abbreviations are an axis too: an institution may print its own (`肌酐(Cr)`, `
 `fuzz` also prints `肌酐(Cre)`, the spelling a resolver once read as a culture code. The catalogue declares
 such collisions (`confusable_with`: PCT is plateletcrit in % or procalcitonin in ng/mL).
 
+Unit systems are drawn the same way, per institution and at the shares measured per language: about one
+Chinese report in sixteen and five English ones in eight print glucose, lipids, creatinine, urate, bilirubin
+and calcium in mg/dL. Such a row converts its printed value, range and flag; its reading stays canonical
+SI (value, unit, LOINC), so one person's series can cross reports printed in two units and still be one
+series. The catalogue lists the mass-concentration code for each conventional unit.
+
 Medication instructions follow the same tiers (`mirobody_gen/sig.py`): each plan's canonical
 `每日2次，每次500mg` is parsed into its intent, which `medications.jsonl` records (`timing`,
 `slots_per_day`, `dose_per_slot`), and respelled in one dialect per plan. The reference set holds too

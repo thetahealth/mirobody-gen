@@ -28,6 +28,7 @@ COMMANDS: dict[str, tuple[str, str]] = {
     "snapshot-fhir": ("mirobody_gen.fhir_source", "Offline lossless Observation source snapshots; no mapping or version selection"),
     "render-fhir-view": ("mirobody_gen.fhir_view", "Source-field HTML consumer with raw provenance and local diagnostics"),
     "paraphrase": ("mirobody_gen.llm.paraphrase", "Offline paraphrase enrichment of narrative templates (dry run by default)"),
+    "propose": ("mirobody_gen.llm.propose", "Propose abbreviations and native-name synonyms for fuzz builds (dry run by default)"),
     "compare": ("mirobody_gen.harness.compare", "Compare two builds of one seed: wording diversity and truth-layer invariance"),
 }
 

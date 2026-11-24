@@ -77,7 +77,7 @@ def hazard_classes() -> dict[str, str]:
     s = spec.surface()
     out = {c["hazard"]: c["description"] for c in s["name_join"]["choices"] if c["hazard"]}
     out.update({s[axis]["hazard"]: s[axis]["description"]
-                for axis in ("name_suffix", "name_marker", "abbr_variants", "unit_system")})
+                for axis in ("name_suffix", "name_marker", "abbr_variants", "name_synonyms", "unit_system")})
     return out
 
 
@@ -144,17 +144,28 @@ def decorate(name: str, item: dict, f: Family) -> tuple[str, list[str]]:
 
 def abbreviation(item: dict, f: Family) -> tuple[str, str | None]:
     """The abbreviation this institution prints for an indicator, and the hazard class when it is not
-    the catalogue's: sticky per institution and indicator when its `abbr_variants` is "drawn". The class
-    has no minimal-contrast toggle: the clean base prints no abbreviations to vary."""
-    abbr, axis = item.get("abbr") or "", spec.surface()["abbr_variants"]
-    listed = axis["indicators"].get(item["key"])
+    the catalogue's. The class has no minimal-contrast toggle: the clean base prints no abbreviations."""
+    return _own_word("abbr_variants", "abbr", item, f, item.get("abbr") or "")
+
+
+def synonym(item: dict, f: Family) -> tuple[str, str | None]:
+    """The native name a Simplified Chinese institution prints for an indicator, and the hazard class when
+    it is not the catalogue's."""
+    return _own_word("name_synonyms", "synonym", item, f, item["zh"])
+
+
+def _own_word(axis: str, seed: str, item: dict, f: Family, canonical: str) -> tuple[str, str | None]:
+    """The word an institution's own dictionary holds on `axis` for an indicator (sticky per institution
+    and indicator, when its `abbr_variants` is "drawn"), and the axis's hazard class when it is not the
+    catalogue's."""
+    listed = spec.surface()[axis]["indicators"].get(item["key"])
     if not f.abbr_variants or not listed:
-        return abbr, None
+        return canonical, None
     choices = allowed(listed, keep_first=True)
     if len(choices) < 2:
-        return abbr, None
-    choice = pick(random.Random(f"abbr:{f.family_id}:{item['key']}"), choices)
-    return (choice["word"], axis["hazard"]) if choice["word"] != abbr else (abbr, None)
+        return canonical, None
+    word = pick(random.Random(f"{seed}:{f.family_id}:{item['key']}"), choices)["word"]
+    return (word, spec.surface()[axis]["hazard"]) if word != canonical else (canonical, None)
 
 
 def conventional(item: dict, f: Family) -> dict | None:

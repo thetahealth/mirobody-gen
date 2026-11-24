@@ -8,6 +8,7 @@ as "the generated value doesn't make sense", which is hard to trace back.
 
 from __future__ import annotations
 
+import copy
 import functools
 import json
 import pathlib
@@ -109,9 +110,27 @@ def llm_prompts() -> dict:
     return _load("llm_prompts.json")
 
 
+@functools.lru_cache(maxsize=None)
 def surface() -> dict:
-    """How institutions write indicator names, with provenance tiers. See `mirobody_gen/surface.py`."""
-    return _load("surface.json")
+    """How institutions write indicator names, with provenance tiers. See `mirobody_gen/surface.py`.
+
+    The `generated` choices of `surface_generated.json` (`mirobody-gen propose`), when present, follow
+    each indicator's list, which starts with the catalogue's own spelling."""
+    out = copy.deepcopy(_load("surface.json"))
+    if GENERATED.is_file():
+        catalogue = indicators()
+        for axis, by_key in json.loads(GENERATED.read_text(encoding="utf-8"))["axes"].items():
+            field = GENERATED_AXES[axis]
+            for key, choices in by_key.items():
+                first = {"word": catalogue[key][field], "tier": "reference", "share": 0,
+                         "sources": ["the catalogue (scripts/build_indicators.py)"]}
+                out[axis]["indicators"].setdefault(key, [first]).extend(choices)
+    return out
+
+
+#: The `generated` tier's forms, and the axes they extend with the catalogue field each list starts from
+GENERATED = RESOURCES / "surface_generated.json"
+GENERATED_AXES = {"abbr_variants": "abbr", "name_synonyms": "zh"}
 
 
 def app_screens() -> dict:

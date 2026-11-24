@@ -310,6 +310,16 @@ privacy gate scans as untrusted text. It is off by default; `mirobody-gen compar
 changed; the design note and contract live in the Chinese design folder (`docs/zh-CN/`, kept out of
 the public tree — ask if you need it).
 
+`mirobody-gen propose --axis synonym|abbr` grows the expression layer the same way: it asks a model,
+one catalogue panel at a time, for other native names or abbreviations reports print for each
+indicator, from the catalogue's own vocabulary (nothing from the reference set goes into a prompt).
+A candidate must pass a deterministic contract (no qualifier, method word, value or added specimen;
+not a spelling the indicator already has), must not be another indicator's spelling (those are kept
+apart as collisions, material for `confusable_with`), and a second model (`--judge`) must read it as
+the same test. Accepted forms land in `resources/surface_generated.json` as the `generated` tier,
+which only `--surface fuzz` builds draw (`name.synonym`, `name.abbr_variant`). Without `--models` it
+writes the request bundle and sends nothing.
+
 ## Status and the mirobody relationship
 
 - This repository ships the generator, its audits and the scoring harness. mirobody 1.5.4's two

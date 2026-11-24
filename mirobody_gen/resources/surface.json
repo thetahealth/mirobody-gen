@@ -142,7 +142,7 @@
     ]
   },
   "sig": {
-    "description": "how a Chinese medication instruction spells one dosing intent; the first choice of each axis is the canonical spelling the resources are written in",
+    "description": "how a Chinese dosing line words one intent; the first choice of each axis is the canonical spelling the resources use",
     "axes": {
       "day_word": {
         "description": "the 'per day' word before a daily count",

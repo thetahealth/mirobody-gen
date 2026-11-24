@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="400" viewBox="0 0 1600 400" role="img" aria-label="mirobody-gen: synthetic health records with row-level ground truth">
+<defs>
+<linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffffff"/><stop offset="1" stop-color="#f6f8fa"/></linearGradient>
+<linearGradient id="trace" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#0969da"/><stop offset="0.75" stop-color="#0969da" stop-opacity="0.55"/><stop offset="1" stop-color="#0969da" stop-opacity="0"/></linearGradient>
+</defs>
+<rect x="1" y="1" width="1598" height="398" rx="28" fill="url(#bg)" stroke="#d0d7de" stroke-width="2"/>
+<g transform="translate(150 58) rotate(7 110 140)" opacity="0.9"><rect width="220" height="280" rx="16" fill="#eef1f4" stroke="#d0d7de" stroke-width="2"/></g>
+<g transform="translate(130 58) rotate(-4 110 140)">
+<rect width="220" height="280" rx="16" fill="#ffffff" stroke="#d0d7de" stroke-width="2"/>
+<rect x="22" y="28" width="118" height="16" rx="8" fill="#0969da"/>
+<rect x="22" y="74" width="92" height="10" rx="5" fill="#d0d7de"/><rect x="132" y="74" width="38" height="10" rx="5" fill="#8c959f"/><rect x="22" y="104" width="78" height="10" rx="5" fill="#d0d7de"/><rect x="132" y="104" width="38" height="10" rx="5" fill="#8c959f"/><rect x="22" y="134" width="64" height="10" rx="5" fill="#d0d7de"/><rect x="132" y="134" width="38" height="10" rx="5" fill="#cf222e"/><rect x="22" y="164" width="92" height="10" rx="5" fill="#d0d7de"/><rect x="132" y="164" width="38" height="10" rx="5" fill="#8c959f"/><rect x="22" y="194" width="78" height="10" rx="5" fill="#d0d7de"/><rect x="132" y="194" width="38" height="10" rx="5" fill="#8c959f"/><rect x="22" y="224" width="64" height="10" rx="5" fill="#d0d7de"/><rect x="132" y="224" width="38" height="10" rx="5" fill="#8c959f"/><path d="M180 144 l7 -11 l7 11 z" fill="#cf222e"/>
+</g>
+<g transform="translate(322 300)"><circle r="30" fill="#1a7f37"/><path d="M-13 1 l9 9 l17 -19" fill="none" stroke="#ffffff" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/></g>
+<text x="440" y="196" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans',Helvetica,Arial,sans-serif" font-size="104" font-weight="700" fill="#1f2328" letter-spacing="-2">mirobody<tspan fill="#0969da">-gen</tspan></text>
+<text x="444" y="258" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans',Helvetica,Arial,sans-serif" font-size="36" fill="#59636e">Synthetic health records with row-level ground truth</text>
+<polyline points="444,320 800,320 826,320 842,292 860,350 878,262 896,320 930,320 1520,320" fill="none" stroke="url(#trace)" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

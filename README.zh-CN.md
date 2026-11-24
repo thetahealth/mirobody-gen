@@ -1,13 +1,31 @@
-# mirobody-gen
+<div align="center">
 
-**可重放的高质量个人健康数据规模化生成器——每份报告、每条可穿戴推送、每句日记、每个基因位点都可追溯到产出它的规则，全部带逐行真值。**
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/assets/banner-dark.svg">
+  <img src="docs/assets/banner-light.svg" alt="mirobody-gen" width="760">
+</picture>
 
-[English](README.md) · [架构](docs/ARCHITECTURE.md) · [隐私模型](docs/PRIVACY.md) · [输出 schema](docs/SCHEMA.md) · [变更日志](CHANGELOG.md)
+<p><b>可重放的高质量个人健康数据规模化生成器。</b>每份报告、每条可穿戴推送、每句日记、每个基因位点都可追溯到产出它的规则，全部带逐行真值。</p>
 
+[![checks](https://github.com/thetahealth/mirobody-gen/actions/workflows/checks.yml/badge.svg?branch=main)](https://github.com/thetahealth/mirobody-gen/actions/workflows/checks.yml)
 [![License: Apache-2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 [![Python 3.11+](https://img.shields.io/badge/python-3.11%2B-3775A9)](pyproject.toml)
+[![Data: synthetic only](https://img.shields.io/badge/data-synthetic%20only-2ea44f)](docs/PRIVACY.md)
 
----
+[English](README.md) · **简体中文**
+
+[快速开始](#快速开始) · [架构](docs/ARCHITECTURE.md) · [输出 schema](docs/SCHEMA.md) · [隐私模型](docs/PRIVACY.md) · [变更日志](CHANGELOG.md) · [引用](CITATION.cff)
+
+<table>
+<tr>
+<td align="center" width="25%"><b>4 个交付渠道</b><br><sub>文档 · 手机健康库 · 厂商云 · 基因组</sub></td>
+<td align="center" width="25%"><b>2 层真值</b><br><sub>每个印刷格写了什么，以及它意味着什么</sub></td>
+<td align="center" width="25%"><b>62 类陷阱</b><br><sub>逐文件具名，最小对照对把每一类单独隔离</sub></td>
+<td align="center" width="25%"><b>字节级重放</b><br><sub>整份语料由生成器 + 种子完全重现</sub></td>
+</tr>
+</table>
+
+</div>
 
 这是一个**独立的生成器项目**。它的职责是产出**广泛、拟真、完全可溯源的个人健康数据**——构成一份真实
 个人档案的全部材料：化验单、体检报告书、门诊病历、可穿戴设备流、手机健康库批次、日记句子与消费级基因导出——

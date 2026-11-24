@@ -1,13 +1,31 @@
-# mirobody-gen
+<div align="center">
 
-**Regenerable, high-quality personal health data at scale — every report, wearable push, journal entry and genotype export traceable to the rule that produced it, with row-level ground truth.**
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/assets/banner-dark.svg">
+  <img src="docs/assets/banner-light.svg" alt="mirobody-gen" width="760">
+</picture>
 
-[中文说明](README.zh-CN.md) · [Architecture](docs/ARCHITECTURE.md) · [Privacy model](docs/PRIVACY.md) · [Output schema](docs/SCHEMA.md) · [Changelog](CHANGELOG.md)
+<p><b>Regenerable personal health data at scale.</b> Every report, wearable push, journal entry and genotype export is traceable to the rule that produced it, with row-level ground truth.</p>
 
+[![checks](https://github.com/thetahealth/mirobody-gen/actions/workflows/checks.yml/badge.svg?branch=main)](https://github.com/thetahealth/mirobody-gen/actions/workflows/checks.yml)
 [![License: Apache-2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 [![Python 3.11+](https://img.shields.io/badge/python-3.11%2B-3775A9)](pyproject.toml)
+[![Data: synthetic only](https://img.shields.io/badge/data-synthetic%20only-2ea44f)](docs/PRIVACY.md)
 
----
+**English** · [简体中文](README.zh-CN.md)
+
+[Quickstart](#quickstart) · [Architecture](docs/ARCHITECTURE.md) · [Output schema](docs/SCHEMA.md) · [Privacy model](docs/PRIVACY.md) · [Changelog](CHANGELOG.md) · [Cite](CITATION.cff)
+
+<table>
+<tr>
+<td align="center" width="25%"><b>4 delivery channels</b><br><sub>documents · phone health store · vendor cloud · genomics</sub></td>
+<td align="center" width="25%"><b>2 truth layers</b><br><sub>what each printed cell says and what it means</sub></td>
+<td align="center" width="25%"><b>62 hazard classes</b><br><sub>named on every file, with minimal pairs that isolate each one</sub></td>
+<td align="center" width="25%"><b>Byte-identical</b><br><sub>the whole corpus regenerates from generator + seed</sub></td>
+</tr>
+</table>
+
+</div>
 
 This is a standalone generator. Its job is to produce **broad, realistic, fully-attributable
 personal health data** — the lab slips, check-up books, clinic notes, wearable streams, phone

@@ -94,7 +94,8 @@ def test_realistic_draws_only_observed_forms():
 
 
 def test_the_rest_of_a_layout_is_the_same_in_every_mode():
-    fields = ("name_join", "name_suffix", "name_suffix_share", "name_marker", "name_marker_share", "abbr_variants", "unit_system")
+    fields = ("name_join", "name_suffix", "name_suffix_share", "name_marker", "name_marker_share", "abbr_variants", "name_synonyms",
+              "unit_system")
 
     def strip(f):
         return dataclasses.replace(f, **{k: layout.Family.__dataclass_fields__[k].default for k in fields})

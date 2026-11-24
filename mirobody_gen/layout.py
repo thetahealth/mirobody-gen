@@ -90,6 +90,7 @@ class Family:
     name_marker: str = ""           # mark glued to the end of some names (#), explained by a footnote
     name_marker_share: float = 0.0
     abbr_variants: str = ""         # "" prints the catalogue's abbreviations, "drawn" the institution's own
+    name_synonyms: str = ""         # "" prints the catalogue's native names, "drawn" the institution's own
     unit_system: str = "SI"         # SI / conventional (mg/dL for glucose, lipids, creatinine...)
 
     @property

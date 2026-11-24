@@ -348,7 +348,8 @@ PAIR_METRICS = ("recall", "precision", "value_acc", "unit_acc", "range_acc", "fl
 
 
 def paired_effects(records: list[dict], predictions: dict[str, list[dict]]) -> dict:
-    """Paired contrasts: variant minus base within each group, averaged per metric.
+    """Paired contrasts: variant minus its control (the group's base unless the variant names one in
+    `pair.control`) within each group, averaged per metric.
 
     A ratio metric counts only when it is defined on both files (e.g. range accuracy is undefined
     after `reference.absent`, so that group is excluded from the average delta range accuracy);
@@ -361,16 +362,20 @@ def paired_effects(records: list[dict], predictions: dict[str, list[dict]]) -> d
             groups[pair["pair_id"]][pair["variant"]] = r
     deltas: dict[str, dict[str, list[float]]] = collections.defaultdict(lambda: collections.defaultdict(list))
     counts: dict[str, int] = collections.Counter()
+    cache: dict[str, dict] = {}
+
+    def scored(rec: dict) -> dict:
+        if rec["file"] not in cache:
+            cache[rec["file"]] = score_document(rec, predictions.get(rec["file"], []), Tally(), {})
+        return cache[rec["file"]]
+
     for variants in groups.values():
-        base = variants.get("base")
-        if not base:
-            continue
-        b = score_document(base, predictions.get(base["file"], []), Tally(), {})
         for name, rec in variants.items():
-            if name == "base":
+            control = variants.get(rec["pair"].get("control", "base"))
+            if name == "base" or rec["pair"].get("controls") or not control:
                 continue
             counts[name] += 1
-            v = score_document(rec, predictions.get(rec["file"], []), Tally(), {})
+            b, v = scored(control), scored(rec)
             for m in PAIR_METRICS:
                 if v[m] is not None and b[m] is not None:
                     deltas[name][m].append(v[m] - b[m])

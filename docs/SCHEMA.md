@@ -256,7 +256,13 @@ still follows each document's existing subject layout.
 class name, or `view:<scene>` for an aligned view. Four views keep the same scan in a PDF
 (thetahealth/mirobody#304): `view:scan_pdf` (image only; table scope), `view:hybrid_pdf` (stamped live
 header and footer around the scan), `view:searchable_pdf` (invisible exact text over the scan) and
-`view:letterhead_pdf` (the born-digital page over a template image); only the first two need OCR. Paired records also carry
+`view:letterhead_pdf` (the born-digital page over a template image); only the first two need OCR. A class
+that cannot show on the clean base has a control of its own: `name.abbr_variant` (fuzz builds) prints the
+institution's abbreviation against `control.name.abbr_variant`, the same layout printing the catalogue's;
+the variant names it in `pair.control`, the control names its variant in `pair.controls` (purpose
+`ordinary`), and paired contrasts subtract the variant from its control. `name.synonym` needs none: the
+clean base prints no abbreviation, so turning on the institution's dictionary changes only native names.
+Paired records also carry
 `presentation`: `policy_version` (`paired-table-v2` or `paired-checkup-v1`),
 `scope` (`table_extraction` or `checkup_document`),
 and `purpose` (`ordinary` for the clean base, `stress` for named hazards and aligned

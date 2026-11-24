@@ -5,6 +5,11 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); ver
 
 ## [Unreleased]
 
+- Minimal-contrast pairs for the naming classes that had none. `name.abbr_variant` gets a control of its
+  own (`control.name.abbr_variant`: the same layout printing the catalogue's abbreviation), named in
+  `pair.control`, and `score --pairs` subtracts the variant from that control; `name.synonym` pairs
+  against the base. Both appear only in builds that draw those classes (fuzz).
+
 - Hybrid PDFs in realistic builds (thetahealth/mirobody#304). `scripts/measure_pdf_layers.py` classifies
   the reference set's 155 PDFs from their layers alone (`render.layers.classify`, in the page's shown frame,
   overlapping images counted once): 116 born-digital, 33 image-only scans, 6 hybrid scans whose only live text is a stamped header and footer off the image, no

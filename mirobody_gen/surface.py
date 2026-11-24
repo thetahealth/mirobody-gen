@@ -195,6 +195,23 @@ def toggles() -> dict:
     for axis in ("name_suffix", "name_marker"):
         if choices := _choices(axis):
             out[spec.surface()[axis]["hazard"]] = only_varying({axis: choices[0]["word"], f"{axis}_share": 1.0})
+    if _drawn("name_synonyms"):         # the clean base prints no abbreviation, so only the native names change
+        out[spec.surface()["name_synonyms"]["hazard"]] = only_varying({"abbr_variants": "drawn"})
     if MODE != "off":
         out[spec.surface()["unit_system"]["hazard"]] = lambda f: {"unit_system": "conventional"}
     return out
+
+
+def controlled() -> dict:
+    """Toggles that need a control of their own, as (control, variant) layout changes: an abbreviation
+    can differ from the catalogue's only on a layout that prints one, which the clean base does not."""
+    if not _drawn("abbr_variants"):
+        return {}
+    control, variant = dict(name_style="native(abbr)", name_join="paren"), {"abbr_variants": "drawn"}
+    return {spec.surface()["abbr_variants"]["hazard"]: (lambda f: control if _varies(f) else {},
+                                                        lambda f: variant if _varies(f) else {})}
+
+
+def _drawn(axis: str) -> bool:
+    """Whether this mode draws any indicator's word on a per-indicator axis other than the catalogue's."""
+    return any(len(allowed(listed, keep_first=True)) > 1 for listed in spec.surface()[axis]["indicators"].values())

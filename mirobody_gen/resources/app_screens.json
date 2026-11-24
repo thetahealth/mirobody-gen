@@ -1,0 +1,23 @@
+{
+  "_source": "hand-authored",
+  "_note": "A smart-scale app page as thetahealth/mirobody#301 describes it: a title, a summary card repeated on every tab, a tab bar whose selected tab differs only by colour and an underline, and a line chart of the selected metric. The layout is field-tier: it reproduces a field report, not a measured share.",
+  "_provenance": {"layout": "thetahealth/mirobody#301", "tier": "field"},
+  "_vocabulary_fields": ["zh", "en"],
+  "tabs": [
+    {"key": "weight", "zh": "体重", "en": "Weight"},
+    {"key": "fat_mass", "zh": "脂肪", "en": "Body fat"},
+    {"key": "muscle_mass", "zh": "肌肉", "en": "Muscle"}
+  ],
+  "titles": {
+    "weight": {"zh": "体重曲线", "en": "Weight trend"},
+    "neutral": {"zh": "身体成分", "en": "Body composition"}
+  },
+  "card": {
+    "baseline": {"zh": "初始体重", "en": "Starting weight"},
+    "goal": {"zh": "目标体重", "en": "Goal weight"},
+    "current": {"zh": "当前体重", "en": "Current weight"},
+    "body_fat": {"zh": "体脂率", "en": "Body fat"},
+    "bmi": {"zh": "BMI", "en": "BMI"},
+    "measured": {"zh": "测量时间", "en": "Measured"}
+  }
+}

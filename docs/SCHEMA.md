@@ -12,7 +12,7 @@ extraction contract (`original_indicator`, `value`, `unit`, `reference_range`, `
 | `exam_type` | `routine` (check-up) · `follow-up` (lab slips only) · `clinic` (outpatient record + lab slips) · `specialty` (single examination) · `home_log` · `export` |
 | `exam_location` | `checkup-center` · `hospital` · `clinic` · `home` |
 | `package` | `entry` (pre-employment) · `senior` (older-adult public-health examination) · `basic` · `standard` · `premium` · `null` |
-| `kind` (document) | `lab_slip` · `checkup_book` · `outpatient_record` · `ecg_report` · `ultrasound_report` · `imaging_report` · `home_log` · `export` · `genetics_report` |
+| `kind` (document) | `lab_slip` · `checkup_book` · `outpatient_record` · `ecg_report` · `ultrasound_report` · `imaging_report` · `home_log` · `export` · `genetics_report` · `app_screenshot` |
 | `tier` | `T0` text-layer PDF · `T1` XLSX/CSV · `T2` scan · `T3` phone photo · `T4` degraded copy · `T6` screen |
 | `handwriting.tier` | `H1` neat (regular-script Chinese, print-like English) · `H2` running hand · `H3` hard cursive, always a `T3` phone photo |
 | `handwriting.scope` | `page` (everything on the page was written by hand) · `values` (a printed form whose results were filled in by hand) |
@@ -626,6 +626,25 @@ non-base row differs from its base in exactly one axis and shares its intent. In
 plans plus twice and three times daily, twice weekly and every other day (one tablet each). A
 `realistic` table holds only base rows, and no weekly or every-other-day intent: neither has an
 observed spelling.
+
+### An app screenshot (`kind: app_screenshot`, `--surface fuzz` only) adds
+
+Three PNGs per person who weighs in at least every other day, one per tab of a smart-scale app's page
+(体重 · 脂肪 · 肌肉, after thetahealth/mirobody#301): a summary card, the tab bar with one tab selected by colour
+and an underline, and a chart of the last seven weigh-ins of the selected tab's metric. `issuer_kind` is
+`consumer_app`, `exam_type` is `device_app`, `family`/`institution`/`package` are `null`.
+
+| Field | Meaning |
+| --- | --- |
+| `readings[]` | the chart: one per point, `key` the active tab's metric (`weight` · `fat_mass` · `muscle_mass`), coded from the catalogue's body-composition vocabulary (29463-7 · 73708-0 · 73964-9), `role` `export`, `source` `consumer_app`. Fat mass is the weight times that day's fat percentage, muscle mass the person's share of the rest, as a bioimpedance scale derives them |
+| `printed_rows[]` | one per point; `item_name` is the active tab's label, the only name the chart's values have, and `section` the page title |
+| `screen` | `tabs[]`, `active_tab`, `title`, `title_variant`: the `weight` title says 体重曲线 whatever tab is selected |
+| `screen_context[]` | the summary card, identical on all three screenshots: `label`, `value`, `unit`, `role` ∈ `baseline` · `goal` (targets, not measurements, so no code) · `latest` (the last weighing's weight, body fat percentage and BMI, with `key`, `loinc`, `observed`) · `measured_at`. An upload of all three holds each latest value once |
+| `coding_context` | `device`: values come from a consumer device and take its vocabulary, not a laboratory's |
+
+`audit-fidelity` leaves app screenshots out, as it does genetics reports: the reference aggregates
+describe laboratory documents. `score` and the baselines read them like home logs, since their printed
+rows are what an extractor must get right.
 
 ### A genetics report file (`kind: genetics_report`) adds
 

@@ -185,6 +185,11 @@ minutes (as the Fitbit Web API documents them) or hours (a field report), someti
 through the series,
 and `devices.jsonl` keeps each night's canonical minutes beside what was sent.
 
+`fuzz` also draws consumer-app screenshots (`kind: app_screenshot`): for a frequent weigher, one smart-scale
+page per tab (体重, 脂肪, 肌肉). The chart's values have no name but the selected tab, and the summary card
+(goal, starting weight, latest weighing) repeats on every tab; the truth separates the chart's readings,
+coded as device measurements, from that card (`screen_context`).
+
 ## Handwriting
 
 ```bash

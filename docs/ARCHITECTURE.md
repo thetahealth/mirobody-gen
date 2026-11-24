@@ -84,7 +84,8 @@ instructions: it parses a canonical instruction into its intent and respells it 
 `render/layers.py` builds PDFs whose image and text layer disagree: a scan stamped with a live header and
 footer (the text layer is long but holds no result), a searchable scan and a page over a template image; the
 pairs carry them as aligned views and the record says which needs OCR. `devices.sent_units` applies them to device batches: the unit an app sends sleep in, converted from the series'
-canonical minutes, which the truth keeps.
+canonical minutes, which the truth keeps. `app_screens.py` draws a smart-scale app's page once per tab
+from the person's own weigh-ins and physiology (field tier, so fuzz only).
 
 **Continuous streams** (opt-in, `build --continuous`). `continuous.py` plans each of a person's days once
 (sleep from the store's sleep record, meals, a run, walking bouts that add up to the store's step count) and

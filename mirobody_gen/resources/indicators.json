@@ -6209,7 +6209,7 @@
       "key": "hpv_other",
       "zh": "其他12型高危HPV",
       "en": "Other high-risk HPV (12 types)",
-      "abbr": "HPV-HR",
+      "abbr": "Other HR HPV",
       "unit": "",
       "decimals": 0,
       "reference": [

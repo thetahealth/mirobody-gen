@@ -5,6 +5,10 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); ver
 
 ## [Unreleased]
 
+- The "other 12 high-risk HPV types" result prints under the vendor's label `Other HR HPV`, not
+  `HPV-HR`, which reads as every high-risk type, 16 and 18 included, and so as another LOINC code
+  (30167-1 rather than 71431-1). Rows that print the abbreviation change; nothing else does.
+
 - Minimal-contrast pairs for the naming classes that had none. `name.abbr_variant` gets a control of its
   own (`control.name.abbr_variant`: the same layout printing the catalogue's abbreviation), named in
   `pair.control`, and `score --pairs` subtracts the variant from that control; `name.synonym` pairs

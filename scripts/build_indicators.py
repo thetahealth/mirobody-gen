@@ -31,6 +31,7 @@ from __future__ import annotations
 import argparse
 import json
 import pathlib
+import sys
 
 REPO = pathlib.Path(__file__).resolve().parent.parent
 RESOURCES = REPO / "mirobody_gen" / "resources"
@@ -305,7 +306,8 @@ add("waist", "腰围", "Waist circumference", "", "cm", 1, ("range_sex", (0, 90)
 add("sbp", "收缩压", "Systolic blood pressure", "SBP", "mmHg", 0, ("range", 90, 139), COMMON,
     None, None, "vitals", variants=("收縮壓", "Systolic Blood Pressure", "血压收缩压"))
 add("dbp", "舒张压", "Diastolic blood pressure", "DBP", "mmHg", 0, ("range", 60, 89), COMMON,
-    None, None, "vitals", variants=("舒張壓", "Diastolic Blood Pressure"))
+    None, None, "vitals", variants=("舒張壓", "Diastolic Blood Pressure"),
+    confusable=({"abbr": "DBP", "note": "also the vitamin D carrier Gc-globulin"},))
 add("pulse", "心率", "Heart rate", "HR", "次/分", 0, ("range", 60, 100), COMMON,
     None, None, "vitals", variants=("脉搏", "脈搏", "Heart Rate", "Pulse"))
 add("resp", "呼吸", "Respiratory rate", "RR", "次/分", 0, ("range", 12, 20), COMMON,
@@ -463,7 +465,7 @@ add("chol", "总胆固醇", "Total cholesterol", "TC", "mmol/L", 2,
     derived="ldl + hdl + tg/2.2 (VLDL cholesterol taken as TG/2.2 mmol/L, the Friedewald relation)")
 add("tg", "甘油三酯", "Triglycerides", "TG", "mmol/L", 2,
     ("upper", 1.70), COMMON, 19.9, 32.7, "lipid",
-    variants=("三酰甘油", "甘油三脂", "TG", "Triglyceride"))
+    variants=("三酰甘油", "甘油三脂", "TG", "Triglyceride"), confusable=({"abbr": "TG", "key": "tg_protein"},))
 add("hdl", "高密度脂蛋白胆固醇", "HDL cholesterol", "HDL-C", "mmol/L", 2,
     ("lower", 1.04), COMMON, 7.3, 21.2, "lipid",
     variants=("高密度脂蛋白", "HDL-C", "HDL Cholesterol"))
@@ -567,7 +569,8 @@ add("urine_ph", "尿酸碱度", "Urine pH", "pH", "", 1,
     ("range", 4.5, 8.0), COMMON, None, None, "urinalysis", variants=("酸碱度", "尿PH", "pH"))
 add("urine_pro", "尿蛋白", "Urine protein", "PRO", "", 0,
     ("qualitative", "阴性"), COMMON, None, None, "urinalysis",
-    variants=("蛋白质", "尿蛋白定性", "PRO"), kind="qualitative")
+    variants=("蛋白质", "尿蛋白定性", "PRO"), kind="qualitative",
+    confusable=({"abbr": "PRO", "note": "also proline, an amino acid measured in plasma"},))
 add("urine_glu", "尿葡萄糖", "Urine glucose", "GLU", "", 0,
     ("qualitative", "阴性"), COMMON, None, None, "urinalysis",
     variants=("尿糖", "葡萄糖(尿)", "U-GLU"), kind="qualitative",
@@ -590,7 +593,8 @@ add("urine_uro", "尿胆原", "Urobilinogen", "URO", "", 0,
     variants=("尿胆素原", "URO", "UBG"), kind="qualitative", own_stream=True)
 add("urine_leu", "白细胞酯酶", "Leukocyte esterase", "LEU", "", 0,
     ("qualitative", "阴性"), COMMON, None, None, "urinalysis",
-    variants=("尿白细胞酯酶", "LEU"), kind="qualitative", own_stream=True)
+    variants=("尿白细胞酯酶", "LEU"), kind="qualitative", own_stream=True,
+    confusable=({"abbr": "LEU", "note": "also leucine, an amino acid measured in plasma"},))
 add("urine_rbc", "镜检红细胞", "Urine RBC (microscopy)", "U-RBC", "/HP", 1,
     ("range", 0, 3), COMMON, None, None, "urinalysis", variants=("尿红细胞", "红细胞(镜检)"))
 add("urine_wbc", "镜检白细胞", "Urine WBC (microscopy)", "U-WBC", "/HP", 1,
@@ -698,7 +702,7 @@ add("ogtt2h", "餐后2小时血糖", "2-hour postprandial glucose", "2hPG", "mmo
 add("tgab", "甲状腺球蛋白抗体", "Thyroglobulin antibody", "TgAb", "IU/mL", 1, ("upper", 115.0), COMMON, 12.0, 60.0, "thyroid",
     variants=("TGAb", "抗甲状腺球蛋白抗体"))
 add("tg_protein", "甲状腺球蛋白", "Thyroglobulin", "Tg", "ng/mL", 2, ("range", 3.5, 77.0), COMMON, 8.0, 40.0, "thyroid",
-    variants=("TG", "甲状腺球蛋白(Tg)"))
+    variants=("TG", "甲状腺球蛋白(Tg)"), confusable=({"abbr": "TG", "key": "tg"},))
 # Rheumatology and immunology
 add("rf", "类风湿因子", "Rheumatoid factor", "RF", "IU/mL", 1, ("upper", 20.0), COMMON, 8.5, 40.0, "immune",
     variants=("RF", "類風濕因子"))
@@ -784,7 +788,8 @@ add("hpv_other", "其他12型高危HPV", "Other high-risk HPV (12 types)", "HPV-
     variants=("高危型HPV(其他)", "HPV其他高危型"), kind="qualitative", sex="female", positive_rate=0.08, positive_values=[["阳性", 1]])
 add("tct", "液基薄层细胞学检查", "Liquid-based cytology (TCT)", "TCT", "", 0, ("qualitative", "NILM"), COMMON, None, None, "cervical",
     variants=("TCT", "宫颈细胞学", "宫颈液基细胞学"), kind="qualitative", sex="female", positive_rate=0.06,
-    positive_values=[["ASC-US", 8], ["LSIL", 2], ["ASC-H", 1]])
+    positive_values=[["ASC-US", 8], ["LSIL", 2], ["ASC-H", 1]],
+    confusable=({"abbr": "TCT", "note": "also the thrombin clotting time, a coagulation test"},))
 
 # Hong Kong / Taiwan spellings: common printed forms of the same indicator in Traditional-script reports
 # (the spelling only: a region tag such as "(HK)" is not part of a printed name and would print verbatim)
@@ -829,6 +834,13 @@ def resolver() -> object:
             "the probe name could not even be resolved, which means the vocabulary isn't "
             "installed properly (missing LFS data?), not that these indicator names truly don't resolve")
     return resolve
+
+
+def resolver_version() -> dict:
+    if str(REPO) not in sys.path:
+        sys.path.insert(0, str(REPO))
+    from mirobody_gen.harness.resolve_coverage import resolver_version as version
+    return version()
 
 
 def resolve_loinc(resolve, name: str) -> tuple[str | None, bool]:
@@ -1010,7 +1022,8 @@ def main() -> None:
                 "biological variation (CVI/CVG) from the Westgard/EFLM databases; `loinc` chosen from "
                 "the LOINC 2.83 table by component, unit-implied property and specimen, and checked "
                 "against it. `mirobody_loinc` and `expect_resolvable` record what mirobody.engine.resolve "
-                "returned for the native name at build time: an observation of the consumer, not truth. "
+                "returned for the native name, from the version in `_provenance.resolver`: an observation "
+                "of the consumer, not truth. "
                 "Nothing here comes from the reference corpus."
             ),
             "_provenance": {
@@ -1019,6 +1032,7 @@ def main() -> None:
                 "loinc_reference": sum(c is not None for c in LOINC.values()),
                 "loinc_resolved": resolved,
                 "loinc_resolver_disagrees": len(disagree),
+                "resolver": resolver_version() if resolve else None,
                 "reference_sources": sorted({i["reference_source"] for i in INDICATORS
                                              if i["reference_source"]}),
             },

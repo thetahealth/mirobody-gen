@@ -10,13 +10,17 @@
     "panels"
   ],
   "_source": "public-standard",
-  "_note": "Reference intervals from WS/T 404.1-.8, WS/T 405 and standard clinical ranges; biological variation (CVI/CVG) from the Westgard/EFLM databases; `loinc` chosen from the LOINC 2.83 table by component, unit-implied property and specimen, and checked against it. `mirobody_loinc` and `expect_resolvable` record what mirobody.engine.resolve returned for the native name at build time: an observation of the consumer, not truth. Nothing here comes from the reference corpus.",
+  "_note": "Reference intervals from WS/T 404.1-.8, WS/T 405 and standard clinical ranges; biological variation (CVI/CVG) from the Westgard/EFLM databases; `loinc` chosen from the LOINC 2.83 table by component, unit-implied property and specimen, and checked against it. `mirobody_loinc` and `expect_resolvable` record what mirobody.engine.resolve returned for the native name, from the version in `_provenance.resolver`: an observation of the consumer, not truth. Nothing here comes from the reference corpus.",
   "_provenance": {
     "script": "scripts/build_indicators.py",
     "indicators": 180,
     "loinc_reference": 179,
-    "loinc_resolved": 132,
-    "loinc_resolver_disagrees": 42,
+    "loinc_resolved": 134,
+    "loinc_resolver_disagrees": 41,
+    "resolver": {
+      "mirobody": "1.6.2",
+      "bundle": "loinc-2.83+2026.10.27-126ecba69782"
+    },
     "reference_sources": [
       "Bethesda（TBS）2014 宫颈细胞学报告系统；《中国子宫颈癌筛查指南（2023）》：NILM 为未见上皮内病变或恶性细胞",
       "KDIGO 2012 慢性肾脏病评估与管理指南（UACR < 30 mg/g）",
@@ -167,8 +171,8 @@
       "confusable_with": [],
       "own_baseline_stream": false,
       "loinc": "8280-0",
-      "mirobody_loinc": null,
-      "expect_resolvable": false
+      "mirobody_loinc": "8280-0",
+      "expect_resolvable": true
     },
     {
       "key": "sbp",
@@ -231,7 +235,12 @@
       "positive_rate": null,
       "positive_values": null,
       "categories": null,
-      "confusable_with": [],
+      "confusable_with": [
+        {
+          "abbr": "DBP",
+          "note": "also the vitamin D carrier Gc-globulin"
+        }
+      ],
       "own_baseline_stream": false,
       "loinc": "8462-4",
       "mirobody_loinc": "8462-4",
@@ -1984,7 +1993,12 @@
       "positive_rate": null,
       "positive_values": null,
       "categories": null,
-      "confusable_with": [],
+      "confusable_with": [
+        {
+          "abbr": "TG",
+          "key": "tg_protein"
+        }
+      ],
       "own_baseline_stream": false,
       "loinc": "14927-8",
       "conventional": {
@@ -2887,8 +2901,8 @@
       "confusable_with": [],
       "own_baseline_stream": false,
       "loinc": "62292-8",
-      "mirobody_loinc": null,
-      "expect_resolvable": false
+      "mirobody_loinc": "1989-3",
+      "expect_resolvable": true
     },
     {
       "key": "ferritin",
@@ -3124,7 +3138,7 @@
       "confusable_with": [],
       "own_baseline_stream": false,
       "loinc": "2857-1",
-      "mirobody_loinc": "15324-7",
+      "mirobody_loinc": "2857-1",
       "expect_resolvable": true
     },
     {
@@ -3252,7 +3266,12 @@
       "positive_rate": null,
       "positive_values": null,
       "categories": null,
-      "confusable_with": [],
+      "confusable_with": [
+        {
+          "abbr": "PRO",
+          "note": "also proline, an amino acid measured in plasma"
+        }
+      ],
       "own_baseline_stream": false,
       "loinc": "2887-8",
       "mirobody_loinc": "2887-8",
@@ -3479,7 +3498,12 @@
       "positive_rate": null,
       "positive_values": null,
       "categories": null,
-      "confusable_with": [],
+      "confusable_with": [
+        {
+          "abbr": "LEU",
+          "note": "also leucine, an amino acid measured in plasma"
+        }
+      ],
       "own_baseline_stream": true,
       "loinc": "105103-6",
       "mirobody_loinc": "5799-2",
@@ -4950,7 +4974,12 @@
       "positive_rate": null,
       "positive_values": null,
       "categories": null,
-      "confusable_with": [],
+      "confusable_with": [
+        {
+          "abbr": "TG",
+          "key": "tg"
+        }
+      ],
       "own_baseline_stream": false,
       "loinc": "3013-0",
       "mirobody_loinc": "3013-0",
@@ -5821,8 +5850,8 @@
       "confusable_with": [],
       "own_baseline_stream": true,
       "loinc": "73708-0",
-      "mirobody_loinc": null,
-      "expect_resolvable": false
+      "mirobody_loinc": "73708-0",
+      "expect_resolvable": true
     },
     {
       "key": "visceral_fat",
@@ -5931,8 +5960,8 @@
       "confusable_with": [],
       "own_baseline_stream": false,
       "loinc": "69429-9",
-      "mirobody_loinc": "82259-3",
-      "expect_resolvable": true
+      "mirobody_loinc": null,
+      "expect_resolvable": false
     },
     {
       "key": "lvef",
@@ -6253,7 +6282,12 @@
         ]
       ],
       "categories": null,
-      "confusable_with": [],
+      "confusable_with": [
+        {
+          "abbr": "TCT",
+          "note": "also the thrombin clotting time, a coagulation test"
+        }
+      ],
       "own_baseline_stream": false,
       "loinc": "19762-4",
       "mirobody_loinc": null,

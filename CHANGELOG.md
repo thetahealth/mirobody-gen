@@ -5,6 +5,22 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); ver
 
 ## [Unreleased]
 
+- The catalogue's resolver observations are re-taken against mirobody 1.6.2 and record the version
+  (`_provenance.resolver`, from `git describe` for a source checkout, since an editable install's
+  metadata can name an older release). Five change: 腰围, PSA and 脂肪量 now resolve to the reference
+  code, 25-羟基维生素D to the D3-only one, and 基础代谢率 no longer resolves. Readings' `expect_resolvable`
+  follows; rendered files are unchanged.
+- `resolve-coverage` also reads `files.jsonl` and `pairs.jsonl`, where the printed names are (about 1,500
+  distinct in a 40-person fuzz build, against 177 catalogue names in a manifest), and breaks them down by
+  `name.*` class; with the LOINC table it splits a miscode into another code for the same analyte and
+  another analyte altogether, listed.
+- `consumer-check BUILD` (run with mirobody's interpreter) puts a build's stress material through mirobody:
+  printed names through the resolver, `sig_pairs.jsonl` through its dose-instruction parser, and the
+  pairs' PDF layer views through its OCR decision, each against the build's truth.
+- New abbreviation collisions in `confusable_with`: TG (triglycerides, thyroglobulin, both in the
+  catalogue), TCT (cytology, thrombin clotting time), DBP (diastolic pressure, vitamin D-binding protein),
+  PRO and LEU (dipstick fields, amino acids).
+
 - Consumer-app screenshots (`kind: app_screenshot`, `--surface fuzz` only; thetahealth/mirobody#301). For a
   person who weighs in at least every other day, three PNGs of one smart-scale page, with 体重, 脂肪 or 肌肉
   selected: the chart's seven values are named only by the selected tab, and the summary card (goal,

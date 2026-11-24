@@ -19,12 +19,18 @@ def _restore_mode():
 
 def test_confusable_senses_name_real_keys_and_agree_both_ways():
     catalogue = spec.indicators()
+    drawn = spec.surface()["abbr_variants"]["indicators"]
+
+    def printed(item):
+        return {item["abbr"], *item["name_variants"], *(v["word"] for v in drawn.get(item["key"], []))}
+
     for key, item in catalogue.items():
         for sense in item["confusable_with"]:
             assert sense.get("key") or sense.get("note"), key
+            assert sense["abbr"] in printed(item), key
             if "key" in sense:
                 other = catalogue[sense["key"]]
-                assert sense["abbr"] == item["abbr"] == other["abbr"], key
+                assert sense["abbr"] in printed(other), key                 # both print the same spelling
                 assert {"abbr": sense["abbr"], "key": key} in other["confusable_with"], key
     assert catalogue["pct"]["unit"] != catalogue["procalcitonin"]["unit"]       # only the unit tells them apart
 

@@ -12,7 +12,7 @@ import math
 import pathlib
 import random
 
-from . import spec
+from . import spec, surface
 from .document import Doc
 from .model import Person
 from .render import degrade, layers, pdf, sheet
@@ -73,6 +73,22 @@ def choose_delivery(rng: random.Random, habit: dict[str, float], pages: int) -> 
     return {"tier": tier, "scene": scene, "severity": severity, "ops": [], "container": container, "annotations": []}
 
 
+def pdf_layer(doc_id: str, delivery: dict) -> dict:
+    """The layers a delivered PDF carries, per file from a stream of its own at the shares measured on the
+    reference set (`pdf_layers` in delivery.json, `scripts/measure_pdf_layers.py`): a scanned PDF may be a
+    hybrid whose hospital system stamped a live header and footer off the image, or a searchable scan; a
+    born-digital one may sit over a template image. Realistic builds draw the observed choices, fuzz builds
+    every one, and `--surface off` none."""
+    axis = _d()["pdf_layers"]
+    rng = random.Random(f"pdf-layer:{doc_id}")
+    if delivery["container"] == "scanpdf":
+        return {**delivery, "container": surface.pick(rng, surface.allowed(axis["scanned"], keep_first=True))["word"]}
+    if delivery["tier"] == "T0" and surface.pick(rng, surface.allowed(axis["born_digital"], keep_first=True))["word"] \
+            == "background":
+        return {**delivery, "background": True}
+    return delivery
+
+
 def render_doc(doc: Doc, out_root: pathlib.Path, rel: str, habit: dict[str, float] | None = None,
                rng: random.Random | None = None, delivery: dict | None = None
                ) -> tuple[pathlib.Path, int | None, dict]:
@@ -103,7 +119,7 @@ def render_doc(doc: Doc, out_root: pathlib.Path, rel: str, habit: dict[str, floa
     data, pages = pdf.render(doc, reported)
     page_break_check(doc, data)
     if delivery is None:
-        delivery = choose_delivery(rng, habit, pages) if (habit and rng) else \
+        delivery = pdf_layer(doc.doc_id, choose_delivery(rng, habit, pages)) if (habit and rng) else \
             {"tier": "T0", "scene": None, "severity": None, "ops": [], "container": "pdf", "annotations": []}
     if delivery["tier"] == "T0":
         if delivery.get("background"):               # born-digital over a full-page template image

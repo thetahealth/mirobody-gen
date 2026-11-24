@@ -190,6 +190,11 @@ page per tab (体重, 脂肪, 肌肉). The chart's values have no name but the s
 (goal, starting weight, latest weighing) repeats on every tab; the truth separates the chart's readings,
 coded as device measurements, from that card (`screen_context`).
 
+About one scanned PDF in seven in the reference set is a hybrid: a scan whose hospital system stamped a
+live header and footer off the image, so its text layer passes a "has text" check and holds no result.
+Realistic builds deliver scanned PDFs that way at the measured share (`pdf_layers` in
+`resources/delivery.json`); the record's `pdf_layers.needs_ocr` says it must be read from pixels.
+
 ## Handwriting
 
 ```bash

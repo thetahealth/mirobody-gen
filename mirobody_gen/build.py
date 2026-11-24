@@ -65,6 +65,10 @@ def main(argv: list[str] | None = None) -> None:
                     help="after writing, run the deterministic audits (clinical, readability, privacy) and write "
                          "verification.json with passed/failed/skipped/not_run per check; exits 1 if a "
                          "required check fails")
+    ap.add_argument("--apple-scenarios", action="store_true",
+                    help="also write Apple Health export scenarios for people with a year or more of Apple Health "
+                         "data: the long span, a re-import of two overlapping exports, a trip abroad "
+                         "(apple_scenarios.jsonl); off by default")
     ap.add_argument("--clinical", action=argparse.BooleanOptionalAction, default=True,
                     help="clinical presentation profile (mirobody_gen/clinical*.py): complete result tables, "
                          "plausible issuers, clinical checkup content (default on); --no-clinical --surface off "
@@ -130,6 +134,11 @@ def main(argv: list[str] | None = None) -> None:
 
     langs = {p.person_id: person_mod.person_lang(args.seed, p.person_id) for p in people}
     n_dev = devices.write_all(out_dir, people, args.seed, langs)
+    if args.apple_scenarios:
+        from . import apple_scenarios
+
+        print(f"Apple Health scenarios for {apple_scenarios.write_all(out_dir, people, args.seed, langs)} people "
+              f"(apple_scenarios.jsonl)")
     n_journal = journal.write_all(out_dir, people, args.seed, langs)
     n_gen = genomics.write_all(out_dir, people, args.seed, langs)
     n_meds = medications.write_all(out_dir, people, args.seed)

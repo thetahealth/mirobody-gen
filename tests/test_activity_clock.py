@@ -80,7 +80,7 @@ def test_export_rejects_overlapping_clock_even_with_plenty_of_steps():
             return None
 
     with pytest.raises(ValueError, match="activity clock"):
-        C._apple_daily(Export(), life, series)
+        C.apple_daily(Export(), life, series)
 
 
 def test_heart_curve_counts_each_declared_walk_minute():

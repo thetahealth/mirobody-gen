@@ -8,11 +8,12 @@ Costs nothing and runs no extraction: it feeds ground-truth rows straight to
 out of the file at all" — folding the two into one number would make an extraction regression and a
 vocabulary regression look identical.
 
-Three numbers, each answering a different question:
+Four numbers, each answering a different question:
 
 | Number | Question |
 |---|---|
 | Coverage | How many of this corpus's printed names resolve to a LOINC code |
+| Miscoded | A name resolved, but not to the code the truth carries (chosen from the LOINC table, never from the resolver) — the confidently wrong answers. `resolve` sees the name alone, so a consumer that settles the property from the unit afterwards may still store the right code |
 | Regressions | The manifest expected a resolve and got none — the vocabulary got worse |
 | Surprises | The manifest expected no resolve but got one — the vocabulary got better, and the spec needs rebuilding |
 
@@ -71,10 +72,13 @@ def main() -> None:
     resolved = regressions = surprises = 0
     regression_names: list[str] = []
     surprise_names: list[str] = []
+    miscoded_names: list[str] = []
     for name, row in sorted(by_name.items()):
         result = resolve(name)
         ok = bool(result.resolved)
         resolved += ok
+        if ok and row.get("loinc") and result.loinc != row["loinc"]:
+            miscoded_names.append(f"{name} → {result.loinc}, truth {row['loinc']}")
         if row.get("expect_resolvable") and not ok:
             regressions += 1
             regression_names.append(name)
@@ -84,6 +88,9 @@ def main() -> None:
 
     total = len(by_name)
     print(f"{total} printed names ({len(rows)} rows) · resolved {resolved} = {resolved / total:.1%}")
+    print(f"miscoded (resolved to another code) {len(miscoded_names)}")
+    for name in miscoded_names:
+        print(f"  ≠ {name}")
     print(f"regressions (expected to resolve, didn't) {regressions}")
     for name in regression_names:
         print(f"  ✗ {name} (occurs {occurrences[name]} times)")

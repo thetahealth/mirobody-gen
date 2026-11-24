@@ -20,7 +20,7 @@ def corpus():
              "printed_rows": [{"item_name": "空腹血糖", "item_value": "5.6", "item_unit": "mmol/L",
                                "item_range": "3.9-6.1", "is_abnormal": "0", "readable": True,
                                "unreadable_fields": [], "readings": [0]}],
-             "readings": [{"key": "glu", "loinc": "1558-6", "canonical_value": 5.6,
+             "readings": [{"key": "glu", "loinc": "14771-0", "canonical_value": 5.6,
                            "value_text": "5.6", "unit_ucum": "mmol/L", "value_kind": "quantitative",
                            "observed": "2025-01-02", "role": "current", "expect_resolvable": True,
                            "printed_row": 0}]}]
@@ -28,7 +28,7 @@ def corpus():
 
 def submission():
     return [{"file": "files/a.pdf", "readings": [
-        {"id": "result-1", "item_name": "空腹血糖", "loinc": "1558-6", "canonical_value": 5.6,
+        {"id": "result-1", "item_name": "空腹血糖", "loinc": "14771-0", "canonical_value": 5.6,
          "unit_ucum": "mmol/L", "observed": "2025-01-02", "role": "current", "source_file": "files/a.pdf"}]}]
 
 

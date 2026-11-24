@@ -22,7 +22,7 @@ Omit an entire unreadable observation, or use `null` to abstain on an
 individual field. An empty unit string means dimensionless; it is not abstention.
 
 ```json
-{"file":"files/p001/report.pdf","readings":[{"id":"local-result-1","item_name":"空腹血糖","loinc":"1558-6","canonical_value":5.6,"unit_ucum":"mmol/L","observed":"2025-01-02","role":"current","source_file":"files/p001/report.pdf"}]}
+{"file":"files/p001/report.pdf","readings":[{"id":"local-result-1","item_name":"空腹血糖","loinc":"14771-0","canonical_value":5.6,"unit_ucum":"mmol/L","observed":"2025-01-02","role":"current","source_file":"files/p001/report.pdf"}]}
 ```
 
 All shown keys are required. `id` is a nonempty, prediction-local ID unique within

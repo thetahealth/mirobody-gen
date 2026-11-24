@@ -19,7 +19,7 @@ page, where each value was written and how legible the ink still is after captur
   (eAG mmol/L = 1.59 × HbA1c − 2.59; Nathan et al., Diabetes Care 2008;31:1473): the day's four-point
   mean equals the eAG of the person's expected HbA1c that day, with meal-to-meal and meter variation
   (σ 0.14 on the log scale, the order of the ISO 15197:2013 meter tolerance). They are recorded under
-  the catalogue's plasma keys (`glu`; `ogtt2h`, LOINC 1521-4, two hours after a meal): the catalogue
+  the catalogue's plasma keys (`glu`; `ogtt2h`, LOINC 14761-1, two hours after a meal): the catalogue
   has no capillary-meter indicators, and the reading means the same thing to a reader.
 * The doctor's note and the form carry the visit's own readings, the ones its printed record shows.
 

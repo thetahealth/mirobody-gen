@@ -38,8 +38,10 @@ def test_printed_rows_count_per_name_and_code_and_break_down_by_name_class(tmp_p
                   {"item_name": "PCT", "readings": [2], "hazards": []},
                   {"item_name": "肌酐测定", "readings": [3], "hazards": ["name.assay_suffix"]},
                   {"item_name": "肌酐测定", "readings": [3], "hazards": ["name.assay_suffix"]},
-                  {"item_name": "备注", "readings": [], "hazards": []}]}
+                  {"item_name": "备注", "readings": [], "hazards": []},
+                  {"item_name": "血压", "readings": [0, 1], "hazards": []}]}           # a pair: no single code
     rows = rc.load_rows(_write(tmp_path / "files.jsonl", [record]))
+    assert rows.pop() == {"name": "血压", "loinc": None, "expect": None, "classes": ["plain"]}
     assert len(rows) == 5 and all(r["expect"] is None for r in rows)
     lines, regressions = rc.report(rows, fake_resolve)
     assert regressions == 0

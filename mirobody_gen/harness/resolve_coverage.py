@@ -50,15 +50,17 @@ def load_rows(path: pathlib.Path) -> list[dict]:
 
 def rows_of(records: list[dict]) -> list[dict]:
     """Every printed name with its truth code: a manifest's rows (with `expect_resolvable`), or the printed
-    rows of a file manifest (with their `name.*` classes)."""
+    rows of a file manifest (with their `name.*` classes). A row whose readings carry different codes (血压
+    printing systolic and diastolic) names a group, so it has no truth code to miss."""
     rows = []
     for rec in records:
         rows += [{"name": r["original_indicator"], "loinc": r.get("loinc"),
                   "expect": r.get("expect_resolvable"), "classes": None} for r in rec.get("rows", [])]
         for row in rec.get("printed_rows", []):
             if row.get("readings"):
-                reading = rec["readings"][row["readings"][0]]
-                rows.append({"name": row["item_name"], "loinc": reading.get("loinc"), "expect": None,
+                codes = {rec["readings"][i].get("loinc") for i in row["readings"]}
+                rows.append({"name": row["item_name"], "loinc": codes.pop() if len(codes) == 1 else None,
+                             "expect": None,
                              "classes": sorted(h for h in row.get("hazards", []) if h.startswith("name."))
                              or ["plain"]})
     return rows

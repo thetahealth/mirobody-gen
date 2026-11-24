@@ -184,6 +184,8 @@ def audit(manifest: pathlib.Path, ocr: bool = False, stats: dict | None = None) 
             print(f"missing synthetic flag  {rec['file']}")
             problems += 1
         text = file_text(base / rec["file"])
+        if rec.get("pdf_layers", {}).get("needs_ocr"):
+            text = None                      # a live header over a scanned body: the results are in the pixels
         if text is None and rec.get("handwriting"):
             # A handwritten page cannot be re-read without a handwriting recogniser. What can be checked
             # here is that the record is consistent with its own transcript (every truth row was written);

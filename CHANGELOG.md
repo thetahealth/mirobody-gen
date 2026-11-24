@@ -5,6 +5,14 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); ver
 
 ## [Unreleased]
 
+- PDF layer views (thetahealth/mirobody#304): `--pairs` adds, per pair, the scan as an image-only PDF
+  (`view:scan_pdf`), as a hybrid page whose hospital system stamped a live header and footer around the
+  scan (`view:hybrid_pdf`: over 40 characters of text, none on the image, no result), as a searchable scan
+  (`view:searchable_pdf`) and the born-digital page over a letterhead image (`view:letterhead_pdf`). The
+  first two must be read from pixels, the other two from their exact text layer; `pdf_layers` in the
+  record says which without opening the PDF. `audit-readability` reads a hybrid page as an image, as
+  OCR would, instead of trusting its partial text layer.
+
 - Exam shapes from thetahealth/mirobody#281. Every printed row records `section`, the nearest printed
   heading over it (table caption, block title or document title), so a test can check that an
   extractor fills the row's panel from the page (RV5 under `心电图报告`). Block truth records

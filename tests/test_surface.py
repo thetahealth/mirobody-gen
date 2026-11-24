@@ -61,6 +61,7 @@ def test_resource_contract():
     choices = s["name_join"]["choices"] + s["name_suffix"]["choices"] + s["name_marker"]["choices"]
     choices += [c for a in s["sig"]["axes"].values() for c in a["choices"]]
     choices += [c for a in s["device_units"].values() for c in a["choices"]]
+    choices += [c for listed in s["abbr_variants"]["indicators"].values() for c in listed]
     assert all(c["tier"] in s["tiers"] for c in choices)
     assert all(c["share"] > 0 for c in choices if c["tier"] == "observed")
     assert all(c.get("sources") for c in choices if c["tier"] in ("reference", "field", "generated"))
@@ -91,7 +92,7 @@ def test_realistic_draws_only_observed_forms():
 
 
 def test_the_rest_of_a_layout_is_the_same_in_every_mode():
-    fields = ("name_join", "name_suffix", "name_suffix_share", "name_marker", "name_marker_share")
+    fields = ("name_join", "name_suffix", "name_suffix_share", "name_marker", "name_marker_share", "abbr_variants")
 
     def strip(f):
         return dataclasses.replace(f, **{k: layout.Family.__dataclass_fields__[k].default for k in fields})

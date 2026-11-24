@@ -102,6 +102,7 @@ IDENTITIES: list[tuple[str, str, tuple[str, ...], object, float]] = [
     ("fpsa_ratio", "free/total PSA", ("fpsa", "psa"), lambda v: v["fpsa"] / v["psa"], 0.03),
     ("pgr", "pepsinogen ratio = PG I / PG II", ("pg1", "pg2"), lambda v: v["pg1"] / v["pg2"], 0.15),
     ("fev1", "FEV1 = FVC × FEV1/FVC ratio", ("fvc", "fev1_fvc"), lambda v: v["fvc"] * v["fev1_fvc"] / 100, 0.05),
+    ("rdw_sd", "RDW-SD = 3.59 × RDW-CV × MCV", ("rdw", "mcv"), lambda v: 3.59 * v["rdw"] * v["mcv"] / 100, 0.08),
 ]
 
 #: Physiological hard limits: the extremes a living person can reach, much wider than any reference
@@ -138,6 +139,7 @@ HARD_LIMITS: dict[str, tuple[float, float]] = {
     "body_fat": (3, 60), "visceral_fat": (1, 30), "muscle_mass": (10, 70), "bmr": (700, 3000),
     "lvef": (15, 85), "lvedd": (30, 80), "ivs": (4, 25), "la": (20, 70), "ea": (0.3, 4),
     "pg1": (5, 600), "pg2": (1, 120), "pgr": (0.5, 40), "fpsa_ratio": (0.02, 1.0),
+    "rdw_sd": (20, 120), "procalcitonin": (0, 1000), "rv5": (0, 6), "sv1": (0, 5),
     # below water is impossible; contrast media can push a sample past 1.040
     "urine_sg": (1.000, 1.050),
 }

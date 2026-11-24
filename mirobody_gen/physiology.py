@@ -297,6 +297,9 @@ def derive(values: dict[str, float], person, when: date) -> dict[str, float]:
         out["hgb"] = values["rbc"] * out["mch"]
     if has("rbc", "mcv"):
         out["hct"] = values["rbc"] * values["mcv"] / 10
+    if has("rdw", "mcv"):
+        # RDW-SD is read at 20% of the histogram's peak: 2*sqrt(2 ln 5) = 3.59 SDs of a normal shape
+        out["rdw_sd"] = 3.59 * values["rdw"] * values["mcv"] / 100
     if has("tp", "alb"):
         out["glb"] = values["tp"] - values["alb"]
     # Direct bilirubin is a **fraction** of total bilirubin, not an independent measurement: it must

@@ -46,10 +46,11 @@ def _tiers() -> set[str]:
     return set(spec.surface()["modes"][MODE])
 
 
-def allowed(choices: list[dict]) -> list[dict]:
-    """The choices this mode may draw. A realistic build keeps only the first of an axis whose
-    observations add up to less than `min_support`: too few to estimate the shares from."""
-    out = [c for c in choices if c["tier"] in _tiers()]
+def allowed(choices: list[dict], keep_first: bool = False) -> list[dict]:
+    """The choices this mode may draw (with `keep_first`, the canonical first one whatever its tier).
+    A realistic build keeps only the first of an axis whose observations add up to less than
+    `min_support`: too few to estimate the shares from."""
+    out = [c for c in choices if c["tier"] in _tiers() or keep_first and c is choices[0]]
     if MODE == "realistic" and sum(c["share"] for c in out) < spec.surface()["min_support"]:
         return out[:1]
     return out
@@ -75,7 +76,7 @@ def hazard_classes() -> dict[str, str]:
     """Every hazard class this layer can produce -> its description."""
     s = spec.surface()
     out = {c["hazard"]: c["description"] for c in s["name_join"]["choices"] if c["hazard"]}
-    out.update({s[axis]["hazard"]: s[axis]["description"] for axis in ("name_suffix", "name_marker")})
+    out.update({s[axis]["hazard"]: s[axis]["description"] for axis in ("name_suffix", "name_marker", "abbr_variants")})
     return out
 
 
@@ -97,7 +98,9 @@ def draw(f: Family, rng: random.Random) -> Family:
         word = pick(rng, choices)["word"] if choices else ""    # drawn either way: the stream stays aligned
         if on and word:
             affixes.update({axis: word, f"{axis}_share": _rate(axis, "row_rate")})
-    return dataclasses.replace(f, name_join=join, **affixes)
+    # Realistic builds always consult the abbreviation axis (its evidence decides); fuzz ones per institution
+    own = rng.random() < spec.surface()["fuzz_rate"] or MODE == "realistic"
+    return dataclasses.replace(f, name_join=join, abbr_variants="drawn" if own else "", **affixes)
 
 
 def revised(f: Family, year: int) -> tuple[Family, list[str]]:
@@ -129,6 +132,21 @@ def decorate(name: str, item: dict, f: Family) -> tuple[str, list[str]]:
         name += f.name_marker
         applied.append(spec.surface()["name_marker"]["hazard"])
     return name, applied
+
+
+def abbreviation(item: dict, f: Family) -> tuple[str, str | None]:
+    """The abbreviation this institution prints for an indicator, and the hazard class when it is not
+    the catalogue's: sticky per institution and indicator when its `abbr_variants` is "drawn". The class
+    has no minimal-contrast toggle: the clean base prints no abbreviations to vary."""
+    abbr, axis = item.get("abbr") or "", spec.surface()["abbr_variants"]
+    listed = axis["indicators"].get(item["key"])
+    if not f.abbr_variants or not listed:
+        return abbr, None
+    choices = allowed(listed, keep_first=True)
+    if len(choices) < 2:
+        return abbr, None
+    choice = pick(random.Random(f"abbr:{f.family_id}:{item['key']}"), choices)
+    return (choice["word"], axis["hazard"]) if choice["word"] != abbr else (abbr, None)
 
 
 def join_hazard(form: str) -> str | None:

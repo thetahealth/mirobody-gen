@@ -317,5 +317,105 @@
         }
       ]
     }
+  },
+  "abbr_variants": {
+    "hazard": "name.abbr_variant",
+    "description": "an abbreviation other than the catalogue's, from the institution's own dictionary (肌酐(Cr), 空腹血糖(GLU))",
+    "indicators": {
+      "crea": [
+        {
+          "word": "CREA",
+          "tier": "observed",
+          "share": 1
+        },
+        {
+          "word": "Cr",
+          "tier": "observed",
+          "share": 1
+        },
+        {
+          "word": "Cre",
+          "tier": "field",
+          "share": 0,
+          "sources": [
+            "thetahealth/mirobody#306"
+          ]
+        }
+      ],
+      "glu": [
+        {
+          "word": "FPG",
+          "tier": "reference",
+          "share": 0,
+          "sources": [
+            "the catalogue's own abbreviation (scripts/build_indicators.py)"
+          ]
+        },
+        {
+          "word": "GLU",
+          "tier": "observed",
+          "share": 2
+        }
+      ],
+      "urea": [
+        {
+          "word": "BUN",
+          "tier": "reference",
+          "share": 0,
+          "sources": [
+            "the catalogue's own abbreviation (scripts/build_indicators.py)"
+          ]
+        },
+        {
+          "word": "UREA",
+          "tier": "observed",
+          "share": 1
+        },
+        {
+          "word": "Urea",
+          "tier": "observed",
+          "share": 1
+        }
+      ],
+      "hdl": [
+        {
+          "word": "HDL-C",
+          "tier": "observed",
+          "share": 1
+        },
+        {
+          "word": "HDL",
+          "tier": "observed",
+          "share": 1
+        }
+      ],
+      "ldl": [
+        {
+          "word": "LDL-C",
+          "tier": "observed",
+          "share": 1
+        },
+        {
+          "word": "LDL",
+          "tier": "observed",
+          "share": 1
+        }
+      ],
+      "ua": [
+        {
+          "word": "UA",
+          "tier": "reference",
+          "share": 0,
+          "sources": [
+            "the catalogue's own abbreviation (scripts/build_indicators.py)"
+          ]
+        },
+        {
+          "word": "URIC",
+          "tier": "observed",
+          "share": 1
+        }
+      ]
+    }
   }
 }

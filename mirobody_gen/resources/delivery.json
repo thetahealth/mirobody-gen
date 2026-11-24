@@ -3,7 +3,8 @@
  "_note": "交付形态（文本层 / 扫描 / 手机照片 / 劣化件 / 屏幕）的分层与场景权重、严重度分布、栅格化分辨率、笔圈率。校准依据是参考集图像的聚合统计（numbers_images.json）。",
  "_provenance": {
   "script": "scripts/build_profile.py",
-  "calibrated_against": "numbers_images.json"
+  "calibrated_against": "numbers_images.json",
+  "pdf_layers": "scripts/measure_pdf_layers.py (observed shares)"
  },
  "_vocabulary_fields": [],
  "tier_weights": {
@@ -58,5 +59,46 @@
   "T4": 200,
   "T6": 150
  },
- "annotate_rate": 0.15
+ "annotate_rate": 0.15,
+ "pdf_layers": {
+  "description": "the PDF container a delivered file takes, by its layers: a scanned PDF may carry the hospital system's live header and footer off the image (hybridpdf) or an exact invisible OCR layer (ocrpdf); a born-digital page may sit over a full-page template image (background)",
+  "scanned": [
+   {
+    "word": "scanpdf",
+    "tier": "observed",
+    "share": 33
+   },
+   {
+    "word": "hybridpdf",
+    "tier": "observed",
+    "share": 6,
+    "sources": [
+     "thetahealth/mirobody#304"
+    ]
+   },
+   {
+    "word": "ocrpdf",
+    "tier": "reference",
+    "share": 0,
+    "sources": [
+     "a searchable scan, the counterexample whose text layer is exact"
+    ]
+   }
+  ],
+  "born_digital": [
+   {
+    "word": "pdf",
+    "tier": "observed",
+    "share": 116
+   },
+   {
+    "word": "background",
+    "tier": "reference",
+    "share": 0,
+    "sources": [
+     "a born-digital page over a template image, the counterexample whose text layer is exact"
+    ]
+   }
+  ]
+ }
 }

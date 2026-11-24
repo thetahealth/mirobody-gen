@@ -111,3 +111,61 @@ def with_background(source: bytes, seed: str) -> bytes:
             bg = letterhead(int(page.rect.width * 2), int(page.rect.height * 2), f"{seed}:{i}")
             page.insert_image(page.rect, stream=_jpeg(bg), overlay=False)
         return doc.tobytes(garbage=4, deflate=True, no_new_id=True)
+
+
+#: A page is a picture of a page when images cover at least this share of it
+IMAGE_COVER = 0.5
+#: Text a page needs before its layer counts (mirobody's own threshold, `MIN_PAGE_TEXT`)
+MIN_TEXT = 40
+#: The top and bottom share of a page where a hybrid scan's stamped header and footer sit
+EDGE = 0.15
+
+
+def page_layers(page) -> str:
+    """What one PDF page is, read from its layers alone: `text` (a born-digital page), `image_only` (a scan
+    with no text layer), `hybrid` (a scan with live text off the image, at least half of it in the header
+    and footer strips), `figure` (text beside a large picture, mid-page: a born-digital page),
+    `searchable` (a scan under an invisible OCR layer) or `background` (visible text over a full-page
+    image)."""
+    import fitz
+
+    # Images and text come in the unrotated frame; the header and footer are where the page is shown
+    shown = page.rotation_matrix
+    boxes = [r * shown & page.rect for x in page.get_images(full=True) for r in page.get_image_rects(x[0])]
+    if _cover(boxes, page.rect) < IMAGE_COVER:
+        return "text"
+    spans = [(s["type"], fitz.Rect(s["bbox"]) * shown, len(s["chars"])) for s in page.get_texttrace()]
+    if sum(n for _, _, n in spans) < MIN_TEXT:
+        return "image_only"
+    over = [(kind, n) for kind, rect, n in spans if any(rect.intersects(b) for b in boxes)]
+    if sum(n for kind, n in over if kind == 3) >= MIN_TEXT:     # render mode 3: invisible
+        return "searchable"
+    if sum(n for kind, n in over if kind != 3) >= MIN_TEXT:
+        return "background"
+    height, total = page.rect.height, sum(n for _, _, n in spans)
+    edges = sum(n for _, rect, n in spans if rect.y1 < EDGE * height or rect.y0 > (1 - EDGE) * height)
+    return "hybrid" if edges >= total / 2 else "figure"
+
+
+def _cover(boxes: list, frame) -> float:
+    """The share of `frame` the boxes cover, overlaps counted once (sampled on a 64 x 64 grid)."""
+    import fitz
+
+    n = 64
+    points = [fitz.Point(frame.x0 + (i + 0.5) * frame.width / n, frame.y0 + (j + 0.5) * frame.height / n)
+              for i in range(n) for j in range(n)]
+    return sum(any(p in b for b in boxes) for p in points) / len(points)
+
+
+def classify(data: bytes) -> str:
+    """A PDF's class: `hybrid` when any page is one (a single such page loses its rows to a text-layer
+    check), otherwise its most common page class; `empty` without pages."""
+    import collections
+
+    import fitz
+
+    with fitz.open("pdf", data) as pdf:
+        pages = collections.Counter(page_layers(p) for p in pdf)
+    if not pages:
+        return "empty"
+    return "hybrid" if pages["hybrid"] else pages.most_common(1)[0][0]

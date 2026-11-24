@@ -106,3 +106,57 @@ def test_every_institution_stamps_past_the_text_threshold():
         stamp = [f"{shortest}  {min(t['doc_titles'][lang], key=len)}", t["page_number"][lang],
                  t["printed_at"][lang].format(t="2024-01-02 10:11:12"), "报告时间: 2024-01-02"]
         assert len("".join("".join(stamp).split())) > 50, lang
+
+
+def test_the_classifier_reads_each_layered_delivery_as_what_it_is(rendered):
+    from mirobody_gen.render import layers
+
+    _, out = rendered
+    got = {name: layers.classify(pdf.tobytes()) for name, (pdf, _) in out.items()}
+    assert got == {"scan": "image_only", "hybrid": "hybrid", "searchable": "searchable", "letterhead": "background"}
+
+
+def test_scanned_pdfs_become_hybrid_at_the_measured_share_and_only_where_a_mode_allows():
+    from mirobody_gen import delivery, spec, surface
+
+    scanned = {c["word"]: c for c in spec.delivery()["pdf_layers"]["scanned"]}
+    share = scanned["hybridpdf"]["share"] / sum(c["share"] for c in scanned.values() if c["tier"] == "observed")
+    try:
+        for mode in ("off", "realistic", "fuzz"):
+            surface.set_mode(mode)
+            drawn = [delivery.pdf_layer(f"d{i}", {"tier": "T2", "container": "scanpdf"})["container"]
+                     for i in range(3000)]
+            born = [delivery.pdf_layer(f"d{i}", {"tier": "T0", "container": "pdf"}).get("background")
+                    for i in range(3000)]
+            if mode == "off":
+                assert set(drawn) == {"scanpdf"} and not any(born)
+            elif mode == "realistic":
+                assert set(drawn) == {"scanpdf", "hybridpdf"} and not any(born)       # nothing unobserved
+                assert abs(drawn.count("hybridpdf") / len(drawn) - share) < 0.03
+            else:
+                assert set(drawn) == set(scanned) and any(born)
+    finally:
+        surface.set_mode("realistic")
+
+
+def test_the_classifier_reads_a_page_as_shown_and_counts_overlapping_images_once(rendered):
+    import io
+
+    from PIL import Image
+
+    from mirobody_gen.render import layers
+
+    _, out = rendered
+    turned = fitz.open("pdf", out["hybrid"][0].tobytes())
+    for page in turned:
+        page.set_rotation(180)                        # a scanner's /Rotate: header and footer swap, still edges
+    assert layers.classify(turned.tobytes()) == "hybrid"
+
+    buf = io.BytesIO()
+    Image.new("RGB", (30, 40), "white").save(buf, "PNG")
+    pdf = fitz.open()
+    page = pdf.new_page(width=600, height=800)
+    for _ in range(3):                                # one picture placed three times covers a quarter
+        page.insert_image(fitz.Rect(0, 0, 300, 400), stream=buf.getvalue())
+    page.insert_text((320, 500), "born-digital text " * 5, fontsize=8)
+    assert layers.page_layers(page) == "text"

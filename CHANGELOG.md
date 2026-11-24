@@ -5,6 +5,14 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); ver
 
 ## [Unreleased]
 
+- The first `generated` tier (`resources/surface_generated.json`): 235 native-name synonyms for 124
+  indicators and 274 abbreviations for 128, proposed by deepseek-v4-flash and gpt-6-luna, judged by
+  claude-haiku-4.5 against each panel's other tests, replay-screened. Nine collisions (`PR` pulse rate and
+  PR interval, `TCT`, urine `Hb`, `Body Fat` …) are recorded for review, not drawn. In a 40-person fuzz
+  build mirobody's resolver codes 19% of the synonym rows and 14% of the abbreviation rows right, against
+  49% of plain names. Tests see the expression layer without this tier unless marked
+  (`tests/conftest.py`); `tests/test_generated_forms.py` checks the shipped file against the contract.
+
 - The "other 12 high-risk HPV types" result prints under the vendor's label `Other HR HPV`, not
   `HPV-HR`, which reads as every high-risk type, 16 and 18 included, and so as another LOINC code
   (30167-1 rather than 71431-1). Rows that print the abbreviation change; nothing else does.

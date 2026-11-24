@@ -322,7 +322,8 @@ A candidate must pass a deterministic contract (no qualifier, method word, value
 not a spelling the indicator already has), must not be another indicator's spelling (those are kept
 apart as collisions, material for `confusable_with`), and a second model (`--judge`) must read it as
 the same test. Accepted forms land in `resources/surface_generated.json` as the `generated` tier, which
-only `--surface fuzz` builds draw; they print as `name.synonym` or `name.abbr_variant` rows. Without
+only `--surface fuzz` builds draw; they print as `name.synonym` or `name.abbr_variant` rows (the shipped
+file holds 235 synonyms and 274 abbreviations from a first run, 2026-11-24). Without
 `--models` it writes the request bundle and sends nothing.
 
 ## Status and the mirobody relationship

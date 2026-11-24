@@ -1,0 +1,135 @@
+{
+  "_source": "format-token",
+  "_note": "How an institution writes an indicator name it means: the expression layer read by mirobody_gen/surface.py. Every choice carries a provenance tier. Shares and rates of `observed` choices are written by scripts/distill_surface.py from aggregate counts over the reference set; every other entry is hand-authored and names its source.",
+  "_provenance": {
+    "script": "scripts/distill_surface.py",
+    "method": "Chinese reference documents' printed row names; a join counts only when both halves are catalogue vocabulary, so join shares undercount and are small-sample (n per form below). Suffix/marker rates: document rate, and rows marked within the documents that mark any.",
+    "panels": "hand-authored: the laboratory panels whose items an LIS dictionary appends an assay word or send-out marker to",
+    "measured": {
+      "reference_documents": 347,
+      "name_join_documents": {
+        "glued": 6,
+        "paren": 9,
+        "abbr_first": 2,
+        "spaced": 2
+      },
+      "name_suffix_documents": 16,
+      "name_marker_documents": 3
+    }
+  },
+  "_vocabulary_fields": [
+    "word"
+  ],
+  "tiers": {
+    "observed": "an aggregate rate distilled from the reference set",
+    "reference": "a published standard, terminology or vendor specification",
+    "field": "a downstream consumer's bug report, not yet seen in the reference set",
+    "generated": "proposed by a language model and accepted by a contract"
+  },
+  "modes": {
+    "off": [],
+    "realistic": [
+      "observed"
+    ],
+    "fuzz": [
+      "observed",
+      "reference",
+      "field",
+      "generated"
+    ]
+  },
+  "fuzz_rate": 0.5,
+  "panels": [
+    "chemistry",
+    "lipid",
+    "glucose",
+    "thyroid",
+    "immune",
+    "hepatitis",
+    "coagulation",
+    "tumor",
+    "anemia",
+    "inflammation",
+    "renal_early",
+    "cardiac",
+    "vitamin"
+  ],
+  "name_join": {
+    "description": "how a native name and its abbreviation share one name cell, in Chinese documents of institutions that print both",
+    "choices": [
+      {
+        "form": "paren",
+        "tier": "observed",
+        "share": 9,
+        "hazard": null
+      },
+      {
+        "form": "glued",
+        "tier": "observed",
+        "share": 6,
+        "hazard": "name.glued_to_abbr",
+        "description": "abbreviation run into the native name with no separator (白细胞WBC)",
+        "sources": [
+          "thetahealth/mirobody#305"
+        ]
+      },
+      {
+        "form": "abbr_first",
+        "tier": "observed",
+        "share": 2,
+        "hazard": "name.abbr_first",
+        "description": "abbreviation printed before the native name (WBC白细胞)"
+      },
+      {
+        "form": "spaced",
+        "tier": "observed",
+        "share": 2,
+        "hazard": "name.spaced_abbr",
+        "description": "abbreviation after the native name, separated by a space (白细胞 WBC)"
+      }
+    ]
+  },
+  "name_suffix": {
+    "hazard": "name.assay_suffix",
+    "description": "an assay word appended to some names in an institution's dictionary (尿酸(UA)测定)",
+    "family_rate": 0.0461,
+    "row_rate": 0.088,
+    "choices": [
+      {
+        "word": "测定",
+        "tier": "observed",
+        "share": 18
+      },
+      {
+        "word": "检测",
+        "tier": "observed",
+        "share": 1,
+        "sources": [
+          "thetahealth/mirobody#234"
+        ]
+      }
+    ]
+  },
+  "name_marker": {
+    "hazard": "name.trailing_marker",
+    "description": "a mark glued to the end of some names, explained by a footnote (γ-谷氨酰基转移酶*)",
+    "family_rate": 0.0086,
+    "row_rate": 0.1461,
+    "note": "注：项目名称后标{mark}者为委托外送检测项目",
+    "choices": [
+      {
+        "word": "#",
+        "tier": "observed",
+        "share": 13
+      },
+      {
+        "word": "*",
+        "tier": "field",
+        "share": 0,
+        "sources": [
+          "thetahealth/mirobody#234"
+        ]
+      }
+    ]
+  }
+}

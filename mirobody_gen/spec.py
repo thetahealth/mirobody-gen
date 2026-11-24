@@ -109,6 +109,11 @@ def llm_prompts() -> dict:
     return _load("llm_prompts.json")
 
 
+def surface() -> dict:
+    """How institutions write indicator names, with provenance tiers. See `mirobody_gen/surface.py`."""
+    return _load("surface.json")
+
+
 def handwriting() -> dict:
     """What a hand may write, the writing tiers, inks and paper. See `scripts/build_handwriting.py`."""
     return _load("handwriting.json")

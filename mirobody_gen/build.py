@@ -21,7 +21,7 @@ import argparse
 import collections
 import pathlib
 
-from . import clinical, spec, manifest, person as person_mod
+from . import clinical, spec, manifest, surface, person as person_mod
 
 
 def _positive_int(text: str) -> int:
@@ -67,8 +67,13 @@ def main(argv: list[str] | None = None) -> None:
                          "required check fails")
     ap.add_argument("--clinical", action=argparse.BooleanOptionalAction, default=True,
                     help="clinical presentation profile (mirobody_gen/clinical*.py): complete result tables, "
-                         "plausible issuers, clinical checkup content (default on); --no-clinical reproduces "
-                         "builds made before it was the default")
+                         "plausible issuers, clinical checkup content (default on); --no-clinical --surface off "
+                         "reproduces builds made before it was the default")
+    ap.add_argument("--surface", choices=("realistic", "fuzz", "off"), default="realistic",
+                    help="how institutions write indicator names (mirobody_gen/surface.py): 'realistic' draws only "
+                         "forms measured in the reference set, at their measured rates; 'fuzz' also draws forms "
+                         "known from field reports, at raised rates (never for realism numbers); 'off' prints "
+                         "names as builds made before this layer did")
     ap.add_argument("--lang-mix", default=None,
                     help="language-group ratio, e.g. 'zh:0.45,en:0.4,ja:0.15' (default zh:0.5,en:0.5). "
                          "Unknown groups fall back to English document templates; the mix changes "
@@ -97,6 +102,7 @@ def main(argv: list[str] | None = None) -> None:
             ap.error(f"--lang-mix: {e}")
 
     clinical.set_enabled(args.clinical)
+    surface.set_mode(args.surface)
     people = person_mod.build_cohort(args.seed, args.people)
     encounters = {p.person_id: person_mod.encounters_for(p, args.seed) for p in people}
     if service_profile is not None:
@@ -114,6 +120,7 @@ def main(argv: list[str] | None = None) -> None:
         "seed": args.seed, "encounter_stream_policy": person_mod.ENCOUNTER_STREAM_POLICY,
         "scope": "scheduled encounter draws; not a clinical calibration or whole-source cutoff certificate",
         **({"clinical_profile": True} if args.clinical else {}),
+        **({"surface_mode": args.surface} if args.surface != "off" else {}),
     }, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     print(f"{len(people)} people · {n_enc} encounters · {n_rows} readings → {out_dir}")
 

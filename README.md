@@ -139,10 +139,30 @@ kidneys and both thyroid lobes, and no H. pylori antibody beside a breath test; 
 coherently. These are presentation rules (`mirobody_gen/clinical*.py`), not validated clinical facts. A
 build records `"clinical_profile": true` in `generation.json`.
 
-`--no-clinical` turns the profile off and reproduces, byte for byte, a build made before it became the
-default (commit `9723605` and earlier, without `--clinical`), apart from a page where a template had
+`--no-clinical` turns the profile off and, with `--surface off`, reproduces byte for byte a build made
+before it became the default (commit `9723605` and earlier, without `--clinical`), apart from a page where a template had
 printed the since-removed name variant `空腹血糖(HK)`. `--clinical` is still accepted and changes
 nothing, so recipes pinned with it build the same bytes.
+
+## How names are written
+
+```bash
+mirobody-gen build --seed 7 --out out/p3 --render                    # --surface realistic (default)
+mirobody-gen build --seed 7 --out out/fuzz --render --surface fuzz
+```
+
+The simulation decides what a row means; `mirobody_gen/surface.py` decides how an institution writes it.
+Each written form in `resources/surface.json` carries a provenance tier: `observed` (an aggregate rate
+distilled from the reference set), `reference` (a published standard or vendor specification), `field`
+(a downstream consumer's bug report) or `generated` (proposed by a language model and accepted by a
+contract). Only Simplified Chinese institutions vary, as the reference set measures nothing else. The
+default `realistic` mode draws only observed forms at their measured rates: an
+abbreviation run into the name (`白细胞WBC`), printed before it or after a space, an assay word
+(`尿酸测定`) or a send-out mark (`尿酸#`, with a footnote). `fuzz` draws every tier at raised rates and
+lets an institution's naming drift between template revisions; it is material for finding a consumer's
+failures, not for realism numbers. `--surface off` prints names as builds made before this layer did,
+byte for byte. Every form names a hazard class (`name.*`) with row attribution, while the reading's key
+and value stay those of the indicator; `--pairs` adds one minimal-contrast variant per class.
 
 ## Handwriting
 
@@ -242,7 +262,7 @@ Field-by-field definitions: [docs/SCHEMA.md](docs/SCHEMA.md).
 
 ## Determinism and audits
 
-The corpus is a function of generator + seed (+ `--lang-mix`, + `--paraphrase`, + `--handwriting`, + `--no-clinical`): two builds with
+The corpus is a function of generator + seed (+ `--lang-mix`, + `--paraphrase`, + `--handwriting`, + `--no-clinical`, + `--surface`): two builds with
 the same parameters are byte-identical, so `out/` is disposable and the generator plus the seed
 **is** the artefact. Three audits gate a build (clinical, readability, privacy); fidelity reports
 against reference aggregates; the test suite runs clinical + readability on a small build, and CI

@@ -324,8 +324,12 @@ than pass through this synthetic event adjustment.
 Per person: `vendor`, `source` (the `source` value a phone client sends), `files[]`, `habits`
 (`weigh_rate`, `wearable`, `cuff`), `n_records`, `records[]` with `indicator` (the vendor field name),
 `metric` (`weight` · `rhr` · `hr` · `steps` · `sbp` · `dbp` · `sleep`), `loinc`, `value`, `unit`,
-`time`. Each batch file is `{"records": [{indicator, value, unit, time, source, end_time?}]}` with at
-most 500 records.
+`time`, and for sleep (unless `--surface off`) `canonical`: `{value, unit}` in minutes. Each batch file is
+`{"records": [{indicator, value, unit, time, source, end_time?}]}` with at most 500 records.
+
+Under `--surface fuzz`, sleep goes out in the unit the person's app picked (`min` · `ms` · `s` · `h`,
+`resources/surface.json` `device_units`), and for some people switches unit once part way through the
+series; `value`/`unit` are what was sent and `canonical` the night it describes.
 
 ## `vendor_signals.jsonl` and `vendor_signals/<person>/<vendor>.json`
 
